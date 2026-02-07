@@ -1,0 +1,107 @@
+# TradingExecution Configuration
+# ===============================
+# Configuration for the trading execution engine
+
+# Exchange Settings
+exchanges:
+  binance:
+    enabled: true
+    testnet: true  # Use testnet by default for safety
+    rate_limit: 1200  # requests per minute
+    
+  coinbase:
+    enabled: true
+    sandbox: true
+    rate_limit: 600
+    
+  kraken:
+    enabled: true
+    rate_limit: 300
+
+# Order Execution Settings
+execution:
+  # Default order type
+  default_order_type: "limit"
+  
+  # Slippage tolerance (percentage)
+  max_slippage: 0.5
+  
+  # Order timeout (seconds)
+  order_timeout: 30
+  
+  # Retry settings
+  max_retries: 3
+  retry_delay: 1.0
+  
+  # Fill or kill for market orders
+  fill_or_kill: false
+  
+  # Minimum order value (USD)
+  min_order_value: 10
+
+# Risk Management
+risk:
+  # Position limits
+  max_position_size_usd: 10000
+  max_order_size_usd: 5000
+  max_open_positions: 10
+  
+  # Loss limits
+  max_daily_loss_usd: 1000
+  max_weekly_loss_usd: 3000
+  max_monthly_loss_usd: 10000
+  
+  # Trade limits
+  daily_trade_limit: 100
+  
+  # Concentration
+  max_concentration_pct: 25
+  
+  # Leverage
+  max_leverage: 1.0
+
+# Paper Trading
+paper_trading:
+  enabled: true
+  initial_balance:
+    USD: 100000
+    BTC: 1.0
+    ETH: 10.0
+  # Simulate realistic fills with slippage
+  simulate_slippage: true
+  slippage_bps: 10  # 10 basis points
+
+# Logging
+logging:
+  level: INFO
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  
+  # Trade logging
+  log_all_orders: true
+  log_rejections: true
+  log_fills: true
+
+# Persistence
+persistence:
+  # Order history retention (days)
+  history_retention_days: 90
+  
+  # Backup frequency
+  backup_interval_hours: 24
+  
+  # Storage location (relative to TradingExecution/)
+  data_dir: "data"
+
+# Notifications
+notifications:
+  # Alert on fills
+  alert_on_fill: true
+  
+  # Alert on rejections
+  alert_on_rejection: true
+  
+  # Alert on risk breaches
+  alert_on_risk_breach: true
+  
+  # Minimum fill value to notify (USD)
+  min_notify_value: 100

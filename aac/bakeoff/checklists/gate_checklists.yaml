@@ -1,0 +1,340 @@
+# AAC Gate Checklists
+# Structured validation for each promotion gate
+# Version: 1.0.0
+
+gate_checklists:
+  version: "1.0.0"
+
+  # ============== GATE 0: SPEC ==============
+  SPEC:
+    name: "Strategy Specification Gate"
+    reviewer_required: true
+    checklist:
+      hypothesis:
+        - id: "SPEC-001"
+          item: "Core hypothesis clearly stated"
+          required: true
+        - id: "SPEC-002"
+          item: "Edge source identified and quantified"
+          required: true
+        - id: "SPEC-003"
+          item: "Time horizon and expected holding period defined"
+          required: true
+          
+      assumptions:
+        - id: "SPEC-010"
+          item: "Market structure assumptions documented"
+          required: true
+        - id: "SPEC-011"
+          item: "Liquidity assumptions documented"
+          required: true
+        - id: "SPEC-012"
+          item: "Volatility regime assumptions documented"
+          required: true
+          
+      failure_modes:
+        - id: "SPEC-020"
+          item: "At least 5 failure modes identified"
+          required: true
+        - id: "SPEC-021"
+          item: "Failure signatures defined for each mode"
+          required: true
+        - id: "SPEC-022"
+          item: "Mitigations documented for each failure mode"
+          required: true
+          
+      data_contracts:
+        - id: "SPEC-030"
+          item: "All data sources listed with schemas"
+          required: true
+        - id: "SPEC-031"
+          item: "Data freshness requirements specified"
+          required: true
+        - id: "SPEC-032"
+          item: "Fallback behavior for data outages defined"
+          required: true
+          
+      risk_envelope:
+        - id: "SPEC-040"
+          item: "Max position size defined"
+          required: true
+        - id: "SPEC-041"
+          item: "Max daily loss defined"
+          required: true
+        - id: "SPEC-042"
+          item: "Max drawdown defined"
+          required: true
+        - id: "SPEC-043"
+          item: "Concentration limits defined"
+          required: true
+          
+      kill_switch:
+        - id: "SPEC-050"
+          item: "Automatic kill switch conditions defined"
+          required: true
+        - id: "SPEC-051"
+          item: "Manual kill switch procedure documented"
+          required: true
+        - id: "SPEC-052"
+          item: "Position unwinding plan documented"
+          required: true
+
+  # ============== GATE 1: SIM ==============
+  SIM:
+    name: "Simulation Gate"
+    auto_validate: true
+    checklist:
+      backtest_quality:
+        - id: "SIM-001"
+          item: "Backtest period >= 6 months"
+          required: true
+          metric: "backtest_period_months"
+          threshold: ">= 6"
+        - id: "SIM-002"
+          item: "Walk-forward validation passed"
+          required: true
+        - id: "SIM-003"
+          item: "Out-of-sample performance within 20% of in-sample"
+          required: true
+          
+      performance_metrics:
+        - id: "SIM-010"
+          item: "Sharpe ratio >= 1.5"
+          required: true
+          metric: "sharpe_ratio"
+          threshold: ">= 1.5"
+        - id: "SIM-011"
+          item: "Profit factor >= 1.3"
+          required: true
+          metric: "profit_factor"
+          threshold: ">= 1.3"
+        - id: "SIM-012"
+          item: "Win rate >= 45%"
+          required: false
+          metric: "win_rate"
+          threshold: ">= 45"
+          
+      risk_metrics:
+        - id: "SIM-020"
+          item: "Max drawdown < 15%"
+          required: true
+          metric: "max_drawdown_pct"
+          threshold: "< 15"
+        - id: "SIM-021"
+          item: "Worst month < -5%"
+          required: true
+          metric: "worst_month_return_pct"
+          threshold: "> -5"
+          
+      execution_simulation:
+        - id: "SIM-030"
+          item: "Slippage model calibrated to live data"
+          required: true
+        - id: "SIM-031"
+          item: "Fill probability model validated"
+          required: true
+
+  # ============== GATE 2: PAPER ==============
+  PAPER:
+    name: "Paper Trading Gate"
+    min_duration_days: 14
+    auto_validate: true
+    checklist:
+      duration:
+        - id: "PAPER-001"
+          item: "Minimum 14 days of paper trading"
+          required: true
+          metric: "paper_trading_days"
+          threshold: ">= 14"
+        - id: "PAPER-002"
+          item: "Minimum 50 paper trades executed"
+          required: true
+          metric: "paper_trade_count"
+          threshold: ">= 50"
+          
+      performance:
+        - id: "PAPER-010"
+          item: "Paper profit factor >= 1.2"
+          required: true
+          metric: "paper_profit_factor"
+          threshold: ">= 1.2"
+        - id: "PAPER-011"
+          item: "Paper performance within 30% of simulation"
+          required: true
+          
+      execution_quality:
+        - id: "PAPER-020"
+          item: "Fill rate >= 95%"
+          required: true
+          metric: "fill_rate"
+          threshold: ">= 95"
+        - id: "PAPER-021"
+          item: "Simulated slippage within 2x of model"
+          required: true
+          
+      operations:
+        - id: "PAPER-030"
+          item: "No Sev1 incidents during paper trading"
+          required: true
+          metric: "sev1_count"
+          threshold: "== 0"
+        - id: "PAPER-031"
+          item: "Recon backlog < 5 minutes (p95)"
+          required: true
+          metric: "recon_backlog_p95_minutes"
+          threshold: "< 5"
+
+  # ============== GATE 3: PILOT ==============
+  PILOT:
+    name: "Pilot Trading Gate"
+    min_duration_days: 28
+    max_capital_usd: 1000
+    auto_validate: true
+    checklist:
+      duration:
+        - id: "PILOT-001"
+          item: "Minimum 28 days of pilot trading"
+          required: true
+          metric: "pilot_trading_days"
+          threshold: ">= 28"
+        - id: "PILOT-002"
+          item: "Minimum 100 live trades executed"
+          required: true
+          metric: "pilot_trade_count"
+          threshold: ">= 100"
+          
+      performance:
+        - id: "PILOT-010"
+          item: "Pilot Sharpe ratio >= 1.0"
+          required: true
+          metric: "pilot_sharpe_ratio"
+          threshold: ">= 1.0"
+        - id: "PILOT-011"
+          item: "Positive total return"
+          required: true
+          metric: "pilot_total_return_pct"
+          threshold: "> 0"
+          
+      risk:
+        - id: "PILOT-020"
+          item: "Max drawdown < 10%"
+          required: true
+          metric: "pilot_max_drawdown_pct"
+          threshold: "< 10"
+        - id: "PILOT-021"
+          item: "No daily loss > 3%"
+          required: true
+          metric: "pilot_max_daily_loss_pct"
+          threshold: "< 3"
+          
+      execution:
+        - id: "PILOT-030"
+          item: "Slippage p95 < 15 bps"
+          required: true
+          metric: "slippage_bps_p95"
+          threshold: "< 15"
+        - id: "PILOT-031"
+          item: "Fill rate >= 98%"
+          required: true
+          metric: "fill_rate"
+          threshold: ">= 98"
+          
+      operations:
+        - id: "PILOT-040"
+          item: "No Sev1 incidents during pilot"
+          required: true
+          metric: "sev1_count"
+          threshold: "== 0"
+        - id: "PILOT-041"
+          item: "MTTD < 10 minutes"
+          required: true
+          metric: "mttd_minutes"
+          threshold: "< 10"
+
+  # ============== GATE 4: POST_ANALYSIS ==============
+  POST_ANALYSIS:
+    name: "Post-Pilot Analysis Gate"
+    reviewer_required: true
+    checklist:
+      attribution:
+        - id: "POST-001"
+          item: "Performance attribution analysis complete"
+          required: true
+        - id: "POST-002"
+          item: "Alpha source verified and quantified"
+          required: true
+        - id: "POST-003"
+          item: "Transaction cost analysis complete"
+          required: true
+          
+      failure_review:
+        - id: "POST-010"
+          item: "All incidents root-caused"
+          required: true
+        - id: "POST-011"
+          item: "Failure mode predictions validated"
+          required: true
+        - id: "POST-012"
+          item: "New failure modes documented"
+          required: true
+          
+      dependencies:
+        - id: "POST-020"
+          item: "Data dependency audit complete"
+          required: true
+        - id: "POST-021"
+          item: "Exchange dependency audit complete"
+          required: true
+        - id: "POST-022"
+          item: "Infrastructure dependency audit complete"
+          required: true
+          
+      documentation:
+        - id: "POST-030"
+          item: "Ops runbook updated"
+          required: true
+        - id: "POST-031"
+          item: "Monitoring dashboard configured"
+          required: true
+        - id: "POST-032"
+          item: "Alerting rules configured"
+          required: true
+
+  # ============== GATE 5: SCALE ==============
+  SCALE:
+    name: "Scale Gate"
+    reviewer_required: true
+    ongoing_validation: true
+    checklist:
+      approval:
+        - id: "SCALE-001"
+          item: "Post-analysis gate passed"
+          required: true
+        - id: "SCALE-002"
+          item: "Capital allocation approved"
+          required: true
+        - id: "SCALE-003"
+          item: "Risk committee sign-off"
+          required: true
+          
+      monitoring:
+        - id: "SCALE-010"
+          item: "Real-time dashboard active"
+          required: true
+        - id: "SCALE-011"
+          item: "Alerting configured and tested"
+          required: true
+        - id: "SCALE-012"
+          item: "Weekly review cadence established"
+          required: true
+          
+      controls:
+        - id: "SCALE-020"
+          item: "Kill switch tested in production"
+          required: true
+        - id: "SCALE-021"
+          item: "Position limits configured"
+          required: true
+        - id: "SCALE-022"
+          item: "Loss limits configured"
+          required: true

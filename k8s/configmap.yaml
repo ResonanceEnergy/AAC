@@ -1,0 +1,33 @@
+# ACC ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: acc-config
+  namespace: acc
+data:
+  PAPER_TRADING: "true"
+  DRY_RUN: "false"
+  LOG_LEVEL: "INFO"
+  HEALTH_SERVER_PORT: "8080"
+  REDIS_URL: "redis://acc-redis:6379"
+---
+# ACC Secrets (create with actual values)
+apiVersion: v1
+kind: Secret
+metadata:
+  name: acc-secrets
+  namespace: acc
+type: Opaque
+stringData:
+  # Exchange API Keys - replace with actual values
+  BINANCE_API_KEY: ""
+  BINANCE_API_SECRET: ""
+  COINBASE_API_KEY: ""
+  COINBASE_API_SECRET: ""
+  COINBASE_PASSPHRASE: ""
+  KRAKEN_API_KEY: ""
+  KRAKEN_API_SECRET: ""
+  # Notification Keys
+  TELEGRAM_BOT_TOKEN: ""
+  TELEGRAM_CHAT_ID: ""
+  SLACK_WEBHOOK_URL: ""

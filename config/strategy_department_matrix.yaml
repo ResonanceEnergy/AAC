@@ -1,0 +1,551 @@
+# AAC Strategy-to-Department Matrix
+# Complete mapping of 50 strategies to departments with cross-dependencies
+
+strategies:
+  # ═══════════════════════════════════════════════════════════════════════════
+  # GROUP A: STAT ARB / ETF STRATEGIES (Primary: TradingExecution)
+  # ═══════════════════════════════════════════════════════════════════════════
+  
+  s01_etf_nav_dislocation:
+    name: "ETF–NAV Dislocation Harvesting"
+    primary_owner: TradingExecution
+    strategy_type: stat_arb
+    edge_source: pricing_inefficiency
+    time_horizon: intraday
+    complexity: high
+    data_requirements:
+      - nav_calculations  # from BigBrain
+      - etf_prices  # real-time
+      - index_futures  # for hedging
+    execution_requirements:
+      - create_redeem_access
+      - low_latency_futures
+      - basket_execution
+    cross_department_dependencies:
+      BigBrainIntelligence:
+        - provides: nav_fair_value_calculation
+        - provides: dislocation_signal
+      CentralAccounting:
+        - provides: ap_basket_reconciliation
+        - provides: fee_calculation
+      CryptoIntelligence:
+        - provides: venue_routing_optimization
+    metrics_produced:
+      - nav_dislocation_bps
+      - hedge_effectiveness
+      - create_redeem_pnl
+    risk_envelope:
+      max_position_pct: 5%
+      max_holding_period: 1_day
+      stop_loss_bps: 50
+      
+  s02_index_reconstitution:
+    name: "Index Reconstitution & Closing-Auction Liquidity"
+    primary_owner: BigBrainIntelligence
+    strategy_type: event_driven
+    edge_source: flow_prediction
+    time_horizon: days
+    complexity: medium
+    data_requirements:
+      - index_membership_announcements
+      - historical_reconstitution_data
+      - closing_auction_data
+    execution_requirements:
+      - closing_auction_access
+      - multi_day_position_management
+    cross_department_dependencies:
+      TradingExecution:
+        - provides: closing_auction_execution
+        - provides: imbalance_data
+      CentralAccounting:
+        - provides: position_tracking
+        - provides: multi_day_pnl
+    metrics_produced:
+      - add_delete_prediction_accuracy
+      - closing_auction_fill_rate
+      - recon_alpha_bps
+    risk_envelope:
+      max_position_pct: 3%
+      max_holding_period: 5_days
+      stop_loss_bps: 100
+
+  s03_closing_auction_imbalance:
+    name: "Closing-Auction Imbalance Micro-Alpha"
+    primary_owner: TradingExecution
+    strategy_type: microstructure
+    edge_source: order_flow_prediction
+    time_horizon: minutes
+    complexity: high
+    data_requirements:
+      - real_time_imbalance_data
+      - paired_quantity_data
+      - historical_close_patterns
+    execution_requirements:
+      - sub_second_latency
+      - imbalance_feed_access
+      - closing_auction_routing
+    cross_department_dependencies:
+      BigBrainIntelligence:
+        - provides: imbalance_prediction_model
+        - provides: final_print_forecast
+      CentralAccounting:
+        - provides: intraday_pnl_tracking
+    metrics_produced:
+      - imbalance_prediction_accuracy
+      - close_alpha_bps
+      - fill_at_close_rate
+    risk_envelope:
+      max_position_pct: 2%
+      max_holding_period: 1_hour
+      stop_loss_bps: 25
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # GROUP B: OVERNIGHT / TIME-OF-DAY STRATEGIES
+  # ═══════════════════════════════════════════════════════════════════════════
+  
+  s04_overnight_intraday_split:
+    name: "Overnight vs. Intraday Split (News-Guided)"
+    primary_owner: BigBrainIntelligence
+    strategy_type: time_of_day
+    edge_source: behavioral_pattern
+    time_horizon: overnight
+    complexity: medium
+    data_requirements:
+      - news_sentiment_nlp
+      - topic_prevalence_models
+      - overnight_returns_history
+    cross_department_dependencies:
+      TradingExecution:
+        - provides: overnight_position_management
+        - provides: pre_market_execution
+      CentralAccounting:
+        - provides: session_split_pnl
+        - provides: overnight_risk_metrics
+    metrics_produced:
+      - overnight_alpha_bps
+      - topic_selection_accuracy
+      - news_signal_strength
+    risk_envelope:
+      max_position_pct: 5%
+      max_holding_period: 1_day
+      stop_loss_bps: 75
+
+  s10_turn_of_month:
+    name: "Turn-of-the-Month Overlay"
+    primary_owner: CentralAccounting
+    strategy_type: calendar_anomaly
+    edge_source: behavioral_pattern
+    time_horizon: days
+    complexity: low
+    data_requirements:
+      - calendar_data
+      - futures_prices
+      - historical_tom_returns
+    cross_department_dependencies:
+      TradingExecution:
+        - provides: futures_execution
+        - provides: position_roll_management
+      BigBrainIntelligence:
+        - provides: tom_signal_enhancement
+        - provides: attention_filter
+    metrics_produced:
+      - tom_alpha_bps
+      - signal_hit_rate
+      - futures_roll_cost
+    risk_envelope:
+      max_position_pct: 10%
+      max_holding_period: 5_days
+      stop_loss_bps: 100
+
+  s11_overnight_jump_reversion:
+    name: "Overnight Jump Reversion"
+    primary_owner: TradingExecution
+    strategy_type: mean_reversion
+    edge_source: overreaction
+    time_horizon: hours
+    complexity: medium
+    data_requirements:
+      - overnight_gap_data
+      - pre_market_prices
+      - volatility_metrics
+    cross_department_dependencies:
+      BigBrainIntelligence:
+        - provides: gap_magnitude_classification
+        - provides: reversion_probability
+      CentralAccounting:
+        - provides: intraday_pnl
+        - provides: risk_attribution
+    metrics_produced:
+      - gap_fade_alpha_bps
+      - reversion_success_rate
+      - holding_period_optimal
+    risk_envelope:
+      max_position_pct: 3%
+      max_holding_period: 4_hours
+      stop_loss_bps: 50
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # GROUP C: MACRO / EVENT STRATEGIES
+  # ═══════════════════════════════════════════════════════════════════════════
+  
+  s05_fomc_cycle:
+    name: "FOMC Cycle & Pre-Announcement Drift"
+    primary_owner: BigBrainIntelligence
+    strategy_type: macro_event
+    edge_source: uncertainty_premium
+    time_horizon: days
+    complexity: medium
+    data_requirements:
+      - fomc_calendar
+      - economic_indicators
+      - regime_classification
+    cross_department_dependencies:
+      TradingExecution:
+        - provides: pre_fomc_positioning
+        - provides: announcement_execution
+      CentralAccounting:
+        - provides: event_pnl_attribution
+        - provides: risk_budget_allocation
+    metrics_produced:
+      - pre_fomc_drift_bps
+      - regime_filter_accuracy
+      - announcement_alpha
+    risk_envelope:
+      max_position_pct: 5%
+      max_holding_period: 7_days
+      stop_loss_bps: 100
+
+  s20_monetary_momentum:
+    name: "Monetary Momentum Window"
+    primary_owner: BigBrainIntelligence
+    strategy_type: macro_trend
+    edge_source: policy_cycle
+    time_horizon: weeks
+    complexity: medium
+    data_requirements:
+      - fomc_decisions
+      - policy_stance_indicators
+      - yield_curve_data
+    cross_department_dependencies:
+      TradingExecution:
+        - provides: futures_positioning
+        - provides: gradual_entry_exit
+      CentralAccounting:
+        - provides: multi_week_tracking
+        - provides: risk_budget
+    metrics_produced:
+      - monetary_drift_alpha
+      - policy_prediction_accuracy
+    risk_envelope:
+      max_position_pct: 10%
+      max_holding_period: 30_days
+      stop_loss_bps: 200
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # GROUP D: VOLATILITY / VRP STRATEGIES
+  # ═══════════════════════════════════════════════════════════════════════════
+  
+  s06_vrp_cross_asset:
+    name: "Variance Risk Premium (Cross-Asset)"
+    primary_owner: CentralAccounting
+    strategy_type: volatility_premium
+    edge_source: risk_premium
+    time_horizon: weeks
+    complexity: high
+    data_requirements:
+      - implied_volatility_surfaces
+      - realized_volatility_history
+      - cross_asset_correlations
+    cross_department_dependencies:
+      TradingExecution:
+        - provides: options_execution
+        - provides: delta_hedging
+      BigBrainIntelligence:
+        - provides: iv_rv_gap_model
+        - provides: optimal_tenor_selection
+      CryptoIntelligence:
+        - provides: multi_asset_routing
+    metrics_produced:
+      - vrp_capture_pct
+      - iv_rv_spread
+      - hedge_slippage
+    risk_envelope:
+      max_notional: $5000
+      max_vega: $500
+      stop_loss_pct: 10%
+
+  s07_session_split_vrp:
+    name: "Session-Split VRP"
+    primary_owner: CentralAccounting
+    strategy_type: volatility_premium
+    edge_source: time_decomposition
+    time_horizon: overnight
+    complexity: high
+    data_requirements:
+      - overnight_variance
+      - intraday_variance
+      - session_decomposition
+    cross_department_dependencies:
+      TradingExecution:
+        - provides: overnight_options_execution
+        - provides: intraday_hedge_adjustment
+      BigBrainIntelligence:
+        - provides: session_vrp_decomposition
+        - provides: optimal_timing
+    metrics_produced:
+      - overnight_vrp_capture
+      - intraday_vrp_capture
+      - session_timing_accuracy
+    risk_envelope:
+      max_notional: $3000
+      max_holding_period: 1_day
+      stop_loss_pct: 5%
+
+  s08_active_dispersion:
+    name: "Active Dispersion (Correlation Risk Premium)"
+    primary_owner: CryptoIntelligence
+    strategy_type: correlation_arb
+    edge_source: correlation_premium
+    time_horizon: weeks
+    complexity: high
+    data_requirements:
+      - single_stock_implied_vol
+      - index_implied_vol
+      - implied_correlation
+      - realized_correlation
+    cross_department_dependencies:
+      TradingExecution:
+        - provides: options_execution
+        - provides: basket_hedging
+      BigBrainIntelligence:
+        - provides: ic_rc_gap_model
+        - provides: compression_warning
+      CentralAccounting:
+        - provides: greeks_tracking
+        - provides: correlation_pnl
+    metrics_produced:
+      - dispersion_alpha
+      - ic_rc_spread
+      - compression_loss_rate
+    risk_envelope:
+      max_notional: $5000
+      max_vega: $1000
+      stop_loss_pct: 15%
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # GROUP E: EARNINGS / FUNDAMENTAL STRATEGIES
+  # ═══════════════════════════════════════════════════════════════════════════
+  
+  s12_post_earnings_accruals:
+    name: "Post-Earnings/Accruals Subset Alpha"
+    primary_owner: BigBrainIntelligence
+    strategy_type: fundamental
+    edge_source: information_processing
+    time_horizon: days
+    complexity: medium
+    data_requirements:
+      - earnings_surprises
+      - accruals_data
+      - analyst_coverage
+    cross_department_dependencies:
+      TradingExecution:
+        - provides: pead_execution
+        - provides: position_management
+      CentralAccounting:
+        - provides: fundamental_data_ingestion
+        - provides: attribution
+    metrics_produced:
+      - pead_alpha_bps
+      - accruals_signal_strength
+      - coverage_filter_accuracy
+    risk_envelope:
+      max_position_pct: 3%
+      max_holding_period: 10_days
+      stop_loss_bps: 150
+
+  s13_earnings_iv_crush:
+    name: "Earnings IV Run-Up / Crush"
+    primary_owner: BigBrainIntelligence
+    strategy_type: event_vol
+    edge_source: iv_mispricing
+    time_horizon: days
+    complexity: high
+    data_requirements:
+      - earnings_calendar
+      - implied_move_history
+      - realized_move_distribution
+    cross_department_dependencies:
+      TradingExecution:
+        - provides: options_execution
+        - provides: defined_risk_structures
+      CentralAccounting:
+        - provides: event_pnl_tracking
+        - provides: greeks_management
+    metrics_produced:
+      - iv_crush_capture
+      - implied_vs_realized_accuracy
+      - event_vol_alpha
+    risk_envelope:
+      max_notional: $2000
+      max_holding_period: 5_days
+      stop_loss_pct: 20%
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # GROUP F: FLOW / LIQUIDITY STRATEGIES
+  # ═══════════════════════════════════════════════════════════════════════════
+  
+  s16_flow_pressure_contrarian:
+    name: "Flow-Pressure Contrarian (ETF/Funds)"
+    primary_owner: BigBrainIntelligence
+    strategy_type: flow_analysis
+    edge_source: overreaction
+    time_horizon: weeks
+    complexity: medium
+    data_requirements:
+      - etf_fund_flows
+      - price_return_decomposition
+      - flow_impact_estimates
+    cross_department_dependencies:
+      TradingExecution:
+        - provides: short_execution
+        - provides: position_management
+      CentralAccounting:
+        - provides: flow_data_ingestion
+        - provides: reversion_tracking
+    metrics_produced:
+      - flow_signal_accuracy
+      - reversion_capture_bps
+      - holding_period_optimal
+    risk_envelope:
+      max_position_pct: 5%
+      max_holding_period: 30_days
+      stop_loss_bps: 200
+
+  s17_patient_counterparty:
+    name: "Be the Patient Counterparty on Rebalance Days"
+    primary_owner: TradingExecution
+    strategy_type: liquidity_provision
+    edge_source: urgency_premium
+    time_horizon: hours
+    complexity: medium
+    data_requirements:
+      - rebalance_calendar
+      - predicted_flow_direction
+      - bid_ask_spreads
+    cross_department_dependencies:
+      BigBrainIntelligence:
+        - provides: rebalance_flow_prediction
+        - provides: optimal_positioning
+      CentralAccounting:
+        - provides: inventory_management
+        - provides: spread_capture_pnl
+    metrics_produced:
+      - spread_capture_bps
+      - inventory_risk
+      - adverse_selection_rate
+    risk_envelope:
+      max_position_pct: 5%
+      max_holding_period: 2_hours
+      stop_loss_bps: 30
+
+  s35_muni_outflow_liquidity:
+    name: "Muni Fund Outflow Liquidity Provision"
+    primary_owner: CentralAccounting
+    strategy_type: fixed_income_liquidity
+    edge_source: forced_selling
+    time_horizon: weeks
+    complexity: high
+    data_requirements:
+      - mutual_fund_flows
+      - muni_bond_prices
+      - credit_spreads
+    cross_department_dependencies:
+      TradingExecution:
+        - provides: bond_execution
+        - provides: duration_management
+      BigBrainIntelligence:
+        - provides: flow_prediction
+        - provides: spread_mean_reversion
+    metrics_produced:
+      - spread_compression_alpha
+      - flow_timing_accuracy
+      - duration_adjusted_return
+    risk_envelope:
+      max_notional: $10000
+      max_holding_period: 60_days
+      stop_loss_bps: 300
+
+# ═══════════════════════════════════════════════════════════════════════════
+# CROSS-DEPARTMENT METRIC FLOW
+# ═══════════════════════════════════════════════════════════════════════════
+
+metric_flow:
+  BigBrainIntelligence:
+    produces:
+      - signal_strength
+      - prediction_confidence
+      - regime_classification
+      - anomaly_scores
+    consumes:
+      - fill_rate
+      - execution_quality
+      - realized_pnl
+      
+  TradingExecution:
+    produces:
+      - fill_rate
+      - slippage_bps
+      - time_to_fill
+      - partial_fill_rate
+    consumes:
+      - signal_strength
+      - position_sizing_factor
+      - venue_health_score
+      
+  CentralAccounting:
+    produces:
+      - reconciled_pnl
+      - risk_budget_remaining
+      - margin_utilization
+      - sharpe_ratio
+    consumes:
+      - all_execution_metrics
+      - all_signal_metrics
+      
+  CryptoIntelligence:
+    produces:
+      - venue_health_score
+      - withdrawal_reliability
+      - latency_p99
+    consumes:
+      - volume_routing_requests
+      - capital_allocation
+
+# ═══════════════════════════════════════════════════════════════════════════
+# DEPENDENCY GRAPH FOR OPTIMIZATION
+# ═══════════════════════════════════════════════════════════════════════════
+
+optimization_order:
+  # Phase 1: Foundation metrics (no dependencies)
+  phase_1_independent:
+    - venue_health_computation
+    - raw_price_ingestion
+    - calendar_events
+    
+  # Phase 2: Derived signals (depend on Phase 1)
+  phase_2_signals:
+    - nav_calculations
+    - volatility_surfaces
+    - flow_predictions
+    
+  # Phase 3: Execution decisions (depend on Phase 2)
+  phase_3_execution:
+    - order_generation
+    - position_sizing
+    - risk_limit_checks
+    
+  # Phase 4: Reconciliation (depend on Phase 3)
+  phase_4_reconciliation:
+    - fill_matching
+    - pnl_calculation
+    - metric_aggregation

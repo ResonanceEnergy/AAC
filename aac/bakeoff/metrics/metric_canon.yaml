@@ -1,0 +1,283 @@
+# AAC Metric Canon - Single Source of Truth
+# All metrics used across the system with definitions, units, thresholds
+# Version: 1.0.0
+# Last Updated: 2026-02-04
+
+metric_canon:
+  version: "1.0.0"
+  
+  # ============== PERFORMANCE METRICS ==============
+  performance:
+    reconciled_net_return:
+      description: "Net return after all fees, slippage, and reconciliation adjustments"
+      unit: "percentage"
+      frequency: "daily"
+      threshold_good: ">= 0.1%"
+      threshold_warning: "< 0.1%"
+      threshold_critical: "< -0.5%"
+      
+    profit_factor:
+      description: "Gross profit / Gross loss ratio"
+      unit: "ratio"
+      frequency: "daily"
+      threshold_good: ">= 1.5"
+      threshold_warning: "< 1.5"
+      threshold_critical: "< 1.0"
+      
+    sharpe_ratio:
+      description: "Risk-adjusted return (annualized)"
+      unit: "ratio"
+      frequency: "rolling_30d"
+      threshold_good: ">= 2.0"
+      threshold_warning: "< 2.0"
+      threshold_critical: "< 1.0"
+      
+    win_rate:
+      description: "Percentage of profitable trades"
+      unit: "percentage"
+      frequency: "rolling_100_trades"
+      threshold_good: ">= 55%"
+      threshold_warning: "< 55%"
+      threshold_critical: "< 45%"
+
+  # ============== RISK METRICS ==============
+  risk:
+    max_drawdown_pct:
+      description: "Maximum peak-to-trough decline"
+      unit: "percentage"
+      frequency: "continuous"
+      threshold_good: "< 5%"
+      threshold_warning: ">= 5%"
+      threshold_critical: ">= 10%"
+      kill_switch: ">= 15%"
+      
+    daily_loss_pct:
+      description: "Single day loss relative to NAV"
+      unit: "percentage"
+      frequency: "daily"
+      threshold_good: "< 1%"
+      threshold_warning: ">= 1%"
+      threshold_critical: ">= 2%"
+      kill_switch: ">= 3%"
+      
+    weekly_loss_pct:
+      description: "Rolling 7-day loss relative to NAV"
+      unit: "percentage"
+      frequency: "daily"
+      threshold_good: "< 3%"
+      threshold_warning: ">= 3%"
+      threshold_critical: ">= 5%"
+      kill_switch: ">= 7%"
+      
+    tail_loss_p95:
+      description: "95th percentile worst-case loss"
+      unit: "USD"
+      frequency: "rolling_30d"
+      
+    tail_loss_p99:
+      description: "99th percentile worst-case loss (VaR)"
+      unit: "USD"
+      frequency: "rolling_30d"
+      
+    position_concentration:
+      description: "Largest single position as % of portfolio"
+      unit: "percentage"
+      frequency: "continuous"
+      threshold_good: "< 20%"
+      threshold_warning: ">= 20%"
+      threshold_critical: ">= 35%"
+      
+    correlation_to_btc:
+      description: "30-day rolling correlation to BTC"
+      unit: "correlation_coefficient"
+      frequency: "daily"
+
+  # ============== EXECUTION METRICS ==============
+  execution:
+    slippage_bps_p50:
+      description: "Median slippage in basis points"
+      unit: "basis_points"
+      frequency: "per_trade"
+      threshold_good: "< 5"
+      threshold_warning: ">= 5"
+      threshold_critical: ">= 15"
+      
+    slippage_bps_p95:
+      description: "95th percentile slippage"
+      unit: "basis_points"
+      frequency: "per_trade"
+      threshold_good: "< 15"
+      threshold_warning: ">= 15"
+      threshold_critical: ">= 30"
+      
+    fill_rate:
+      description: "Percentage of orders fully filled"
+      unit: "percentage"
+      frequency: "rolling_24h"
+      threshold_good: ">= 98%"
+      threshold_warning: "< 98%"
+      threshold_critical: "< 95%"
+      
+    partial_fill_rate:
+      description: "Percentage of orders partially filled"
+      unit: "percentage"
+      frequency: "rolling_24h"
+      threshold_good: "< 5%"
+      threshold_warning: ">= 5%"
+      threshold_critical: ">= 10%"
+      
+    time_to_fill_p50:
+      description: "Median time from order submit to fill"
+      unit: "milliseconds"
+      frequency: "per_trade"
+      threshold_good: "< 500"
+      threshold_warning: ">= 500"
+      threshold_critical: ">= 2000"
+      
+    time_to_fill_p95:
+      description: "95th percentile fill time"
+      unit: "milliseconds"
+      frequency: "per_trade"
+      threshold_good: "< 2000"
+      threshold_warning: ">= 2000"
+      threshold_critical: ">= 5000"
+      
+    order_rejection_rate:
+      description: "Percentage of orders rejected by exchange"
+      unit: "percentage"
+      frequency: "rolling_24h"
+      threshold_good: "< 1%"
+      threshold_warning: ">= 1%"
+      threshold_critical: ">= 5%"
+
+  # ============== DATA QUALITY METRICS ==============
+  data:
+    freshness_p50:
+      description: "Median data age at consumption"
+      unit: "milliseconds"
+      frequency: "continuous"
+      threshold_good: "< 100"
+      threshold_warning: ">= 100"
+      threshold_critical: ">= 500"
+      
+    freshness_p95:
+      description: "95th percentile data freshness"
+      unit: "milliseconds"
+      frequency: "continuous"
+      threshold_good: "< 500"
+      threshold_warning: ">= 500"
+      threshold_critical: ">= 2000"
+      
+    schema_mismatch_count:
+      description: "Count of API response schema violations"
+      unit: "count"
+      frequency: "rolling_24h"
+      threshold_good: "0"
+      threshold_warning: ">= 1"
+      threshold_critical: ">= 5"
+      
+    null_rate_key_fields:
+      description: "Percentage of null values in critical fields"
+      unit: "percentage"
+      frequency: "rolling_24h"
+      threshold_good: "< 0.1%"
+      threshold_warning: ">= 0.1%"
+      threshold_critical: ">= 1%"
+      
+    volume_anomaly_score:
+      description: "Standard deviations from expected data volume"
+      unit: "z_score"
+      frequency: "hourly"
+      threshold_good: "< 2.0"
+      threshold_warning: ">= 2.0"
+      threshold_critical: ">= 3.0"
+      
+    websocket_reconnect_rate:
+      description: "WebSocket reconnections per hour"
+      unit: "count_per_hour"
+      frequency: "hourly"
+      threshold_good: "< 2"
+      threshold_warning: ">= 2"
+      threshold_critical: ">= 10"
+
+  # ============== OPERATIONS METRICS ==============
+  ops:
+    incident_count:
+      description: "Total incidents in period"
+      unit: "count"
+      frequency: "weekly"
+      
+    sev1_count:
+      description: "Critical/Sev1 incidents"
+      unit: "count"
+      frequency: "weekly"
+      threshold_good: "0"
+      threshold_warning: ">= 1"
+      threshold_critical: ">= 2"
+      
+    mttd:
+      description: "Mean Time To Detect issues"
+      unit: "minutes"
+      frequency: "per_incident"
+      threshold_good: "< 5"
+      threshold_warning: ">= 5"
+      threshold_critical: ">= 15"
+      
+    mttr:
+      description: "Mean Time To Resolve issues"
+      unit: "minutes"
+      frequency: "per_incident"
+      threshold_good: "< 30"
+      threshold_warning: ">= 30"
+      threshold_critical: ">= 60"
+      
+    recon_backlog_minutes:
+      description: "Minutes of unreconciled transactions"
+      unit: "minutes"
+      frequency: "continuous"
+      threshold_good: "< 5"
+      threshold_warning: ">= 5"
+      threshold_critical: ">= 30"
+      kill_switch: ">= 60"
+      
+    uptime_pct:
+      description: "System availability percentage"
+      unit: "percentage"
+      frequency: "rolling_30d"
+      threshold_good: ">= 99.9%"
+      threshold_warning: "< 99.9%"
+      threshold_critical: "< 99%"
+
+  # ============== SYSTEM HEALTH METRICS ==============
+  system:
+    cpu_usage_p95:
+      description: "95th percentile CPU utilization"
+      unit: "percentage"
+      frequency: "1_minute"
+      threshold_good: "< 70%"
+      threshold_warning: ">= 70%"
+      threshold_critical: ">= 90%"
+      
+    memory_usage_pct:
+      description: "Memory utilization percentage"
+      unit: "percentage"
+      frequency: "1_minute"
+      threshold_good: "< 80%"
+      threshold_warning: ">= 80%"
+      threshold_critical: ">= 95%"
+      
+    db_connection_pool_usage:
+      description: "Database connection pool utilization"
+      unit: "percentage"
+      frequency: "1_minute"
+      threshold_good: "< 70%"
+      threshold_warning: ">= 70%"
+      threshold_critical: ">= 90%"
+      
+    api_latency_p95:
+      description: "95th percentile API response time"
+      unit: "milliseconds"
+      frequency: "per_request"
+      threshold_good: "< 200"
+      threshold_warning: ">= 200"
+      threshold_critical: ">= 1000"
