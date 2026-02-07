@@ -1,0 +1,8 @@
+# ACC Kubernetes Namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: acc
+  labels:
+    app: acc
+    environment: production

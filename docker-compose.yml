@@ -1,0 +1,108 @@
+# ============================================================
+# Accelerated Arbitrage Corp - Docker Compose
+# ============================================================
+# Orchestrates the ACC system with supporting services
+
+services:
+  # ============================================================
+  # Main ACC Application
+  # ============================================================
+  acc:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: acc-main
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - PAPER_TRADING=true
+      - DRY_RUN=false
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    networks:
+      - acc-network
+    depends_on:
+      - redis
+    healthcheck:
+      test: ["CMD", "python", "-c", "from shared.config_loader import get_config; get_config()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # ============================================================
+  # Redis for Caching & Message Queue
+  # ============================================================
+  redis:
+    image: redis:7-alpine
+    container_name: acc-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    networks:
+      - acc-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================================
+  # Prometheus for Metrics (Optional)
+  # ============================================================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: acc-prometheus
+    restart: unless-stopped
+    profiles:
+      - monitoring
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - acc-network
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+
+  # ============================================================
+  # Grafana for Dashboards (Optional)
+  # ============================================================
+  grafana:
+    image: grafana/grafana:latest
+    container_name: acc-grafana
+    restart: unless-stopped
+    profiles:
+      - monitoring
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - acc-network
+    depends_on:
+      - prometheus
+
+# ============================================================
+# Networks
+# ============================================================
+networks:
+  acc-network:
+    driver: bridge
+
+# ============================================================
+# Volumes
+# ============================================================
+volumes:
+  redis-data:
+  prometheus-data:
+  grafana-data:

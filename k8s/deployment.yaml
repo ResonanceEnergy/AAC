@@ -1,0 +1,116 @@
+# ACC Main Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: acc
+  namespace: acc
+  labels:
+    app: acc
+    component: orchestrator
+spec:
+  replicas: 1  # Single instance for trading consistency
+  strategy:
+    type: Recreate  # Avoid running multiple instances
+  selector:
+    matchLabels:
+      app: acc
+      component: orchestrator
+  template:
+    metadata:
+      labels:
+        app: acc
+        component: orchestrator
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/metrics/prometheus"
+    spec:
+      serviceAccountName: acc-service-account
+      containers:
+        - name: acc
+          image: acc:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: health
+              containerPort: 8080
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: acc-config
+            - secretRef:
+                name: acc-secrets
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "2Gi"
+              cpu: "1000m"
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: health
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: health
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          volumeMounts:
+            - name: data
+              mountPath: /app/data
+            - name: logs
+              mountPath: /app/logs
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: acc-data-pvc
+        - name: logs
+          emptyDir: {}
+      terminationGracePeriodSeconds: 60
+---
+# Service Account
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: acc-service-account
+  namespace: acc
+---
+# Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: acc
+  namespace: acc
+  labels:
+    app: acc
+spec:
+  type: ClusterIP
+  ports:
+    - name: health
+      port: 8080
+      targetPort: health
+      protocol: TCP
+  selector:
+    app: acc
+    component: orchestrator
+---
+# PersistentVolumeClaim for data
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: acc-data-pvc
+  namespace: acc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: standard  # Adjust for your cluster

@@ -1,0 +1,199 @@
+# AAC Strategy Bake-Off Policy
+# Defines safety states, gates, limits, and automated triggers
+# Version: 1.0.0
+# Last Updated: 2026-02-04
+
+aac_bakeoff:
+  version: "1.0.0"
+  
+  # ============== SAFETY STATES ==============
+  # System-wide operational states
+  safety_states:
+    NORMAL:
+      description: "All systems operating within parameters"
+      actions_allowed: ["trade", "scale", "promote"]
+      monitoring_interval: "5m"
+      
+    CAUTION:
+      description: "Elevated risk detected, increased monitoring"
+      actions_allowed: ["trade", "hold"]
+      restrictions: ["no_new_positions", "reduce_size_50pct"]
+      monitoring_interval: "1m"
+      auto_escalate_after: "30m"
+      
+    SAFE_MODE:
+      description: "Risk limits breached, defensive posture"
+      actions_allowed: ["close_only", "hedge"]
+      restrictions: ["no_new_positions", "close_losing_positions"]
+      monitoring_interval: "30s"
+      requires_manual_exit: true
+      
+    HALT:
+      description: "Critical failure, all trading stopped"
+      actions_allowed: ["emergency_close"]
+      restrictions: ["all_trading_halted"]
+      monitoring_interval: "10s"
+      requires_manual_exit: true
+      notify: ["sms", "email", "slack", "pagerduty"]
+
+  # ============== STRATEGY GATES ==============
+  # Progression stages from idea to production
+  gates:
+    SPEC:
+      order: 0
+      description: "Strategy specification and design"
+      requirements:
+        - "hypothesis_documented"
+        - "failure_modes_identified"
+        - "data_contracts_defined"
+        - "risk_envelope_specified"
+        - "kill_switch_plan_approved"
+      max_capital: 0
+      
+    SIM:
+      order: 1
+      description: "Simulation/backtesting phase"
+      requirements:
+        - "spec_gate_passed"
+        - "backtest_sharpe_gte_1.5"
+        - "backtest_max_dd_lt_15pct"
+        - "backtest_period_gte_6mo"
+        - "walk_forward_validation_passed"
+      max_capital: 0
+      min_duration: "2_weeks"
+      
+    PAPER:
+      order: 2
+      description: "Paper trading with live data"
+      requirements:
+        - "sim_gate_passed"
+        - "paper_profit_factor_gte_1.2"
+        - "paper_fill_simulation_accurate"
+        - "paper_no_sev1_incidents"
+        - "paper_recon_backlog_lt_5m"
+      max_capital: 0
+      min_duration: "2_weeks"
+      
+    PILOT:
+      order: 3
+      description: "Live trading with limited capital"
+      requirements:
+        - "paper_gate_passed"
+        - "pilot_sharpe_gte_1.0"
+        - "pilot_max_dd_lt_10pct"
+        - "pilot_execution_quality_good"
+        - "pilot_no_sev1_incidents"
+      max_capital: 1000  # USD
+      max_position_size: 200  # USD
+      min_duration: "4_weeks"
+      
+    POST_ANALYSIS:
+      order: 4
+      description: "Review and analysis before scaling"
+      requirements:
+        - "pilot_gate_passed"
+        - "performance_attribution_complete"
+        - "failure_mode_review_done"
+        - "dependency_audit_passed"
+        - "ops_runbook_updated"
+      max_capital: 1000
+      min_duration: "1_week"
+      
+    SCALE:
+      order: 5
+      description: "Production deployment with full capital"
+      requirements:
+        - "post_analysis_gate_passed"
+        - "weekly_review_cadence"
+        - "monitoring_dashboards_active"
+        - "incident_response_tested"
+      max_capital: 10000  # USD
+      max_position_size: 2000  # USD
+      review_frequency: "weekly"
+
+  # ============== GLOBAL LIMITS ==============
+  global_limits:
+    # Capital controls
+    no_leverage_v1: true
+    max_total_capital: 10000  # USD
+    max_single_position: 2000  # USD
+    max_daily_trades: 100
+    
+    # Risk controls
+    max_daily_loss_pct: 3.0
+    max_weekly_loss_pct: 7.0
+    max_drawdown_pct: 15.0
+    
+    # Operations controls
+    recon_backlog_max_minutes: 30
+    sev1_zero_tolerance: true
+    min_data_freshness_ms: 2000
+    
+    # Concentration limits
+    max_single_asset_pct: 25.0
+    max_correlated_exposure_pct: 40.0
+
+  # ============== AUTOMATED TRIGGERS ==============
+  triggers:
+    # State transitions
+    - name: "caution_on_elevated_loss"
+      condition: "daily_loss_pct >= 1.5"
+      action: "transition_to_CAUTION"
+      notify: ["slack"]
+      
+    - name: "safe_mode_on_critical_loss"
+      condition: "daily_loss_pct >= 2.5"
+      action: "transition_to_SAFE_MODE"
+      notify: ["slack", "email"]
+      
+    - name: "halt_on_max_drawdown"
+      condition: "max_drawdown_pct >= 15.0"
+      action: "transition_to_HALT"
+      notify: ["slack", "email", "sms"]
+      
+    - name: "halt_on_recon_backlog"
+      condition: "recon_backlog_minutes >= 60"
+      action: "transition_to_HALT"
+      notify: ["slack", "email"]
+      
+    # Strategy-level actions
+    - name: "quarantine_on_sev1"
+      condition: "strategy_sev1_count >= 1"
+      action: "quarantine_strategy"
+      notify: ["slack"]
+      
+    - name: "reduce_size_on_slippage"
+      condition: "slippage_bps_p95 >= 20"
+      action: "reduce_position_size_50pct"
+      notify: ["slack"]
+      
+    # Data quality actions
+    - name: "pause_on_stale_data"
+      condition: "data_freshness_p95 >= 5000"
+      action: "pause_new_orders"
+      notify: ["slack"]
+      
+    - name: "alert_on_schema_mismatch"
+      condition: "schema_mismatch_count >= 1"
+      action: "alert_only"
+      notify: ["slack"]
+
+  # ============== SCORING WEIGHTS ==============
+  # For composite strategy scoring
+  scoring:
+    weights:
+      performance: 0.25
+      risk: 0.25
+      execution: 0.15
+      data: 0.15
+      ops: 0.10
+      fragility: 0.10
+      
+    instability_penalty:
+      description: "Penalty for high variance in metrics"
+      max_penalty: 0.20
+      calculation: "stddev_of_weekly_scores / mean_of_weekly_scores"
+      
+    promotion_threshold: 70
+    hold_threshold: 50
+    quarantine_threshold: 35
