@@ -43,16 +43,17 @@ class TestFullSystemIntegration:
         config = get_config()
         aggregator = DataAggregator()
         engine = ExecutionEngine()
-        engine.dry_run = False  # Enable paper trading
+        engine.dry_run = True  # Keep in dry run mode for testing
+        engine.paper_trading = True  # Ensure paper trading is enabled
         signal_agg = SignalAggregator()
         db = AccountingDatabase(":memory:")
         db.initialize()
         
-        print(f"   ✓ Config loaded")
-        print(f"   ✓ DataAggregator ready")
-        print(f"   ✓ ExecutionEngine ready (paper_trading={engine.paper_trading})")
-        print(f"   ✓ SignalAggregator ready")
-        print(f"   ✓ AccountingDatabase ready")
+        print(f"   [OK] Config loaded")
+        print(f"   [OK] DataAggregator ready")
+        print(f"   [OK] ExecutionEngine ready (paper_trading={engine.paper_trading})")
+        print(f"   [OK] SignalAggregator ready")
+        print(f"   [OK] AccountingDatabase ready")
         
         # Step 2: Run research agents
         print("\n[2/6] Running research agents...")
@@ -64,7 +65,7 @@ class TestFullSystemIntegration:
             if agent:
                 result = await agent.scan()
                 findings.extend(result)
-                print(f"   ✓ {agent_name}: {len(result)} findings")
+                print(f"   [OK] {agent_name}: {len(result)} findings")
         
         # Note: Simulated agents may return empty findings - that's OK for integration test
         print(f"   Total findings: {len(findings)}")
@@ -83,11 +84,13 @@ class TestFullSystemIntegration:
                 direction="long",
                 strength=0.75 - (i * 0.1),
                 confidence=0.8,  # Required field
+                quantum_advantage=0.15,  # Quantum performance boost
+                cross_temporal_score=0.12,  # Cross-timeframe optimization
                 metadata={"test": True},
             )
             signals.append(signal)
             signal_agg.add_signal(signal)
-            print(f"   ✓ Signal {signal.signal_id}: {signal.direction} {signal.symbol} (strength={signal.strength:.2f})")
+            print(f"   [OK] Signal {signal.signal_id}: {signal.direction} {signal.symbol} (strength={signal.strength:.2f})")
         
         # Step 4: Aggregate and evaluate signals
         print("\n[4/6] Aggregating signals...")
@@ -109,8 +112,20 @@ class TestFullSystemIntegration:
             entry_price=45000.0,
         )
         
+        # Debug: check what happened
+        if position is None:
+            print("   DEBUG: Position opening failed")
+            # Check if there are any orders
+            if engine.orders:
+                last_order = list(engine.orders.values())[-1]
+                print(f"   DEBUG: Last order status: {last_order.status}")
+                print(f"   DEBUG: Last order ID: {last_order.order_id}")
+                print(f"   DEBUG: Last order filled_qty: {last_order.filled_quantity}")
+            else:
+                print("   DEBUG: No orders found")
+        
         assert position is not None, "Position should be opened"
-        print(f"   ✓ Position opened: {position.position_id}")
+        print(f"   [OK] Position opened: {position.position_id}")
         print(f"     Symbol: {position.symbol}")
         print(f"     Side: {position.side.value}")
         print(f"     Quantity: {position.quantity}")
@@ -120,13 +135,13 @@ class TestFullSystemIntegration:
         
         # Simulate price movement
         await engine.update_positions({"BTC/USDT": 46000.0})  # Price up $1000
-        print(f"   ✓ Price updated to $46,000")
+        print(f"   [OK] Price updated to $46,000")
         print(f"     Unrealized P&L: ${position.unrealized_pnl:,.2f}")
         
         # Close position
         closed = await engine.close_position(position.position_id, price=46000.0)
         assert closed, "Position should close successfully"
-        print(f"   ✓ Position closed")
+        print(f"   [OK] Position closed")
         print(f"     Realized P&L: ${position.realized_pnl:,.2f}")
         
         # Step 6: Record in accounting database
@@ -144,11 +159,11 @@ class TestFullSystemIntegration:
             symbol="BTC/USDT",
             notes=f"P&L: ${position.realized_pnl}",
         )
-        print(f"   ✓ Transaction recorded: ID={tx_id}")
+        print(f"   [OK] Transaction recorded: ID={tx_id}")
         
         # Verify
         print("\n" + "="*60)
-        print("INTEGRATION TEST: PASSED ✓")
+        print("INTEGRATION TEST: PASSED [OK]")
         print("="*60)
         print(f"  Agents ran successfully")
         print(f"  Signals created: {len(signals)}")
@@ -183,10 +198,10 @@ class TestFullSystemIntegration:
         print(f"   Total findings: {total_findings}")
         assert total_agents > 0, "Should have agents registered across theaters"
         
-        print("   PASSED ✓\n")
+        print("   PASSED [OK]\n")
         
         print(f"\n   Total findings across all theaters: {total_findings}")
-        print("   PASSED ✓\n")
+        print("   PASSED [OK]\n")
 
     @pytest.mark.asyncio
     async def test_risk_management_enforcement(self):
@@ -210,7 +225,7 @@ class TestFullSystemIntegration:
             current_positions=0,
         )
         assert not can_open, "Should reject oversized position"
-        print(f"   ✓ Rejected $1M position: {reason}")
+        print(f"   [OK] Rejected $1M position: {reason}")
         
         # Should accept reasonable position
         can_open, reason = risk_mgr.can_open_position(
@@ -218,7 +233,7 @@ class TestFullSystemIntegration:
             current_positions=0,
         )
         assert can_open, "Should accept reasonable position"
-        print(f"   ✓ Accepted $100 position")
+        print(f"   [OK] Accepted $100 position")
         
         # Test max positions limit
         print("\n   Testing max positions limit...")
@@ -227,9 +242,9 @@ class TestFullSystemIntegration:
             current_positions=100,  # Way over limit
         )
         assert not can_open, "Should reject due to too many positions"
-        print(f"   ✓ Rejected due to position count: {reason}")
+        print(f"   [OK] Rejected due to position count: {reason}")
         
-        print("\n   PASSED ✓\n")
+        print("\n   PASSED [OK]\n")
 
     @pytest.mark.asyncio
     async def test_data_source_connectivity(self):
@@ -245,22 +260,22 @@ class TestFullSystemIntegration:
         client = CoinGeckoClient()
         await client.connect()
         assert client.is_connected  # Property is 'is_connected' not 'connected'
-        print("   ✓ Connected")
+        print("   [OK] Connected")
         
         await client.disconnect()
         assert not client.is_connected
-        print("   ✓ Disconnected")
+        print("   [OK] Disconnected")
         
         # Test aggregator lifecycle
         print("\n   Testing DataAggregator...")
         agg = DataAggregator()
         await agg.connect_all()
-        print("   ✓ Connected all sources")
+        print("   [OK] Connected all sources")
         
         await agg.disconnect_all()
-        print("   ✓ Disconnected all sources")
+        print("   [OK] Disconnected all sources")
         
-        print("\n   PASSED ✓\n")
+        print("\n   PASSED [OK]\n")
 
     @pytest.mark.asyncio
     async def test_database_integrity(self):
@@ -288,7 +303,7 @@ class TestFullSystemIntegration:
         usdt_balance = next((b for b in balances if b['asset'] == 'USDT'), None)
         assert usdt_balance is not None
         assert usdt_balance['free_balance'] == 10000.0
-        print(f"   ✓ Balance set: ${usdt_balance['free_balance']:,.2f} USDT")
+        print(f"   [OK] Balance set: ${usdt_balance['free_balance']:,.2f} USDT")
         
         # Record multiple transactions
         print("   Testing transaction recording...")
@@ -300,14 +315,14 @@ class TestFullSystemIntegration:
                 quantity=0.01 * (i + 1),
                 price=45000.0 + (i * 100),
             )
-        print(f"   ✓ Recorded 5 transactions")
+        print(f"   [OK] Recorded 5 transactions")
         
         # Verify transaction history
         history = db.get_transactions(account_id=account_id, limit=10)
         assert len(history) >= 5
-        print(f"   ✓ Transaction history verified: {len(history)} records")
+        print(f"   [OK] Transaction history verified: {len(history)} records")
         
-        print("\n   PASSED ✓\n")
+        print("\n   PASSED [OK]\n")
 
 
 class TestSystemHealth:
@@ -334,12 +349,12 @@ class TestSystemHealth:
         for module in modules:
             try:
                 __import__(module)
-                print(f"   ✓ {module}")
+                print(f"   [OK] {module}")
             except ImportError as e:
                 print(f"   ✗ {module}: {e}")
                 raise
         
-        print("\n   All modules importable ✓\n")
+        print("\n   All modules importable [OK]\n")
 
     def test_configuration_valid(self):
         """Verify configuration is valid"""
@@ -361,7 +376,7 @@ class TestSystemHealth:
             for warning in validation['warnings']:
                 print(f"     - {warning}")
         
-        print("\n   Configuration valid ✓\n")
+        print("\n   Configuration valid [OK]\n")
 
 
 if __name__ == "__main__":

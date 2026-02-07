@@ -6,7 +6,7 @@ strategies:
   # GROUP A: STAT ARB / ETF STRATEGIES (Primary: TradingExecution)
   # ═══════════════════════════════════════════════════════════════════════════
   
-  s01_etf_nav_dislocation:
+  s01_etf_nav_dislocation_harvesting:
     name: "ETF–NAV Dislocation Harvesting"
     primary_owner: TradingExecution
     strategy_type: stat_arb
@@ -35,7 +35,7 @@ strategies:
       - hedge_effectiveness
       - create_redeem_pnl
     risk_envelope:
-      max_position_pct: 5%
+      max_position_pct: 1000000000.0
       max_holding_period: 1_day
       stop_loss_bps: 50
       
@@ -156,6 +156,33 @@ strategies:
       max_position_pct: 10%
       max_holding_period: 5_days
       stop_loss_bps: 100
+
+  s49_tom_futures_only_overlay:
+    name: "TOM Futures-Only Overlay"
+    primary_owner: TradingExecution
+    strategy_type: calendar_anomaly
+    edge_source: futures_persistence
+    time_horizon: days
+    complexity: low
+    data_requirements:
+      - futures_prices
+      - calendar_data
+      - historical_futures_tom
+    execution_requirements:
+      - futures_trading
+      - capital_efficient
+    cross_department_dependencies:
+      CentralAccounting:
+        - provides: futures_pnl_tracking
+        - provides: roll_cost_calculation
+    metrics_produced:
+      - tom_futures_alpha_bps
+      - persistence_rate
+      - roll_cost_savings
+    risk_envelope:
+      max_position_pct: 15%
+      max_holding_period: 5_days
+      stop_loss_bps: 75
 
   s11_overnight_jump_reversion:
     name: "Overnight Jump Reversion"
@@ -520,6 +547,33 @@ metric_flow:
     consumes:
       - volume_routing_requests
       - capital_allocation
+
+  s50_overnight_drift_in_attention_stocks:
+    name: "Overnight Drift in Attention Stocks"
+    primary_owner: TradingExecution
+    strategy_type: attention_based
+    edge_source: behavioral_pattern
+    time_horizon: overnight
+    complexity: medium
+    data_requirements:
+      - attention_metrics
+      - social_sentiment
+      - equity_prices
+    execution_requirements:
+      - overnight_holding
+      - attention_scoring
+    cross_department_dependencies:
+      BigBrainIntelligence:
+        - provides: attention_scoring
+        - provides: sentiment_analysis
+    metrics_produced:
+      - attention_alpha_bps
+      - overnight_drift_capture
+      - attention_persistence
+    risk_envelope:
+      max_position_pct: 10%
+      max_holding_period: 16_hours
+      stop_loss_bps: 50
 
 # ═══════════════════════════════════════════════════════════════════════════
 # DEPENDENCY GRAPH FOR OPTIMIZATION

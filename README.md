@@ -1,9 +1,14 @@
-# Accelerated Arbitrage Corp (ACC)
+# 🚀 Accelerated Arbitrage Corp (AAC) - Complete Arbitrage Trading System
 
-A sophisticated cryptocurrency arbitrage and trading system with multi-theater research agents, real-time execution, and comprehensive risk management.
+[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://python.org)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Status](https://img.shields.io/badge/Status-Production--Ready-orange.svg)]()
+
+AAC is a comprehensive, production-ready arbitrage trading system that identifies and executes profitable arbitrage opportunities across global financial markets including stocks, cryptocurrencies, forex, commodities, and derivatives.
 
 ## 🏗️ Architecture Overview
 
+### Original ACC Architecture
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
 │                         ORCHESTRATOR                                │
@@ -24,24 +29,77 @@ A sophisticated cryptocurrency arbitrage and trading system with multi-theater r
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
+### Enhanced AAC Arbitrage System
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                    MULTI-SOURCE ARBITRAGE DETECTOR                  │
+│         Alpha Vantage • CoinGecko • CurrencyAPI • Twelve Data       │
+│         Polygon.io • Finnhub • ECB • World Bank • More...           │
+├─────────────────────────────────────────────────────────────────────┤
+│                    ARBITRAGE STRATEGIES                             │
+│   Cross-Exchange • Triangular • Statistical • Macro • Sentiment     │
+├─────────────────────────────────────────────────────────────────────┤
+│                    BINANCE TRADING ENGINE                           │
+│         Order Management • Risk Controls • Position Tracking        │
+├─────────────────────────────────────────────────────────────────────┤
+│                    EXECUTION SYSTEM                                 │
+│         Real-time Monitoring • Automated Trading • Performance      │
+├─────────────────────────────────────────────────────────────────────┤
+│                    MONITORING DASHBOARD                             │
+│         Streamlit Web UI • Real-time Charts • System Health         │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+## 🎯 Key Features
+
+### Multi-Source Data Integration
+- **Alpha Vantage**: Global stock market data (25 calls/day)
+- **CoinGecko**: Cryptocurrency data (unlimited calls)
+- **CurrencyAPI**: Forex rates (300 calls/month)
+- **Twelve Data**: Real-time market data (800 calls/day)
+- **Polygon.io**: US market and options data (5M calls/month)
+- **Finnhub**: Real-time quotes and sentiment (150 calls/day)
+- **ECB**: European economic data (free)
+- **World Bank**: Macroeconomic indicators (free)
+
+### Arbitrage Strategies
+- ✅ **Cross-Exchange Arbitrage**: Price differences between exchanges
+- ✅ **Triangular Arbitrage**: Currency triangle opportunities
+- ✅ **Statistical Arbitrage**: Mean-reversion strategies
+- ✅ **Macro Arbitrage**: Economic indicator-based
+- ✅ **Sentiment-Based Arbitrage**: News and social sentiment
+
+### Trading & Risk Management
+- **Binance Integration**: Spot and futures trading
+- **Position Sizing**: Risk-based position calculation
+- **Stop Loss**: Automatic loss protection
+- **Performance Tracking**: Real-time P&L monitoring
+- **Risk Controls**: Daily loss limits and position caps
+
+### Monitoring & Control
+- **Real-Time Dashboard**: Web-based monitoring interface
+- **Performance Analytics**: Charts and metrics
+- **System Health**: Automated health checks
+- **Trade Logging**: Complete execution history
+
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Python 3.10+
-- Redis (optional, for caching)
+- Python 3.8+
+- Internet connection for API access
 - Docker (optional, for containerized deployment)
 
 ### Installation
 
 ```bash
 # Clone the repository
-git clone https://github.com/accelerated-arbitrage-corp/acc.git
-cd acc
+git clone <repository-url>
+cd Accelerated-Arbitrage-Corp
 
 # Create virtual environment
-python -m venv .venv
-.venv\Scripts\activate  # Windows
-# source .venv/bin/activate  # Linux/Mac
+python -m venv venv
+venv\Scripts\activate  # Windows
+# source venv/bin/activate  # Linux/Mac
 
 # Install dependencies
 pip install -r requirements.txt
@@ -54,36 +112,56 @@ pip install -r requirements.txt
 cp .env.example .env
 ```
 
-2. **Edit `.env` with your credentials:**
+2. **Edit `.env` with your API credentials:**
 ```env
-# Exchange API Keys
-BINANCE_API_KEY=your_api_key
-BINANCE_API_SECRET=your_secret
+# Alpha Vantage (Global Stocks)
+ALPHA_VANTAGE_API_KEY=your_alpha_vantage_key
+
+# CoinGecko (Cryptocurrencies)
+COINGECKO_API_KEY=your_coingecko_key
+
+# CurrencyAPI (Forex)
+CURRENCY_API_KEY=your_currency_api_key
+
+# Twelve Data (Real-time Data)
+TWELVE_DATA_API_KEY=your_twelve_data_key
+
+# Polygon.io (US Market & Options)
+POLYGON_API_KEY=your_polygon_key
+
+# Finnhub (Real-time Quotes & Sentiment)
+FINNHUB_API_KEY=your_finnhub_key
+
+# Binance (Exchange Trading)
+BINANCE_API_KEY=your_binance_key
+BINANCE_API_SECRET=your_binance_secret
 BINANCE_TESTNET=true
 
-COINBASE_API_KEY=your_api_key
-COINBASE_API_SECRET=your_secret
-COINBASE_PASSPHRASE=your_passphrase
-
-KRAKEN_API_KEY=your_api_key
-KRAKEN_API_SECRET=your_secret
-
-# Notifications (optional)
-TELEGRAM_BOT_TOKEN=your_token
-TELEGRAM_CHAT_ID=your_chat_id
-SLACK_WEBHOOK_URL=https://hooks.slack.com/...
-
-# Trading Mode
-PAPER_TRADING=true
-DRY_RUN=false
+# Trading Configuration
+AUTO_EXECUTE=false
+ENABLE_TEST_MODE=true
+MAX_POSITION_SIZE_USD=10000
+MAX_DAILY_LOSS_USD=1000
+MIN_CONFIDENCE_THRESHOLD=0.7
 ```
 
-3. **Review config files:**
-- `config/config.yaml` - Main configuration
-- `config/trading_config.yaml` - Trading parameters
-- `model_risk_caps.json` - Risk limits per exchange
+### Running the Enhanced System
 
-### Running the System
+```bash
+# Test multi-source arbitrage detection
+python multi_source_arbitrage_demo.py
+
+# Start monitoring dashboard
+streamlit run aac_monitoring_dashboard.py
+
+# Deploy in test mode
+python deploy_production.py --mode test
+
+# Deploy in live mode (CAUTION!)
+python deploy_production.py --mode live
+```
+
+### Running Original ACC System
 
 ```bash
 # Start with paper trading (recommended for testing)
@@ -95,38 +173,58 @@ python main.py
 
 ## 📁 Project Structure
 
+### Enhanced AAC Arbitrage System
+```
+AAC/
+├── aac_arbitrage_execution_system.py    # Main execution system
+├── binance_trading_engine.py            # Binance trading engine
+├── binance_arbitrage_integration.py     # Binance API integration
+├── multi_source_arbitrage_demo.py       # Arbitrage detection demo
+├── aac_monitoring_dashboard.py          # Streamlit monitoring dashboard
+├── deploy_production.py                 # Production deployment script
+├── additional_data_sources.py           # Extended data source catalog
+├── polygon_arbitrage_integration.py     # Polygon.io integration
+├── finnhub_arbitrage_integration.py     # Finnhub integration
+├── advanced_arbitrage_integration.py    # Multi-source analysis engine
+├── worldwide_arbitrage_demo.py          # Global arbitrage demo
+├── aac_enhanced_arbitrage_roadmap.py    # Implementation roadmap
+├── test_*.py                            # API and component tests
+└── .env                                 # API key configuration
+```
+
+### Original ACC System
 ```
 ACC/
-├── orchestrator.py          # Central coordinator
-├── main.py                  # Entry point
-├── BigBrainIntelligence/    # Research agents
-│   ├── agents.py            # 11 specialized agents
-│   └── research_agent.py    # Agent base classes
-├── TradingExecution/        # Trading engine
-│   ├── execution_engine.py  # Order execution
-│   ├── trading_engine.py    # Trade management
-│   ├── risk_manager.py      # Risk controls
-│   ├── order_manager.py     # Order persistence
-│   └── exchange_connectors/ # Exchange APIs
+├── orchestrator.py                      # Central coordinator
+├── main.py                              # Entry point
+├── BigBrainIntelligence/                # Research agents
+│   ├── agents.py                        # 11 specialized agents
+│   └── research_agent.py                # Agent base classes
+├── TradingExecution/                    # Trading engine
+│   ├── execution_engine.py              # Order execution
+│   ├── trading_engine.py                # Trade management
+│   ├── risk_manager.py                  # Risk controls
+│   ├── order_manager.py                 # Order persistence
+│   └── exchange_connectors/             # Exchange APIs
 │       ├── binance_connector.py
 │       ├── coinbase_connector.py
 │       └── kraken_connector.py
-├── CentralAccounting/       # Financial tracking
-│   └── database.py          # SQLite ledger
-├── CryptoIntelligence/      # Crypto analysis
+├── CentralAccounting/                   # Financial tracking
+│   └── database.py                      # SQLite ledger
+├── CryptoIntelligence/                  # Crypto analysis
 │   └── crypto_bigbrain_integration.py
-├── shared/                  # Common utilities
-│   ├── config_loader.py     # Configuration
-│   ├── data_sources.py      # Market data
-│   ├── utils.py             # CircuitBreaker, RateLimiter
-│   ├── monitoring.py        # Health checks & alerts
-│   ├── secrets_manager.py   # API key encryption
-│   ├── audit_logger.py      # Compliance logging
-│   └── health_server.py     # HTTP health endpoints
-├── config/                  # Configuration files
-├── data/                    # Persistent data
-├── logs/                    # Log files
-└── tests/                   # Test suite
+├── shared/                              # Common utilities
+│   ├── config_loader.py                 # Configuration
+│   ├── data_sources.py                  # Market data
+│   ├── utils.py                         # CircuitBreaker, RateLimiter
+│   ├── monitoring.py                    # Health checks & alerts
+│   ├── secrets_manager.py               # API key encryption
+│   ├── audit_logger.py                  # Compliance logging
+│   └── health_server.py                # HTTP health endpoints
+├── config/                              # Configuration files
+├── data/                                # Persistent data
+├── logs/                                # Log files
+└── tests/                               # Test suite
 ```
 
 ## 🎭 Theater System
@@ -148,6 +246,100 @@ Detects alpha opportunities and on-chain signals.
 - `whale_tracker` - Large wallet movements
 - `mempool_analyzer` - Pending transaction analysis
 - `orderflow_analyzer` - Market microstructure
+
+## 🔗 AAC Arbitrage System
+
+### Data Sources Integration
+
+The enhanced AAC system integrates multiple financial data APIs for comprehensive market coverage:
+
+| API | Purpose | Rate Limit | Status |
+|-----|---------|------------|--------|
+| Alpha Vantage | Global Stocks | 25/day | ✅ Configured |
+| CoinGecko | Crypto | Unlimited | ✅ Configured |
+| CurrencyAPI | Forex | 300/month | ✅ Configured |
+| Twelve Data | Real-time | 800/day | ✅ Configured |
+| Polygon.io | US Market | 5M/month | ✅ Configured |
+| Finnhub | Quotes/Sentiment | 150/day | ✅ Configured |
+| ECB | Economic Data | Unlimited | ✅ Configured |
+| World Bank | Macro Data | Unlimited | ✅ Configured |
+| Binance | Trading | Varies | ✅ Integrated |
+
+### Arbitrage Strategies
+
+#### Cross-Exchange Arbitrage
+```python
+from multi_source_arbitrage_demo import MultiSourceArbitrageDetector
+
+detector = MultiSourceArbitrageDetector()
+opportunities = await detector.detect_opportunities()
+
+for opp in opportunities:
+    if opp['type'] == 'cross_exchange':
+        print(f"Arbitrage: {opp['symbol']} - Spread: {opp['spread']:.2%}")
+```
+
+#### Triangular Arbitrage
+Exploits inefficiencies in currency triangles (BTC → ETH → USDT → BTC).
+
+#### Statistical Arbitrage
+Uses statistical models for mean-reversion opportunities.
+
+### Trading Engine
+
+#### Binance Integration
+```python
+from binance_trading_engine import BinanceTradingEngine, TradingConfig
+
+config = TradingConfig(max_position_size_usd=10000)
+engine = BinanceTradingEngine(binance_config, config)
+
+# Place limit order
+await engine.place_limit_order('BTCUSDT', 'BUY', 0.001, 45000)
+
+# Check positions
+positions = await engine.check_positions()
+```
+
+#### Risk Management
+- **Position Sizing**: Risk-based calculation
+- **Stop Loss**: Automatic 5% stop loss protection
+- **Daily Loss Limits**: Maximum $1000 daily loss
+- **Position Caps**: Maximum 10 concurrent positions
+
+### Monitoring Dashboard
+
+Start the real-time monitoring dashboard:
+
+```bash
+streamlit run aac_monitoring_dashboard.py
+```
+
+Features:
+- Real-time position monitoring
+- Performance charts and analytics
+- System health indicators
+- Trade execution logs
+- Interactive controls
+
+### Production Deployment
+
+#### Test Mode
+```bash
+python deploy_production.py --mode test
+```
+
+#### Live Trading
+```bash
+# WARNING: This will execute real trades!
+python deploy_production.py --mode live
+```
+
+#### System Status
+```bash
+python deploy_production.py --status
+python deploy_production.py --health-check
+```
 
 ## ⚙️ Configuration Guide
 
@@ -246,3 +438,22 @@ Proprietary - All rights reserved
 ## 🤝 Support
 
 For issues and questions, please open a GitHub issue or contact the development team.
+
+## 🔑 Automated Exchange API Credential Loading
+
+AAC automatically loads your Binance, Coinbase, and Kraken API credentials from your `.env` file using the config loader. To enable live trading:
+
+1. Copy `.env.example` to `.env` and fill in your real API keys:
+   ```env
+   BINANCE_API_KEY=your_key
+   BINANCE_API_SECRET=your_secret
+   COINBASE_API_KEY=your_key
+   COINBASE_API_SECRET=your_secret
+   COINBASE_PASSPHRASE=your_passphrase
+   KRAKEN_API_KEY=your_key
+   KRAKEN_API_SECRET=your_secret
+   ```
+2. The config loader will automatically detect and securely inject these credentials into the trading engines at runtime.
+3. **Never commit your real `.env` file to version control.**
+
+For more details, see `shared/config_loader.py` and `.env.example`.

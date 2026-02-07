@@ -95,8 +95,8 @@ class FinancialAnalysisEngine:
                 if total_quantity == 0:
                     # Position closed
                     del self.positions[symbol]
-                await audit.log_event(AuditCategory.SYSTEM, "position_closed", "financial_analysis",
-                                  {"symbol": symbol, "realized_pnl": pos.unrealized_pnl})
+                    await audit.log_event(AuditCategory.SYSTEM, "position_closed", "financial_analysis",
+                                      details={"symbol": symbol, "realized_pnl": pos.unrealized_pnl})
                 else:
                     # Update average price and P&L
                     total_value = (pos.quantity * pos.avg_price) + (quantity * price)
@@ -120,12 +120,12 @@ class FinancialAnalysisEngine:
                     strategy=strategy
                 )
                 await audit.log_event(AuditCategory.SYSTEM, "position_opened", "financial_analysis",
-                              {"symbol": symbol, "quantity": quantity, "price": price})
+                              details={"symbol": symbol, "quantity": quantity, "price": price})
 
         except Exception as e:
             logger.error(f"Failed to update position {symbol}: {e}")
             await audit.log_event(AuditCategory.ERROR, "position_update_error", "financial_analysis",
-                          {"symbol": symbol, "error": str(e)})
+                          details={"symbol": symbol, "error": str(e)})
 
     async def calculate_portfolio_value(self) -> float:
         """Calculate total portfolio value including cash."""
@@ -216,7 +216,11 @@ class FinancialAnalysisEngine:
             }
 
             self.last_reconciliation = reconciliation_result
-            await audit.log_event(AuditCategory.SYSTEM, "reconciliation_completed", "financial_analysis", reconciliation_result)
+            await audit.log_event(
+                category=AuditCategory.SYSTEM,
+                action="reconciliation_completed",
+                details=reconciliation_result
+            )
 
             return reconciliation_result
 
@@ -306,6 +310,54 @@ class FinancialAnalysisEngine:
         except Exception as e:
             logger.error(f"Failed to get portfolio summary: {e}")
             return {"error": str(e)}
+
+    async def get_health_status(self) -> Dict[str, Any]:
+        """Get the health status of the financial analysis engine"""
+        try:
+            summary = await self.get_portfolio_summary()
+            metrics = await self.get_doctrine_metrics()
+
+            # Determine health based on key metrics
+            health_score = 1.0
+
+            # Check drawdown (reduce health if drawdown > 5%)
+            if metrics.get('max_drawdown_pct', 0) > 5.0:
+                health_score *= 0.8
+
+            # Check capital utilization (reduce health if > 90%)
+            if metrics.get('capital_utilization', 0) > 90.0:
+                health_score *= 0.9
+
+            # Check margin buffer (reduce health if < 10%)
+            if metrics.get('margin_buffer', 100) < 10.0:
+                health_score *= 0.7
+
+            # Check for reconciliation issues
+            if self.reconciliation_discrepancies:
+                health_score *= 0.8
+
+            status = "healthy" if health_score > 0.8 else "warning" if health_score > 0.5 else "critical"
+
+            return {
+                "status": status,
+                "health_score": health_score,
+                "portfolio_value": summary.get("portfolio_value", 0),
+                "daily_pnl": summary.get("daily_pnl", 0),
+                "positions_count": summary.get("total_positions", 0),
+                "max_drawdown_pct": metrics.get("max_drawdown_pct", 0),
+                "capital_utilization": metrics.get("capital_utilization", 0),
+                "reconciliation_issues": len(self.reconciliation_discrepancies),
+                "last_reconciliation": self.last_reconciliation,
+                "timestamp": datetime.now().isoformat()
+            }
+
+        except Exception as e:
+            logger.error(f"Failed to get health status: {e}")
+            return {
+                "status": "error",
+                "error": str(e),
+                "timestamp": datetime.now().isoformat()
+            }
 
 # Global engine instance
 _engine_instance = None

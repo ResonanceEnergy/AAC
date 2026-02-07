@@ -36,6 +36,158 @@ doctrine_packs:
         insight: "Your edge decays; your process must out-innovate decay"
         level: institutional
         
+      - id: 25
+        insight: "The most durable edge is measurement integrity"
+        level: institutional
+        
+      - id: 26
+        insight: "Model every venue as a service with SLOs, not as a price source"
+        level: scale
+        
+      - id: 27
+        insight: "Always ask: 'What breaks this edge when copied?'"
+        level: minimum
+        
+      - id: 28
+        insight: "The future belongs to systems that are adaptive, verified, and governable"
+        level: institutional
+        
+      - id: 29
+        insight: "Risk is not just volatility; it's the cost of being wrong"
+        level: minimum
+        
+      - id: 30
+        insight: "Capital allocation is the ultimate risk control mechanism"
+        level: scale
+        
+      - id: 31
+        insight: "Position limits must be dynamic, not static"
+        level: scale
+        
+      - id: 32
+        insight: "Correlation assumptions break during crises"
+        level: minimum
+        
+      - id: 33
+        insight: "Liquidity risk is the silent killer of arbitrage strategies"
+        level: scale
+        
+      - id: 34
+        insight: "Stress testing must include your own behavior under pressure"
+        level: institutional
+        
+      - id: 35
+        insight: "The best risk models are the ones that admit their limitations"
+        level: minimum
+        
+      - id: 36
+        insight: "Risk appetite must be defined in terms of maximum acceptable outcomes"
+        level: scale
+        
+      - id: 37
+        insight: "Counterparty risk includes operational risk of your counterparties"
+        level: minimum
+        
+      - id: 38
+        insight: "Basis risk is never zero; model it explicitly"
+        level: scale
+        
+      - id: 39
+        insight: "Time risk compounds with position size"
+        level: minimum
+        
+      - id: 40
+        insight: "The risk of rare events is not rare enough to ignore"
+        level: institutional
+        
+      - id: 41
+        insight: "Diversification works until it doesn't; have uncorrelated backups"
+        level: scale
+        
+      - id: 42
+        insight: "Margin requirements change faster than you can react"
+        level: minimum
+        
+      - id: 43
+        insight: "Liquidity dries up when you need it most"
+        level: scale
+        
+      - id: 44
+        insight: "Model risk is the risk that your models are wrong"
+        level: institutional
+        
+      - id: 45
+        insight: "Parameter uncertainty must be quantified and managed"
+        level: scale
+        
+      - id: 46
+        insight: "Backtesting overstates performance; forward testing understates risk"
+        level: minimum
+        
+      - id: 47
+        insight: "The Sharpe ratio is not a risk measure; it's a reward-to-variability measure"
+        level: scale
+        
+      - id: 48
+        insight: "VaR is a compliance tool, not a risk management tool"
+        level: minimum
+        
+      - id: 49
+        insight: "Expected shortfall is better than VaR, but still insufficient"
+        level: scale
+        
+      - id: 50
+        insight: "Stress testing must include plausible worst-case scenarios"
+        level: institutional
+        
+      - id: 51
+        insight: "Risk limits must be breached-tested regularly"
+        level: minimum
+        
+      - id: 52
+        insight: "The risk team must have veto power over trades"
+        level: scale
+        
+      - id: 53
+        insight: "Risk reports must be read and acted upon"
+        level: minimum
+        
+      - id: 54
+        insight: "Risk culture matters more than risk models"
+        level: institutional
+        
+      - id: 55
+        insight: "The board must understand and approve risk limits"
+        level: scale
+        
+      - id: 56
+        insight: "Risk escalation procedures must be tested"
+        level: minimum
+        
+      - id: 57
+        insight: "Business continuity planning includes risk management continuity"
+        level: scale
+        
+      - id: 58
+        insight: "Cyber risk is part of operational risk"
+        level: minimum
+        
+      - id: 59
+        insight: "Regulatory risk changes with the political climate"
+        level: institutional
+        
+      - id: 60
+        insight: "Reputational risk can destroy firms faster than financial risk"
+        level: scale
+        
+      - id: 61
+        insight: "The best risk management is prevention, not reaction"
+        level: minimum
+        
+      - id: 62
+        insight: "Risk management is a profit center, not a cost center"
+        level: institutional
+        
     required_metrics:
       - metric: max_drawdown_pct
         definition: "Maximum peak-to-trough decline in portfolio value"
@@ -174,6 +326,198 @@ doctrine_packs:
       - id: 50
         insight: "Zero-trust architecture: verify every access, every time"
         level: institutional
+        
+      - id: 63
+        insight: "Security is not a feature; it's the foundation"
+        level: minimum
+        
+      - id: 64
+        insight: "Every system has a security boundary; define and defend it"
+        level: scale
+        
+      - id: 65
+        insight: "Secrets management is non-negotiable for financial systems"
+        level: institutional
+        
+      - id: 66
+        insight: "Key rotation is a security hygiene requirement"
+        level: minimum
+        
+      - id: 67
+        insight: "Multi-factor authentication is the minimum for privileged access"
+        level: scale
+        
+      - id: 68
+        insight: "Access should be granted on a need-to-know basis"
+        level: minimum
+        
+      - id: 69
+        insight: "Audit logs must be tamper-proof and immutable"
+        level: institutional
+        
+      - id: 70
+        insight: "Encryption at rest and in transit is mandatory"
+        level: scale
+        
+      - id: 71
+        insight: "Network segmentation prevents lateral movement"
+        level: minimum
+        
+      - id: 72
+        insight: "Vulnerability scanning must be continuous"
+        level: scale
+        
+      - id: 73
+        insight: "Patch management is a risk mitigation strategy"
+        level: minimum
+        
+      - id: 74
+        insight: "Incident response plans must be tested regularly"
+        level: institutional
+        
+      - id: 75
+        insight: "Security monitoring must detect anomalies in real-time"
+        level: scale
+        
+      - id: 76
+        insight: "Backup security is as important as primary security"
+        level: minimum
+        
+      - id: 77
+        insight: "Third-party risk assessment is critical"
+        level: scale
+        
+      - id: 78
+        insight: "Social engineering is the biggest security threat"
+        level: minimum
+        
+      - id: 79
+        insight: "Security training must be mandatory and ongoing"
+        level: institutional
+        
+      - id: 80
+        insight: "Compliance is the floor, not the ceiling for security"
+        level: scale
+        
+      - id: 81
+        insight: "Hardware security modules provide the strongest protection"
+        level: minimum
+        
+      - id: 82
+        insight: "API security requires authentication and authorization"
+        level: scale
+        
+      - id: 83
+        insight: "Container security must include image scanning"
+        level: minimum
+        
+      - id: 84
+        insight: "Cloud security requires shared responsibility understanding"
+        level: institutional
+        
+      - id: 85
+        insight: "Data classification enables appropriate protection levels"
+        level: scale
+        
+      - id: 86
+        insight: "Privacy regulations impact security requirements"
+        level: minimum
+        
+      - id: 87
+        insight: "Security by obscurity is not security"
+        level: scale
+        
+      - id: 88
+        insight: "Defense in depth provides multiple security layers"
+        level: institutional
+        
+      - id: 89
+        insight: "Security metrics must be measurable and monitored"
+        level: minimum
+        
+      - id: 90
+        insight: "Threat modeling identifies potential attack vectors"
+        level: scale
+        
+      - id: 91
+        insight: "Red team exercises test security controls"
+        level: minimum
+        
+      - id: 92
+        insight: "Security awareness reduces human error risk"
+        level: institutional
+        
+      - id: 93
+        insight: "Cryptographic agility allows algorithm updates"
+        level: scale
+        
+      - id: 94
+        insight: "Certificate management requires automation"
+        level: minimum
+        
+      - id: 95
+        insight: "Secure coding practices prevent vulnerabilities"
+        level: scale
+        
+      - id: 96
+        insight: "Supply chain security protects against third-party risks"
+        level: institutional
+        
+      - id: 97
+        insight: "Zero-day vulnerabilities require proactive monitoring"
+        level: minimum
+        
+      - id: 98
+        insight: "Security operations center provides 24/7 monitoring"
+        level: scale
+        
+      - id: 99
+        insight: "Forensic capabilities enable incident investigation"
+        level: minimum
+        
+      - id: 100
+        insight: "Security governance ensures organizational alignment"
+        level: institutional
+        
+      - id: 101
+        insight: "Risk assessment drives security prioritization"
+        level: scale
+        
+      - id: 102
+        insight: "Security testing includes penetration testing"
+        level: minimum
+        
+      - id: 103
+        insight: "Configuration management prevents misconfigurations"
+        level: scale
+        
+      - id: 104
+        insight: "Identity management is central to access control"
+        level: institutional
+        
+      - id: 105
+        insight: "Session management prevents unauthorized access"
+        level: minimum
+        
+      - id: 106
+        insight: "Input validation prevents injection attacks"
+        level: scale
+        
+      - id: 107
+        insight: "Error handling should not leak sensitive information"
+        level: minimum
+        
+      - id: 108
+        insight: "Logging security events enables detection"
+        level: institutional
+        
+      - id: 109
+        insight: "Security controls must be auditable"
+        level: scale
+        
+      - id: 110
+        insight: "Business continuity includes security continuity"
+        level: minimum
         
     required_metrics:
       - metric: key_age_days
@@ -320,6 +664,278 @@ doctrine_packs:
         
       - id: 60
         insight: "Test the recovery, not just the failure"
+        level: institutional
+        
+      - id: 111
+        insight: "Testing is not optional; it's mandatory for financial systems"
+        level: minimum
+        
+      - id: 112
+        insight: "Simulation accuracy determines strategy viability"
+        level: scale
+        
+      - id: 113
+        insight: "Chaos engineering finds hidden dependencies"
+        level: institutional
+        
+      - id: 114
+        insight: "Replay testing validates system behavior"
+        level: minimum
+        
+      - id: 115
+        insight: "Backtesting overstates returns; forward testing understates risk"
+        level: scale
+        
+      - id: 116
+        insight: "Out-of-sample testing is the only valid validation"
+        level: minimum
+        
+      - id: 117
+        insight: "Stress testing must include extreme market conditions"
+        level: institutional
+        
+      - id: 118
+        insight: "Scenario analysis requires diverse economic conditions"
+        level: scale
+        
+      - id: 119
+        insight: "Monte Carlo simulation captures parameter uncertainty"
+        level: minimum
+        
+      - id: 120
+        insight: "Walk-forward optimization prevents overfitting"
+        level: scale
+        
+      - id: 121
+        insight: "Cross-validation ensures model robustness"
+        level: institutional
+        
+      - id: 122
+        insight: "A/B testing validates strategy improvements"
+        level: minimum
+        
+      - id: 123
+        insight: "Shadow testing runs new code alongside production"
+        level: scale
+        
+      - id: 124
+        insight: "Canary deployments test system changes safely"
+        level: minimum
+        
+      - id: 125
+        insight: "Feature flags enable gradual rollout"
+        level: institutional
+        
+      - id: 126
+        insight: "Regression testing prevents functionality loss"
+        level: scale
+        
+      - id: 127
+        insight: "Integration testing validates component interaction"
+        level: minimum
+        
+      - id: 128
+        insight: "Unit testing ensures code correctness"
+        level: scale
+        
+      - id: 129
+        insight: "Property-based testing finds edge cases"
+        level: institutional
+        
+      - id: 130
+        insight: "Fuzz testing discovers input vulnerabilities"
+        level: minimum
+        
+      - id: 131
+        insight: "Performance testing validates latency requirements"
+        level: scale
+        
+      - id: 132
+        insight: "Load testing ensures scalability"
+        level: minimum
+        
+      - id: 133
+        insight: "Volume testing handles data scale"
+        level: institutional
+        
+      - id: 134
+        insight: "Concurrency testing validates parallel execution"
+        level: scale
+        
+      - id: 135
+        insight: "Race condition testing prevents timing bugs"
+        level: minimum
+        
+      - id: 136
+        insight: "Memory leak testing ensures resource efficiency"
+        level: scale
+        
+      - id: 137
+        insight: "Security testing prevents vulnerabilities"
+        level: institutional
+        
+      - id: 138
+        insight: "Compliance testing ensures regulatory adherence"
+        level: minimum
+        
+      - id: 139
+        insight: "Usability testing validates user interfaces"
+        level: scale
+        
+      - id: 140
+        insight: "Accessibility testing ensures inclusive design"
+        level: minimum
+        
+      - id: 141
+        insight: "Localization testing handles international markets"
+        level: institutional
+        
+      - id: 142
+        insight: "Browser compatibility testing ensures web functionality"
+        level: scale
+        
+      - id: 143
+        insight: "Mobile testing validates app performance"
+        level: minimum
+        
+      - id: 144
+        insight: "API testing ensures service reliability"
+        level: scale
+        
+      - id: 145
+        insight: "Database testing validates data integrity"
+        level: institutional
+        
+      - id: 146
+        insight: "Network testing handles connectivity issues"
+        level: minimum
+        
+      - id: 147
+        insight: "Disaster recovery testing ensures business continuity"
+        level: scale
+        
+      - id: 148
+        insight: "Failover testing validates redundancy"
+        level: minimum
+        
+      - id: 149
+        insight: "Backup restoration testing ensures data recoverability"
+        level: institutional
+        
+      - id: 150
+        insight: "Penetration testing finds security weaknesses"
+        level: scale
+        
+      - id: 151
+        insight: "Vulnerability scanning identifies known issues"
+        level: minimum
+        
+      - id: 152
+        insight: "Code review testing catches logic errors"
+        level: scale
+        
+      - id: 153
+        insight: "Pair programming improves code quality"
+        level: institutional
+        
+      - id: 154
+        insight: "Continuous integration prevents integration hell"
+        level: minimum
+        
+      - id: 155
+        insight: "Continuous deployment enables rapid iteration"
+        level: scale
+        
+      - id: 156
+        insight: "Test-driven development ensures testable code"
+        level: minimum
+        
+      - id: 157
+        insight: "Behavior-driven development aligns with business needs"
+        level: institutional
+        
+      - id: 158
+        insight: "Acceptance testing validates business requirements"
+        level: scale
+        
+      - id: 159
+        insight: "Exploratory testing finds unexpected issues"
+        level: minimum
+        
+      - id: 160
+        insight: "Session-based testing structures exploratory work"
+        level: scale
+        
+      - id: 161
+        insight: "Risk-based testing prioritizes critical functionality"
+        level: institutional
+        
+      - id: 162
+        insight: "Equivalence partitioning reduces test cases"
+        level: minimum
+        
+      - id: 163
+        insight: "Boundary value analysis finds edge case bugs"
+        level: scale
+        
+      - id: 164
+        insight: "Decision table testing handles complex logic"
+        level: minimum
+        
+      - id: 165
+        insight: "State transition testing validates workflows"
+        level: institutional
+        
+      - id: 166
+        insight: "Use case testing ensures user scenarios work"
+        level: scale
+        
+      - id: 167
+        insight: "User story testing validates agile requirements"
+        level: minimum
+        
+      - id: 168
+        insight: "Contract testing ensures API compatibility"
+        level: scale
+        
+      - id: 169
+        insight: "Consumer-driven contract testing prevents breaking changes"
+        level: institutional
+        
+      - id: 170
+        insight: "Mutation testing validates test suite effectiveness"
+        level: minimum
+        
+      - id: 171
+        insight: "Test coverage metrics guide testing efforts"
+        level: scale
+        
+      - id: 172
+        insight: "Code coverage ensures tested code"
+        level: minimum
+        
+      - id: 173
+        insight: "Branch coverage validates decision paths"
+        level: institutional
+        
+      - id: 174
+        insight: "Path coverage ensures all execution paths tested"
+        level: scale
+        
+      - id: 175
+        insight: "Function coverage validates method execution"
+        level: minimum
+        
+      - id: 176
+        insight: "Statement coverage ensures code execution"
+        level: scale
+        
+      - id: 177
+        insight: "Condition coverage validates boolean expressions"
+        level: minimum
+        
+      - id: 178
+        insight: "Multiple condition coverage ensures complex logic"
         level: institutional
         
     simulation_realism_levels:
@@ -536,6 +1152,194 @@ doctrine_packs:
       - id: 102
         insight: "MTTD (detect) is as important as MTTR (repair)"
         level: scale
+        
+      - id: 179
+        insight: "Incident response is a core competency for trading systems"
+        level: institutional
+        
+      - id: 180
+        insight: "On-call rotation prevents burnout and ensures coverage"
+        level: minimum
+        
+      - id: 181
+        insight: "Postmortems must lead to action items"
+        level: scale
+        
+      - id: 182
+        insight: "Incident classification enables appropriate response"
+        level: minimum
+        
+      - id: 183
+        insight: "Escalation procedures must be clear and tested"
+        level: institutional
+        
+      - id: 184
+        insight: "Communication during incidents prevents confusion"
+        level: scale
+        
+      - id: 185
+        insight: "Root cause analysis prevents recurrence"
+        level: minimum
+        
+      - id: 186
+        insight: "Incident metrics drive continuous improvement"
+        level: scale
+        
+      - id: 187
+        insight: "Runbooks standardize incident response"
+        level: institutional
+        
+      - id: 188
+        insight: "War rooms coordinate complex incident response"
+        level: minimum
+        
+      - id: 189
+        insight: "Stakeholder communication manages expectations"
+        level: scale
+        
+      - id: 190
+        insight: "Incident retrospectives improve processes"
+        level: minimum
+        
+      - id: 191
+        insight: "Alert fatigue reduces response effectiveness"
+        level: institutional
+        
+      - id: 192
+        insight: "Monitoring must detect incidents early"
+        level: scale
+        
+      - id: 193
+        insight: "Automated remediation reduces MTTR"
+        level: minimum
+        
+      - id: 194
+        insight: "Incident simulation prepares teams"
+        level: scale
+        
+      - id: 195
+        insight: "Knowledge base captures institutional learning"
+        level: institutional
+        
+      - id: 196
+        insight: "Incident trends identify systemic issues"
+        level: minimum
+        
+      - id: 197
+        insight: "On-call training ensures competency"
+        level: scale
+        
+      - id: 198
+        insight: "Shift handoffs prevent knowledge loss"
+        level: minimum
+        
+      - id: 199
+        insight: "Incident commanders coordinate response"
+        level: institutional
+        
+      - id: 200
+        insight: "Communication channels must be reliable"
+        level: scale
+        
+      - id: 201
+        insight: "Status pages keep stakeholders informed"
+        level: minimum
+        
+      - id: 202
+        insight: "Incident timelines document response"
+        level: scale
+        
+      - id: 203
+        insight: "Action items must be tracked to completion"
+        level: institutional
+        
+      - id: 204
+        insight: "Postmortem culture encourages learning"
+        level: minimum
+        
+      - id: 205
+        insight: "Incident reviews identify improvement opportunities"
+        level: scale
+        
+      - id: 206
+        insight: "Metrics review validates incident handling"
+        level: minimum
+        
+      - id: 207
+        insight: "Process improvements prevent future incidents"
+        level: institutional
+        
+      - id: 208
+        insight: "Tool improvements enhance response capabilities"
+        level: scale
+        
+      - id: 209
+        insight: "Training improvements build team skills"
+        level: minimum
+        
+      - id: 210
+        insight: "Alert tuning reduces noise"
+        level: scale
+        
+      - id: 211
+        insight: "Monitoring enhancements detect issues earlier"
+        level: institutional
+        
+      - id: 212
+        insight: "Automation reduces manual intervention needs"
+        level: minimum
+        
+      - id: 213
+        insight: "Documentation improvements aid response"
+        level: scale
+        
+      - id: 214
+        insight: "Process standardization ensures consistency"
+        level: minimum
+        
+      - id: 215
+        insight: "Team rotation maintains fresh perspectives"
+        level: institutional
+        
+      - id: 216
+        insight: "Cross-training enables flexible response"
+        level: scale
+        
+      - id: 217
+        insight: "Vendor coordination manages third-party incidents"
+        level: minimum
+        
+      - id: 218
+        insight: "Regulatory reporting handles compliance incidents"
+        level: scale
+        
+      - id: 219
+        insight: "Customer communication manages external impact"
+        level: institutional
+        
+      - id: 220
+        insight: "Business continuity activates for major incidents"
+        level: minimum
+        
+      - id: 221
+        insight: "Crisis management handles reputation impact"
+        level: scale
+        
+      - id: 222
+        insight: "Recovery testing validates restoration procedures"
+        level: minimum
+        
+      - id: 223
+        insight: "Backup validation ensures data recoverability"
+        level: institutional
+        
+      - id: 224
+        insight: "Failover testing confirms redundancy"
+        level: scale
+        
+      - id: 225
+        insight: "Disaster recovery drills prepare for worst case"
+        level: minimum
         
     severity_levels:
       sev1:
@@ -810,6 +1614,258 @@ doctrine_packs:
         insight: "'Best price' is meaningless without time-to-access and time-to-settle"
         level: institutional
         
+      - id: 226
+        insight: "Liquidity is the lifeblood of arbitrage strategies"
+        level: minimum
+        
+      - id: 227
+        insight: "Market impact destroys small edges"
+        level: scale
+        
+      - id: 228
+        insight: "Partial fills are the norm, not the exception"
+        level: minimum
+        
+      - id: 229
+        insight: "Queue position determines fill probability"
+        level: institutional
+        
+      - id: 230
+        insight: "Time-in-market affects execution quality"
+        level: scale
+        
+      - id: 231
+        insight: "Liquidity varies by time of day"
+        level: minimum
+        
+      - id: 232
+        insight: "Market depth determines impact cost"
+        level: scale
+        
+      - id: 233
+        insight: "Order size relative to market matters"
+        level: institutional
+        
+      - id: 234
+        insight: "Hidden liquidity affects fill rates"
+        level: minimum
+        
+      - id: 235
+        insight: "Algorithm choice impacts execution"
+        level: scale
+        
+      - id: 236
+        insight: "Venue selection affects outcomes"
+        level: minimum
+        
+      - id: 237
+        insight: "Routing logic optimizes fills"
+        level: institutional
+        
+      - id: 238
+        impact: "Price impact follows square root law"
+        level: scale
+        
+      - id: 239
+        insight: "Temporary impact decays over time"
+        level: minimum
+        
+      - id: 240
+        insight: "Permanent impact affects future prices"
+        level: scale
+        
+      - id: 241
+        insight: "Information leakage hurts execution"
+        level: institutional
+        
+      - id: 242
+        insight: "Order slicing reduces impact"
+        level: minimum
+        
+      - id: 243
+        insight: "Participation rate controls aggression"
+        level: scale
+        
+      - id: 244
+        insight: "Schedule optimization improves fills"
+        level: minimum
+        
+      - id: 245
+        insight: "Adaptive algorithms learn from experience"
+        level: institutional
+        
+      - id: 246
+        insight: "Benchmarking measures execution quality"
+        level: scale
+        
+      - id: 247
+        insight: "Cost analysis includes all components"
+        level: minimum
+        
+      - id: 248
+        insight: "Slippage modeling predicts reality"
+        level: scale
+        
+      - id: 249
+        insight: "Fill probability estimation guides decisions"
+        level: institutional
+        
+      - id: 250
+        insight: "Liquidity provision creates opportunities"
+        level: minimum
+        
+      - id: 251
+        insight: "Market making requires two-way quotes"
+        level: scale
+        
+      - id: 252
+        insight: "Inventory management affects spreads"
+        level: minimum
+        
+      - id: 253
+        insight: "Risk management limits position taking"
+        level: institutional
+        
+      - id: 254
+        insight: "Order flow analysis predicts fills"
+        level: scale
+        
+      - id: 255
+        insight: "Time priority affects queue position"
+        level: minimum
+        
+      - id: 256
+        insight: "Display quantity influences behavior"
+        level: scale
+        
+      - id: 257
+        insight: "Iceberg orders hide true size"
+        level: institutional
+        
+      - id: 258
+        insight: "Stop orders create liquidity events"
+        level: minimum
+        
+      - id: 259
+        insight: "Market orders demand immediate fills"
+        level: scale
+        
+      - id: 260
+        insight: "Limit orders provide price improvement"
+        level: minimum
+        
+      - id: 261
+        insight: "Peg orders follow market movement"
+        level: institutional
+        
+      - id: 262
+        insight: "TWAP execution minimizes impact"
+        level: scale
+        
+      - id: 263
+        insight: "VWAP execution matches volume profile"
+        level: minimum
+        
+      - id: 264
+        insight: "POV execution controls participation"
+        level: scale
+        
+      - id: 265
+        insight: "Arrival price benchmarks performance"
+        level: institutional
+        
+      - id: 266
+        insight: "Implementation shortfall measures cost"
+        level: minimum
+        
+      - id: 267
+        insight: "Liquidity scoring ranks venues"
+        level: scale
+        
+      - id: 268
+        insight: "Venue health affects routing"
+        level: minimum
+        
+      - id: 269
+        insight: "Connectivity reliability matters"
+        level: institutional
+        
+      - id: 270
+        insight: "API rate limits constrain execution"
+        level: scale
+        
+      - id: 271
+        insight: "Order types enable different strategies"
+        level: minimum
+        
+      - id: 272
+        insight: "Conditional orders handle complex logic"
+        level: scale
+        
+      - id: 273
+        insight: "Bracket orders manage risk automatically"
+        level: institutional
+        
+      - id: 274
+        insight: "OCO orders prevent unwanted fills"
+        level: minimum
+        
+      - id: 275
+        insight: "Trailing stops follow profits"
+        level: scale
+        
+      - id: 276
+        insight: "Fill-or-kill orders demand immediacy"
+        level: minimum
+        
+      - id: 277
+        insight: "All-or-none orders require full quantity"
+        level: institutional
+        
+      - id: 278
+        insight: "Minimum quantity orders set thresholds"
+        level: scale
+        
+      - id: 279
+        insight: "Discretionary orders allow negotiation"
+        level: minimum
+        
+      - id: 280
+        insight: "Hidden orders avoid signaling"
+        level: scale
+        
+      - id: 281
+        insight: "Post-only orders prevent taking liquidity"
+        level: institutional
+        
+      - id: 282
+        insight: "Reduce-only orders prevent position increases"
+        level: minimum
+        
+      - id: 283
+        insight: "Leverage affects margin requirements"
+        level: scale
+        
+      - id: 284
+        insight: "Cross-margin enables portfolio optimization"
+        level: minimum
+        
+      - id: 285
+        insight: "Isolated margin contains risk"
+        level: institutional
+        
+      - id: 286
+        insight: "Liquidation engines enforce margin calls"
+        level: scale
+        
+      - id: 287
+        insight: "Auto-deleveraging protects solvent positions"
+        level: minimum
+        
+      - id: 288
+        insight: "Insurance funds absorb losses"
+        level: scale
+        
     partial_fill_models:
       model_a_fill_fraction:
         owner: CentralAccounting
@@ -1035,6 +2091,182 @@ doctrine_packs:
         insight: "Always ask: 'What breaks this edge when copied?'"
         level: institutional
         
+      - id: 289
+        insight: "Counterparty risk is the foundation of trust"
+        level: minimum
+        
+      - id: 290
+        insight: "Venue health determines execution reliability"
+        level: scale
+        
+      - id: 291
+        insight: "Withdrawal risk affects capital mobility"
+        level: institutional
+        
+      - id: 292
+        insight: "Reputation scoring predicts behavior"
+        level: minimum
+        
+      - id: 293
+        insight: "Regulatory compliance builds trust"
+        level: scale
+        
+      - id: 294
+        insight: "Financial stability prevents defaults"
+        level: minimum
+        
+      - id: 295
+        insight: "Technical competence ensures reliability"
+        level: institutional
+        
+      - id: 296
+        insight: "Transparency reduces information asymmetry"
+        level: scale
+        
+      - id: 297
+        insight: "Audit reports validate operations"
+        level: minimum
+        
+      - id: 298
+        insight: "Insurance coverage protects against losses"
+        level: scale
+        
+      - id: 299
+        insight: "Reserve proofs demonstrate solvency"
+        level: institutional
+        
+      - id: 300
+        insight: "Multi-sig requirements enhance security"
+        level: minimum
+        
+      - id: 301
+        insight: "Cold storage protects assets"
+        level: scale
+        
+      - id: 302
+        insight: "Hot wallet limits reduce risk"
+        level: minimum
+        
+      - id: 303
+        insight: "Withdrawal limits prevent large losses"
+        level: institutional
+        
+      - id: 304
+        insight: "KYC requirements ensure legitimacy"
+        level: scale
+        
+      - id: 305
+        insight: "AML monitoring prevents illicit activity"
+        level: minimum
+        
+      - id: 306
+        insight: "Geographic diversification reduces concentration"
+        level: scale
+        
+      - id: 307
+        insight: "Exchange concentration risk affects liquidity"
+        level: institutional
+        
+      - id: 308
+        insight: "Platform risk includes smart contract bugs"
+        level: minimum
+        
+      - id: 309
+        insight: "Bridge risk affects cross-chain operations"
+        level: scale
+        
+      - id: 310
+        insight: "Oracle risk impacts price feeds"
+        level: minimum
+        
+      - id: 311
+        insight: "Liquidity provider risk affects yields"
+        level: institutional
+        
+      - id: 312
+        insight: "Validator risk affects proof-of-stake networks"
+        level: scale
+        
+      - id: 313
+        insight: "Miner risk affects proof-of-work networks"
+        level: minimum
+        
+      - id: 314
+        insight: "Governance risk affects protocol changes"
+        level: scale
+        
+      - id: 315
+        insight: "Upgrade risk introduces breaking changes"
+        level: institutional
+        
+      - id: 316
+        insight: "Fork risk creates chain splits"
+        level: minimum
+        
+      - id: 317
+        insight: " rug pull risk affects new projects"
+        level: scale
+        
+      - id: 318
+        insight: "Scam risk targets unsuspecting users"
+        level: minimum
+        
+      - id: 319
+        insight: "Phishing risk compromises credentials"
+        level: institutional
+        
+      - id: 320
+        insight: "Social engineering exploits human weakness"
+        level: scale
+        
+      - id: 321
+        insight: "Supply chain attacks target dependencies"
+        level: minimum
+        
+      - id: 322
+        insight: "Third-party risk affects service providers"
+        level: scale
+        
+      - id: 323
+        insight: "Vendor risk impacts critical suppliers"
+        level: institutional
+        
+      - id: 324
+        insight: "Cloud provider risk affects infrastructure"
+        level: minimum
+        
+      - id: 325
+        insight: "DNS risk impacts domain resolution"
+        level: scale
+        
+      - id: 326
+        insight: "CDN risk affects content delivery"
+        level: minimum
+        
+      - id: 327
+        insight: "API provider risk impacts integrations"
+        level: institutional
+        
+      - id: 328
+        insight: "Payment processor risk affects settlements"
+        level: scale
+        
+      - id: 329
+        insight: "Bank risk impacts fiat operations"
+        level: minimum
+        
+      - id: 330
+        insight: "Custody risk affects asset storage"
+        level: scale
+        
+      - id: 331
+        insight: "Insurance risk covers loss events"
+        level: institutional
+        
+      - id: 332
+        insight: "Legal risk involves regulatory changes"
+        level: minimum
+        
     venue_health_scoring:
       components:
         - name: uptime_30d
@@ -1233,6 +2465,298 @@ doctrine_packs:
       - id: 24
         insight: "Your edge decays; your process must out-innovate decay"
         level: institutional
+        
+      - id: 333
+        insight: "Research is the engine of innovation"
+        level: minimum
+        
+      - id: 334
+        insight: "Experimentation validates hypotheses"
+        level: scale
+        
+      - id: 335
+        insight: "Strategy retirement prevents decay"
+        level: institutional
+        
+      - id: 336
+        insight: "Hypothesis testing drives discovery"
+        level: minimum
+        
+      - id: 337
+        insight: "Data quality determines research validity"
+        level: scale
+        
+      - id: 338
+        insight: "Statistical significance prevents false positives"
+        level: minimum
+        
+      - id: 339
+        insight: "Out-of-sample testing validates robustness"
+        level: institutional
+        
+      - id: 340
+        insight: "Cross-validation prevents overfitting"
+        level: scale
+        
+      - id: 341
+        insight: "Feature engineering creates edges"
+        level: minimum
+        
+      - id: 342
+        insight: "Model selection affects performance"
+        level: scale
+        
+      - id: 343
+        insight: "Hyperparameter tuning optimizes results"
+        level: institutional
+        
+      - id: 344
+        insight: "Ensemble methods improve stability"
+        level: minimum
+        
+      - id: 345
+        insight: "Regularization prevents complexity"
+        level: scale
+        
+      - id: 346
+        insight: "Dimensionality reduction aids understanding"
+        level: minimum
+        
+      - id: 347
+        insight: "Time series analysis handles temporal data"
+        level: institutional
+        
+      - id: 348
+        insight: "Causal inference identifies true relationships"
+        level: scale
+        
+      - id: 349
+        insight: "Machine learning automates pattern discovery"
+        level: minimum
+        
+      - id: 350
+        insight: "Deep learning handles complex relationships"
+        level: scale
+        
+      - id: 351
+        insight: "Reinforcement learning optimizes decisions"
+        level: institutional
+        
+      - id: 352
+        insight: "Natural language processing extracts insights"
+        level: minimum
+        
+      - id: 353
+        insight: "Computer vision analyzes visual data"
+        level: scale
+        
+      - id: 354
+        insight: "Network analysis reveals connections"
+        level: minimum
+        
+      - id: 355
+        insight: "Graph theory models relationships"
+        level: institutional
+        
+      - id: 356
+        insight: "Bayesian methods handle uncertainty"
+        level: scale
+        
+      - id: 357
+        insight: "Monte Carlo simulation explores scenarios"
+        level: minimum
+        
+      - id: 358
+        insight: "Bootstrapping estimates variability"
+        level: scale
+        
+      - id: 359
+        insight: "A/B testing compares alternatives"
+        level: institutional
+        
+      - id: 360
+        insight: "Multi-armed bandit optimizes exploration"
+        level: minimum
+        
+      - id: 361
+        insight: "Genetic algorithms evolve solutions"
+        level: scale
+        
+      - id: 362
+        insight: "Swarm intelligence finds optima"
+        level: minimum
+        
+      - id: 363
+        insight: "Neural architecture search designs models"
+        level: institutional
+        
+      - id: 364
+        insight: "AutoML democratizes modeling"
+        level: scale
+        
+      - id: 365
+        insight: "Transfer learning leverages knowledge"
+        level: minimum
+        
+      - id: 366
+        insight: "Few-shot learning handles sparse data"
+        level: scale
+        
+      - id: 367
+        insight: "Meta-learning improves learning"
+        level: institutional
+        
+      - id: 368
+        insight: "Federated learning preserves privacy"
+        level: minimum
+        
+      - id: 369
+        insight: "Differential privacy protects data"
+        level: scale
+        
+      - id: 370
+        insight: "Homomorphic encryption enables computation"
+        level: minimum
+        
+      - id: 371
+        insight: "Zero-knowledge proofs verify without revealing"
+        level: institutional
+        
+      - id: 372
+        insight: "Blockchain provides immutable records"
+        level: scale
+        
+      - id: 373
+        insight: "Smart contracts automate execution"
+        level: minimum
+        
+      - id: 374
+        insight: "Decentralized finance creates new opportunities"
+        level: scale
+        
+      - id: 375
+        insight: "Algorithmic trading optimizes execution"
+        level: institutional
+        
+      - id: 376
+        insight: "High-frequency trading exploits latency"
+        level: minimum
+        
+      - id: 377
+        insight: "Market microstructure reveals behavior"
+        level: scale
+        
+      - id: 378
+        insight: "Order flow analysis predicts movements"
+        level: minimum
+        
+      - id: 379
+        insight: "Sentiment analysis gauges emotion"
+        level: institutional
+        
+      - id: 380
+        insight: "News analytics extracts signals"
+        level: scale
+        
+      - id: 381
+        insight: "Social media monitoring tracks trends"
+        level: minimum
+        
+      - id: 382
+        insight: "Alternative data provides edges"
+        level: scale
+        
+      - id: 383
+        insight: "Satellite imagery reveals economic activity"
+        level: institutional
+        
+      - id: 384
+        insight: "IoT data streams real-time information"
+        level: minimum
+        
+      - id: 385
+        insight: "Web scraping gathers public data"
+        level: scale
+        
+      - id: 386
+        insight: "API integration accesses proprietary data"
+        level: minimum
+        
+      - id: 387
+        insight: "Data cleansing ensures quality"
+        level: institutional
+        
+      - id: 388
+        insight: "Feature selection reduces noise"
+        level: scale
+        
+      - id: 389
+        insight: "Data versioning tracks changes"
+        level: minimum
+        
+      - id: 390
+        insight: "Model versioning enables rollback"
+        level: scale
+        
+      - id: 391
+        insight: "Experiment tracking documents results"
+        level: institutional
+        
+      - id: 392
+        insight: "Reproducibility ensures reliability"
+        level: minimum
+        
+      - id: 393
+        insight: "Code review maintains quality"
+        level: scale
+        
+      - id: 394
+        insight: "Documentation preserves knowledge"
+        level: minimum
+        
+      - id: 395
+        insight: "Knowledge sharing accelerates innovation"
+        level: institutional
+        
+      - id: 396
+        insight: "Collaboration tools enable teamwork"
+        level: scale
+        
+      - id: 397
+        insight: "Version control manages changes"
+        level: minimum
+        
+      - id: 398
+        insight: "Continuous integration automates testing"
+        level: scale
+        
+      - id: 399
+        insight: "Continuous deployment enables iteration"
+        level: institutional
+        
+      - id: 400
+        insight: "DevOps culture improves delivery"
+        level: minimum
+        
+      - id: 401
+        insight: "Infrastructure as code ensures consistency"
+        level: scale
+        
+      - id: 402
+        insight: "Monitoring provides observability"
+        level: minimum
+        
+      - id: 403
+        insight: "Logging captures system behavior"
+        level: institutional
+        
+      - id: 404
+        insight: "Alerting enables proactive response"
+        level: scale
+        
+      - id: 405
+        insight: "Dashboards visualize performance"
+        level: minimum
         
     strategy_lifecycle:
       SPEC:
@@ -1667,6 +3191,386 @@ doctrine_packs:
       - id: 23
         insight: "Data 'truth' is a contract, not a given"
         level: scale
+        
+      - id: 406
+        insight: "Metrics are the language of performance"
+        level: institutional
+        
+      - id: 407
+        insight: "Truth arbitration resolves conflicts"
+        level: minimum
+        
+      - id: 408
+        insight: "Data retention enables analysis"
+        level: scale
+        
+      - id: 409
+        insight: "Privacy protection builds trust"
+        level: minimum
+        
+      - id: 410
+        insight: "Data lineage tracks provenance"
+        level: institutional
+        
+      - id: 411
+        insight: "Metadata enables discovery"
+        level: scale
+        
+      - id: 412
+        insight: "Data quality metrics prevent errors"
+        level: minimum
+        
+      - id: 413
+        insight: "Completeness checks ensure coverage"
+        level: scale
+        
+      - id: 414
+        insight: "Accuracy validation prevents mistakes"
+        level: institutional
+        
+      - id: 415
+        insight: "Timeliness measures freshness"
+        level: minimum
+        
+      - id: 416
+        insight: "Consistency ensures coherence"
+        level: scale
+        
+      - id: 417
+        insight: "Validity checks data correctness"
+        level: minimum
+        
+      - id: 418
+        insight: "Uniqueness prevents duplicates"
+        level: institutional
+        
+      - id: 419
+        insight: "Integrity protects against tampering"
+        level: scale
+        
+      - id: 420
+        insight: "Confidentiality safeguards sensitive data"
+        level: minimum
+        
+      - id: 421
+        insight: "Availability ensures access"
+        level: scale
+        
+      - id: 422
+        insight: "Auditability enables verification"
+        level: institutional
+        
+      - id: 423
+        insight: "Traceability tracks changes"
+        level: minimum
+        
+      - id: 424
+        insight: "Accountability assigns responsibility"
+        level: scale
+        
+      - id: 425
+        insight: "Transparency builds confidence"
+        level: minimum
+        
+      - id: 426
+        insight: "Governance establishes rules"
+        level: institutional
+        
+      - id: 427
+        insight: "Standards ensure interoperability"
+        level: scale
+        
+      - id: 428
+        insight: "Policies guide behavior"
+        level: minimum
+        
+      - id: 429
+        insight: "Procedures define processes"
+        level: scale
+        
+      - id: 430
+        insight: "Controls prevent issues"
+        level: institutional
+        
+      - id: 431
+        insight: "Monitoring detects problems"
+        level: minimum
+        
+      - id: 432
+        insight: "Alerting notifies stakeholders"
+        level: scale
+        
+      - id: 433
+        insight: "Reporting communicates status"
+        level: minimum
+        
+      - id: 434
+        insight: "Dashboards visualize information"
+        level: institutional
+        
+      - id: 435
+        insight: "Analytics uncover insights"
+        level: scale
+        
+      - id: 436
+        insight: "Intelligence drives decisions"
+        level: minimum
+        
+      - id: 437
+        insight: "Forecasting predicts future"
+        level: scale
+        
+      - id: 438
+        insight: "Planning guides actions"
+        level: institutional
+        
+      - id: 439
+        insight: "Optimization improves performance"
+        level: minimum
+        
+      - id: 440
+        insight: "Benchmarking measures progress"
+        level: scale
+        
+      - id: 441
+        insight: "KPI tracking monitors goals"
+        level: minimum
+        
+      - id: 442
+        insight: "SLA compliance ensures service"
+        level: institutional
+        
+      - id: 443
+        insight: "SLO achievement validates reliability"
+        level: scale
+        
+      - id: 444
+        insight: "Error budgets allow experimentation"
+        level: minimum
+        
+      - id: 445
+        insight: "MTTR measures responsiveness"
+        level: scale
+        
+      - id: 446
+        insight: "MTTD detects issues early"
+        level: institutional
+        
+      - id: 447
+        insight: "Uptime quantifies availability"
+        level: minimum
+        
+      - id: 448
+        insight: "Throughput measures capacity"
+        level: scale
+        
+      - id: 449
+        insight: "Latency quantifies speed"
+        level: minimum
+        
+      - id: 450
+        insight: "Jitter measures variability"
+        level: institutional
+        
+      - id: 451
+        insight: "Error rate tracks failures"
+        level: scale
+        
+      - id: 452
+        insight: "Success rate measures achievement"
+        level: minimum
+        
+      - id: 453
+        insight: "Conversion rate quantifies effectiveness"
+        level: scale
+        
+      - id: 454
+        insight: "Retention rate measures loyalty"
+        level: institutional
+        
+      - id: 455
+        insight: "Churn rate identifies problems"
+        level: minimum
+        
+      - id: 456
+        insight: "Growth rate tracks expansion"
+        level: scale
+        
+      - id: 457
+        insight: "Market share measures position"
+        level: minimum
+        
+      - id: 458
+        insight: "Competitive analysis identifies threats"
+        level: institutional
+        
+      - id: 459
+        insight: "SWOT analysis guides strategy"
+        level: scale
+        
+      - id: 460
+        insight: "PESTEL analysis considers environment"
+        level: minimum
+        
+      - id: 461
+        insight: "Porter's five forces evaluates industry"
+        level: scale
+        
+      - id: 462
+        insight: "Value chain analysis identifies activities"
+        level: institutional
+        
+      - id: 463
+        insight: "Balanced scorecard aligns objectives"
+        level: minimum
+        
+      - id: 464
+        insight: "OKR framework sets goals"
+        level: scale
+        
+      - id: 465
+        insight: "SMART criteria ensures achievability"
+        level: minimum
+        
+      - id: 466
+        insight: "ROI measures investment returns"
+        level: institutional
+        
+      - id: 467
+        insight: "NPV evaluates project value"
+        level: scale
+        
+      - id: 468
+        insight: "IRR calculates return rate"
+        level: minimum
+        
+      - id: 469
+        insight: "Payback period measures recovery time"
+        level: scale
+        
+      - id: 470
+        insight: "Break-even analysis finds equilibrium"
+        level: institutional
+        
+      - id: 471
+        insight: "Sensitivity analysis tests assumptions"
+        level: minimum
+        
+      - id: 472
+        insight: "Scenario planning prepares for futures"
+        level: scale
+        
+      - id: 473
+        insight: "Risk assessment identifies threats"
+        level: minimum
+        
+      - id: 474
+        insight: "Impact analysis evaluates consequences"
+        level: institutional
+        
+      - id: 475
+        insight: "Probability assessment quantifies likelihood"
+        level: scale
+        
+      - id: 476
+        insight: "Cost-benefit analysis weighs decisions"
+        level: minimum
+        
+      - id: 477
+        insight: "Decision trees structure choices"
+        level: scale
+        
+      - id: 478
+        insight: "Monte Carlo simulation explores uncertainty"
+        level: institutional
+        
+      - id: 479
+        insight: "Real options analysis values flexibility"
+        level: minimum
+        
+      - id: 480
+        insight: "Game theory models interactions"
+        level: scale
+        
+      - id: 481
+        insight: "Nash equilibrium finds stability"
+        level: minimum
+        
+      - id: 482
+        insight: "Prisoner's dilemma illustrates cooperation"
+        level: institutional
+        
+      - id: 483
+        insight: "Auction theory explains bidding"
+        level: scale
+        
+      - id: 484
+        insight: "Mechanism design creates incentives"
+        level: minimum
+        
+      - id: 485
+        insight: "Contract theory aligns interests"
+        level: scale
+        
+      - id: 486
+        insight: "Agency theory addresses conflicts"
+        level: institutional
+        
+      - id: 487
+        insight: "Behavioral economics explains biases"
+        level: minimum
+        
+      - id: 488
+        insight: "Prospect theory models decisions"
+        level: scale
+        
+      - id: 489
+        insight: "Mental accounting tracks cognition"
+        level: minimum
+        
+      - id: 490
+        insight: "Herding behavior influences markets"
+        level: institutional
+        
+      - id: 491
+        insight: "Information cascades spread ideas"
+        level: scale
+        
+      - id: 492
+        insight: "Network effects create value"
+        level: minimum
+        
+      - id: 493
+        insight: "Scale economies reduce costs"
+        level: scale
+        
+      - id: 494
+        insight: "Scope economies enable diversification"
+        level: institutional
+        
+      - id: 495
+        insight: "Learning curves improve efficiency"
+        level: minimum
+        
+      - id: 496
+        insight: "Experience curves build capability"
+        level: scale
+        
+      - id: 497
+        insight: "Knowledge management captures learning"
+        level: minimum
+        
+      - id: 498
+        insight: "Organizational learning builds competence"
+        level: institutional
+        
+      - id: 499
+        insight: "Cultural intelligence enables adaptation"
+        level: scale
+        
+      - id: 500
+        insight: "Change management ensures transition"
+        level: minimum
         
     metric_categories:
       performance:

@@ -14,6 +14,9 @@ from enum import Enum
 from pathlib import Path
 import json
 import sys
+import numpy as np
+from scipy import stats
+import math
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
@@ -70,11 +73,17 @@ class Order:
     stop_price: Optional[float] = None
     status: OrderStatus = OrderStatus.PENDING
     filled_quantity: float = 0.0
+    remaining_quantity: float = field(init=False)
     average_fill_price: float = 0.0
     exchange: str = ""
     created_at: datetime = field(default_factory=datetime.now)
     updated_at: datetime = field(default_factory=datetime.now)
+    filled_at: Optional[datetime] = None
     metadata: Dict[str, Any] = field(default_factory=dict)
+
+    def __post_init__(self):
+        """Initialize remaining quantity"""
+        self.remaining_quantity = self.quantity - self.filled_quantity
 
     def to_dict(self) -> Dict:
         return {
@@ -87,10 +96,12 @@ class Order:
             "stop_price": self.stop_price,
             "status": self.status.value,
             "filled_quantity": self.filled_quantity,
+            "remaining_quantity": self.remaining_quantity,
             "average_fill_price": self.average_fill_price,
             "exchange": self.exchange,
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
+            "filled_at": self.filled_at.isoformat() if self.filled_at else None,
         }
 
 
@@ -318,6 +329,7 @@ class ExecutionEngine:
         self.positions: Dict[str, Position] = {}
         self.order_counter = 0
         self.position_counter = 0
+        self.active_strategies: List[Dict] = []
         
         # Exchange connectors (lazy loaded)
         self._connectors: Dict[str, Any] = {}
@@ -484,14 +496,38 @@ class ExecutionEngine:
                 return order
 
         if self.paper_trading:
-            # Simulate order execution with realistic behavior
+            # Simulate order execution with realistic behavior using partial fill models
             order.status = OrderStatus.SUBMITTED
             await asyncio.sleep(0.1)  # Simulate latency
             
-            # Auto-fill market orders with slippage simulation
+            # Get market conditions for partial fill modeling
+            market_conditions = await self._get_market_conditions(order.symbol, order.exchange)
+            
+            # Auto-fill market orders with partial fill modeling
             if order.order_type == OrderType.MARKET:
-                order.status = OrderStatus.FILLED
-                order.filled_quantity = order.quantity
+                # Use optimal partial fill model
+                model_name, expected_fill_qty, model_metric = self.select_optimal_partial_fill_model(
+                    order.quantity, market_conditions
+                )
+                
+                # Determine if order is partially filled or fully filled
+                # Higher fill_probability means higher chance of full fill
+                fill_random = np.random.random()
+                if fill_random < expected_fill_qty / order.quantity:
+                    # Full fill
+                    order.status = OrderStatus.FILLED
+                    order.filled_quantity = order.quantity
+                    order.remaining_quantity = 0
+                elif expected_fill_qty > 0:
+                    # Partial fill
+                    order.status = OrderStatus.PARTIAL
+                    order.filled_quantity = expected_fill_qty
+                    order.remaining_quantity = order.quantity - expected_fill_qty
+                else:
+                    # No fill
+                    order.status = OrderStatus.PENDING
+                    order.filled_quantity = 0
+                    order.remaining_quantity = order.quantity
                 
                 # Simulate realistic fill price with slippage
                 base_price = order.price
@@ -510,15 +546,37 @@ class ExecutionEngine:
                             await self._persist_order(order)
                             return order
                 
-                # Apply slippage (0.05% - 0.15% for market orders)
-                import random
-                slippage_pct = random.uniform(0.0005, 0.0015)
+                # Apply slippage based on model (Model D provides slippage estimate)
+                if model_name == 'D':
+                    slippage_bps = model_metric  # Model D returns slippage in bps
+                else:
+                    # Default slippage for other models
+                    import random
+                    slippage_bps = random.uniform(0.5, 3.0)  # 0.5-3 bps
+                
+                slippage_pct = slippage_bps / 10000  # Convert bps to percentage
                 if order.side == OrderSide.BUY:
                     order.average_fill_price = base_price * (1 + slippage_pct)
                 else:
                     order.average_fill_price = base_price * (1 - slippage_pct)
                 
-                self.logger.info(f"[PAPER] Order filled: {order.order_id} @ {order.average_fill_price:.4f} (slippage: {slippage_pct:.4%})")
+                # Store partial fill model metadata
+                order.metadata.update({
+                    'partial_fill_model': model_name,
+                    'expected_fill_qty': expected_fill_qty,
+                    'model_metric': model_metric,
+                    'slippage_bps': slippage_bps
+                })
+
+                # Update remaining quantity and timestamp
+                order.remaining_quantity = order.quantity - order.filled_quantity
+                if order.filled_quantity > 0:
+                    order.filled_at = datetime.now()
+                    order.updated_at = datetime.now()
+                
+                self.logger.info(f"[PAPER] Order {order.status.value}: {order.order_id} "
+                               f"filled {order.filled_quantity:.6f}/{order.quantity:.6f} @ {order.average_fill_price:.4f} "
+                               f"(Model {model_name}, slippage: {slippage_bps:.1f}bps)")
             
             await self._persist_order(order)
             return order
@@ -528,16 +586,18 @@ class ExecutionEngine:
             connector = self._get_connector(order.exchange)
             
             if order.order_type == OrderType.MARKET:
-                result = await connector.create_market_order(
+                result = await connector.create_order(
                     symbol=order.symbol,
                     side=order.side.value,
-                    amount=order.quantity,
+                    order_type='market',
+                    quantity=order.quantity,
                 )
             else:
-                result = await connector.create_limit_order(
+                result = await connector.create_order(
                     symbol=order.symbol,
                     side=order.side.value,
-                    amount=order.quantity,
+                    order_type='limit',
+                    quantity=order.quantity,
                     price=order.price,
                 )
             
@@ -1155,6 +1215,78 @@ class ExecutionEngine:
         }
         return status_map.get(exchange_status.lower(), OrderStatus.PENDING)
 
+    async def activate_strategies(self, strategies: List[Any]):
+        """Activate loaded strategies in the execution engine"""
+        self.active_strategies = []
+        
+        for strategy in strategies:
+            try:
+                # Convert StrategyConfig to execution-ready format
+                strategy_config = {
+                    'id': strategy.id,
+                    'name': strategy.name,
+                    'category': strategy.category.value,
+                    'risk_limits': self._get_strategy_risk_limits(strategy),
+                    'execution_params': self._get_strategy_execution_params(strategy),
+                    'status': 'active'
+                }
+                
+                self.active_strategies.append(strategy_config)
+                self.logger.info(f"Activated strategy: {strategy.name} ({strategy.category.value})")
+                
+            except Exception as e:
+                self.logger.error(f"Failed to activate strategy {strategy.name}: {e}")
+        
+        self.logger.info(f"Total active strategies: {len(self.active_strategies)}")
+
+    def _get_strategy_risk_limits(self, strategy: Any) -> Dict:
+        """Get risk limits for a strategy based on its category"""
+        base_limits = {
+            'max_position_size': 100000,  # $100K
+            'max_daily_loss': 5000,      # $5K
+            'max_drawdown': 10000,       # $10K
+            'min_liquidity_ratio': 0.1   # 10% of position must be liquid
+        }
+
+        # Category-specific adjustments
+        adjustments = {
+            'volatility_arbitrage': {'max_position_size': 50000},
+            'market_making': {'max_position_size': 200000, 'min_liquidity_ratio': 0.2},
+            'flow_based': {'max_daily_loss': 10000},
+        }
+
+        category = strategy.category.value
+        if category in adjustments:
+            base_limits.update(adjustments[category])
+
+        return base_limits
+
+    def _get_strategy_execution_params(self, strategy: Any) -> Dict:
+        """Get execution parameters for a strategy based on its category"""
+        base_params = {
+            'slippage_tolerance': 0.001,  # 0.1%
+            'execution_timeout': 300,     # 5 minutes
+            'min_fill_size': 100,         # Minimum order size
+            'venue_preference': ['primary', 'backup1', 'backup2']
+        }
+
+        # Category-specific adjustments
+        adjustments = {
+            'etf_arbitrage': {'slippage_tolerance': 0.0005, 'min_fill_size': 50000},
+            'volatility_arbitrage': {'execution_timeout': 60},  # Faster for options
+            'market_making': {'slippage_tolerance': 0.0001, 'min_fill_size': 10},
+        }
+
+        category = strategy.category.value
+        if category in adjustments:
+            base_params.update(adjustments[category])
+
+        return base_params
+
+    def get_active_strategies(self) -> List[Dict]:
+        """Get list of currently active strategies"""
+        return self.active_strategies.copy()
+
     def export_state(self) -> Dict:
         """Export engine state"""
         return {
@@ -1183,6 +1315,7 @@ class ExecutionEngine:
         """
         Get doctrine compliance metrics for Pack 5 (Liquidity).
         Used by doctrine orchestrator for risk monitoring.
+        Now incorporates partial fill model data.
         """
         try:
             # Calculate fill rate
@@ -1203,32 +1336,63 @@ class ExecutionEngine:
                 p95_index = int(len(fill_times) * 0.95)
                 time_to_fill_p95 = fill_times[min(p95_index, len(fill_times) - 1)]
 
-            # Calculate slippage (simplified)
+            # Calculate slippage (enhanced with partial fill model data)
             slippage_bps = 1.0  # default good value
             filled_orders_with_price = [o for o in self.orders.values()
                                       if o.status == OrderStatus.FILLED and o.limit_price and o.avg_fill_price]
             if filled_orders_with_price:
                 total_slippage = 0
+                model_slippage_count = 0
                 for order in filled_orders_with_price:
-                    if order.side == OrderSide.BUY:
-                        slippage = (order.avg_fill_price - order.limit_price) / order.limit_price
-                    else:  # SELL
-                        slippage = (order.limit_price - order.avg_fill_price) / order.limit_price
-                    total_slippage += abs(slippage)
-                slippage_bps = (total_slippage / len(filled_orders_with_price)) * 10000  # Convert to bps
+                    # Use model-estimated slippage if available
+                    if 'slippage_bps' in order.metadata:
+                        total_slippage += order.metadata['slippage_bps']
+                        model_slippage_count += 1
+                    else:
+                        # Fallback to calculated slippage
+                        if order.side == OrderSide.BUY:
+                            slippage = (order.avg_fill_price - order.limit_price) / order.limit_price
+                        else:  # SELL
+                            slippage = (order.limit_price - order.avg_fill_price) / order.limit_price
+                        total_slippage += abs(slippage) * 10000  # Convert to bps
 
-            # Calculate partial fill rate
+                if model_slippage_count > 0:
+                    # Use model-based slippage for orders that have it
+                    model_avg_slippage = total_slippage / model_slippage_count
+                    slippage_bps = model_avg_slippage
+                else:
+                    # Use calculated slippage
+                    slippage_bps = (total_slippage / len(filled_orders_with_price))
+
+            # Calculate partial fill rate (enhanced with model data)
             partial_orders = len([o for o in self.orders.values() if o.status == OrderStatus.PARTIAL])
             partial_fill_rate = (partial_orders / total_orders * 100) if total_orders > 0 else 0.0
 
-            # Adverse selection cost (simplified)
+            # Calculate model effectiveness metrics
+            model_usage = {}
+            total_modeled_orders = 0
+            for order in self.orders.values():
+                if 'partial_fill_model' in order.metadata:
+                    model = order.metadata['partial_fill_model']
+                    model_usage[model] = model_usage.get(model, 0) + 1
+                    total_modeled_orders += 1
+
+            # Adverse selection cost (from Model D when available)
             adverse_selection_cost = 0.5  # default good value
+            model_d_orders = [o for o in self.orders.values()
+                            if o.metadata.get('partial_fill_model') == 'D' and 'model_metric' in o.metadata]
+            if model_d_orders:
+                total_adverse_selection = sum(o.metadata['model_metric'] for o in model_d_orders)
+                adverse_selection_cost = total_adverse_selection / len(model_d_orders)
 
             # Market impact (simplified)
             market_impact_bps = 1.0  # default good value
 
             # Liquidity available percentage
             liquidity_available_pct = 200.0  # default good value (200% = ample liquidity)
+
+            # Add partial fill model metrics
+            model_effectiveness = (total_modeled_orders / total_orders * 100) if total_orders > 0 else 0.0
 
             return {
                 "fill_rate": fill_rate,
@@ -1238,6 +1402,11 @@ class ExecutionEngine:
                 "adverse_selection_cost": adverse_selection_cost,
                 "market_impact_bps": market_impact_bps,
                 "liquidity_available_pct": liquidity_available_pct,
+                "partial_fill_model_effectiveness": model_effectiveness,
+                "model_a_usage": model_usage.get('A', 0),
+                "model_b_usage": model_usage.get('B', 0),
+                "model_c_usage": model_usage.get('C', 0),
+                "model_d_usage": model_usage.get('D', 0),
             }
 
         except Exception as e:
@@ -1251,7 +1420,628 @@ class ExecutionEngine:
                 "adverse_selection_cost": 0.5,
                 "market_impact_bps": 1.0,
                 "liquidity_available_pct": 200.0,
+                "partial_fill_model_effectiveness": 0.0,
+                "model_a_usage": 0,
+                "model_b_usage": 0,
+                "model_c_usage": 0,
+                "model_d_usage": 0,
             }
+
+
+    # ==================== PARTIAL FILL MODELS ====================
+
+    def model_a_fill_fraction(self, order_quantity: float, market_conditions: Dict[str, Any]) -> float:
+        """
+        Model A: Fill Fraction
+        filled_qty = Q × F, F~Beta with no-fill probability
+
+        Conservative SIM baseline using Beta distribution for fill fraction.
+        Accounts for no-fill probability in illiquid conditions.
+
+        Args:
+            order_quantity: Original order quantity
+            market_conditions: Dict with 'liquidity_ratio', 'volatility', 'spread_bps'
+
+        Returns:
+            Expected filled quantity
+        """
+        liquidity_ratio = market_conditions.get('liquidity_ratio', 1.0)  # Available liquidity / order size
+        volatility = market_conditions.get('volatility', 0.02)  # Daily volatility
+        spread_bps = market_conditions.get('spread_bps', 5.0)  # Bid-ask spread in bps
+
+        # No-fill probability increases with illiquidity and high spreads
+        no_fill_prob = min(0.3, max(0.01, (1 - liquidity_ratio) * 0.5 + (spread_bps / 100) * 0.3))
+
+        # Beta distribution parameters based on market conditions
+        # Higher liquidity = higher mean fill fraction
+        alpha = 2.0 + liquidity_ratio * 3.0  # Shape parameter
+        beta_param = 1.5 + volatility * 10.0  # Beta parameter
+
+        # Sample fill fraction from Beta distribution
+        fill_fraction = np.random.beta(alpha, beta_param)
+
+        # Apply no-fill probability
+        if np.random.random() < no_fill_prob:
+            return 0.0
+
+        return order_quantity * fill_fraction
+
+    def model_b_hazard_intensity(self, order_quantity: float, market_conditions: Dict[str, Any],
+                                time_horizon_ms: float = 5000) -> Tuple[float, float]:
+        """
+        Model B: Hazard/Intensity
+        P(fill by t) = 1 - exp(-∫λ(s)ds)
+
+        Time-to-fill modeling using hazard rate functions.
+        Models the probability of fill as a function of time.
+
+        Args:
+            order_quantity: Original order quantity
+            market_conditions: Dict with 'liquidity_ratio', 'queue_position', 'market_pressure'
+            time_horizon_ms: Time horizon in milliseconds
+
+        Returns:
+            Tuple of (expected_fill_qty, expected_fill_time_ms)
+        """
+        liquidity_ratio = market_conditions.get('liquidity_ratio', 1.0)
+        queue_position = market_conditions.get('queue_position', 1)  # Position in order book queue
+        market_pressure = market_conditions.get('market_pressure', 0.0)  # Buy/sell pressure (-1 to 1)
+
+        # Base hazard rate (intensity) - higher for better liquidity
+        base_lambda = 0.001 + liquidity_ratio * 0.005
+
+        # Adjust for queue position (front of queue fills faster)
+        queue_factor = 1.0 / max(1, queue_position)
+        lambda_t = base_lambda * queue_factor
+
+        # Adjust for market pressure (favorable pressure increases fill rate)
+        pressure_factor = 1.0 + market_pressure * 0.5
+        lambda_t *= pressure_factor
+
+        # Integrate hazard function over time horizon
+        integrated_hazard = lambda_t * (time_horizon_ms / 1000.0)  # Convert to seconds
+
+        # Probability of fill by time horizon
+        fill_probability = 1 - math.exp(-integrated_hazard)
+
+        # Expected fill quantity (simplified - could be more sophisticated)
+        expected_fill_qty = order_quantity * fill_probability
+
+        # Expected fill time using inverse hazard function
+        if fill_probability > 0.01:  # Avoid division by zero
+            expected_fill_time = -math.log(1 - fill_probability) / lambda_t * 1000  # Back to ms
+        else:
+            expected_fill_time = time_horizon_ms * 2  # Conservative estimate
+
+        return expected_fill_qty, expected_fill_time
+
+    def model_c_queue_ahead(self, order_quantity: float, market_conditions: Dict[str, Any]) -> Tuple[float, float]:
+        """
+        Model C: Queue-Ahead
+        Queue position → expected fill time (L2 data required)
+
+        L2-aware execution modeling queue position impact on fill time.
+        Requires Level 2 order book data for accurate queue positioning.
+
+        Args:
+            order_quantity: Original order quantity
+            market_conditions: Dict with 'queue_ahead_qty', 'liquidity_depth', 'l2_data'
+
+        Returns:
+            Tuple of (expected_fill_qty, expected_fill_time_ms)
+        """
+        queue_ahead_qty = market_conditions.get('queue_ahead_qty', 0.0)  # Quantity ahead in queue
+        liquidity_depth = market_conditions.get('liquidity_depth', 100.0)  # Available liquidity at price
+        l2_data = market_conditions.get('l2_data', {})  # Level 2 order book data
+
+        # Estimate time based on queue position and market flow
+        # Simplified: assume constant fill rate based on recent volume
+        avg_fill_rate_per_second = liquidity_depth / 60.0  # Assume 1 minute to consume liquidity
+
+        if avg_fill_rate_per_second > 0:
+            # Time to work through queue ahead
+            queue_time_seconds = queue_ahead_qty / avg_fill_rate_per_second
+            expected_fill_time_ms = queue_time_seconds * 1000
+
+            # Probability of full fill (decreases with queue size)
+            fill_probability = max(0.1, 1.0 - (queue_ahead_qty / (queue_ahead_qty + order_quantity)))
+
+            expected_fill_qty = order_quantity * fill_probability
+        else:
+            # No liquidity data - conservative estimates
+            expected_fill_time_ms = 10000  # 10 seconds
+            expected_fill_qty = order_quantity * 0.5
+
+        return expected_fill_qty, expected_fill_time_ms
+
+    def model_d_adverse_selection(self, order_quantity: float, market_conditions: Dict[str, Any]) -> Tuple[float, float]:
+        """
+        Model D: Adverse Selection
+        Expected_slippage = f(fill_speed, volatility, order_size)
+
+        Slippage-fill coupling model accounting for adverse selection costs.
+        Models how fast fills lead to price impact and slippage.
+
+        Args:
+            order_quantity: Original order quantity
+            market_conditions: Dict with 'volatility', 'order_size_pct', 'fill_speed'
+
+        Returns:
+            Tuple of (expected_fill_qty, expected_slippage_bps)
+        """
+        volatility = market_conditions.get('volatility', 0.02)  # Daily volatility
+        order_size_pct = market_conditions.get('order_size_pct', 0.001)  # Order size as % of ADV
+        fill_speed = market_conditions.get('fill_speed', 1.0)  # Relative fill speed (1.0 = normal)
+
+        # Adverse selection cost increases with:
+        # - Higher volatility (more informed traders)
+        # - Larger order size (more market impact)
+        # - Faster fill speed (less time for price discovery)
+
+        base_adverse_selection = volatility * 100  # Base cost in bps
+
+        # Size impact (square root law)
+        size_impact = math.sqrt(order_size_pct * 100) * 2.0
+
+        # Speed impact (faster fills = higher adverse selection)
+        speed_impact = (fill_speed - 1.0) * 5.0 if fill_speed > 1.0 else 0.0
+
+        total_adverse_selection_bps = base_adverse_selection + size_impact + speed_impact
+
+        # Fill quantity adjustment based on adverse selection
+        # Higher adverse selection = lower expected fill quantity
+        fill_penalty = min(0.5, total_adverse_selection_bps / 200.0)  # Max 50% reduction
+        expected_fill_qty = order_quantity * (1.0 - fill_penalty)
+
+        return expected_fill_qty, total_adverse_selection_bps
+
+    def select_optimal_partial_fill_model(self, order_quantity: float,
+                                        market_conditions: Dict[str, Any]) -> Tuple[str, float, float]:
+        """
+        Select the optimal partial fill model based on market conditions and data availability.
+
+        Args:
+            order_quantity: Original order quantity
+            market_conditions: Current market conditions
+
+        Returns:
+            Tuple of (model_name, expected_fill_qty, expected_fill_time_or_slippage)
+        """
+        # Check data availability for each model
+        has_l2_data = 'l2_data' in market_conditions and market_conditions['l2_data']
+        has_queue_data = 'queue_ahead_qty' in market_conditions
+        has_volatility = 'volatility' in market_conditions
+        liquidity_ratio = market_conditions.get('liquidity_ratio', 1.0)
+
+        models = []
+
+        # Always available - Model A (Fill Fraction)
+        fill_qty_a = self.model_a_fill_fraction(order_quantity, market_conditions)
+        models.append(('A', fill_qty_a, 0.0))  # No time estimate
+
+        # Model B (Hazard/Intensity) - needs basic market data
+        if has_volatility:
+            fill_qty_b, fill_time_b = self.model_b_hazard_intensity(order_quantity, market_conditions)
+            models.append(('B', fill_qty_b, fill_time_b))
+
+        # Model C (Queue-Ahead) - needs L2 data
+        if has_l2_data and has_queue_data:
+            fill_qty_c, fill_time_c = self.model_c_queue_ahead(order_quantity, market_conditions)
+            models.append(('C', fill_qty_c, fill_time_c))
+
+        # Model D (Adverse Selection) - needs volatility and size data
+        if has_volatility and 'order_size_pct' in market_conditions:
+            fill_qty_d, slippage_d = self.model_d_adverse_selection(order_quantity, market_conditions)
+            models.append(('D', fill_qty_d, slippage_d))
+
+        # Select model with highest expected fill quantity
+        if models:
+            best_model = max(models, key=lambda x: x[1])  # Max fill quantity
+            return best_model
+
+        # Fallback to Model A
+        return ('A', fill_qty_a, 0.0)
+
+    async def _get_market_conditions(self, symbol: str, exchange: str) -> Dict[str, Any]:
+        """
+        Get current market conditions for partial fill modeling.
+
+        Args:
+            symbol: Trading symbol (e.g., 'BTC/USDT')
+            exchange: Exchange name
+
+        Returns:
+            Dict with market condition data for partial fill models
+        """
+        conditions = {}
+
+        # Get order book depth for liquidity analysis
+        depth = self.get_order_book_depth(symbol)
+        if depth:
+            # Calculate liquidity ratio (available liquidity / typical order size)
+            # Assume typical order size is 0.001 BTC for BTC pairs
+            typical_order_size = 0.001 if 'BTC' in symbol else 100.0
+            available_liquidity = depth.total_bid_size + depth.total_ask_size
+            conditions['liquidity_ratio'] = available_liquidity / typical_order_size if available_liquidity > 0 else 0.1
+
+            # Spread in basis points
+            if depth.spread > 0:
+                conditions['spread_bps'] = (depth.spread / depth.weighted_mid) * 10000
+            else:
+                conditions['spread_bps'] = 5.0  # Default 5 bps
+
+            # Liquidity depth at best bid/ask
+            conditions['liquidity_depth'] = min(depth.total_bid_size, depth.total_ask_size)
+
+        # Estimate volatility (simplified - in real system would use historical data)
+        # For now, use a random value between 1% and 5% daily volatility
+        conditions['volatility'] = np.random.uniform(0.01, 0.05)
+
+        # Queue position (simplified - would need L2 data)
+        conditions['queue_position'] = np.random.randint(1, 10)
+
+        # Market pressure (-1 to 1, negative = sell pressure, positive = buy pressure)
+        conditions['market_pressure'] = np.random.uniform(-0.5, 0.5)
+
+        # Order size as percentage of average daily volume (simplified)
+        conditions['order_size_pct'] = 0.001  # 0.1% of ADV
+
+        # Fill speed (relative to normal)
+        conditions['fill_speed'] = np.random.uniform(0.5, 2.0)
+
+        # L2 data availability (simplified - would check actual L2 subscription)
+        conditions['l2_data'] = depth if depth else {}
+
+        # Queue ahead quantity (simplified)
+        conditions['queue_ahead_qty'] = np.random.uniform(0, 0.01)  # 0-0.01 BTC ahead
+
+        return conditions
+
+
+class AAC2100ExecutionEngine(ExecutionEngine):
+    """
+    AAC 2100 Enhanced Execution Engine
+
+    Features:
+    - Quantum-optimized routing with p99.9 <100μs latency
+    - AI-driven execution optimization
+    - Cross-temporal arbitrage execution
+    - Advanced risk management with quantum circuit breakers
+    - Real-time performance monitoring
+    """
+
+    def __init__(self, db: Optional[AccountingDatabase] = None):
+        super().__init__(db)
+
+        # AAC 2100 Components
+        self.quantum_router = None
+        self.ai_execution_optimizer = None
+        self.cross_temporal_executor = None
+        self.quantum_circuit_breaker = None
+        self.performance_monitor = None
+
+        # AAC 2100 Configuration
+        self.quantum_routing_enabled = True
+        self.ai_optimization_enabled = True
+        self.cross_temporal_enabled = True
+        self.target_latency_us = 100  # p99.9 < 100μs
+        self.quantum_advantage_threshold = 1.1
+
+        # Performance Metrics
+        self.execution_latencies = []
+        self.quantum_advantages = []
+        self.ai_optimizations = []
+
+        # Initialize AAC 2100 components
+        self._initialize_aac2100_components()
+
+    def _initialize_aac2100_components(self):
+        """Initialize AAC 2100 quantum and AI components"""
+        try:
+            # Import AAC 2100 shared modules
+            from shared.quantum_arbitrage_engine import QuantumArbitrageEngine
+            from shared.ai_incident_predictor import AIIncidentPredictor
+            from shared.cross_temporal_processor import CrossTemporalProcessor
+            from shared.quantum_circuit_breaker import get_circuit_breaker
+            from shared.advancement_validator import AdvancementValidator
+
+            # Initialize components
+            self.quantum_router = QuantumArbitrageEngine()
+            self.ai_execution_optimizer = AIIncidentPredictor()
+            self.cross_temporal_executor = CrossTemporalProcessor()
+            self.quantum_circuit_breaker = get_circuit_breaker("execution_engine")
+            self.performance_monitor = AdvancementValidator()
+
+            self.logger.info("AAC 2100 components initialized successfully")
+
+        except ImportError as e:
+            self.logger.warning(f"AAC 2100 components not available: {e}")
+            self.quantum_routing_enabled = False
+            self.ai_optimization_enabled = False
+            self.cross_temporal_enabled = False
+
+    async def initialize_aac2100(self):
+        """Initialize AAC 2100 components asynchronously"""
+        if self.quantum_router:
+            await self.quantum_router.initialize()
+        if self.ai_execution_optimizer:
+            await self.ai_execution_optimizer.initialize()
+        if self.cross_temporal_executor:
+            await self.cross_temporal_executor.initialize()
+        if self.performance_monitor:
+            await self.performance_monitor.initialize()
+
+        self.logger.info("AAC 2100 execution engine initialized with quantum advantage")
+
+    async def quantum_optimized_routing(
+        self,
+        symbol: str,
+        side: OrderSide,
+        quantity: float,
+        exchanges: List[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Quantum-optimized order routing for minimum latency execution.
+
+        Targets: p99.9 < 100μs end-to-end latency
+        """
+        if not self.quantum_routing_enabled or not self.quantum_router:
+            # Fallback to standard routing
+            return await self._standard_routing(symbol, side, quantity, exchanges)
+
+        start_time = datetime.now()
+
+        try:
+            # Quantum-enhanced venue selection
+            venue_scores = await self.quantum_router.analyze_venues(symbol, side, quantity)
+
+            # Select optimal venue based on quantum advantage
+            optimal_venue = max(venue_scores.items(), key=lambda x: x[1]['quantum_advantage'])
+
+            venue, metrics = optimal_venue
+            quantum_advantage = metrics['quantum_advantage']
+
+            # Record quantum advantage
+            self.quantum_advantages.append(quantum_advantage)
+
+            execution_time = (datetime.now() - start_time).total_seconds() * 1_000_000  # microseconds
+            self.execution_latencies.append(execution_time)
+
+            result = {
+                "venue": venue,
+                "quantum_advantage": quantum_advantage,
+                "estimated_latency_us": metrics.get('latency_us', 1000),
+                "execution_time_us": execution_time,
+                "confidence": metrics.get('confidence', 0.95),
+            }
+
+            # Check latency target
+            if execution_time > self.target_latency_us:
+                self.logger.warning(f"Latency target exceeded: {execution_time:.1f}μs > {self.target_latency_us}μs")
+
+            return result
+
+        except Exception as e:
+            self.logger.error(f"Quantum routing failed: {e}")
+            return await self._standard_routing(symbol, side, quantity, exchanges)
+
+    async def _standard_routing(
+        self,
+        symbol: str,
+        side: OrderSide,
+        quantity: float,
+        exchanges: List[str] = None
+    ) -> Dict[str, Any]:
+        """Standard venue routing fallback"""
+        exchanges = exchanges or ["binance", "coinbase", "kraken"]
+
+        # Simple liquidity-based routing
+        best_venue = exchanges[0]  # Default to first
+        best_score = 0
+
+        for exchange in exchanges:
+            depth = self.get_order_book_depth(f"{symbol}:{exchange}")
+            if depth and depth.liquidity_score > best_score:
+                best_score = depth.liquidity_score
+                best_venue = exchange
+
+        return {
+            "venue": best_venue,
+            "quantum_advantage": 1.0,
+            "estimated_latency_us": 1000,
+            "execution_time_us": 1000,
+            "confidence": 0.8,
+        }
+
+    async def ai_optimized_execution(
+        self,
+        order: Order,
+        market_conditions: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        AI-driven execution optimization.
+
+        Uses machine learning to optimize execution timing, sizing, and routing.
+        """
+        if not self.ai_optimization_enabled or not self.ai_execution_optimizer:
+            return {"optimization": "none", "confidence": 0.5}
+
+        try:
+            # AI analysis of market conditions
+            optimization = await self.ai_execution_optimizer.optimize_execution(
+                order=order.to_dict(),
+                market_conditions=market_conditions
+            )
+
+            self.ai_optimizations.append(optimization)
+
+            return optimization
+
+        except Exception as e:
+            self.logger.error(f"AI optimization failed: {e}")
+            return {"optimization": "failed", "confidence": 0.0}
+
+    async def cross_temporal_execution(
+        self,
+        symbol: str,
+        side: OrderSide,
+        quantity: float,
+        temporal_horizon: str = "millisecond"
+    ) -> Dict[str, Any]:
+        """
+        Cross-temporal arbitrage execution.
+
+        Executes orders across multiple timeframes simultaneously.
+        """
+        if not self.cross_temporal_enabled or not self.cross_temporal_executor:
+            return {"temporal_arbitrage": False}
+
+        try:
+            # Scan for temporal arbitrage opportunities
+            opportunities = await self.cross_temporal_executor.scan_temporal_arbitrage()
+
+            # Filter for our symbol and execute
+            relevant_opps = [opp for opp in opportunities if opp['symbol'] == symbol]
+
+            if relevant_opps:
+                # Execute the best opportunity
+                best_opp = max(relevant_opps, key=lambda x: x['temporal_score'])
+                result = await self.cross_temporal_executor.execute_temporal_arbitrage(best_opp)
+
+                return {
+                    "temporal_arbitrage": True,
+                    "opportunity": best_opp,
+                    "execution_result": result,
+                }
+
+        except Exception as e:
+            self.logger.error(f"Cross-temporal execution failed: {e}")
+
+        return {"temporal_arbitrage": False}
+
+    async def create_order_aac2100(
+        self,
+        symbol: str,
+        side: OrderSide,
+        order_type: OrderType,
+        quantity: float,
+        exchange: str = "binance",
+        price: Optional[float] = None,
+        stop_price: Optional[float] = None,
+        metadata: Optional[Dict] = None,
+        enable_quantum_routing: bool = True,
+        enable_ai_optimization: bool = True,
+        enable_temporal_arbitrage: bool = True,
+    ) -> Order:
+        """Create order with AAC 2100 enhancements"""
+
+        # Quantum-optimized routing
+        if enable_quantum_routing:
+            routing_result = await self.quantum_optimized_routing(symbol, side, quantity)
+            exchange = routing_result["venue"]
+            metadata = metadata or {}
+            metadata["quantum_routing"] = routing_result
+
+        # AI execution optimization
+        if enable_ai_optimization:
+            market_conditions = self._get_market_conditions(symbol)
+            ai_result = await self.ai_optimized_execution(
+                Order(
+                    order_id="temp",
+                    symbol=symbol,
+                    side=side,
+                    order_type=order_type,
+                    quantity=quantity,
+                    price=price,
+                    stop_price=stop_price,
+                    metadata=metadata or {},
+                ),
+                market_conditions
+            )
+            metadata["ai_optimization"] = ai_result
+
+        # Cross-temporal arbitrage
+        if enable_temporal_arbitrage:
+            temporal_result = await self.cross_temporal_execution(symbol, side, quantity)
+            metadata["temporal_arbitrage"] = temporal_result
+
+        # Create the order using parent method
+        order = await self.create_order(
+            symbol=symbol,
+            side=side,
+            order_type=order_type,
+            quantity=quantity,
+            exchange=exchange,
+            price=price,
+            stop_price=stop_price,
+            metadata=metadata,
+        )
+
+        return order
+
+    def _get_market_conditions(self, symbol: str) -> Dict[str, Any]:
+        """Get current market conditions for AI optimization"""
+        depth = self.get_order_book_depth(symbol)
+        if depth:
+            return {
+                "spread_bps": depth.spread_bps,
+                "liquidity_score": depth.liquidity_score,
+                "bid_ask_imbalance": depth.bid_ask_imbalance,
+                "volatility": getattr(depth, 'volatility', 0.0),
+            }
+        return {}
+
+    def get_aac2100_metrics(self) -> Dict[str, Any]:
+        """Get AAC 2100 performance metrics"""
+        return {
+            "quantum_routing_enabled": self.quantum_routing_enabled,
+            "ai_optimization_enabled": self.ai_optimization_enabled,
+            "cross_temporal_enabled": self.cross_temporal_enabled,
+            "target_latency_us": self.target_latency_us,
+            "average_latency_us": np.mean(self.execution_latencies) if self.execution_latencies else 0,
+            "p99_latency_us": np.percentile(self.execution_latencies, 99) if self.execution_latencies else 0,
+            "p999_latency_us": np.percentile(self.execution_latencies, 99.9) if self.execution_latencies else 0,
+            "average_quantum_advantage": np.mean(self.quantum_advantages) if self.quantum_advantages else 1.0,
+            "ai_optimizations_count": len(self.ai_optimizations),
+            "latency_target_met": len([l for l in self.execution_latencies if l <= self.target_latency_us]) / len(self.execution_latencies) if self.execution_latencies else 0,
+        }
+
+    async def start_background_tasks(self, reconciliation_interval: int = 300, order_poll_interval: int = 30):
+        """Start AAC 2100 background tasks"""
+        # Start parent background tasks
+        await super().start_background_tasks(reconciliation_interval, order_poll_interval)
+
+        # Start AAC 2100 specific tasks
+        if self.performance_monitor:
+            asyncio.create_task(self._performance_monitoring_loop())
+
+        self.logger.info("AAC 2100 background tasks started")
+
+    async def stop_background_tasks(self):
+        """Stop AAC 2100 background tasks"""
+        # Stop parent background tasks
+        await super().stop_background_tasks()
+
+        # AAC 2100 tasks will stop with the event loop
+        self.logger.info("AAC 2100 background tasks stopped")
+
+    async def _performance_monitoring_loop(self):
+        """Background performance monitoring"""
+        while True:
+            try:
+                # Update advancement metrics
+                metrics = self.get_aac2100_metrics()
+                await self.performance_monitor._collect_metrics()
+
+                # Check latency targets
+                if metrics["p999_latency_us"] > self.target_latency_us:
+                    self.logger.warning(f"p99.9 latency target exceeded: {metrics['p999_latency_us']:.1f}μs > {self.target_latency_us}μs")
+
+                await asyncio.sleep(60)  # Every minute
+
+            except Exception as e:
+                self.logger.error(f"Performance monitoring error: {e}")
+                await asyncio.sleep(60)
 
 
 # CLI for testing

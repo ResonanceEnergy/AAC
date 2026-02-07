@@ -393,7 +393,7 @@ Alert ID: {alert.alert_id}
 
     async def _send_console_notification(self, alert: Alert):
         """Send console notification."""
-        print(f"🚨 ALERT [{alert.severity.value.upper()}]: {alert.title}")
+        print(f"[ALERT] ALERT [{alert.severity.value.upper()}]: {alert.title}")
         print(f"   {alert.message}")
         print(f"   Source: {alert.source} | Time: {alert.created_at}")
         print()

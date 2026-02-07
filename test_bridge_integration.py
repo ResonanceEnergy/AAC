@@ -19,7 +19,7 @@ from shared.audit_logger import AuditLogger
 async def test_bridge_system():
     """Test complete bridge system with all 10 department pairs"""
 
-    print("🚀 Starting Bridge System Integration Test")
+    print("[DEPLOY] Starting Bridge System Integration Test")
     print("=" * 60)
 
     # Initialize bridge orchestrator
@@ -37,7 +37,7 @@ async def test_bridge_system():
         print(f"✅ Bridge Status: {active_bridges}/{total_bridges} bridges active")
 
         if active_bridges != 10:
-            print("❌ ERROR: Not all bridges initialized successfully")
+            print("[CROSS] ERROR: Not all bridges initialized successfully")
             return False
 
         # Test message routing for each bridge pair
@@ -68,12 +68,12 @@ async def test_bridge_system():
                     print(f"✅ {bridge_key}: Message routed successfully")
                     successful_routes += 1
                 else:
-                    print(f"❌ {bridge_key}: Message routing failed - {result.get('error', 'Unknown error')}")
+                    print(f"[CROSS] {bridge_key}: Message routing failed - {result.get('error', 'Unknown error')}")
 
             except Exception as e:
-                print(f"❌ {bridge_key}: Exception during routing - {e}")
+                print(f"[CROSS] {bridge_key}: Exception during routing - {e}")
 
-        print(f"\n📊 Message Routing Results: {successful_routes}/{total_tests} successful")
+        print(f"\n[MONITOR] Message Routing Results: {successful_routes}/{total_tests} successful")
 
         # Test health monitoring
         print("\n🏥 Testing bridge health monitoring...")
@@ -100,14 +100,14 @@ async def test_bridge_system():
             if te_ca_result.get("success") and ca_ci_result.get("success"):
                 print("✅ Multi-bridge flow (TE→CA→CI): Successful")
             else:
-                print("❌ Multi-bridge flow (TE→CA→CI): Failed")
+                print("[CROSS] Multi-bridge flow (TE→CA→CI): Failed")
 
         except Exception as e:
-            print(f"❌ Multi-bridge flow test failed: {e}")
+            print(f"[CROSS] Multi-bridge flow test failed: {e}")
 
         # Final assessment
         print("\n" + "=" * 60)
-        print("🎯 INTEGRATION TEST RESULTS")
+        print("[TARGET] INTEGRATION TEST RESULTS")
         print("=" * 60)
 
         all_tests_passed = (
@@ -118,15 +118,15 @@ async def test_bridge_system():
 
         if all_tests_passed:
             print("✅ ALL TESTS PASSED - Bridge system ready for production!")
-            print("🎉 Phase 4: Production Readiness - COMPLETE")
+            print("[CELEBRATION] Phase 4: Production Readiness - COMPLETE")
             return True
         else:
-            print("❌ SOME TESTS FAILED - Review bridge implementations")
+            print("[CROSS] SOME TESTS FAILED - Review bridge implementations")
             print("🔧 Phase 4: Production Readiness - REQUIRES ATTENTION")
             return False
 
     except Exception as e:
-        print(f"❌ CRITICAL ERROR during integration test: {e}")
+        print(f"[CROSS] CRITICAL ERROR during integration test: {e}")
         return False
 
     finally:

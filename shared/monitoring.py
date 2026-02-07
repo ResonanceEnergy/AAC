@@ -98,8 +98,8 @@ class TelegramNotifier:
     async def send_alert(self, alert: 'Alert') -> bool:
         """Send an alert as a formatted Telegram message"""
         emoji = {
-            'critical': '🚨',
-            'warning': '⚠️',
+            'critical': '[ALERT]',
+            'warning': '[WARN]️',
             'info': 'ℹ️',
         }.get(alert.severity, '📢')
         
@@ -727,6 +727,11 @@ def get_monitoring_service() -> MonitoringService:
     if _monitoring_service is None:
         _monitoring_service = MonitoringService()
     return _monitoring_service
+
+
+def get_monitoring_manager() -> MonitoringService:
+    """Get or create the global monitoring manager (alias for get_monitoring_service)"""
+    return get_monitoring_service()
 
 
 async def health_check() -> Dict:

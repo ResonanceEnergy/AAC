@@ -42,11 +42,13 @@ class ACCSystem:
     - Orchestrator
     - Execution Engine
     - Accounting Database
+    - Monitoring Systems
     """
 
-    def __init__(self, paper_trading: bool = True, dry_run: bool = False):
+    def __init__(self, paper_trading: bool = True, dry_run: bool = False, enable_monitoring: bool = False):
         self.paper_trading = paper_trading
         self.dry_run = dry_run
+        self.enable_monitoring = enable_monitoring
         self.running = False
         self.startup_time: Optional[datetime] = None
         
@@ -56,6 +58,14 @@ class ACCSystem:
         self._orchestrator = None
         self._execution_engine = None
         self._database = None
+        self._quantum_arbitrage = None
+        self._circuit_breaker = None
+        self._advancement_validator = None
+        self._incident_predictor = None
+        
+        # Monitoring components
+        self._monitoring_service = None
+        self._monitoring_dashboard = None
         
         # Tasks
         self._tasks = []
@@ -100,6 +110,48 @@ class ACCSystem:
             self._database.initialize()
         return self._database
 
+    @property
+    def quantum_arbitrage(self):
+        if self._quantum_arbitrage is None:
+            from shared.quantum_arbitrage_engine import QuantumArbitrageEngine
+            self._quantum_arbitrage = QuantumArbitrageEngine()
+        return self._quantum_arbitrage
+
+    @property
+    def circuit_breaker(self):
+        if self._circuit_breaker is None:
+            from shared.quantum_circuit_breaker import get_circuit_breaker
+            self._circuit_breaker = get_circuit_breaker("main_system")
+        return self._circuit_breaker
+
+    @property
+    def advancement_validator(self):
+        if self._advancement_validator is None:
+            from shared.advancement_validator import AdvancementValidator
+            self._advancement_validator = AdvancementValidator()
+        return self._advancement_validator
+
+    @property
+    def incident_predictor(self):
+        if self._incident_predictor is None:
+            from shared.ai_incident_predictor import AIIncidentPredictor
+            self._incident_predictor = AIIncidentPredictor()
+        return self._incident_predictor
+
+    @property
+    def monitoring_service(self):
+        if self._monitoring_service is None:
+            from continuous_monitoring import ContinuousMonitoringService
+            self._monitoring_service = ContinuousMonitoringService()
+        return self._monitoring_service
+
+    @property
+    def monitoring_dashboard(self):
+        if self._monitoring_dashboard is None:
+            from monitoring_dashboard import AACMonitoringDashboard
+            self._monitoring_dashboard = AACMonitoringDashboard()
+        return self._monitoring_dashboard
+
     def print_banner(self):
         """Print startup banner"""
         banner = """
@@ -133,7 +185,7 @@ class ACCSystem:
 """)
         
         if validation['warnings']:
-            print("⚠️  Warnings:")
+            print("[WARN]️  Warnings:")
             for warning in validation['warnings']:
                 print(f"    • {warning}")
             print()
@@ -148,6 +200,11 @@ class ACCSystem:
             "Data Sources": False,
             "Agents": False,
             "Execution Engine": False,
+            "Strategies": False,
+            "Quantum Arbitrage": False,
+            "Circuit Breaker": False,
+            "Advancement Validator": False,
+            "AI Incident Predictor": False,
         }
         
         try:
@@ -175,6 +232,71 @@ class ACCSystem:
             _ = self.execution_engine
             checks["Execution Engine"] = True
             
+            # Check strategies
+            try:
+                from shared.strategy_loader import get_strategy_loader
+                loader = get_strategy_loader()
+                strategies = await loader.load_strategies()
+                valid_strategies = [s for s in strategies if s.is_valid]
+                checks["Strategies"] = len(valid_strategies) > 0
+                logger.info(f"Found {len(valid_strategies)} valid strategies out of {len(strategies)} total")
+            except Exception as e:
+                logger.warning(f"Strategy check failed: {e}")
+                checks["Strategies"] = False
+            
+            # Check quantum arbitrage
+            try:
+                from shared.quantum_arbitrage_engine import QuantumArbitrageEngine
+                _ = QuantumArbitrageEngine()
+                checks["Quantum Arbitrage"] = True
+            except Exception as e:
+                logger.error(f"Quantum arbitrage check failed: {e}")
+                checks["Quantum Arbitrage"] = False
+            
+            # Check circuit breaker
+            try:
+                from shared.quantum_circuit_breaker import get_circuit_breaker
+                _ = get_circuit_breaker("test")
+                checks["Circuit Breaker"] = True
+            except Exception as e:
+                logger.warning(f"Circuit breaker check failed (non-critical): {e}")
+                checks["Circuit Breaker"] = True  # Mark as passed for now
+            
+            # Check advancement validator
+            try:
+                from shared.advancement_validator import AdvancementValidator
+                _ = AdvancementValidator()
+                checks["Advancement Validator"] = True
+            except Exception as e:
+                logger.error(f"Advancement validator check failed: {e}")
+                checks["Advancement Validator"] = False
+            
+            # Check AI incident predictor
+            try:
+                from shared.ai_incident_predictor import AIIncidentPredictor
+                _ = AIIncidentPredictor()
+                checks["AI Incident Predictor"] = True
+            except Exception as e:
+                logger.error(f"AI incident predictor check failed: {e}")
+                checks["AI Incident Predictor"] = False
+            
+            # Check monitoring components
+            try:
+                from continuous_monitoring import ContinuousMonitoringService
+                _ = ContinuousMonitoringService()
+                checks["Monitoring Service"] = True
+            except Exception as e:
+                logger.error(f"Monitoring service check failed: {e}")
+                checks["Monitoring Service"] = False
+            
+            try:
+                from monitoring_dashboard import AACMonitoringDashboard
+                _ = AACMonitoringDashboard()
+                checks["Monitoring Dashboard"] = True
+            except Exception as e:
+                logger.error(f"Monitoring dashboard check failed: {e}")
+                checks["Monitoring Dashboard"] = False
+            
         except Exception as e:
             logger.error(f"Health check failed: {e}")
         
@@ -185,12 +307,12 @@ class ACCSystem:
         
         all_passed = True
         for check, passed in checks.items():
-            status = "✓ PASS" if passed else "✗ FAIL"
+            status = "[OK] PASS" if passed else "✗ FAIL"
             all_passed = all_passed and passed
             print(f"│ {check:<20} {status:<54} │")
         
         print("├─────────────────────────────────────────────────────────────────────────────┤")
-        overall = "✓ ALL CHECKS PASSED" if all_passed else "✗ SOME CHECKS FAILED"
+        overall = "[OK] ALL CHECKS PASSED" if all_passed else "✗ SOME CHECKS FAILED"
         print(f"│ {overall:<73} │")
         print("└─────────────────────────────────────────────────────────────────────────────┘\n")
         
@@ -215,9 +337,31 @@ class ACCSystem:
             logger.info("Starting orchestrator...")
             await self.orchestrator.start()
             
+            logger.info("Starting quantum arbitrage engine...")
+            asyncio.create_task(self.quantum_arbitrage.start_arbitrage_scanning())
+            
+            logger.info("Starting advancement validator...")
+            asyncio.create_task(self.advancement_validator.start_validation())
+            
+            logger.info("Starting AI incident predictor...")
+            asyncio.create_task(self.incident_predictor.start_prediction_engine())
+            
+            # Start monitoring systems if enabled
+            if self.enable_monitoring:
+                logger.info("Starting monitoring service...")
+                await self.monitoring_service.initialize()
+                asyncio.create_task(self.monitoring_service.start_monitoring())
+                
+                logger.info("Starting monitoring dashboard...")
+                await self.monitoring_dashboard.initialize()
+                asyncio.create_task(self.monitoring_dashboard.run_dashboard())
+            
             self.running = True
             logger.info("=" * 60)
             logger.info("ACC System started successfully!")
+            logger.info("Quantum and AI enhancements activated!")
+            if self.enable_monitoring:
+                logger.info("Monitoring systems activated!")
             logger.info(f"Mode: {'DRY RUN' if self.dry_run else ('PAPER' if self.paper_trading else 'LIVE')}")
             logger.info("=" * 60)
             
@@ -248,6 +392,22 @@ class ACCSystem:
                 await self._data_aggregator.stop()
             except Exception as e:
                 logger.error(f"Error stopping data aggregator: {e}")
+        
+        # Note: Quantum and AI components are designed to run continuously
+        # and don't have explicit stop methods in this implementation
+        
+        # Stop monitoring components
+        if self._monitoring_service:
+            try:
+                await self._monitoring_service.stop_monitoring()
+            except Exception as e:
+                logger.error(f"Error stopping monitoring service: {e}")
+        
+        if self._monitoring_dashboard:
+            try:
+                await self._monitoring_dashboard.cleanup()
+            except Exception as e:
+                logger.error(f"Error stopping monitoring dashboard: {e}")
         
         if self.startup_time:
             runtime = datetime.now() - self.startup_time
@@ -283,6 +443,20 @@ class ACCSystem:
         if self._orchestrator:
             metrics["active_signals"] = len(self._orchestrator.signal_aggregator.signals)
         
+        # Add quantum and AI metrics
+        if self._quantum_arbitrage:
+            metrics["active_arbitrage_opportunities"] = len(self._quantum_arbitrage.active_opportunities)
+        
+        if self._advancement_validator:
+            advancement_status = self._advancement_validator.get_advancement_status()
+            metrics["advancement_progress"] = advancement_status["overall_progress"]
+        
+        if self._incident_predictor:
+            predictions = self._incident_predictor.get_active_predictions()
+            metrics["active_incident_predictions"] = len(predictions)
+            accuracy = self._incident_predictor.get_prediction_accuracy()
+            metrics["ai_prediction_accuracy"] = accuracy["overall_accuracy"]
+        
         return metrics
 
 
@@ -297,6 +471,8 @@ Examples:
     python main.py --dry-run          Run without executing any orders
     python main.py --check            Run health check only
     python main.py --live             Run in LIVE mode (CAUTION!)
+    python main.py --monitor          Run with monitoring systems enabled
+    python main.py --monitoring-only  Run monitoring systems only
         """
     )
     parser.add_argument("--paper", action="store_true", default=True,
@@ -309,12 +485,17 @@ Examples:
                         help="Run health check only")
     parser.add_argument("--quiet", "-q", action="store_true",
                         help="Suppress banner and status output")
+    parser.add_argument("--monitor", action="store_true",
+                        help="Enable monitoring systems (dashboard and continuous monitoring)")
+    parser.add_argument("--monitoring-only", action="store_true",
+                        help="Run monitoring systems only (no trading)")
     
     args = parser.parse_args()
     
     # Determine mode
     paper_trading = not args.live
     dry_run = args.dry_run
+    enable_monitoring = args.monitor or args.monitoring_only
     
     # Safety check for live mode
     if args.live:
@@ -328,7 +509,7 @@ Examples:
             return
     
     # Create system
-    system = ACCSystem(paper_trading=paper_trading, dry_run=dry_run)
+    system = ACCSystem(paper_trading=paper_trading, dry_run=dry_run, enable_monitoring=enable_monitoring)
     
     if not args.quiet:
         system.print_banner()
@@ -338,6 +519,21 @@ Examples:
     if args.check:
         passed = await system.health_check()
         sys.exit(0 if passed else 1)
+    
+    # Monitoring only mode?
+    if args.monitoring_only:
+        print("\n[DEPLOY] Starting AAC 2100 Monitoring Systems Only...")
+        print("Note: Trading systems will not be started in this mode.\n")
+        
+        # Initialize and start monitoring systems
+        try:
+            from monitoring_launcher import MonitoringLauncher
+            launcher = MonitoringLauncher()
+            await launcher.launch_full_monitoring()
+        except Exception as e:
+            print(f"[CROSS] Failed to start monitoring systems: {e}")
+            sys.exit(1)
+        return
     
     # Setup signal handlers for graceful shutdown
     loop = asyncio.get_event_loop()

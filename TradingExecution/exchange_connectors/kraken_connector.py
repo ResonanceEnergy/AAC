@@ -80,7 +80,7 @@ class KrakenConnector(BaseExchangeConnector):
         # Safety warning
         if not paper_trading and api_key:
             self.logger.warning(
-                "⚠️  KRAKEN LIVE TRADING ENABLED - No testnet available! "
+                "[WARN]️  KRAKEN LIVE TRADING ENABLED - No testnet available! "
                 "All orders will execute on PRODUCTION. Set paper_trading=True for testing."
             )
 
@@ -104,7 +104,7 @@ class KrakenConnector(BaseExchangeConnector):
             if self.paper_trading:
                 self.logger.info("Connecting to Kraken (PAPER TRADING MODE)")
             else:
-                self.logger.warning("⚠️  Connecting to Kraken LIVE PRODUCTION")
+                self.logger.warning("[WARN]️  Connecting to Kraken LIVE PRODUCTION")
             
             self._client = ccxt_async.kraken(options)
             

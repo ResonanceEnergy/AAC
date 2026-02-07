@@ -47,14 +47,14 @@ async def main():
     print(f"{'='*70}")
     
     if in_doctrine_not_adapter:
-        print(f"\n❌ IN DOCTRINE_PACKS BUT NOT IN ADAPTERS ({len(in_doctrine_not_adapter)}):")
+        print(f"\n[CROSS] IN DOCTRINE_PACKS BUT NOT IN ADAPTERS ({len(in_doctrine_not_adapter)}):")
         for m in sorted(in_doctrine_not_adapter):
             print(f"    MISSING IN ADAPTER: {m}")
     else:
         print(f"\n✅ All DOCTRINE_PACKS metrics have adapter coverage!")
     
     if in_adapter_not_doctrine:
-        print(f"\n⚠️  IN ADAPTERS BUT NOT IN DOCTRINE_PACKS ({len(in_adapter_not_doctrine)}):")
+        print(f"\n[WARN]️  IN ADAPTERS BUT NOT IN DOCTRINE_PACKS ({len(in_adapter_not_doctrine)}):")
         for m in sorted(in_adapter_not_doctrine):
             print(f"    EXTRA (not in packs): {m}")
     else:
@@ -71,9 +71,9 @@ async def main():
     total_gaps = len(in_doctrine_not_adapter) + len(in_adapter_not_doctrine)
     
     if total_gaps == 0:
-        print("\n🎉 PERFECT ALIGNMENT - NO GAPS!")
+        print("\n[CELEBRATION] PERFECT ALIGNMENT - NO GAPS!")
     else:
-        print(f"\n⚠️  {total_gaps} total gaps need resolution")
+        print(f"\n[WARN]️  {total_gaps} total gaps need resolution")
     
     # List all matched metrics by pack
     print(f"\n{'='*70}")
@@ -83,7 +83,7 @@ async def main():
         pack_metrics = set(pack_info.get('key_metrics', []))
         pack_matched = pack_metrics & adapter_metrics
         pack_missing = pack_metrics - adapter_metrics
-        status = "✅" if not pack_missing else "⚠️"
+        status = "✅" if not pack_missing else "[WARN]️"
         print(f"\n  {status} Pack {pack_id}: {pack_info['name']}")
         print(f"     Matched: {len(pack_matched)}/{len(pack_metrics)}")
         if pack_missing:

@@ -779,13 +779,13 @@ async def main():
     
     report = await service.run_compliance_check()
     
-    print(f"\n📊 COMPLIANCE REPORT")
+    print(f"\n[MONITOR] COMPLIANCE REPORT")
     print(f"   Generated: {report.generated_at.strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"   Scope: {report.scope}")
     print(f"   AZ Prime State: {report.az_prime_state.value}")
     print(f"\n   ✅ Compliant: {report.compliant}")
-    print(f"   ⚠️  Warnings: {report.warnings}")
-    print(f"   ❌ Violations: {report.violations}")
+    print(f"   [WARN]️  Warnings: {report.warnings}")
+    print(f"   [CROSS] Violations: {report.violations}")
     print(f"\n   📈 Compliance Score: {report.compliance_score}%")
     
     if report.violations_list:

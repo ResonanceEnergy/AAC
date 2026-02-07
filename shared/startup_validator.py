@@ -34,7 +34,7 @@ class ValidationResult:
     details: Optional[Dict[str, Any]] = None
     
     def __str__(self) -> str:
-        status = "✓" if self.passed else "✗"
+        status = "[OK]" if self.passed else "✗"
         return f"[{status}] {self.check_name}: {self.message}"
 
 
@@ -98,13 +98,13 @@ class StartupValidation:
         
         # List failures
         if self.errors:
-            lines.append("\n  ❌ Failed Checks:")
+            lines.append("\n  [CROSS] Failed Checks:")
             for r in self.errors:
                 lines.append(f"    • {r.check_name}: {r.message}")
         
         # List warnings
         if self.warnings:
-            lines.append("\n  ⚠️  Warnings:")
+            lines.append("\n  [WARN]️  Warnings:")
             for r in self.warnings:
                 lines.append(f"    • {r.check_name}: {r.message}")
         
@@ -466,7 +466,7 @@ class StartupValidator:
                 check_name="Trading Mode",
                 passed=True,
                 severity=ValidationSeverity.CRITICAL,
-                message="⚠️  LIVE TRADING enabled - real money at risk!",
+                message="[WARN]️  LIVE TRADING enabled - real money at risk!",
                 details={"paper_trading": False, "dry_run": dry_run},
             )
 
