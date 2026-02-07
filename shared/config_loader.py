@@ -211,6 +211,11 @@ class Config:
     alphavantage_key: str = ''
     news_api_key: str = ''
     twitter_bearer: str = ''
+    reddit_client_id: str = ''
+    reddit_client_secret: str = ''
+    reddit_user_agent: str = 'AAC-Trading-Bot/1.0'
+    kyc_provider_key: str = ''
+    kyc_provider_url: str = ''
     
     # Dashboard
     dashboard_url: str = 'http://localhost:3000'
@@ -299,6 +304,11 @@ class Config:
             alphavantage_key=get_env('ALPHAVANTAGE_API_KEY'),
             news_api_key=get_env('NEWS_API_KEY'),
             twitter_bearer=get_env('TWITTER_BEARER_TOKEN'),
+            reddit_client_id=get_env('REDDIT_CLIENT_ID'),
+            reddit_client_secret=get_env('REDDIT_CLIENT_SECRET'),
+            reddit_user_agent=get_env('REDDIT_USER_AGENT', 'AAC-Trading-Bot/1.0'),
+            kyc_provider_key=get_env('KYC_PROVIDER_API_KEY'),
+            kyc_provider_url=get_env('KYC_PROVIDER_URL'),
             
             # Dashboard
             dashboard_url=get_env('DASHBOARD_URL', 'http://localhost:3000'),
@@ -645,9 +655,9 @@ if __name__ == '__main__':
     if validation['issues']:
         print("\nIssues:")
         for issue in validation['issues']:
-            print(f"  ❌ {issue}")
+            print(f"  [CROSS] {issue}")
     
     if validation['warnings']:
         print("\nWarnings:")
         for warning in validation['warnings']:
-            print(f"  ⚠️ {warning}")
+            print(f"  [WARN]️ {warning}")

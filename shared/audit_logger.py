@@ -228,7 +228,7 @@ class AuditLogger:
         else:
             return data
     
-    async def log_event(
+    async def _log_full_event(
         self,
         category: AuditCategory,
         action: str,
@@ -302,7 +302,28 @@ class AuditLogger:
             log_message += f" | {event.duration_ms:.2f}ms"
         if event.error_message:
             log_message += f" | ERROR: {event.error_message}"
+
+        # Handle Unicode characters for Windows console compatibility
+        # Replace problematic Unicode characters with ASCII equivalents
+        replacements = {
+            '\u2011': '-', '\u2013': '-', '\u2014': '-', '\u2015': '-',
+            ''': "'", ''': "'", '"': '"', '"': '"',
+            '…': '...', '•': '*', '°': 'deg', '™': '(TM)',
+            '®': '(R)', '©': '(C)', '€': 'EUR', '£': 'GBP',
+            '¥': 'JPY', '₹': 'INR', '₿': 'BTC', 'Ξ': 'ETH',
+            '✓': 'OK', '✗': 'X', '★': '*', '☆': '*',
+            '→': '->', '←': '<-', '↑': '^', '↓': 'v',
+            '≈': '~', '≠': '!=', '≤': '<=', '≥': '>=',
+            'α': 'alpha', 'β': 'beta', 'γ': 'gamma', 'δ': 'delta',
+            'ε': 'epsilon', 'π': 'pi', 'σ': 'sigma', 'τ': 'tau',
+            'μ': 'mu', 'Ω': 'Omega', 'Δ': 'Delta', 'Σ': 'Sigma'
+        }
+        for unicode_char, ascii_char in replacements.items():
+            log_message = log_message.replace(unicode_char, ascii_char)
         
+        # Replace any remaining Unicode characters with '?'
+        log_message = ''.join(c if ord(c) < 128 else '?' for c in log_message)
+
         level = getattr(logging, event.severity.value.upper(), logging.INFO)
         self.logger.log(level, log_message)
     
@@ -350,7 +371,7 @@ class AuditLogger:
         correlation_id: Optional[str] = None,
     ) -> AuditEvent:
         """Log an exchange API call"""
-        return await self.log_event(
+        return await self._log_full_event(
             category=AuditCategory.API_CALL,
             action=f"{method} {endpoint}",
             resource=f"{exchange}:{endpoint}",
@@ -381,7 +402,7 @@ class AuditLogger:
     ) -> AuditEvent:
         """Log an order event"""
         severity = AuditSeverity.ERROR if "fail" in status.lower() else AuditSeverity.INFO
-        return await self.log_event(
+        return await self._log_full_event(
             category=AuditCategory.ORDER,
             action=f"{side} {order_type}",
             resource=f"{exchange}:{symbol}",
@@ -409,7 +430,7 @@ class AuditLogger:
     ) -> AuditEvent:
         """Log authentication events"""
         severity = AuditSeverity.WARNING if status == "failure" else AuditSeverity.INFO
-        return await self.log_event(
+        return await self._log_full_event(
             category=AuditCategory.AUTHENTICATION,
             action="authenticate",
             resource=exchange,
@@ -429,13 +450,60 @@ class AuditLogger:
         severity: AuditSeverity = AuditSeverity.WARNING,
     ) -> AuditEvent:
         """Log security-related events"""
-        return await self.log_event(
+        return await self._log_full_event(
             category=AuditCategory.SECURITY,
             action=action,
             resource=resource,
             status=status,
             severity=severity,
             user="security_monitor",
+            details=details,
+        )
+    
+    async def log_system_event(
+        self,
+        action: str,
+        resource: str,
+        status: str = "success",
+        details: Optional[Dict] = None,
+        severity: AuditSeverity = AuditSeverity.INFO,
+        user: str = "system",
+    ) -> AuditEvent:
+        """Log general system events"""
+        return await self._log_full_event(
+            category=AuditCategory.SYSTEM,
+            action=action,
+            resource=resource,
+            status=status,
+            severity=severity,
+            user=user,
+            details=details,
+        )
+    
+    # Backward compatibility method
+    async def log_event(
+        self,
+        category: str,
+        action: str,
+        details: Optional[Dict] = None,
+        status: str = "success",
+        severity: AuditSeverity = AuditSeverity.INFO,
+        user: str = "system",
+    ) -> AuditEvent:
+        """Backward compatibility method for simple logging"""
+        # Convert string category to enum if possible
+        try:
+            category_enum = AuditCategory(category.upper())
+        except ValueError:
+            category_enum = AuditCategory.SYSTEM
+        
+        return await self._log_full_event(
+            category=category_enum,
+            action=action,
+            resource=category,
+            status=status,
+            severity=severity,
+            user=user,
             details=details,
         )
     

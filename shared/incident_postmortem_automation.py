@@ -327,13 +327,13 @@ class IncidentPostmortemAutomation:
         await self.audit.log_event(
             category=AuditCategory.SYSTEM,
             action=event_type,
-            resource="incident_automation",
             status="info" if severity == "info" else "success",
             severity=getattr(AuditSeverity, severity.upper()),
             user="system",
             details={
                 'event_type': event_type,
                 'automation_component': 'incident_postmortem_automation',
+                'resource': 'incident_automation',
                 'timestamp': datetime.now().isoformat(),
                 **kwargs
             }

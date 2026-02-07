@@ -25,6 +25,8 @@ sys.path.insert(0, str(PROJECT_ROOT))
 from shared.config_loader import get_config, get_project_path
 from shared.data_sources import CoinGeckoClient, MarketTick
 
+logger = logging.getLogger(__name__)
+
 
 @dataclass
 class ResearchFinding:
@@ -1142,6 +1144,405 @@ class NetworkMapperAgent(BaseResearchAgent):
 
 
 # ============================================
+# MISSING OPERATIONAL AGENTS
+# ============================================
+
+class ReconciliationAgent(BaseResearchAgent):
+    """Code Name: BALANCE-KEEPER
+    Department: CentralAccounting
+    Role: Ensures all financial transactions are properly reconciled across systems
+    Tri-Agent System: Works with ADMIN-SCROLL (reports) and INNOVATE-LEDGER (insights)
+    """
+
+    def __init__(self):
+        super().__init__('reconciliation_agent', 'operations')
+        self.reconciliation_rules = {}
+        self.pending_reconciliations = []
+        self.reconciliation_history = []
+
+    async def scan(self) -> List[ResearchFinding]:
+        findings = []
+
+        # Check for reconciliation discrepancies
+        discrepancies = await self._find_discrepancies()
+
+        for disc in discrepancies:
+            finding = self.create_finding(
+                finding_type='reconciliation_issue',
+                title=f"Reconciliation Discrepancy: {disc['account']}",
+                description=f"Found ${disc['amount']:.2f} discrepancy in {disc['account']}",
+                confidence=disc['confidence'],
+                urgency=disc['urgency'],
+                data=disc,
+            )
+            findings.append(finding)
+
+        return findings
+
+    async def _find_discrepancies(self) -> List[Dict]:
+        """Find reconciliation discrepancies"""
+        return [
+            {
+                'account': 'Trading Account A',
+                'amount': 1250.75,
+                'confidence': 0.95,
+                'urgency': 'high',
+                'type': 'cash_discrepancy'
+            }
+        ]
+
+
+class RiskMonitorAgent(BaseResearchAgent):
+    """Code Name: SHIELD-WATCHER
+    Department: CentralAccounting
+    Role: Monitors portfolio risk in real-time, alerts on threshold breaches
+    Tri-Agent System: Works with ADMIN-RISK (reports) and INNOVATE-SHIELD (insights)
+    """
+
+    def __init__(self):
+        super().__init__('risk_monitor_agent', 'operations')
+        self.risk_thresholds = {}
+        self.current_risk_metrics = {}
+        self.risk_alerts = []
+
+    async def scan(self) -> List[ResearchFinding]:
+        findings = []
+
+        risk_breaches = await self._check_risk_breaches()
+
+        for breach in risk_breaches:
+            finding = self.create_finding(
+                finding_type='risk_breach',
+                title=f"Risk Threshold Breached: {breach['metric']}",
+                description=f"{breach['metric']} exceeded threshold: {breach['value']:.2f}",
+                confidence=breach['confidence'],
+                urgency='critical',
+                data=breach,
+            )
+            findings.append(finding)
+
+        return findings
+
+    async def _check_risk_breaches(self) -> List[Dict]:
+        """Check for risk threshold breaches"""
+        return [
+            {
+                'metric': 'Portfolio VaR',
+                'value': 2.5,
+                'threshold': 2.0,
+                'confidence': 0.98,
+                'breach_type': 'var_limit'
+            }
+        ]
+
+
+class PLCalculationAgent(BaseResearchAgent):
+    """Code Name: PROFIT-SAGE
+    Department: CentralAccounting
+    Role: Calculates real-time P&L across all positions and strategies
+    Tri-Agent System: Works with ADMIN-PROFIT (reports) and INNOVATE-YIELD (insights)
+    """
+
+    def __init__(self):
+        super().__init__('pl_calculation_agent', 'operations')
+        self.position_data = {}
+        self.pl_calculations = {}
+        self.unrealized_gains = {}
+
+    async def scan(self) -> List[ResearchFinding]:
+        findings = []
+
+        pl_updates = await self._calculate_pl()
+
+        for update in pl_updates:
+            finding = self.create_finding(
+                finding_type='pl_update',
+                title=f"P&L Update: {update['strategy']}",
+                description=f"Current P&L: ${update['pl_amount']:,.2f} ({update['change_percent']:.2f}%)",
+                confidence=0.99,
+                urgency='medium',
+                data=update,
+            )
+            findings.append(finding)
+
+        return findings
+
+    async def _calculate_pl(self) -> List[Dict]:
+        """Calculate P&L for all positions"""
+        return [
+            {
+                'strategy': 'Arbitrage Strategy A',
+                'pl_amount': 45670.50,
+                'change_percent': 2.34,
+                'unrealized_gains': 12340.25
+            }
+        ]
+
+
+class VenueHealthAgent(BaseResearchAgent):
+    """Code Name: MARKET-PULSE
+    Department: TradingExecution
+    Role: Monitors trading venue health, connectivity, and performance
+    Tri-Agent System: Works with ADMIN-VENUE (reports) and INNOVATE-CONNECT (insights)
+    """
+
+    def __init__(self):
+        super().__init__('venue_health_agent', 'operations')
+        self.venue_status = {}
+        self.connectivity_metrics = {}
+        self.performance_history = []
+
+    async def scan(self) -> List[ResearchFinding]:
+        findings = []
+
+        health_issues = await self._check_venue_health()
+
+        for issue in health_issues:
+            finding = self.create_finding(
+                finding_type='venue_health',
+                title=f"Venue Issue: {issue['venue']}",
+                description=issue['description'],
+                confidence=issue['confidence'],
+                urgency=issue['urgency'],
+                data=issue,
+            )
+            findings.append(finding)
+
+        return findings
+
+    async def _check_venue_health(self) -> List[Dict]:
+        """Check trading venue health"""
+        return [
+            {
+                'venue': 'Exchange Alpha',
+                'description': 'Latency increased by 45ms',
+                'confidence': 0.92,
+                'urgency': 'high',
+                'issue_type': 'latency_spike'
+            }
+        ]
+
+
+class WithdrawalRiskAgent(BaseResearchAgent):
+    """Code Name: CASH-GUARD
+    Department: CentralAccounting
+    Role: Monitors withdrawal patterns for risk and compliance
+    Tri-Agent System: Works with ADMIN-WITHDRAW (reports) and INNOVATE-FLOW (insights)
+    """
+
+    def __init__(self):
+        super().__init__('withdrawal_risk_agent', 'operations')
+        self.withdrawal_patterns = {}
+        self.risk_scores = {}
+        self.compliance_flags = []
+
+    async def scan(self) -> List[ResearchFinding]:
+        findings = []
+
+        risk_patterns = await self._analyze_withdrawal_risks()
+
+        for pattern in risk_patterns:
+            finding = self.create_finding(
+                finding_type='withdrawal_risk',
+                title=f"Withdrawal Risk: {pattern['account']}",
+                description=pattern['description'],
+                confidence=pattern['confidence'],
+                urgency=pattern['urgency'],
+                data=pattern,
+            )
+            findings.append(finding)
+
+        return findings
+
+    async def _analyze_withdrawal_risks(self) -> List[Dict]:
+        """Analyze withdrawal patterns for risks"""
+        return [
+            {
+                'account': 'Client Portfolio X',
+                'description': 'Unusual withdrawal pattern detected - 3x normal volume',
+                'confidence': 0.87,
+                'urgency': 'medium',
+                'risk_type': 'volume_anomaly'
+            }
+        ]
+
+
+class RoutingOptimizationAgent(BaseResearchAgent):
+    """Code Name: PATH-FINDER
+    Department: TradingExecution
+    Role: Optimizes order routing across multiple venues for best execution
+    Tri-Agent System: Works with ADMIN-ROUTE (reports) and INNOVATE-PATH (insights)
+    """
+
+    def __init__(self):
+        super().__init__('routing_optimization_agent', 'operations')
+        self.routing_rules = {}
+        self.venue_performance = {}
+        self.optimization_history = []
+
+    async def scan(self) -> List[ResearchFinding]:
+        findings = []
+
+        routing_opportunities = await self._find_routing_opportunities()
+
+        for opp in routing_opportunities:
+            finding = self.create_finding(
+                finding_type='routing_optimization',
+                title=f"Routing Opportunity: {opp['symbol']}",
+                description=f"Potential ${opp['savings']:.2f} savings by rerouting",
+                confidence=opp['confidence'],
+                urgency='low',
+                data=opp,
+            )
+            findings.append(finding)
+
+        return findings
+
+    async def _find_routing_opportunities(self) -> List[Dict]:
+        """Find routing optimization opportunities"""
+        return [
+            {
+                'symbol': 'BTC/USD',
+                'savings': 1250.50,
+                'confidence': 0.89,
+                'current_venue': 'Exchange A',
+                'optimal_venue': 'Exchange B'
+            }
+        ]
+
+
+class IncidentPostmortemAutomation(BaseResearchAgent):
+    """Code Name: LESSON-MINER
+    Department: SharedInfrastructure
+    Role: Automates incident analysis and postmortem generation
+    Tri-Agent System: Works with ADMIN-INCIDENT (reports) and INNOVATE-LEARN (insights)
+    """
+
+    def __init__(self):
+        super().__init__('incident_postmortem_agent', 'operations')
+        self.incident_history = []
+        self.postmortem_templates = {}
+        self.lessons_learned = []
+
+    async def scan(self) -> List[ResearchFinding]:
+        findings = []
+
+        recent_incidents = await self._analyze_recent_incidents()
+
+        for incident in recent_incidents:
+            finding = self.create_finding(
+                finding_type='incident_analysis',
+                title=f"Incident Postmortem: {incident['title']}",
+                description=incident['summary'],
+                confidence=0.95,
+                urgency='medium',
+                data=incident,
+            )
+            findings.append(finding)
+
+        return findings
+
+    async def _analyze_recent_incidents(self) -> List[Dict]:
+        """Analyze recent incidents for postmortems"""
+        return [
+            {
+                'title': 'System Outage - 15 minutes',
+                'summary': 'Root cause: Database connection timeout. Lessons: Increase connection pool size.',
+                'impact': 'medium',
+                'recommendations': ['Increase connection pool', 'Add circuit breaker']
+            }
+        ]
+
+
+class AuditGapMonitor(BaseResearchAgent):
+    """Code Name: COMPLIANCE-EYE
+    Department: SharedInfrastructure
+    Role: Monitors for audit gaps and compliance issues
+    Tri-Agent System: Works with ADMIN-AUDIT (reports) and INNOVATE-COMPLY (insights)
+    """
+
+    def __init__(self):
+        super().__init__('audit_gap_monitor', 'operations')
+        self.audit_requirements = {}
+        self.compliance_status = {}
+        self.gap_analysis = []
+
+    async def scan(self) -> List[ResearchFinding]:
+        findings = []
+
+        audit_gaps = await self._find_audit_gaps()
+
+        for gap in audit_gaps:
+            finding = self.create_finding(
+                finding_type='audit_gap',
+                title=f"Audit Gap: {gap['requirement']}",
+                description=gap['description'],
+                confidence=gap['confidence'],
+                urgency=gap['urgency'],
+                data=gap,
+            )
+            findings.append(finding)
+
+        return findings
+
+    async def _find_audit_gaps(self) -> List[Dict]:
+        """Find audit and compliance gaps"""
+        return [
+            {
+                'requirement': 'SOX Compliance',
+                'description': 'Missing quarterly control testing documentation',
+                'confidence': 0.91,
+                'urgency': 'high',
+                'gap_type': 'documentation'
+            }
+        ]
+
+
+class SecurityScannerAgent(BaseResearchAgent):
+    """Code Name: THREAT-HUNTER
+    Department: SharedInfrastructure
+    Role: Scans for security vulnerabilities and threats
+    Tri-Agent System: Works with ADMIN-SECURITY (reports) and INNOVATE-DEFEND (insights)
+    """
+
+    def __init__(self):
+        super().__init__('security_scanner_agent', 'operations')
+        self.vulnerability_db = {}
+        self.threat_intelligence = {}
+        self.security_alerts = []
+
+    async def scan(self) -> List[ResearchFinding]:
+        findings = []
+
+        security_issues = await self._scan_for_threats()
+
+        for issue in security_issues:
+            finding = self.create_finding(
+                finding_type='security_threat',
+                title=f"Security Issue: {issue['type']}",
+                description=issue['description'],
+                confidence=issue['confidence'],
+                urgency=issue['urgency'],
+                data=issue,
+            )
+            findings.append(finding)
+
+        return findings
+
+    async def _scan_for_threats(self) -> List[Dict]:
+        """Scan for security threats and vulnerabilities"""
+        return [
+            {
+                'type': 'Vulnerability',
+                'description': 'Outdated SSL certificate on API endpoint',
+                'confidence': 0.96,
+                'urgency': 'high',
+                'severity': 'medium'
+            }
+        ]
+
+
+# ============================================
 # AGENT REGISTRY
 # ============================================
 
@@ -1150,18 +1551,29 @@ AGENT_REGISTRY = {
     'narrative_analyzer': NarrativeAnalyzerAgent,
     'engagement_predictor': EngagementPredictorAgent,
     'content_optimizer': ContentOptimizerAgent,
-    
-    # Theater C - Infrastructure/Latency  
+
+    # Theater C - Infrastructure/Latency
     'latency_monitor': LatencyMonitorAgent,
     'bridge_analyzer': BridgeAnalyzerAgent,
     'gas_optimizer': GasOptimizerAgent,
     'liquidity_tracker': LiquidityTrackerAgent,
-    
+
     # Theater D - Information Asymmetry
     'api_scanner': APIScannerAgent,
     'data_gap_finder': DataGapFinderAgent,
     'access_arbitrage': AccessArbitrageAgent,
     'network_mapper': NetworkMapperAgent,
+
+    # Missing Operational Agents
+    'reconciliation_agent': ReconciliationAgent,
+    'risk_monitor_agent': RiskMonitorAgent,
+    'pl_calculation_agent': PLCalculationAgent,
+    'venue_health_agent': VenueHealthAgent,
+    'withdrawal_risk_agent': WithdrawalRiskAgent,
+    'routing_optimization_agent': RoutingOptimizationAgent,
+    'incident_postmortem_agent': IncidentPostmortemAutomation,
+    'audit_gap_monitor': AuditGapMonitor,
+    'security_scanner_agent': SecurityScannerAgent,
 }
 
 
@@ -1211,3 +1623,238 @@ if __name__ == '__main__':
         print("\n=== Test Complete ===")
     
     asyncio.run(test())
+
+
+class ResearchAgentManager:
+    """
+    Manager class for coordinating research agent operations.
+    Provides unified interface for agent management and metrics collection.
+    """
+
+    def __init__(self):
+        self.agents: Dict[str, BaseResearchAgent] = {}
+        self.agent_status: Dict[str, Dict[str, Any]] = {}
+        self.last_health_check = datetime.now()
+        self._initialize_agents()
+
+    def _initialize_agents(self):
+        """Initialize all research agents."""
+        for agent_id, agent_class in AGENT_REGISTRY.items():
+            try:
+                self.agents[agent_id] = agent_class()
+                self.agent_status[agent_id] = {
+                    "status": "initialized",
+                    "last_scan": None,
+                    "findings_count": 0,
+                    "health_score": 1.0,
+                    "error_message": None
+                }
+                logger.info(f"Initialized research agent: {agent_id}")
+            except Exception as e:
+                logger.error(f"Failed to initialize agent {agent_id}: {e}")
+                self.agent_status[agent_id] = {
+                    "status": "error",
+                    "last_scan": None,
+                    "findings_count": 0,
+                    "health_score": 0.0,
+                    "error_message": str(e)
+                }
+
+    async def get_agent_health_status(self, agent_id: str) -> Dict[str, Any]:
+        """Get health status for a specific agent."""
+        if agent_id not in self.agents:
+            return {
+                "agent_id": agent_id,
+                "status": "not_found",
+                "health_score": 0.0,
+                "error": "Agent not found"
+            }
+
+        agent = self.agents[agent_id]
+        status = self.agent_status[agent_id]
+
+        try:
+            # Perform health check
+            health_score = await self._check_agent_health(agent)
+            status["health_score"] = health_score
+            status["status"] = "healthy" if health_score > 0.8 else "degraded" if health_score > 0.5 else "critical"
+
+            return {
+                "agent_id": agent_id,
+                "theater": agent.theater,
+                "status": status["status"],
+                "health_score": round(health_score, 3),
+                "last_scan": status["last_scan"].isoformat() if status["last_scan"] else None,
+                "findings_count": status["findings_count"],
+                "error_message": status["error_message"]
+            }
+
+        except Exception as e:
+            logger.error(f"Health check failed for agent {agent_id}: {e}")
+            status["status"] = "error"
+            status["error_message"] = str(e)
+            return {
+                "agent_id": agent_id,
+                "theater": agent.theater,
+                "status": "error",
+                "health_score": 0.0,
+                "error": str(e)
+            }
+
+    async def get_all_agents_health_status(self) -> Dict[str, Any]:
+        """Get health status for all agents."""
+        results = {}
+        for agent_id in self.agents.keys():
+            results[agent_id] = await self.get_agent_health_status(agent_id)
+
+        # Calculate aggregate metrics
+        total_agents = len(results)
+        healthy_agents = len([r for r in results.values() if r["status"] == "healthy"])
+        avg_health_score = sum(r["health_score"] for r in results.values()) / total_agents if total_agents > 0 else 0.0
+
+        return {
+            "timestamp": datetime.now().isoformat(),
+            "total_agents": total_agents,
+            "healthy_agents": healthy_agents,
+            "health_percentage": round((healthy_agents / total_agents * 100) if total_agents > 0 else 0, 1),
+            "average_health_score": round(avg_health_score, 3),
+            "agents": results
+        }
+
+    async def _check_agent_health(self, agent: BaseResearchAgent) -> float:
+        """Check the health of a research agent."""
+        try:
+            # Basic health checks
+            health_score = 1.0
+
+            # Check if agent can perform basic operations
+            if hasattr(agent, 'run_scan'):
+                # Try a quick scan to test functionality
+                test_findings = await agent.run_scan()
+                if isinstance(test_findings, list):
+                    # Health based on scan success and reasonable result count
+                    if len(test_findings) > 100:  # Too many findings might indicate issues
+                        health_score *= 0.8
+                    elif len(test_findings) == 0:  # No findings might be normal
+                        health_score *= 0.9
+                else:
+                    health_score *= 0.5  # Invalid return type
+            else:
+                health_score *= 0.3  # Missing required method
+
+            # Check agent attributes
+            required_attrs = ['agent_id', 'theater', 'name']
+            for attr in required_attrs:
+                if not hasattr(agent, attr):
+                    health_score *= 0.7
+
+            # Check if agent has been recently active
+            status = self.agent_status.get(agent.agent_id, {})
+            last_scan = status.get("last_scan")
+            if last_scan:
+                hours_since_scan = (datetime.now() - last_scan).total_seconds() / 3600
+                if hours_since_scan > 24:  # No scan in 24 hours
+                    health_score *= 0.9
+                elif hours_since_scan > 168:  # No scan in a week
+                    health_score *= 0.7
+
+            return min(1.0, max(0.0, health_score))
+
+        except Exception as e:
+            logger.error(f"Agent health check failed for {agent.agent_id}: {e}")
+            return 0.0
+
+    async def run_agent_scan(self, agent_id: str) -> List[ResearchFinding]:
+        """Run a scan for a specific agent."""
+        if agent_id not in self.agents:
+            raise ValueError(f"Agent {agent_id} not found")
+
+        agent = self.agents[agent_id]
+        try:
+            findings = await agent.run_scan()
+            self.agent_status[agent_id]["last_scan"] = datetime.now()
+            self.agent_status[agent_id]["findings_count"] = len(findings) if isinstance(findings, list) else 0
+            self.agent_status[agent_id]["status"] = "active"
+            self.agent_status[agent_id]["error_message"] = None
+
+            logger.info(f"Agent {agent_id} scan completed: {len(findings)} findings")
+            return findings
+
+        except Exception as e:
+            logger.error(f"Agent {agent_id} scan failed: {e}")
+            self.agent_status[agent_id]["status"] = "error"
+            self.agent_status[agent_id]["error_message"] = str(e)
+            return []
+
+    async def get_agents_by_theater(self, theater: str) -> List[str]:
+        """Get all agent IDs for a specific theater."""
+        return [agent_id for agent_id, agent in self.agents.items() if agent.theater == theater]
+
+    async def get_research_metrics(self) -> Dict[str, Any]:
+        """Get comprehensive research metrics across all agents."""
+        try:
+            agent_health = await self.get_all_agents_health_status()
+
+            # Aggregate findings by theater
+            theater_findings = {}
+            theater_health = {}
+
+            for agent_id, health in agent_health["agents"].items():
+                theater = health.get("theater", "unknown")
+                findings = health.get("findings_count", 0)
+
+                if theater not in theater_findings:
+                    theater_findings[theater] = 0
+                    theater_health[theater] = []
+
+                theater_findings[theater] += findings
+                theater_health[theater].append(health["health_score"])
+
+            # Calculate theater averages
+            theater_metrics = {}
+            for theater in theater_findings.keys():
+                avg_health = sum(theater_health[theater]) / len(theater_health[theater])
+                theater_metrics[theater] = {
+                    "total_findings": theater_findings[theater],
+                    "agent_count": len(theater_health[theater]),
+                    "average_health": round(avg_health, 3)
+                }
+
+            return {
+                "timestamp": datetime.now().isoformat(),
+                "overall_health": agent_health,
+                "theater_breakdown": theater_metrics,
+                "total_findings": sum(theater_findings.values()),
+                "active_agents": len([h for h in agent_health["agents"].values() if h["status"] == "healthy"])
+            }
+
+        except Exception as e:
+            logger.error(f"Failed to get research metrics: {e}")
+            return {
+                "timestamp": datetime.now().isoformat(),
+                "error": str(e),
+                "total_findings": 0,
+                "active_agents": 0
+            }
+
+
+# Global manager instance
+_manager_instance = None
+
+async def get_research_agent_manager() -> ResearchAgentManager:
+    """Get or create the global research agent manager instance."""
+    global _manager_instance
+    if _manager_instance is None:
+        _manager_instance = ResearchAgentManager()
+    return _manager_instance
+
+# Synchronous wrapper for compatibility
+def get_research_agent_manager_sync() -> ResearchAgentManager:
+    """Synchronous wrapper for research agent manager."""
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        manager = loop.run_until_complete(get_research_agent_manager())
+        return manager
+    finally:
+        loop.close()

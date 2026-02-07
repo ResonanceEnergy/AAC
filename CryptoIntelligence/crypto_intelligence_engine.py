@@ -303,6 +303,97 @@ class CryptoIntelligenceEngine:
             logger.error(f"Failed to check withdrawal safety for {venue_name}: {e}")
             return {"safe": False, "reason": "assessment_error", "risk_score": 1.0}
 
+    async def get_health_status(self) -> Dict[str, Any]:
+        """Get comprehensive health status of the crypto intelligence engine."""
+        try:
+            # Venue health assessment
+            total_venues = len(self.venues)
+            healthy_venues = len([v for v in self.venues.values() if v.status == "healthy"])
+            venue_health_pct = (healthy_venues / total_venues * 100) if total_venues > 0 else 0.0
+
+            # Average venue health score
+            avg_venue_score = sum(v.health_score for v in self.venues.values()) / total_venues if total_venues > 0 else 0.0
+
+            # Monitoring status
+            monitoring_status = "active" if self.monitoring_active else "inactive"
+            last_check_age = (datetime.now() - self.last_full_check).total_seconds() if self.last_full_check else float('inf')
+            monitoring_health = 1.0 if last_check_age < 60 else 0.5 if last_check_age < 300 else 0.0
+
+            # Counterparty risk assessment
+            total_counterparties = len(self.counterparties)
+            high_risk_counterparties = len([c for c in self.counterparties.values() if c.risk_rating in ["high", "critical"]])
+            counterparty_risk_pct = (high_risk_counterparties / total_counterparties * 100) if total_counterparties > 0 else 0.0
+
+            # Exposure assessment
+            total_exposure = sum(c.exposure_amount for c in self.counterparties.values())
+            max_exposure = total_counterparties * self.max_exposure_per_counterparty
+            exposure_utilization = (total_exposure / max_exposure) if max_exposure > 0 else 0.0
+
+            # Overall health score (weighted average)
+            venue_weight = 0.4
+            monitoring_weight = 0.3
+            counterparty_weight = 0.2
+            exposure_weight = 0.1
+
+            venue_score = avg_venue_score
+            counterparty_score = max(0.0, 1.0 - (counterparty_risk_pct / 100))
+            exposure_score = max(0.0, 1.0 - exposure_utilization)
+
+            overall_health_score = (
+                venue_score * venue_weight +
+                monitoring_health * monitoring_weight +
+                counterparty_score * counterparty_weight +
+                exposure_score * exposure_weight
+            )
+
+            # Determine health status
+            if overall_health_score >= 0.9:
+                status = "excellent"
+            elif overall_health_score >= 0.8:
+                status = "good"
+            elif overall_health_score >= 0.7:
+                status = "fair"
+            elif overall_health_score >= 0.6:
+                status = "degraded"
+            else:
+                status = "critical"
+
+            return {
+                "status": status,
+                "overall_health_score": round(overall_health_score, 3),
+                "venue_health": {
+                    "total_venues": total_venues,
+                    "healthy_venues": healthy_venues,
+                    "health_percentage": round(venue_health_pct, 1),
+                    "average_score": round(avg_venue_score, 3)
+                },
+                "monitoring": {
+                    "status": monitoring_status,
+                    "last_check_seconds_ago": int(last_check_age) if last_check_age != float('inf') else None,
+                    "health_score": monitoring_health
+                },
+                "counterparty_risk": {
+                    "total_counterparties": total_counterparties,
+                    "high_risk_count": high_risk_counterparties,
+                    "risk_percentage": round(counterparty_risk_pct, 1)
+                },
+                "exposure": {
+                    "total_exposure": round(total_exposure, 2),
+                    "max_exposure": max_exposure,
+                    "utilization_percentage": round(exposure_utilization * 100, 1)
+                },
+                "timestamp": datetime.now().isoformat()
+            }
+
+        except Exception as e:
+            logger.error(f"Failed to get health status: {e}")
+            return {
+                "status": "error",
+                "error": str(e),
+                "overall_health_score": 0.0,
+                "timestamp": datetime.now().isoformat()
+            }
+
     async def get_doctrine_metrics(self) -> Dict[str, float]:
         """Get metrics for doctrine compliance monitoring."""
         try:

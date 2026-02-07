@@ -149,6 +149,22 @@ metric_canon:
       threshold_good: "< 1%"
       threshold_warning: ">= 1%"
       threshold_critical: ">= 5%"
+      
+    adverse_selection_cost:
+      description: "Cost of trading with informed counterparties (basis points)"
+      unit: "basis_points"
+      frequency: "rolling_24h"
+      threshold_good: "< 2"
+      threshold_warning: ">= 2"
+      threshold_critical: ">= 5"
+      
+    partial_fill_model_effectiveness:
+      description: "Percentage of orders using partial fill models"
+      unit: "percentage"
+      frequency: "rolling_24h"
+      threshold_good: ">= 80%"
+      threshold_warning: "< 80%"
+      threshold_critical: "< 50%"
 
   # ============== DATA QUALITY METRICS ==============
   data:

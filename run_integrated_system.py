@@ -138,9 +138,9 @@ async def run_single_check(orchestrator: DoctrineOrchestrator):
 │  Compliance Score: {result['compliance_score']:>6.2f}%                                              │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │  ✅ Compliant:     {result['compliant']:>3}                                                         │
-│  ⚠️  Warnings:      {result['warnings']:>3}                                                         │
-│  ❌ Violations:    {result['violations']:>3}                                                         │
-│  📊 Metrics:       {result['metrics_checked']:>3}                                                         │
+│  [WARN]️  Warnings:      {result['warnings']:>3}                                                         │
+│  [CROSS] Violations:    {result['violations']:>3}                                                         │
+│  [MONITOR] Metrics:       {result['metrics_checked']:>3}                                                         │
 └─────────────────────────────────────────────────────────────────────────────┘
 """)
 
@@ -149,7 +149,7 @@ async def run_status(orchestrator: DoctrineOrchestrator):
     """Display current system status."""
     status = orchestrator.get_system_status()
     
-    print("\n📊 SYSTEM STATUS")
+    print("\n[MONITOR] SYSTEM STATUS")
     print("─" * 77)
     print(f"  AZ Prime State: {status['az_prime_state']}")
     print(f"  Last Check: {status['last_check'] or 'Never'}")

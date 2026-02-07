@@ -481,57 +481,124 @@ class DoctrineOrchestrator:
         }
 
 
-# ═══════════════════════════════════════════════════════════════════════════
-# MAIN INTEGRATION RUNNER
-# ═══════════════════════════════════════════════════════════════════════════
+class DoctrineIntegration:
+    """
+    Main Doctrine Integration class for AAC system.
+    Provides unified interface for doctrine monitoring and compliance.
+    """
+
+    def __init__(self):
+        self.orchestrator = None
+        self.logger = logging.getLogger("DoctrineIntegration")
+
+    async def initialize(self) -> bool:
+        """Initialize the doctrine integration"""
+        try:
+            self.orchestrator = DoctrineOrchestrator()
+            await self.orchestrator.initialize()
+            self.logger.info("DoctrineIntegration initialized successfully")
+            return True
+        except Exception as e:
+            self.logger.error(f"Failed to initialize DoctrineIntegration: {e}")
+            return False
+
+    async def get_health_status(self) -> Dict[str, Any]:
+        """Get doctrine system health status"""
+        if not self.orchestrator:
+            return {"status": "not_initialized", "error": "DoctrineIntegration not initialized"}
+
+        try:
+            status = self.orchestrator.get_system_status()
+            return {
+                "status": "healthy" if status.get("monitoring_active", False) else "inactive",
+                "az_prime_state": status.get("az_prime_state", "unknown"),
+                "monitoring_active": status.get("monitoring_active", False),
+                "departments_connected": len(status.get("departments", {})),
+                "last_check": status.get("last_check")
+            }
+        except Exception as e:
+            return {"status": "error", "error": str(e)}
+
+    async def run_compliance_check(self) -> Dict[str, Any]:
+        """Run a compliance check across all departments"""
+        if not self.orchestrator:
+            return {"error": "DoctrineIntegration not initialized"}
+
+        try:
+            return await self.orchestrator.run_compliance_check()
+        except Exception as e:
+            return {"error": str(e)}
+
+    async def get_doctrine_metrics(self) -> Dict[str, float]:
+        """Get doctrine-related metrics"""
+        if not self.orchestrator:
+            return {}
+
+        try:
+            return await self.orchestrator.collect_all_metrics()
+        except Exception as e:
+            self.logger.error(f"Failed to collect doctrine metrics: {e}")
+            return {}
+
+
+# Global instance
+_doctrine_integration = None
+
+def get_doctrine_integration() -> DoctrineIntegration:
+    """Get the global doctrine integration instance"""
+    global _doctrine_integration
+    if _doctrine_integration is None:
+        _doctrine_integration = DoctrineIntegration()
+    return _doctrine_integration
+
 
 async def main():
     """Main entry point for integrated doctrine system."""
-    
+
     print("\n" + "█" * 80)
     print("  AAC DOCTRINE INTEGRATION")
     print("  Connecting 8 Doctrine Packs to 5 Departments")
     print("█" * 80)
-    
+
     # Create orchestrator
     orchestrator = DoctrineOrchestrator()
-    
+
     # Initialize
     await orchestrator.initialize()
-    
+
     # Run compliance check
     print("\n🔍 Running Integrated Compliance Check...")
     print("─" * 80)
-    
+
     result = await orchestrator.run_compliance_check()
-    
-    print(f"\n📊 INTEGRATION RESULTS")
+
+    print(f"\n[MONITOR] INTEGRATION RESULTS")
     print(f"   Timestamp: {result['timestamp']}")
     print(f"   AZ Prime State: {result['az_prime_state']}")
     print(f"   Compliance Score: {result['compliance_score']}%")
     print(f"   Metrics Checked: {result['metrics_checked']}")
     print(f"   ✅ Compliant: {result['compliant']}")
-    print(f"   ⚠️  Warnings: {result['warnings']}")
-    print(f"   ❌ Violations: {result['violations']}")
-    
+    print(f"   [WARN]️  Warnings: {result['warnings']}")
+    print(f"   [CROSS] Violations: {result['violations']}")
+
     # Department status
     print("\n\n📋 DEPARTMENT INTEGRATION STATUS")
     print("─" * 80)
-    
+
     status = orchestrator.get_system_status()
-    
+
     for dept_name, dept_info in status['departments'].items():
         packs = dept_info.get('doctrine_packs', [])
         if packs:
             print(f"\n🏢 {dept_name}")
             for pack in packs:
-                print(f"   ✓ Pack {pack['pack_id']}: {pack['name']}")
+                print(f"   [OK] Pack {pack['pack_id']}: {pack['name']}")
                 print(f"     Metrics: {len(pack['metrics'])} | Failure Modes: {len(pack['failure_modes'])}")
-    
+
     print("\n" + "═" * 80)
     print("✅ Doctrine Integration Complete - All Systems Connected")
     print("═" * 80 + "\n")
-    
+
     return orchestrator
 
 

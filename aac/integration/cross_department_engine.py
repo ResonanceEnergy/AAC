@@ -890,7 +890,7 @@ async def main():
     print(f"Gate: {gate_result['gate']}")
     print(f"Passed: {gate_result['passed']}")
     for check, result in gate_result['checks'].items():
-        status = "✓" if result else "✗"
+        status = "[OK]" if result else "✗"
         print(f"  {status} {check}")
     
     # Test safety action

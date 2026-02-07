@@ -238,6 +238,21 @@ gate_checklists:
           required: true
           metric: "fill_rate"
           threshold: ">= 98"
+        - id: "PILOT-032"
+          item: "Partial fill models A-D implemented and validated"
+          required: true
+          metric: "partial_fill_model_effectiveness"
+          threshold: ">= 80"
+        - id: "PILOT-033"
+          item: "Adverse selection cost < 5 bps"
+          required: true
+          metric: "adverse_selection_cost"
+          threshold: "< 5"
+        - id: "PILOT-034"
+          item: "Time to fill p95 < 500ms"
+          required: true
+          metric: "time_to_fill_p95"
+          threshold: "< 500"
           
       operations:
         - id: "PILOT-040"

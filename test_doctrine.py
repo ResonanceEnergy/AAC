@@ -10,14 +10,14 @@ async def test_doctrine():
             print("✅ Doctrine orchestrator initialized successfully")
             # Test metrics collection
             metrics = await orchestrator.collect_all_metrics()
-            print(f"📊 Collected {len(metrics)} metrics from all departments")
+            print(f"[MONITOR] Collected {len(metrics)} metrics from all departments")
             print("Sample metrics:")
             for key, value in list(metrics.items())[:10]:
                 print(f"  {key}: {value}")
         else:
-            print("❌ Doctrine orchestrator initialization failed")
+            print("[CROSS] Doctrine orchestrator initialization failed")
     except Exception as e:
-        print(f"❌ Error testing doctrine orchestrator: {e}")
+        print(f"[CROSS] Error testing doctrine orchestrator: {e}")
         import traceback
         traceback.print_exc()
 
