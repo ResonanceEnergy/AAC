@@ -2051,3 +2051,29 @@ else:
                     from shared.avatar_system import get_avatar_manager
                     az_lib = get_az_library()
                     avatar_manager = get_avatar_manager()
+
+                    if st.button("🎯 AZ System Status", key="az_status_brief"):
+                        with st.expander("AZ Executive Assistant Status", expanded=True):
+                            try:
+                                # Get AZ system status
+                                az_status = az_lib.get_system_status() if hasattr(az_lib, 'get_system_status') else "AZ Library Available"
+                                st.success(f"✅ AZ System: {az_status}")
+
+                                # Get avatar system status
+                                avatar_status = avatar_manager.get_status() if hasattr(avatar_manager, 'get_status') else "Avatar System Available"
+                                st.success(f"✅ Avatar System: {avatar_status}")
+
+                                # Show AZ capabilities
+                                if hasattr(az_lib, 'get_capabilities'):
+                                    capabilities = az_lib.get_capabilities()
+                                    st.subheader("🎯 AZ Capabilities")
+                                    for cap in capabilities[:5]:  # Show first 5
+                                        st.write(f"• {cap}")
+
+                            except Exception as e:
+                                st.error(f"Error getting AZ status: {e}")
+
+                except ImportError as e:
+                    st.warning(f"AZ Executive Assistant not available: {e}")
+                    if st.button("🎯 AZ System Status", key="az_status_brief_disabled"):
+                        st.info("AZ Executive Assistant components not installed")
