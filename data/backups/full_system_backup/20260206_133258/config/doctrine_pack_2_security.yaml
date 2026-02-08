@@ -1,0 +1,206 @@
+doctrine_pack: 2
+name: "SECURITY / SECRETS / IAM / KEY CUSTODY"
+owner: "SharedInfrastructure"
+insight_count: 48
+description: "Zero-trust security framework with quantum-resistant cryptography and automated key management"
+
+core_principles:
+  - "If you can't audit it, you can't scale it"
+  - "Zero-trust architecture: verify every access, every time"
+  - "Data 'truth' is a contract, not a given"
+  - "The most durable edge is measurement integrity"
+  - "Every strategy must have a defined failure signature"
+  - "Model every venue as a service with SLOs, not as a price source"
+  - "The future belongs to systems that are adaptive, verified, and governable"
+  - "In any market, you're trading constraints (time, liquidity, trust)"
+
+required_metrics:
+  - key_age_days:
+      definition: "Days since last key rotation"
+      measurement: "Automated tracking of key lifecycle"
+      thresholds:
+        good: "<30 days"
+        warning: "30-60 days"
+        critical: ">60 days"
+      frequency: "daily"
+  - failed_auth_rate:
+      definition: "Failed authentication attempts per minute"
+      measurement: "Failed auth requests / minute"
+      thresholds:
+        good: "<1"
+        warning: "1-3"
+        critical: ">5"
+      frequency: "real-time"
+  - audit_log_completeness:
+      definition: "Percentage of operations with complete audit trail"
+      measurement: "Audited operations / total operations"
+      thresholds:
+        good: ">99.9%"
+        warning: "99-99.9%"
+        critical: "<99%"
+      frequency: "hourly"
+  - mfa_compliance_rate:
+      definition: "Percentage of accounts with MFA enabled"
+      measurement: "MFA-enabled accounts / total accounts"
+      thresholds:
+        good: "100%"
+        warning: "<100%"
+        critical: "<95%"
+      frequency: "daily"
+  - secret_scan_coverage:
+      definition: "Percentage of repos/configs scanned for secrets"
+      measurement: "Scanned assets / total assets"
+      thresholds:
+        good: "100%"
+        warning: "<100%"
+        critical: "<90%"
+      frequency: "hourly"
+
+key_hierarchy:
+  description: "2100 Quantum-Ready key management hierarchy"
+  levels:
+    - level: "L1 - Ephemeral Keys"
+      use_case: "Session keys, temporary access"
+      rotation: "Per session"
+      storage: "Memory only"
+    - level: "L2 - Service Keys"
+      use_case: "API access, service-to-service communication"
+      rotation: "Daily"
+      storage: "Encrypted vault"
+    - level: "L3 - Master Keys"
+      use_case: "Data encryption, backup access"
+      rotation: "Weekly"
+      storage: "Quantum vault"
+    - level: "L4 - Recovery Keys"
+      use_case: "Disaster recovery, emergency access"
+      rotation: "Monthly"
+      storage: "Air-gapped quantum storage"
+
+security_zones:
+  - red_zone:
+      description: "Internet-facing systems"
+      access_control: "Zero-trust, continuous verification"
+      data_classification: "Public/unencrypted"
+  - amber_zone:
+      description: "Internal processing systems"
+      access_control: "Role-based with MFA"
+      data_classification: "Internal use"
+  - green_zone:
+      description: "Core financial systems"
+      access_control: "Quantum-secure multi-party authorization"
+      data_classification: "Restricted/confidential"
+
+az_prime_hooks:
+  - trigger: "failed_auth_rate > 5"
+    from_state: "NORMAL"
+    to_state: "CAUTION"
+    actions: ["A_LOCKDOWN_ACCESS", "A_CREATE_INCIDENT"]
+  - trigger: "audit_log_completeness < 99%"
+    from_state: "NORMAL"
+    to_state: "CAUTION"
+    actions: ["A_FORCE_AUDIT", "A_CREATE_INCIDENT"]
+  - trigger: "mfa_compliance_rate < 95%"
+    from_state: "NORMAL"
+    to_state: "CAUTION"
+    actions: ["A_ENFORCE_MFA", "A_CREATE_INCIDENT"]
+  - trigger: "key_age_days > 90"
+    from_state: "NORMAL"
+    to_state: "CAUTION"
+    actions: ["A_ROTATE_KEYS", "A_CREATE_INCIDENT"]
+
+future_proofing_2100:
+  - "Quantum-resistant cryptographic algorithms"
+  - "AI-driven threat detection and response"
+  - "Decentralized identity management"
+  - "Zero-knowledge proof authentication"
+  - "Quantum key distribution systems"
+
+integration_points:
+  - "SharedInfrastructure/secrets_manager.py: Manage cryptographic keys"
+integration_points:
+  - "SharedInfrastructure/audit_logger.py: Log security events"
+  - "SharedInfrastructure/security_monitor.py: Monitor security posture"
+  - "orchestrator.py: Coordinate security responses"
+  - "config/alert_rules.yml: Define security alert thresholds"
+
+key_management:
+  master_key:
+    storage: "HSM or cloud KMS (AWS KMS, GCP KMS, Quantum KMS)"
+    rotation: "Annual or on compromise"
+    access: "2-of-3 multisig for operations"
+  derived_keys:
+    exchange_api_keys:
+      derivation: "Derived from master key"
+      rotation: "90-day rotation"
+      scope: "per-exchange scope"
+    data_encryption_keys:
+      derivation: "Derived from master key"
+      rotation: "30-day rotation"
+      scope: "per-data-category"
+    signing_keys:
+      derivation: "Derived from master key"
+      rotation: "on-deployment rotation"
+      scope: "per-service"
+    quantum_keys:
+      derivation: "Post-quantum cryptographic keys"
+      rotation: "For 2100+ security"
+      scope: "system-wide"
+
+secret_scanning_automation:
+  pre_commit_hooks:
+    tools: ["gitleaks", "trufflehog", "quantum-secret-scanner"]
+    coverage: "All repositories and configuration files"
+    response: "Block commits containing secrets"
+  ci_pipeline:
+    frequency: "Every PR and push"
+    scope: "Full repository scan"
+    integration: ["GitHub Actions", "GitLab CI", "quantum CI"]
+  runtime_monitoring:
+    tools: ["Log analysis", "API monitoring", "quantum traffic analysis"]
+    detection: "Pattern matching for credential exposure"
+    response: "Immediate key rotation and alert"
+
+network_security:
+  ip_allowlisting:
+    exchange_apis: "Allowlist exchange IPs only"
+    admin_access: "VPN or allowlisted office IPs + quantum authentication"
+    monitoring: "Alert on access from new IPs"
+  egress_filtering:
+    allowed: "Explicit allowlist of exchange/data endpoints"
+    blocked: "All other outbound traffic"
+    quantum: "Quantum key distribution for secure channels"
+
+failure_modes_mitigation:
+  - name: "Key Compromise"
+    trigger: "Anomalous API usage or secret scan detection"
+    mitigation: "Immediate key rotation, usage audit, backup key activation"
+    action: "A_LOCK_KEYS"
+  - name: "Audit Gap"
+    trigger: "audit_log_completeness < 99%"
+    mitigation: "Redundant logging systems, automated gap detection"
+    action: "A_CREATE_INCIDENT"
+  - name: "Authentication Failure"
+    trigger: "failed_auth_rate > 5/min"
+    mitigation: "Rate limiting, IP blocking, MFA requirements"
+    action: "A_LOCK_KEYS"
+
+az_prime_hooks:
+  - trigger: "failed_auth_count > 5/min"
+    state_transition: "ANY → SAFE_MODE"
+    actions: ["A_LOCK_KEYS"]
+  - trigger: "key_exposure_detected"
+    state_transition: "ANY → HALT"
+    actions: ["A_LOCK_KEYS", "A_PAGE_ONCALL", "A_CREATE_INCIDENT"]
+  - trigger: "audit_log_completeness < 99%"
+    state_transition: "NORMAL → CAUTION"
+    actions: ["A_CREATE_INCIDENT"]
+  - trigger: "mfa_compliance_rate < 95%"
+    state_transition: "CAUTION → SAFE_MODE"
+    actions: ["A_LOCK_KEYS"]
+
+future_proofing_enhancements:
+  - "Post-Quantum Cryptography: Lattice-based encryption resistant to quantum attacks"
+  - "Decentralized Identity: Self-sovereign identity systems for user authentication"
+  - "AI-Driven Threat Detection: Machine learning models identify anomalous behavior"
+  - "Quantum Key Distribution: Secure key exchange using quantum entanglement"
+  - "Zero-Knowledge Proofs: Privacy-preserving authentication and authorization"

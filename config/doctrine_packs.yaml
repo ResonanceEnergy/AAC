@@ -3868,6 +3868,51 @@ doctrine_packs:
           critical: "> 30 min"
         frequency: per_conflict
         
+      - metric: partial_fill_model_effectiveness
+        definition: "Partial fill prediction accuracy (>0.7 good)"
+        measurement: "Accuracy of partial fill models in predicting execution outcomes"
+        thresholds:
+          good: ">0.7"
+          warning: "0.5-0.7"
+          critical: "<0.5"
+        frequency: daily
+        
+      - metric: model_a_usage
+        definition: "Usage count of Model A (>10 good)"
+        measurement: "Number of times Model A is used in trading decisions"
+        thresholds:
+          good: ">10"
+          warning: "5-10"
+          critical: "<5"
+        frequency: daily
+        
+      - metric: model_b_usage
+        definition: "Usage count of Model B (>10 good)"
+        measurement: "Number of times Model B is used in trading decisions"
+        thresholds:
+          good: ">10"
+          warning: "5-10"
+          critical: "<5"
+        frequency: daily
+        
+      - metric: model_c_usage
+        definition: "Usage count of Model C (>10 good)"
+        measurement: "Number of times Model C is used in trading decisions"
+        thresholds:
+          good: ">10"
+          warning: "5-10"
+          critical: "<5"
+        frequency: daily
+        
+      - metric: model_d_usage
+        definition: "Usage count of Model D (>10 good)"
+        measurement: "Number of times Model D is used in trading decisions"
+        thresholds:
+          good: ">10"
+          warning: "5-10"
+          critical: "<5"
+        frequency: daily
+        
     failure_modes:
       - mode: "Metric drift"
         description: "Metric calculation changes without documentation"

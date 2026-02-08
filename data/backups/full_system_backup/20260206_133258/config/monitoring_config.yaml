@@ -1,0 +1,317 @@
+# AAC 2100 Monitoring Configuration
+# =================================
+# Comprehensive monitoring configuration for production operations
+
+monitoring:
+  # Continuous monitoring service settings
+  service:
+    enabled: true
+    health_check_interval: 30  # seconds
+    performance_check_interval: 60  # seconds
+    alert_check_interval: 10  # seconds
+    incident_detection_interval: 60  # seconds
+
+  # Alert thresholds
+  thresholds:
+    system:
+      cpu_usage_percent: 90.0
+      memory_usage_percent: 85.0
+      disk_usage_percent: 90.0
+      network_latency_ms: 1000
+    trading:
+      circuit_breakers_open: 1
+      api_error_rate: 0.05  # 5%
+      response_time_ms: 5000
+      max_positions: 1000
+    performance:
+      anomaly_z_score: 3.0
+      response_time_p95: 2000
+      throughput_drop_percent: 50.0
+
+  # Dashboard settings
+  dashboard:
+    enabled: true
+    update_interval: 5  # seconds
+    max_history_points: 1000
+    display_mode: "terminal"  # terminal, web, both
+    web_port: 8080
+
+  # Notification channels
+  notifications:
+    telegram:
+      enabled: true
+      token: "${TELEGRAM_BOT_TOKEN}"
+      chat_id: "${TELEGRAM_CHAT_ID}"
+      alert_levels: ["critical", "warning"]  # levels to send alerts for
+
+    slack:
+      enabled: true
+      webhook_url: "${SLACK_WEBHOOK_URL}"
+      channel: "#aac-alerts"
+      alert_levels: ["critical", "warning", "info"]
+
+    email:
+      enabled: false
+      smtp_server: "smtp.gmail.com"
+      smtp_port: 587
+      username: "${EMAIL_USERNAME}"
+      password: "${EMAIL_PASSWORD}"
+      recipients: ["alerts@acceleratedarbitrage.com"]
+      alert_levels: ["critical"]
+
+    webhook:
+      enabled: false
+      url: "${WEBHOOK_URL}"
+      headers:
+        Authorization: "Bearer ${WEBHOOK_TOKEN}"
+      alert_levels: ["critical", "warning"]
+
+  # Health check endpoints
+  health_checks:
+    system:
+      enabled: true
+      endpoints:
+        - name: "CPU Usage"
+          type: "system"
+          metric: "cpu_percent"
+          warning_threshold: 80.0
+          critical_threshold: 95.0
+
+        - name: "Memory Usage"
+          type: "system"
+          metric: "memory_percent"
+          warning_threshold: 75.0
+          critical_threshold: 90.0
+
+        - name: "Disk Usage"
+          type: "system"
+          metric: "disk_percent"
+          warning_threshold: 85.0
+          critical_threshold: 95.0
+
+    departments:
+      enabled: true
+      endpoints:
+        - name: "Central Accounting"
+          type: "department"
+          component: "CentralAccounting"
+          health_endpoint: "/health/central-accounting"
+
+        - name: "Crypto Intelligence"
+          type: "department"
+          component: "CryptoIntelligence"
+          health_endpoint: "/health/crypto-intelligence"
+
+        - name: "Trading Execution"
+          type: "department"
+          component: "TradingExecution"
+          health_endpoint: "/health/trading-execution"
+
+        - name: "BigBrain Intelligence"
+          type: "department"
+          component: "BigBrainIntelligence"
+          health_endpoint: "/health/bigbrain-intelligence"
+
+    infrastructure:
+      enabled: true
+      endpoints:
+        - name: "Database"
+          type: "infrastructure"
+          component: "database"
+          health_endpoint: "/health/database"
+
+        - name: "Redis Cache"
+          type: "infrastructure"
+          component: "redis"
+          health_endpoint: "/health/redis"
+
+        - name: "Message Queue"
+          type: "infrastructure"
+          component: "queue"
+          health_endpoint: "/health/queue"
+
+    external_apis:
+      enabled: true
+      endpoints:
+        - name: "Binance API"
+          type: "external_api"
+          component: "binance"
+          health_endpoint: "/health/binance-api"
+
+        - name: "Coinbase API"
+          type: "external_api"
+          component: "coinbase"
+          health_endpoint: "/health/coinbase-api"
+
+        - name: "Kraken API"
+          type: "external_api"
+          component: "kraken"
+          health_endpoint: "/health/kraken-api"
+
+  # Performance monitoring
+  performance:
+    enabled: true
+    metrics:
+      - name: "Response Time"
+        type: "latency"
+        unit: "ms"
+        aggregation: "p95"
+
+      - name: "Throughput"
+        type: "rate"
+        unit: "ops/sec"
+        aggregation: "mean"
+
+      - name: "Error Rate"
+        type: "percentage"
+        unit: "%"
+        aggregation: "mean"
+
+      - name: "CPU Usage"
+        type: "percentage"
+        unit: "%"
+        aggregation: "mean"
+
+      - name: "Memory Usage"
+        type: "percentage"
+        unit: "%"
+        aggregation: "mean"
+
+    baselines:
+      establishment_period: 300  # 5 minutes
+      update_interval: 3600  # 1 hour
+      anomaly_detection: true
+
+  # Alert management
+  alerts:
+    enabled: true
+    rules:
+      - name: "High CPU Usage"
+        condition: "cpu_percent > 90"
+        severity: "critical"
+        message: "CPU usage is critically high: {value}%"
+        cooldown: 300  # 5 minutes
+
+      - name: "High Memory Usage"
+        condition: "memory_percent > 85"
+        severity: "critical"
+        message: "Memory usage is critically high: {value}%"
+        cooldown: 300
+
+      - name: "Circuit Breaker Open"
+        condition: "circuit_breakers_open >= 1"
+        severity: "critical"
+        message: "{value} circuit breaker(s) are open"
+        cooldown: 60
+
+      - name: "API Error Rate High"
+        condition: "api_error_rate > 0.05"
+        severity: "warning"
+        message: "API error rate is high: {value}%"
+        cooldown: 300
+
+      - name: "Response Time High"
+        condition: "response_time_ms > 5000"
+        severity: "warning"
+        message: "Response time is high: {value}ms"
+        cooldown: 300
+
+    escalation:
+      enabled: true
+      levels:
+        - name: "warning"
+          delay: 0
+          channels: ["telegram", "slack"]
+
+        - name: "critical"
+          delay: 0
+          channels: ["telegram", "slack", "email"]
+          repeat_interval: 300  # 5 minutes
+
+  # Incident management
+  incidents:
+    enabled: true
+    auto_detection: true
+    auto_response: true
+
+    response_actions:
+      - trigger: "circuit_breaker_open"
+        action: "pause_trading"
+        component: "TradingExecution"
+
+      - trigger: "high_memory_usage"
+        action: "restart_service"
+        component: "BigBrainIntelligence"
+
+      - trigger: "database_connection_lost"
+        action: "failover"
+        component: "CentralAccounting"
+
+  # Logging
+  logging:
+    level: "INFO"
+    format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    handlers:
+      - type: "file"
+        filename: "logs/monitoring.log"
+        max_bytes: 10485760  # 10MB
+        backup_count: 5
+
+      - type: "console"
+        level: "INFO"
+
+  # Metrics collection
+  metrics:
+    enabled: true
+    collection_interval: 10  # seconds
+    retention_period: 604800  # 7 days
+    exporters:
+      - type: "prometheus"
+        enabled: true
+        port: 9090
+
+      - type: "influxdb"
+        enabled: false
+        url: "${INFLUXDB_URL}"
+        token: "${INFLUXDB_TOKEN}"
+        bucket: "aac_metrics"
+
+  # Dashboard configuration
+  dashboard_config:
+    layout:
+      panels:
+        - name: "System Health"
+          type: "gauge"
+          metrics: ["cpu_percent", "memory_percent", "disk_percent"]
+          position: [0, 0]
+          size: [2, 1]
+
+        - name: "P&L Overview"
+          type: "chart"
+          metrics: ["total_pnl", "daily_pnl", "hourly_pnl"]
+          position: [2, 0]
+          size: [2, 1]
+
+        - name: "Risk Metrics"
+          type: "table"
+          metrics: ["var_95", "max_drawdown", "sharpe_ratio"]
+          position: [0, 1]
+          size: [2, 1]
+
+        - name: "Active Alerts"
+          type: "list"
+          metrics: ["active_alerts"]
+          position: [2, 1]
+          size: [2, 1]
+
+    themes:
+      default: "dark"
+      available:
+        - "light"
+        - "dark"
+        - "auto"
+
+    refresh_intervals:
+      fast: 5
+      normal: 30
+      slow: 300

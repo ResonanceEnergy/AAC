@@ -1,0 +1,33 @@
+# Prometheus configuration for ACC monitoring
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+# Alerting configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+
+# Rule files for alerts
+rule_files:
+  - "alert_rules.yml"
+
+scrape_configs:
+  # ACC Main Application
+  - job_name: 'acc'
+    static_configs:
+      - targets: ['acc:8080']
+    metrics_path: '/metrics/prometheus'
+    scrape_interval: 10s
+
+  # Redis Exporter (if using redis_exporter sidecar)
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+    scrape_interval: 30s
+
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']

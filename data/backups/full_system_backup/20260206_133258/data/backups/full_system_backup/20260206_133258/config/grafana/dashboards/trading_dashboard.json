@@ -1,0 +1,312 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "gridPos": { "h": 3, "w": 24, "x": 0, "y": 0 },
+      "id": 1,
+      "options": {
+        "content": "# ACC Trading Dashboard\nReal-time monitoring of trading system performance",
+        "mode": "markdown"
+      },
+      "type": "text",
+      "title": ""
+    },
+    {
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 3 },
+      "id": 2,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "expr": "acc_positions_active",
+          "refId": "A"
+        }
+      ],
+      "title": "Active Positions",
+      "type": "stat"
+    },
+    {
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 3 },
+      "id": 3,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "expr": "acc_pnl_total",
+          "refId": "A"
+        }
+      ],
+      "title": "Total P&L",
+      "type": "stat",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 0 },
+              { "color": "green", "value": 100 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 3 },
+      "id": 4,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum(increase(acc_orders_total[24h]))",
+          "refId": "A"
+        }
+      ],
+      "title": "Orders (24h)",
+      "type": "stat"
+    },
+    {
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 3 },
+      "id": 5,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum(increase(acc_signals_total[1h]))",
+          "refId": "A"
+        }
+      ],
+      "title": "Signals (1h)",
+      "type": "stat"
+    },
+    {
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 7 },
+      "id": 6,
+      "options": {
+        "legend": { "calcs": [], "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "targets": [
+        {
+          "expr": "rate(acc_orders_total[5m])",
+          "legendFormat": "{{exchange}} - {{status}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Order Rate by Exchange",
+      "type": "timeseries",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 20
+          }
+        }
+      }
+    },
+    {
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 7 },
+      "id": 7,
+      "options": {
+        "legend": { "calcs": [], "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "targets": [
+        {
+          "expr": "rate(acc_signals_total[5m])",
+          "legendFormat": "{{theater}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Signal Rate by Theater",
+      "type": "timeseries"
+    },
+    {
+      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 15 },
+      "id": 8,
+      "options": {
+        "legend": { "displayMode": "table", "placement": "right" },
+        "pieType": "pie",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+      },
+      "targets": [
+        {
+          "expr": "acc_signals_total",
+          "legendFormat": "{{theater}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Signals by Theater",
+      "type": "piechart"
+    },
+    {
+      "gridPos": { "h": 6, "w": 8, "x": 8, "y": 15 },
+      "id": 9,
+      "options": {
+        "legend": { "displayMode": "table", "placement": "right" },
+        "pieType": "pie",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+      },
+      "targets": [
+        {
+          "expr": "acc_orders_total",
+          "legendFormat": "{{exchange}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Orders by Exchange",
+      "type": "piechart"
+    },
+    {
+      "gridPos": { "h": 6, "w": 8, "x": 16, "y": 15 },
+      "id": 10,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "expr": "acc_circuit_breaker_state",
+          "legendFormat": "{{name}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Circuit Breaker Status",
+      "type": "stat",
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            { "options": { "0": { "text": "CLOSED" } }, "type": "value" },
+            { "options": { "1": { "text": "HALF-OPEN" } }, "type": "value" },
+            { "options": { "2": { "text": "OPEN" } }, "type": "value" }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 1 },
+              { "color": "red", "value": 2 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 21 },
+      "id": 11,
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" }
+      },
+      "targets": [
+        {
+          "expr": "acc_api_latency_seconds",
+          "legendFormat": "{{exchange}}",
+          "refId": "A"
+        }
+      ],
+      "title": "API Latency",
+      "type": "timeseries",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": { "drawStyle": "line", "lineWidth": 2 }
+        }
+      }
+    },
+    {
+      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 21 },
+      "id": 12,
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" }
+      },
+      "targets": [
+        {
+          "expr": "rate(acc_api_errors_total[5m])",
+          "legendFormat": "{{exchange}}",
+          "refId": "A"
+        }
+      ],
+      "title": "API Error Rate",
+      "type": "timeseries",
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "drawStyle": "bars" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 1 }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["acc", "trading"],
+  "templating": { "list": [] },
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "timezone": "",
+  "title": "ACC Trading Dashboard",
+  "uid": "acc-trading-main",
+  "version": 1,
+  "weekStart": ""
+}

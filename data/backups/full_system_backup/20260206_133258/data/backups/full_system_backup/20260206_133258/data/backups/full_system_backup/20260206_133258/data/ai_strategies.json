@@ -1,0 +1,41 @@
+[
+  {
+    "strategy_id": "strategy_demo_opp_1",
+    "name": "AI Statistical_Arbitrage Strategy",
+    "description": "AI-generated statistical_arbitrage strategy for SPY, QQQ",
+    "strategy_type": "StrategyType.STATISTICAL_ARBITRAGE",
+    "risk_level": "RiskLevel.MEDIUM",
+    "symbols": [
+      "SPY",
+      "QQQ"
+    ],
+    "parameters": {
+      "expected_return": 0.02,
+      "confidence_score": 0.85,
+      "time_horizon": 60,
+      "max_position_size": 50000
+    },
+    "entry_logic": "\ndef should_enter(symbol, context):\n    \"\"\"Check if strategy should enter position\"\"\"\n    current_price = context.current_price.price if context.current_price else 0\n\n    # Entry conditions\n    price_ok = current_price <= 0\n    volume_ok = context.current_price.volume >= 0 if context.current_price else True\n\n    return price_ok and volume_ok\n",
+    "exit_logic": "\ndef should_exit(position, current_price, entry_price, hold_time):\n    \"\"\"Check if strategy should exit position\"\"\"\n    profit_pct = (current_price - entry_price) / entry_price\n\n    # Exit conditions\n    profit_target_hit = profit_pct >= 0.015\n    stop_loss_hit = profit_pct <= -0.005\n    time_expired = hold_time >= 3600\n\n    return profit_target_hit or stop_loss_hit or time_expired\n",
+    "risk_management": {
+      "max_position_size": 50000,
+      "stop_loss_pct": 0.05,
+      "take_profit_pct": 0.016,
+      "max_hold_time": 3600
+    },
+    "backtest_results": {
+      "total_return": -0.003193234427801144,
+      "total_trades": 20,
+      "win_rate": 0.6,
+      "profit_factor": 0.7459736114375071,
+      "max_drawdown": 0.10649076580296606,
+      "avg_win": 7.814373904725874,
+      "avg_loss": -15.713103891840245,
+      "sharpe_ratio": -0.12548887940086798,
+      "backtest_period_days": 0.6944444444444444
+    },
+    "created_at": "2026-02-05 11:49:17.738353",
+    "last_updated": "2026-02-05 11:49:17.738354",
+    "is_active": true
+  }
+]

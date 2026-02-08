@@ -1,0 +1,2338 @@
+{
+  "metadata": {
+    "generated": "2026-02-08T09:54:25.621542",
+    "version": "1.0",
+    "system_status": "consolidated"
+  },
+  "agent_inventory": {
+    "strategy_agents": {
+      "trading_agents": [
+        {
+          "agent_id": "agent_01",
+          "agent_name": "TradingAgent_01",
+          "strategy_id": "s01",
+          "role": "trading_execution",
+          "status": "active"
+        },
+        {
+          "agent_id": "agent_02",
+          "agent_name": "TradingAgent_02",
+          "strategy_id": "s02",
+          "role": "trading_execution",
+          "status": "active"
+        },
+        {
+          "agent_id": "agent_03",
+          "agent_name": "TradingAgent_03",
+          "strategy_id": "s03",
+          "role": "trading_execution",
+          "status": "active"
+        },
+        {
+          "agent_id": "agent_04",
+          "agent_name": "TradingAgent_04",
+          "strategy_id": "s04",
+          "role": "trading_execution",
+          "status": "active"
+        },
+        {
+          "agent_id": "agent_05",
+          "agent_name": "TradingAgent_05",
+          "strategy_id": "s05",
+          "role": "trading_execution",
+          "status": "active"
+        },
+        {
+          "agent_id": "agent_06",
+          "agent_name": "TradingAgent_06",
+          "strategy_id": "s06",
+          "role": "trading_execution",
+          "status": "active"
+        },
+        {
+          "agent_id": "agent_07",
+          "agent_name": "TradingAgent_07",
+          "strategy_id": "s07",
+          "role": "trading_execution",
+          "status": "active"
+        },
+        {
+          "agent_id": "agent_08",
+          "agent_name": "TradingAgent_08",
+          "strategy_id": "s08",
+          "role": "trading_execution",
+          "status": "active"
+        },
+        {
+          "agent_id": "agent_09",
+          "agent_name": "TradingAgent_09",
+          "strategy_id": "s09",
+          "role": "trading_execution",
+          "status": "active"
+        },
+        {
+          "agent_id": "agent_10",
+          "agent_name": "TradingAgent_10",
+          "strategy_id": "s10",
+          "role": "trading_execution",
+          "status": "active"
+        },
+        {
+          "agent_id": "agent_11",
+          "agent_name": "TradingAgent_11",
+          "strategy_id": "s11",
+          "role": "trading_execution",
+          "status": "active"
+        },
+        {
+          "agent_id": "agent_12",
+          "agent_name": "TradingAgent_12",
+          "strategy_id": "s12",
+          "role": "trading_execution",
+          "status": "active"
+        },
+        {
+          "agent_id": "agent_13",
+          "agent_name": "TradingAgent_13",
+          "strategy_id": "s13",
+          "role": "trading_execution",
+          "status": "active"
+        },
+        {
+          "agent_id": "agent_14",
+          "agent_name": "TradingAgent_14",
+          "strategy_id": "s14",
+          "role": "trading_execution",
+          "status": "active"
+        },
+        {
+          "agent_id": "agent_15",
+          "agent_name": "TradingAgent_15",
+          "strategy_id": "s15",
+          "role": "trading_execution",
+          "status": "active"
+        },
+        {
+          "agent_id": "agent_16",
+          "agent_name": "TradingAgent_16",
+          "strategy_id": "s16",
+          "role": "trading_execution",
+          "status": "active"
+        },
+        {
+          "agent_id": "agent_17",
+          "agent_name": "TradingAgent_17",
+          "strategy_id": "s17",
+          "role": "trading_execution",
+          "status": "active"
+        },
+        {
+          "agent_id": "agent_18",
+          "agent_name": "TradingAgent_18",
+          "strategy_id": "s18",
+          "role": "trading_execution",
+          "status": "active"
+        },
+        {
+          "agent_id": "agent_19",
+          "agent_name": "TradingAgent_19",
+          "strategy_id": "s19",
+          "role": "trading_execution",
+          "status": "active"
+        },
+        {
+          "agent_id": "agent_20",
+          "agent_name": "TradingAgent_20",
+          "strategy_id": "s20",
+          "role": "trading_execution",
+          "status": "active"
+        },
+        {
+          "agent_id": "agent_21",
+          "agent_name": "TradingAgent_21",
+          "strategy_id": "s21",
+          "role": "trading_execution",
+          "status": "active"
+        },
+        {
+          "agent_id": "agent_22",
+          "agent_name": "TradingAgent_22",
+          "strategy_id": "s22",
+          "role": "trading_execution",
+          "status": "active"
+        },
+        {
+          "agent_id": "agent_23",
+          "agent_name": "TradingAgent_23",
+          "strategy_id": "s23",
+          "role": "trading_execution",
+          "status": "active"
+        },
+        {
+          "agent_id": "agent_24",
+          "agent_name": "TradingAgent_24",
+          "strategy_id": "s24",
+          "role": "trading_execution",
+          "status": "active"
+        },
+        {
+          "agent_id": "agent_25",
+          "agent_name": "TradingAgent_25",
+          "strategy_id": "s25",
+          "role": "trading_execution",
+          "status": "active"
+        },
+        {
+          "agent_id": "agent_26",
+          "agent_name": "TradingAgent_26",
+          "strategy_id": "s26",
+          "role": "trading_execution",
+          "status": "active"
+        },
+        {
+          "agent_id": "agent_27",
+          "agent_name": "TradingAgent_27",
+          "strategy_id": "s27",
+          "role": "trading_execution",
+          "status": "active"
+        },
+        {
+          "agent_id": "agent_28",
+          "agent_name": "TradingAgent_28",
+          "strategy_id": "s28",
+          "role": "trading_execution",
+          "status": "active"
+        },
+        {
+          "agent_id": "agent_29",
+          "agent_name": "TradingAgent_29",
+          "strategy_id": "s29",
+          "role": "trading_execution",
+          "status": "active"
+        },
+        {
+          "agent_id": "agent_30",
+          "agent_name": "TradingAgent_30",
+          "strategy_id": "s30",
+          "role": "trading_execution",
+          "status": "active"
+        },
+        {
+          "agent_id": "agent_31",
+          "agent_name": "TradingAgent_31",
+          "strategy_id": "s31",
+          "role": "trading_execution",
+          "status": "active"
+        },
+        {
+          "agent_id": "agent_32",
+          "agent_name": "TradingAgent_32",
+          "strategy_id": "s32",
+          "role": "trading_execution",
+          "status": "active"
+        },
+        {
+          "agent_id": "agent_33",
+          "agent_name": "TradingAgent_33",
+          "strategy_id": "s33",
+          "role": "trading_execution",
+          "status": "active"
+        },
+        {
+          "agent_id": "agent_34",
+          "agent_name": "TradingAgent_34",
+          "strategy_id": "s34",
+          "role": "trading_execution",
+          "status": "active"
+        },
+        {
+          "agent_id": "agent_35",
+          "agent_name": "TradingAgent_35",
+          "strategy_id": "s35",
+          "role": "trading_execution",
+          "status": "active"
+        },
+        {
+          "agent_id": "agent_36",
+          "agent_name": "TradingAgent_36",
+          "strategy_id": "s36",
+          "role": "trading_execution",
+          "status": "active"
+        },
+        {
+          "agent_id": "agent_37",
+          "agent_name": "TradingAgent_37",
+          "strategy_id": "s37",
+          "role": "trading_execution",
+          "status": "active"
+        },
+        {
+          "agent_id": "agent_38",
+          "agent_name": "TradingAgent_38",
+          "strategy_id": "s38",
+          "role": "trading_execution",
+          "status": "active"
+        },
+        {
+          "agent_id": "agent_39",
+          "agent_name": "TradingAgent_39",
+          "strategy_id": "s39",
+          "role": "trading_execution",
+          "status": "active"
+        },
+        {
+          "agent_id": "agent_40",
+          "agent_name": "TradingAgent_40",
+          "strategy_id": "s40",
+          "role": "trading_execution",
+          "status": "active"
+        },
+        {
+          "agent_id": "agent_41",
+          "agent_name": "TradingAgent_41",
+          "strategy_id": "s41",
+          "role": "trading_execution",
+          "status": "active"
+        },
+        {
+          "agent_id": "agent_42",
+          "agent_name": "TradingAgent_42",
+          "strategy_id": "s42",
+          "role": "trading_execution",
+          "status": "active"
+        },
+        {
+          "agent_id": "agent_43",
+          "agent_name": "TradingAgent_43",
+          "strategy_id": "s43",
+          "role": "trading_execution",
+          "status": "active"
+        },
+        {
+          "agent_id": "agent_44",
+          "agent_name": "TradingAgent_44",
+          "strategy_id": "s44",
+          "role": "trading_execution",
+          "status": "active"
+        },
+        {
+          "agent_id": "agent_45",
+          "agent_name": "TradingAgent_45",
+          "strategy_id": "s45",
+          "role": "trading_execution",
+          "status": "active"
+        },
+        {
+          "agent_id": "agent_46",
+          "agent_name": "TradingAgent_46",
+          "strategy_id": "s46",
+          "role": "trading_execution",
+          "status": "active"
+        },
+        {
+          "agent_id": "agent_47",
+          "agent_name": "TradingAgent_47",
+          "strategy_id": "s47",
+          "role": "trading_execution",
+          "status": "active"
+        },
+        {
+          "agent_id": "agent_48",
+          "agent_name": "TradingAgent_48",
+          "strategy_id": "s48",
+          "role": "trading_execution",
+          "status": "active"
+        },
+        {
+          "agent_id": "agent_49",
+          "agent_name": "TradingAgent_49",
+          "strategy_id": "s49",
+          "role": "trading_execution",
+          "status": "active"
+        }
+      ],
+      "executive_assistants": [
+        {
+          "agent_id": "innovation_1",
+          "agent_name": "Alpha Innovation Assistant",
+          "strategies_served": 10,
+          "specialty": "ETF & Index Arbitrage",
+          "role": "intelligence_oversight",
+          "status": "active"
+        },
+        {
+          "agent_id": "innovation_2",
+          "agent_name": "Beta Innovation Assistant",
+          "strategies_served": 10,
+          "specialty": "Volatility & Dispersion",
+          "role": "intelligence_oversight",
+          "status": "active"
+        },
+        {
+          "agent_id": "innovation_3",
+          "agent_name": "Gamma Innovation Assistant",
+          "strategies_served": 10,
+          "specialty": "Event Driven & Macro",
+          "role": "intelligence_oversight",
+          "status": "active"
+        },
+        {
+          "agent_id": "innovation_4",
+          "agent_name": "Delta Innovation Assistant",
+          "strategies_served": 10,
+          "specialty": "Microstructure & Flow",
+          "role": "intelligence_oversight",
+          "status": "active"
+        },
+        {
+          "agent_id": "innovation_5",
+          "agent_name": "Epsilon Innovation Assistant",
+          "strategies_served": 9,
+          "specialty": "Calendar Anomalies & Mean Reversion",
+          "role": "intelligence_oversight",
+          "status": "active"
+        }
+      ],
+      "validation": {
+        "total_strategies": 49,
+        "total_trading_agents": 49,
+        "total_executive_assistants": 49,
+        "strategies_with_both_agents": 49,
+        "orphaned_agents": [],
+        "missing_assignments": [],
+        "workload_distribution": {
+          "innovation_1": 10,
+          "innovation_2": 10,
+          "innovation_3": 10,
+          "innovation_4": 10,
+          "innovation_5": 9
+        },
+        "unique_trading_agents": 49,
+        "unique_executive_assistants": 5
+      }
+    },
+    "research_agents": [
+      {
+        "agent_id": "research_b1",
+        "theater": "B",
+        "category": "Attention/Narrative",
+        "name": "NarrativeAnalyzerAgent",
+        "status": "active"
+      },
+      {
+        "agent_id": "research_b2",
+        "theater": "B",
+        "category": "Attention/Narrative",
+        "name": "EngagementPredictorAgent",
+        "status": "active"
+      },
+      {
+        "agent_id": "research_b3",
+        "theater": "B",
+        "category": "Attention/Narrative",
+        "name": "ContentOptimizerAgent",
+        "status": "active"
+      },
+      {
+        "agent_id": "research_c1",
+        "theater": "C",
+        "category": "Infrastructure/Latency",
+        "name": "LatencyMonitorAgent",
+        "status": "active"
+      },
+      {
+        "agent_id": "research_c2",
+        "theater": "C",
+        "category": "Infrastructure/Latency",
+        "name": "BridgeAnalyzerAgent",
+        "status": "active"
+      },
+      {
+        "agent_id": "research_c3",
+        "theater": "C",
+        "category": "Infrastructure/Latency",
+        "name": "GasOptimizerAgent",
+        "status": "active"
+      },
+      {
+        "agent_id": "research_c4",
+        "theater": "C",
+        "category": "Infrastructure/Latency",
+        "name": "LiquidityTrackerAgent",
+        "status": "active"
+      },
+      {
+        "agent_id": "research_d1",
+        "theater": "D",
+        "category": "Information Asymmetry",
+        "name": "APIScannerAgent",
+        "status": "active"
+      },
+      {
+        "agent_id": "research_d2",
+        "theater": "D",
+        "category": "Information Asymmetry",
+        "name": "DataGapFinderAgent",
+        "status": "active"
+      },
+      {
+        "agent_id": "research_d3",
+        "theater": "D",
+        "category": "Information Asymmetry",
+        "name": "AccessArbitrageAgent",
+        "status": "active"
+      },
+      {
+        "agent_id": "research_d4",
+        "theater": "D",
+        "category": "Information Asymmetry",
+        "name": "NetworkMapperAgent",
+        "status": "active"
+      },
+      {
+        "agent_id": "research_op1",
+        "theater": "Operational",
+        "category": "Operations",
+        "name": "ReconciliationAgent",
+        "status": "active"
+      },
+      {
+        "agent_id": "research_op2",
+        "theater": "Operational",
+        "category": "Operations",
+        "name": "RiskMonitorAgent",
+        "status": "active"
+      },
+      {
+        "agent_id": "research_op3",
+        "theater": "Operational",
+        "category": "Operations",
+        "name": "PLCalculationAgent",
+        "status": "active"
+      },
+      {
+        "agent_id": "research_op4",
+        "theater": "Operational",
+        "category": "Operations",
+        "name": "VenueHealthAgent",
+        "status": "active"
+      },
+      {
+        "agent_id": "research_op5",
+        "theater": "Operational",
+        "category": "Operations",
+        "name": "WithdrawalRiskAgent",
+        "status": "active"
+      },
+      {
+        "agent_id": "research_op6",
+        "theater": "Operational",
+        "category": "Operations",
+        "name": "RoutingOptimizationAgent",
+        "status": "active"
+      },
+      {
+        "agent_id": "research_op7",
+        "theater": "Operational",
+        "category": "Operations",
+        "name": "IncidentPostmortemAutomation",
+        "status": "active"
+      },
+      {
+        "agent_id": "research_op8",
+        "theater": "Operational",
+        "category": "Operations",
+        "name": "AuditGapMonitor",
+        "status": "active"
+      },
+      {
+        "agent_id": "research_op9",
+        "theater": "Operational",
+        "category": "Operations",
+        "name": "SecurityScannerAgent",
+        "status": "active"
+      }
+    ],
+    "super_agents": [
+      {
+        "agent_id": "trade_executor_super",
+        "department": "TradingExecution",
+        "agents": [
+          "trade_executor",
+          "risk_manager"
+        ],
+        "status": "active"
+      },
+      {
+        "agent_id": "crypto_intel_super",
+        "department": "CryptoIntelligence",
+        "agents": [
+          "crypto_analyzer"
+        ],
+        "status": "active"
+      },
+      {
+        "agent_id": "accounting_super",
+        "department": "CentralAccounting",
+        "agents": [
+          "accounting_engine"
+        ],
+        "status": "active"
+      },
+      {
+        "agent_id": "infrastructure_super",
+        "department": "SharedInfrastructure",
+        "agents": [
+          "health_monitor"
+        ],
+        "status": "active"
+      },
+      {
+        "agent_id": "bigbrain_super",
+        "department": "BigBrainIntelligence",
+        "agents": [
+          "intelligence_coordinator"
+        ],
+        "status": "active"
+      },
+      {
+        "agent_id": "ncc_super",
+        "department": "NCC",
+        "agents": [
+          "ncc_coordinator"
+        ],
+        "status": "active"
+      }
+    ],
+    "contest_agents": [
+      {
+        "agent_id": "contest_agent_01",
+        "type": "contest_trading",
+        "strategy_assigned": "s01",
+        "status": "standby",
+        "capital": 1000.0
+      },
+      {
+        "agent_id": "contest_agent_02",
+        "type": "contest_trading",
+        "strategy_assigned": "s02",
+        "status": "standby",
+        "capital": 1000.0
+      },
+      {
+        "agent_id": "contest_agent_03",
+        "type": "contest_trading",
+        "strategy_assigned": "s03",
+        "status": "standby",
+        "capital": 1000.0
+      },
+      {
+        "agent_id": "contest_agent_04",
+        "type": "contest_trading",
+        "strategy_assigned": "s04",
+        "status": "standby",
+        "capital": 1000.0
+      },
+      {
+        "agent_id": "contest_agent_05",
+        "type": "contest_trading",
+        "strategy_assigned": "s05",
+        "status": "standby",
+        "capital": 1000.0
+      },
+      {
+        "agent_id": "contest_agent_06",
+        "type": "contest_trading",
+        "strategy_assigned": "s06",
+        "status": "standby",
+        "capital": 1000.0
+      },
+      {
+        "agent_id": "contest_agent_07",
+        "type": "contest_trading",
+        "strategy_assigned": "s07",
+        "status": "standby",
+        "capital": 1000.0
+      },
+      {
+        "agent_id": "contest_agent_08",
+        "type": "contest_trading",
+        "strategy_assigned": "s08",
+        "status": "standby",
+        "capital": 1000.0
+      },
+      {
+        "agent_id": "contest_agent_09",
+        "type": "contest_trading",
+        "strategy_assigned": "s09",
+        "status": "standby",
+        "capital": 1000.0
+      },
+      {
+        "agent_id": "contest_agent_10",
+        "type": "contest_trading",
+        "strategy_assigned": "s10",
+        "status": "standby",
+        "capital": 1000.0
+      },
+      {
+        "agent_id": "contest_agent_11",
+        "type": "contest_trading",
+        "strategy_assigned": "s11",
+        "status": "standby",
+        "capital": 1000.0
+      },
+      {
+        "agent_id": "contest_agent_12",
+        "type": "contest_trading",
+        "strategy_assigned": "s12",
+        "status": "standby",
+        "capital": 1000.0
+      },
+      {
+        "agent_id": "contest_agent_13",
+        "type": "contest_trading",
+        "strategy_assigned": "s13",
+        "status": "standby",
+        "capital": 1000.0
+      },
+      {
+        "agent_id": "contest_agent_14",
+        "type": "contest_trading",
+        "strategy_assigned": "s14",
+        "status": "standby",
+        "capital": 1000.0
+      },
+      {
+        "agent_id": "contest_agent_15",
+        "type": "contest_trading",
+        "strategy_assigned": "s15",
+        "status": "standby",
+        "capital": 1000.0
+      },
+      {
+        "agent_id": "contest_agent_16",
+        "type": "contest_trading",
+        "strategy_assigned": "s16",
+        "status": "standby",
+        "capital": 1000.0
+      },
+      {
+        "agent_id": "contest_agent_17",
+        "type": "contest_trading",
+        "strategy_assigned": "s17",
+        "status": "standby",
+        "capital": 1000.0
+      },
+      {
+        "agent_id": "contest_agent_18",
+        "type": "contest_trading",
+        "strategy_assigned": "s18",
+        "status": "standby",
+        "capital": 1000.0
+      },
+      {
+        "agent_id": "contest_agent_19",
+        "type": "contest_trading",
+        "strategy_assigned": "s19",
+        "status": "standby",
+        "capital": 1000.0
+      },
+      {
+        "agent_id": "contest_agent_20",
+        "type": "contest_trading",
+        "strategy_assigned": "s20",
+        "status": "standby",
+        "capital": 1000.0
+      },
+      {
+        "agent_id": "contest_agent_21",
+        "type": "contest_trading",
+        "strategy_assigned": "s21",
+        "status": "standby",
+        "capital": 1000.0
+      },
+      {
+        "agent_id": "contest_agent_22",
+        "type": "contest_trading",
+        "strategy_assigned": "s22",
+        "status": "standby",
+        "capital": 1000.0
+      },
+      {
+        "agent_id": "contest_agent_23",
+        "type": "contest_trading",
+        "strategy_assigned": "s23",
+        "status": "standby",
+        "capital": 1000.0
+      },
+      {
+        "agent_id": "contest_agent_24",
+        "type": "contest_trading",
+        "strategy_assigned": "s24",
+        "status": "standby",
+        "capital": 1000.0
+      },
+      {
+        "agent_id": "contest_agent_25",
+        "type": "contest_trading",
+        "strategy_assigned": "s25",
+        "status": "standby",
+        "capital": 1000.0
+      },
+      {
+        "agent_id": "contest_agent_26",
+        "type": "contest_trading",
+        "strategy_assigned": "s26",
+        "status": "standby",
+        "capital": 1000.0
+      },
+      {
+        "agent_id": "contest_agent_27",
+        "type": "contest_trading",
+        "strategy_assigned": "s27",
+        "status": "standby",
+        "capital": 1000.0
+      },
+      {
+        "agent_id": "contest_agent_28",
+        "type": "contest_trading",
+        "strategy_assigned": "s28",
+        "status": "standby",
+        "capital": 1000.0
+      },
+      {
+        "agent_id": "contest_agent_29",
+        "type": "contest_trading",
+        "strategy_assigned": "s29",
+        "status": "standby",
+        "capital": 1000.0
+      },
+      {
+        "agent_id": "contest_agent_30",
+        "type": "contest_trading",
+        "strategy_assigned": "s30",
+        "status": "standby",
+        "capital": 1000.0
+      },
+      {
+        "agent_id": "contest_agent_31",
+        "type": "contest_trading",
+        "strategy_assigned": "s31",
+        "status": "standby",
+        "capital": 1000.0
+      },
+      {
+        "agent_id": "contest_agent_32",
+        "type": "contest_trading",
+        "strategy_assigned": "s32",
+        "status": "standby",
+        "capital": 1000.0
+      },
+      {
+        "agent_id": "contest_agent_33",
+        "type": "contest_trading",
+        "strategy_assigned": "s33",
+        "status": "standby",
+        "capital": 1000.0
+      },
+      {
+        "agent_id": "contest_agent_34",
+        "type": "contest_trading",
+        "strategy_assigned": "s34",
+        "status": "standby",
+        "capital": 1000.0
+      },
+      {
+        "agent_id": "contest_agent_35",
+        "type": "contest_trading",
+        "strategy_assigned": "s35",
+        "status": "standby",
+        "capital": 1000.0
+      },
+      {
+        "agent_id": "contest_agent_36",
+        "type": "contest_trading",
+        "strategy_assigned": "s36",
+        "status": "standby",
+        "capital": 1000.0
+      },
+      {
+        "agent_id": "contest_agent_37",
+        "type": "contest_trading",
+        "strategy_assigned": "s37",
+        "status": "standby",
+        "capital": 1000.0
+      },
+      {
+        "agent_id": "contest_agent_38",
+        "type": "contest_trading",
+        "strategy_assigned": "s38",
+        "status": "standby",
+        "capital": 1000.0
+      },
+      {
+        "agent_id": "contest_agent_39",
+        "type": "contest_trading",
+        "strategy_assigned": "s39",
+        "status": "standby",
+        "capital": 1000.0
+      },
+      {
+        "agent_id": "contest_agent_40",
+        "type": "contest_trading",
+        "strategy_assigned": "s40",
+        "status": "standby",
+        "capital": 1000.0
+      },
+      {
+        "agent_id": "contest_agent_41",
+        "type": "contest_trading",
+        "strategy_assigned": "s41",
+        "status": "standby",
+        "capital": 1000.0
+      },
+      {
+        "agent_id": "contest_agent_42",
+        "type": "contest_trading",
+        "strategy_assigned": "s42",
+        "status": "standby",
+        "capital": 1000.0
+      },
+      {
+        "agent_id": "contest_agent_43",
+        "type": "contest_trading",
+        "strategy_assigned": "s43",
+        "status": "standby",
+        "capital": 1000.0
+      },
+      {
+        "agent_id": "contest_agent_44",
+        "type": "contest_trading",
+        "strategy_assigned": "s44",
+        "status": "standby",
+        "capital": 1000.0
+      },
+      {
+        "agent_id": "contest_agent_45",
+        "type": "contest_trading",
+        "strategy_assigned": "s45",
+        "status": "standby",
+        "capital": 1000.0
+      },
+      {
+        "agent_id": "contest_agent_46",
+        "type": "contest_trading",
+        "strategy_assigned": "s46",
+        "status": "standby",
+        "capital": 1000.0
+      },
+      {
+        "agent_id": "contest_agent_47",
+        "type": "contest_trading",
+        "strategy_assigned": "s47",
+        "status": "standby",
+        "capital": 1000.0
+      },
+      {
+        "agent_id": "contest_agent_48",
+        "type": "contest_trading",
+        "strategy_assigned": "s48",
+        "status": "standby",
+        "capital": 1000.0
+      },
+      {
+        "agent_id": "contest_agent_49",
+        "type": "contest_trading",
+        "strategy_assigned": "s49",
+        "status": "standby",
+        "capital": 1000.0
+      }
+    ],
+    "totals": {
+      "trading_agents": 49,
+      "executive_assistants": 5,
+      "research_agents": 20,
+      "super_agents": 6,
+      "contest_agents": 49,
+      "grand_total": 129
+    }
+  },
+  "gap_analysis": {
+    "strategy_coverage": {
+      "expected_strategies": 49,
+      "strategies_with_trading_agents": 49,
+      "strategies_with_executive_assistants": 49,
+      "coverage_rate": 100.0
+    },
+    "agent_coverage": {
+      "expected_trading_agents": 49,
+      "actual_trading_agents": 49,
+      "expected_executive_assistants": 5,
+      "actual_executive_assistants": 5,
+      "expected_research_agents": 20,
+      "actual_research_agents": 20,
+      "expected_super_agents": 6,
+      "actual_super_agents": 6
+    },
+    "integration_gaps": [],
+    "missing_implementations": [
+      "s01",
+      "s02",
+      "s03",
+      "s04",
+      "s05",
+      "s06",
+      "s07",
+      "s08",
+      "s09",
+      "s10",
+      "s11",
+      "s12",
+      "s13",
+      "s14",
+      "s15",
+      "s16",
+      "s17",
+      "s18",
+      "s19",
+      "s20",
+      "s21",
+      "s22",
+      "s23",
+      "s24",
+      "s25",
+      "s26",
+      "s27",
+      "s28",
+      "s29",
+      "s30",
+      "s31",
+      "s32",
+      "s33",
+      "s34",
+      "s35",
+      "s36",
+      "s37",
+      "s38",
+      "s39",
+      "s40",
+      "s41",
+      "s42",
+      "s43",
+      "s44",
+      "s45",
+      "s46",
+      "s47",
+      "s48",
+      "s49"
+    ],
+    "orphaned_agents": []
+  },
+  "orphaned_files": [
+    "aac_monitoring_dashboard.DEPRECATED.py",
+    "monitoring_launcher.DEPRECATED.py",
+    ".venv\\Lib\\site-packages\\_pytest\\deprecated.py",
+    ".venv\\Lib\\site-packages\\_pytest\\__pycache__\\deprecated.cpython-312.pyc",
+    ".venv\\Lib\\site-packages\\pandas\\tests\\io\\json\\test_deprecated_kwargs.py",
+    ".venv\\Lib\\site-packages\\pandas\\tests\\io\\json\\__pycache__\\test_deprecated_kwargs.cpython-312.pyc",
+    ".venv\\Lib\\site-packages\\numpy\\_core\\include\\numpy\\npy_no_deprecated_api.h",
+    "monitoring_dashboard.ORPHANED.py",
+    "aac_monitoring_dashboard.DEPRECATED.py",
+    "monitoring_launcher.DEPRECATED.py",
+    ".venv\\Lib\\site-packages\\_pytest\\deprecated.py",
+    ".venv\\Lib\\site-packages\\_pytest\\__pycache__\\deprecated.cpython-312.pyc",
+    ".venv\\Lib\\site-packages\\pandas\\tests\\io\\json\\test_deprecated_kwargs.py",
+    ".venv\\Lib\\site-packages\\pandas\\tests\\io\\json\\__pycache__\\test_deprecated_kwargs.cpython-312.pyc",
+    ".venv\\Lib\\site-packages\\numpy\\_core\\include\\numpy\\npy_no_deprecated_api.h",
+    ".venv\\Lib\\site-packages\\huggingface_hub\\_local_folder.py",
+    ".venv\\Lib\\site-packages\\huggingface_hub\\_upload_large_folder.py",
+    ".venv\\Lib\\site-packages\\yfinance\\scrapers\\holders.py",
+    ".venv\\Lib\\site-packages\\yfinance\\scrapers\\__pycache__\\holders.cpython-312.pyc",
+    ".venv\\Lib\\site-packages\\sklearn\\feature_selection\\_variance_threshold.py",
+    ".venv\\Lib\\site-packages\\sklearn\\model_selection\\_classification_threshold.py",
+    ".venv\\Lib\\site-packages\\sklearn\\tree\\_reingold_tilford.py",
+    ".venv\\Lib\\site-packages\\sklearn\\tree\\tests\\test_reingold_tilford.py",
+    ".venv\\Lib\\site-packages\\sklearn\\tree\\__pycache__\\_reingold_tilford.cpython-312.pyc",
+    ".venv\\Lib\\site-packages\\sklearn\\tree\\tests\\__pycache__\\test_reingold_tilford.cpython-312.pyc",
+    ".venv\\Lib\\site-packages\\sklearn\\model_selection\\tests\\test_classification_threshold.py",
+    ".venv\\Lib\\site-packages\\sklearn\\model_selection\\__pycache__\\_classification_threshold.cpython-312.pyc",
+    ".venv\\Lib\\site-packages\\sklearn\\model_selection\\tests\\__pycache__\\test_classification_threshold.cpython-312.pyc",
+    ".venv\\Lib\\site-packages\\sklearn\\feature_selection\\tests\\test_variance_threshold.py",
+    ".venv\\Lib\\site-packages\\sklearn\\feature_selection\\__pycache__\\_variance_threshold.cpython-312.pyc",
+    ".venv\\Lib\\site-packages\\sklearn\\feature_selection\\tests\\__pycache__\\test_variance_threshold.cpython-312.pyc",
+    ".venv\\Lib\\site-packages\\plotly\\graph_objs\\indicator\\gauge\\_threshold.py",
+    ".venv\\Lib\\site-packages\\plotly\\graph_objs\\indicator\\gauge\\__pycache__\\_threshold.cpython-312.pyc",
+    ".venv\\Lib\\site-packages\\pandas\\tests\\indexes\\test_old_base.py",
+    ".venv\\Lib\\site-packages\\pandas\\tests\\indexes\\__pycache__\\test_old_base.cpython-312.pyc",
+    ".venv\\Lib\\site-packages\\pandas\\tests\\dtypes\\cast\\test_can_hold_element.py",
+    ".venv\\Lib\\site-packages\\pandas\\tests\\dtypes\\cast\\__pycache__\\test_can_hold_element.cpython-312.pyc",
+    ".venv\\Lib\\site-packages\\numpy\\ma\\tests\\test_old_ma.py",
+    ".venv\\Lib\\site-packages\\numpy\\ma\\tests\\__pycache__\\test_old_ma.cpython-312.pyc",
+    ".venv\\Lib\\site-packages\\matplotlib\\mpl-data\\fonts\\pdfcorefonts\\Courier-Bold.afm",
+    ".venv\\Lib\\site-packages\\matplotlib\\mpl-data\\fonts\\pdfcorefonts\\Courier-BoldOblique.afm",
+    ".venv\\Lib\\site-packages\\matplotlib\\mpl-data\\fonts\\pdfcorefonts\\Helvetica-Bold.afm",
+    ".venv\\Lib\\site-packages\\matplotlib\\mpl-data\\fonts\\pdfcorefonts\\Helvetica-BoldOblique.afm",
+    ".venv\\Lib\\site-packages\\matplotlib\\mpl-data\\fonts\\pdfcorefonts\\Times-Bold.afm",
+    ".venv\\Lib\\site-packages\\matplotlib\\mpl-data\\fonts\\pdfcorefonts\\Times-BoldItalic.afm",
+    ".venv\\Lib\\site-packages\\matplotlib\\mpl-data\\fonts\\ttf\\DejaVuSans-Bold.ttf",
+    ".venv\\Lib\\site-packages\\matplotlib\\mpl-data\\fonts\\ttf\\DejaVuSans-BoldOblique.ttf",
+    ".venv\\Lib\\site-packages\\matplotlib\\mpl-data\\fonts\\ttf\\DejaVuSansMono-Bold.ttf",
+    ".venv\\Lib\\site-packages\\matplotlib\\mpl-data\\fonts\\ttf\\DejaVuSansMono-BoldOblique.ttf",
+    ".venv\\Lib\\site-packages\\matplotlib\\mpl-data\\fonts\\ttf\\DejaVuSerif-Bold.ttf",
+    ".venv\\Lib\\site-packages\\matplotlib\\mpl-data\\fonts\\ttf\\DejaVuSerif-BoldItalic.ttf",
+    ".venv\\Lib\\site-packages\\huggingface_hub\\cli\\upload_large_folder.py",
+    ".venv\\Lib\\site-packages\\huggingface_hub\\__pycache__\\_local_folder.cpython-312.pyc",
+    ".venv\\Lib\\site-packages\\huggingface_hub\\__pycache__\\_upload_large_folder.cpython-312.pyc",
+    ".venv\\Lib\\site-packages\\huggingface_hub\\cli\\__pycache__\\upload_large_folder.cpython-312.pyc",
+    ".venv\\Lib\\site-packages\\flask\\sansio\\scaffold.py",
+    ".venv\\Lib\\site-packages\\flask\\sansio\\__pycache__\\scaffold.cpython-312.pyc",
+    ".venv\\Lib\\site-packages\\datasets\\packaged_modules\\audiofolder\\audiofolder.py",
+    ".venv\\Lib\\site-packages\\datasets\\packaged_modules\\folder_based_builder\\folder_based_builder.py",
+    ".venv\\Lib\\site-packages\\datasets\\packaged_modules\\imagefolder\\imagefolder.py",
+    ".venv\\Lib\\site-packages\\datasets\\packaged_modules\\niftifolder\\niftifolder.py",
+    ".venv\\Lib\\site-packages\\datasets\\packaged_modules\\pdffolder\\pdffolder.py",
+    ".venv\\Lib\\site-packages\\datasets\\packaged_modules\\videofolder\\videofolder.py",
+    ".venv\\Lib\\site-packages\\datasets\\packaged_modules\\videofolder\\__pycache__\\videofolder.cpython-312.pyc",
+    ".venv\\Lib\\site-packages\\datasets\\packaged_modules\\pdffolder\\__pycache__\\pdffolder.cpython-312.pyc",
+    ".venv\\Lib\\site-packages\\datasets\\packaged_modules\\niftifolder\\__pycache__\\niftifolder.cpython-312.pyc",
+    ".venv\\Lib\\site-packages\\datasets\\packaged_modules\\imagefolder\\__pycache__\\imagefolder.cpython-312.pyc",
+    ".venv\\Lib\\site-packages\\datasets\\packaged_modules\\folder_based_builder\\__pycache__\\folder_based_builder.cpython-312.pyc",
+    ".venv\\Lib\\site-packages\\datasets\\packaged_modules\\audiofolder\\__pycache__\\audiofolder.cpython-312.pyc",
+    ".venv\\Lib\\site-packages\\dash_bootstrap_components\\_components\\Placeholder.py",
+    ".venv\\Lib\\site-packages\\dash_bootstrap_components\\_components\\__pycache__\\Placeholder.cpython-312.pyc",
+    "live_trading_environment_backup.py",
+    "worldwide_arbitrage_demo_backup.py",
+    "agent_based_trading_validation.py",
+    "agent_audit.py",
+    "test_imports.py",
+    "agent_files.txt"
+  ],
+  "strategy_mappings": {
+    "s01": {
+      "strategy_name": "ETF\u2013NAV Dislocation Harvesting",
+      "strategy_category": "ETF_Arbitrage",
+      "trading_agent": {
+        "agent_id": "agent_01",
+        "agent_name": "TradingAgent_01",
+        "role": "execution",
+        "specialization": "ETF_Arbitrage",
+        "status": "active"
+      },
+      "executive_assistant": {
+        "agent_id": "innovation_1",
+        "agent_name": "Alpha Innovation Assistant",
+        "role": "intelligence_oversight",
+        "specialty": "ETF & Index Arbitrage",
+        "capabilities": [
+          "market_intelligence",
+          "risk_assessment",
+          "execution_optimization"
+        ],
+        "status": "active"
+      },
+      "assignment_date": "2026-02-08T09:54:18.346263",
+      "integration_status": "complete"
+    },
+    "s02": {
+      "strategy_name": "Index Reconstitution & Closing-Auction Liquidity",
+      "strategy_category": "Index_Arbitrage",
+      "trading_agent": {
+        "agent_id": "agent_02",
+        "agent_name": "TradingAgent_02",
+        "role": "execution",
+        "specialization": "Index_Arbitrage",
+        "status": "active"
+      },
+      "executive_assistant": {
+        "agent_id": "innovation_1",
+        "agent_name": "Alpha Innovation Assistant",
+        "role": "intelligence_oversight",
+        "specialty": "ETF & Index Arbitrage",
+        "capabilities": [
+          "market_intelligence",
+          "risk_assessment",
+          "execution_optimization"
+        ],
+        "status": "active"
+      },
+      "assignment_date": "2026-02-08T09:54:18.346325",
+      "integration_status": "complete"
+    },
+    "s03": {
+      "strategy_name": "Closing-Auction Imbalance Micro-Alpha",
+      "strategy_category": "Microstructure",
+      "trading_agent": {
+        "agent_id": "agent_03",
+        "agent_name": "TradingAgent_03",
+        "role": "execution",
+        "specialization": "Microstructure",
+        "status": "active"
+      },
+      "executive_assistant": {
+        "agent_id": "innovation_1",
+        "agent_name": "Alpha Innovation Assistant",
+        "role": "intelligence_oversight",
+        "specialty": "ETF & Index Arbitrage",
+        "capabilities": [
+          "market_intelligence",
+          "risk_assessment",
+          "execution_optimization"
+        ],
+        "status": "active"
+      },
+      "assignment_date": "2026-02-08T09:54:18.346336",
+      "integration_status": "complete"
+    },
+    "s04": {
+      "strategy_name": "Overnight vs. Intraday Split (News-Guided)",
+      "strategy_category": "Time_of_Day",
+      "trading_agent": {
+        "agent_id": "agent_04",
+        "agent_name": "TradingAgent_04",
+        "role": "execution",
+        "specialization": "Time_of_Day",
+        "status": "active"
+      },
+      "executive_assistant": {
+        "agent_id": "innovation_1",
+        "agent_name": "Alpha Innovation Assistant",
+        "role": "intelligence_oversight",
+        "specialty": "ETF & Index Arbitrage",
+        "capabilities": [
+          "market_intelligence",
+          "risk_assessment",
+          "execution_optimization"
+        ],
+        "status": "active"
+      },
+      "assignment_date": "2026-02-08T09:54:18.346344",
+      "integration_status": "complete"
+    },
+    "s05": {
+      "strategy_name": "FOMC Cycle & Pre-Announcement Drift",
+      "strategy_category": "Macro_Event",
+      "trading_agent": {
+        "agent_id": "agent_05",
+        "agent_name": "TradingAgent_05",
+        "role": "execution",
+        "specialization": "Macro_Event",
+        "status": "active"
+      },
+      "executive_assistant": {
+        "agent_id": "innovation_1",
+        "agent_name": "Alpha Innovation Assistant",
+        "role": "intelligence_oversight",
+        "specialty": "ETF & Index Arbitrage",
+        "capabilities": [
+          "market_intelligence",
+          "risk_assessment",
+          "execution_optimization"
+        ],
+        "status": "active"
+      },
+      "assignment_date": "2026-02-08T09:54:18.346351",
+      "integration_status": "complete"
+    },
+    "s06": {
+      "strategy_name": "Variance Risk Premium (Cross-Asset)",
+      "strategy_category": "Volatility_Premium",
+      "trading_agent": {
+        "agent_id": "agent_06",
+        "agent_name": "TradingAgent_06",
+        "role": "execution",
+        "specialization": "Volatility_Premium",
+        "status": "active"
+      },
+      "executive_assistant": {
+        "agent_id": "innovation_1",
+        "agent_name": "Alpha Innovation Assistant",
+        "role": "intelligence_oversight",
+        "specialty": "ETF & Index Arbitrage",
+        "capabilities": [
+          "market_intelligence",
+          "risk_assessment",
+          "execution_optimization"
+        ],
+        "status": "active"
+      },
+      "assignment_date": "2026-02-08T09:54:18.346360",
+      "integration_status": "complete"
+    },
+    "s07": {
+      "strategy_name": "Session-Split VRP",
+      "strategy_category": "Volatility_Premium",
+      "trading_agent": {
+        "agent_id": "agent_07",
+        "agent_name": "TradingAgent_07",
+        "role": "execution",
+        "specialization": "Volatility_Premium",
+        "status": "active"
+      },
+      "executive_assistant": {
+        "agent_id": "innovation_1",
+        "agent_name": "Alpha Innovation Assistant",
+        "role": "intelligence_oversight",
+        "specialty": "ETF & Index Arbitrage",
+        "capabilities": [
+          "market_intelligence",
+          "risk_assessment",
+          "execution_optimization"
+        ],
+        "status": "active"
+      },
+      "assignment_date": "2026-02-08T09:54:18.346367",
+      "integration_status": "complete"
+    },
+    "s08": {
+      "strategy_name": "Active Dispersion (Correlation Risk Premium)",
+      "strategy_category": "Dispersion",
+      "trading_agent": {
+        "agent_id": "agent_08",
+        "agent_name": "TradingAgent_08",
+        "role": "execution",
+        "specialization": "Dispersion",
+        "status": "active"
+      },
+      "executive_assistant": {
+        "agent_id": "innovation_1",
+        "agent_name": "Alpha Innovation Assistant",
+        "role": "intelligence_oversight",
+        "specialty": "ETF & Index Arbitrage",
+        "capabilities": [
+          "market_intelligence",
+          "risk_assessment",
+          "execution_optimization"
+        ],
+        "status": "active"
+      },
+      "assignment_date": "2026-02-08T09:54:18.346376",
+      "integration_status": "complete"
+    },
+    "s09": {
+      "strategy_name": "Conditional Correlation Carry",
+      "strategy_category": "Correlation",
+      "trading_agent": {
+        "agent_id": "agent_09",
+        "agent_name": "TradingAgent_09",
+        "role": "execution",
+        "specialization": "Correlation",
+        "status": "active"
+      },
+      "executive_assistant": {
+        "agent_id": "innovation_1",
+        "agent_name": "Alpha Innovation Assistant",
+        "role": "intelligence_oversight",
+        "specialty": "ETF & Index Arbitrage",
+        "capabilities": [
+          "market_intelligence",
+          "risk_assessment",
+          "execution_optimization"
+        ],
+        "status": "active"
+      },
+      "assignment_date": "2026-02-08T09:54:18.346385",
+      "integration_status": "complete"
+    },
+    "s10": {
+      "strategy_name": "Turn-of-the-Month Overlay",
+      "strategy_category": "Calendar_Anomaly",
+      "trading_agent": {
+        "agent_id": "agent_10",
+        "agent_name": "TradingAgent_10",
+        "role": "execution",
+        "specialization": "Calendar_Anomaly",
+        "status": "active"
+      },
+      "executive_assistant": {
+        "agent_id": "innovation_1",
+        "agent_name": "Alpha Innovation Assistant",
+        "role": "intelligence_oversight",
+        "specialty": "ETF & Index Arbitrage",
+        "capabilities": [
+          "market_intelligence",
+          "risk_assessment",
+          "execution_optimization"
+        ],
+        "status": "active"
+      },
+      "assignment_date": "2026-02-08T09:54:18.346392",
+      "integration_status": "complete"
+    },
+    "s11": {
+      "strategy_name": "Overnight Jump Reversion",
+      "strategy_category": "Mean_Reversion",
+      "trading_agent": {
+        "agent_id": "agent_11",
+        "agent_name": "TradingAgent_11",
+        "role": "execution",
+        "specialization": "Mean_Reversion",
+        "status": "active"
+      },
+      "executive_assistant": {
+        "agent_id": "innovation_2",
+        "agent_name": "Beta Innovation Assistant",
+        "role": "intelligence_oversight",
+        "specialty": "Volatility & Dispersion",
+        "capabilities": [
+          "volatility_analysis",
+          "correlation_modeling",
+          "hedge_optimization"
+        ],
+        "status": "active"
+      },
+      "assignment_date": "2026-02-08T09:54:18.346398",
+      "integration_status": "complete"
+    },
+    "s12": {
+      "strategy_name": "Post-Earnings/Accruals Subset Alpha",
+      "strategy_category": "Event_Driven",
+      "trading_agent": {
+        "agent_id": "agent_12",
+        "agent_name": "TradingAgent_12",
+        "role": "execution",
+        "specialization": "Event_Driven",
+        "status": "active"
+      },
+      "executive_assistant": {
+        "agent_id": "innovation_2",
+        "agent_name": "Beta Innovation Assistant",
+        "role": "intelligence_oversight",
+        "specialty": "Volatility & Dispersion",
+        "capabilities": [
+          "volatility_analysis",
+          "correlation_modeling",
+          "hedge_optimization"
+        ],
+        "status": "active"
+      },
+      "assignment_date": "2026-02-08T09:54:18.346408",
+      "integration_status": "complete"
+    },
+    "s13": {
+      "strategy_name": "Earnings IV Run-Up / Crush",
+      "strategy_category": "Event_Driven",
+      "trading_agent": {
+        "agent_id": "agent_13",
+        "agent_name": "TradingAgent_13",
+        "role": "execution",
+        "specialization": "Event_Driven",
+        "status": "active"
+      },
+      "executive_assistant": {
+        "agent_id": "innovation_2",
+        "agent_name": "Beta Innovation Assistant",
+        "role": "intelligence_oversight",
+        "specialty": "Volatility & Dispersion",
+        "capabilities": [
+          "volatility_analysis",
+          "correlation_modeling",
+          "hedge_optimization"
+        ],
+        "status": "active"
+      },
+      "assignment_date": "2026-02-08T09:54:18.346414",
+      "integration_status": "complete"
+    },
+    "s14": {
+      "strategy_name": "IV\u2013RV Alignment Trades",
+      "strategy_category": "Volatility_Arbitrage",
+      "trading_agent": {
+        "agent_id": "agent_14",
+        "agent_name": "TradingAgent_14",
+        "role": "execution",
+        "specialization": "Volatility_Arbitrage",
+        "status": "active"
+      },
+      "executive_assistant": {
+        "agent_id": "innovation_2",
+        "agent_name": "Beta Innovation Assistant",
+        "role": "intelligence_oversight",
+        "specialty": "Volatility & Dispersion",
+        "capabilities": [
+          "volatility_analysis",
+          "correlation_modeling",
+          "hedge_optimization"
+        ],
+        "status": "active"
+      },
+      "assignment_date": "2026-02-08T09:54:18.346420",
+      "integration_status": "complete"
+    },
+    "s15": {
+      "strategy_name": "Index Cash-and-Carry",
+      "strategy_category": "Index_Arbitrage",
+      "trading_agent": {
+        "agent_id": "agent_15",
+        "agent_name": "TradingAgent_15",
+        "role": "execution",
+        "specialization": "Index_Arbitrage",
+        "status": "active"
+      },
+      "executive_assistant": {
+        "agent_id": "innovation_2",
+        "agent_name": "Beta Innovation Assistant",
+        "role": "intelligence_oversight",
+        "specialty": "Volatility & Dispersion",
+        "capabilities": [
+          "volatility_analysis",
+          "correlation_modeling",
+          "hedge_optimization"
+        ],
+        "status": "active"
+      },
+      "assignment_date": "2026-02-08T09:54:18.346425",
+      "integration_status": "complete"
+    },
+    "s16": {
+      "strategy_name": "Flow-Pressure Contrarian (ETF/Funds)",
+      "strategy_category": "Flow_Analysis",
+      "trading_agent": {
+        "agent_id": "agent_16",
+        "agent_name": "TradingAgent_16",
+        "role": "execution",
+        "specialization": "Flow_Analysis",
+        "status": "active"
+      },
+      "executive_assistant": {
+        "agent_id": "innovation_2",
+        "agent_name": "Beta Innovation Assistant",
+        "role": "intelligence_oversight",
+        "specialty": "Volatility & Dispersion",
+        "capabilities": [
+          "volatility_analysis",
+          "correlation_modeling",
+          "hedge_optimization"
+        ],
+        "status": "active"
+      },
+      "assignment_date": "2026-02-08T09:54:18.346431",
+      "integration_status": "complete"
+    },
+    "s17": {
+      "strategy_name": "Be the Patient Counterparty on Rebalance Days",
+      "strategy_category": "Index_Arbitrage",
+      "trading_agent": {
+        "agent_id": "agent_17",
+        "agent_name": "TradingAgent_17",
+        "role": "execution",
+        "specialization": "Index_Arbitrage",
+        "status": "active"
+      },
+      "executive_assistant": {
+        "agent_id": "innovation_2",
+        "agent_name": "Beta Innovation Assistant",
+        "role": "intelligence_oversight",
+        "specialty": "Volatility & Dispersion",
+        "capabilities": [
+          "volatility_analysis",
+          "correlation_modeling",
+          "hedge_optimization"
+        ],
+        "status": "active"
+      },
+      "assignment_date": "2026-02-08T09:54:18.346437",
+      "integration_status": "complete"
+    },
+    "s18": {
+      "strategy_name": "EU Closing-Auction Imbalance Unlock",
+      "strategy_category": "Microstructure",
+      "trading_agent": {
+        "agent_id": "agent_18",
+        "agent_name": "TradingAgent_18",
+        "role": "execution",
+        "specialization": "Microstructure",
+        "status": "active"
+      },
+      "executive_assistant": {
+        "agent_id": "innovation_2",
+        "agent_name": "Beta Innovation Assistant",
+        "role": "intelligence_oversight",
+        "specialty": "Volatility & Dispersion",
+        "capabilities": [
+          "volatility_analysis",
+          "correlation_modeling",
+          "hedge_optimization"
+        ],
+        "status": "active"
+      },
+      "assignment_date": "2026-02-08T09:54:18.346445",
+      "integration_status": "complete"
+    },
+    "s19": {
+      "strategy_name": "ETF Primary-Market Routing",
+      "strategy_category": "ETF_Arbitrage",
+      "trading_agent": {
+        "agent_id": "agent_19",
+        "agent_name": "TradingAgent_19",
+        "role": "execution",
+        "specialization": "ETF_Arbitrage",
+        "status": "active"
+      },
+      "executive_assistant": {
+        "agent_id": "innovation_2",
+        "agent_name": "Beta Innovation Assistant",
+        "role": "intelligence_oversight",
+        "specialty": "Volatility & Dispersion",
+        "capabilities": [
+          "volatility_analysis",
+          "correlation_modeling",
+          "hedge_optimization"
+        ],
+        "status": "active"
+      },
+      "assignment_date": "2026-02-08T09:54:18.346451",
+      "integration_status": "complete"
+    },
+    "s20": {
+      "strategy_name": "Monetary Momentum Window",
+      "strategy_category": "Macro_Trend",
+      "trading_agent": {
+        "agent_id": "agent_20",
+        "agent_name": "TradingAgent_20",
+        "role": "execution",
+        "specialization": "Macro_Trend",
+        "status": "active"
+      },
+      "executive_assistant": {
+        "agent_id": "innovation_2",
+        "agent_name": "Beta Innovation Assistant",
+        "role": "intelligence_oversight",
+        "specialty": "Volatility & Dispersion",
+        "capabilities": [
+          "volatility_analysis",
+          "correlation_modeling",
+          "hedge_optimization"
+        ],
+        "status": "active"
+      },
+      "assignment_date": "2026-02-08T09:54:18.346457",
+      "integration_status": "complete"
+    },
+    "s21": {
+      "strategy_name": "VRP Term/Moneyness Tilt",
+      "strategy_category": "Volatility_Premium",
+      "trading_agent": {
+        "agent_id": "agent_21",
+        "agent_name": "TradingAgent_21",
+        "role": "execution",
+        "specialization": "Volatility_Premium",
+        "status": "active"
+      },
+      "executive_assistant": {
+        "agent_id": "innovation_3",
+        "agent_name": "Gamma Innovation Assistant",
+        "role": "intelligence_oversight",
+        "specialty": "Event Driven & Macro",
+        "capabilities": [
+          "event_prediction",
+          "macro_analysis",
+          "sentiment_processing"
+        ],
+        "status": "active"
+      },
+      "assignment_date": "2026-02-08T09:54:18.346466",
+      "integration_status": "complete"
+    },
+    "s22": {
+      "strategy_name": "NLP-Guided Overnight Selector",
+      "strategy_category": "Time_of_Day",
+      "trading_agent": {
+        "agent_id": "agent_22",
+        "agent_name": "TradingAgent_22",
+        "role": "execution",
+        "specialization": "Time_of_Day",
+        "status": "active"
+      },
+      "executive_assistant": {
+        "agent_id": "innovation_3",
+        "agent_name": "Gamma Innovation Assistant",
+        "role": "intelligence_oversight",
+        "specialty": "Event Driven & Macro",
+        "capabilities": [
+          "event_prediction",
+          "macro_analysis",
+          "sentiment_processing"
+        ],
+        "status": "active"
+      },
+      "assignment_date": "2026-02-08T09:54:18.346472",
+      "integration_status": "complete"
+    },
+    "s23": {
+      "strategy_name": "Auction-Aware MM with RL",
+      "strategy_category": "Market_Making",
+      "trading_agent": {
+        "agent_id": "agent_23",
+        "agent_name": "TradingAgent_23",
+        "role": "execution",
+        "specialization": "Market_Making",
+        "status": "active"
+      },
+      "executive_assistant": {
+        "agent_id": "innovation_3",
+        "agent_name": "Gamma Innovation Assistant",
+        "role": "intelligence_oversight",
+        "specialty": "Event Driven & Macro",
+        "capabilities": [
+          "event_prediction",
+          "macro_analysis",
+          "sentiment_processing"
+        ],
+        "status": "active"
+      },
+      "assignment_date": "2026-02-08T09:54:18.346481",
+      "integration_status": "complete"
+    },
+    "s24": {
+      "strategy_name": "Flow Pressure & Real-Economy Feedback (Credit-Equity)",
+      "strategy_category": "Flow_Analysis",
+      "trading_agent": {
+        "agent_id": "agent_24",
+        "agent_name": "TradingAgent_24",
+        "role": "execution",
+        "specialization": "Flow_Analysis",
+        "status": "active"
+      },
+      "executive_assistant": {
+        "agent_id": "innovation_3",
+        "agent_name": "Gamma Innovation Assistant",
+        "role": "intelligence_oversight",
+        "specialty": "Event Driven & Macro",
+        "capabilities": [
+          "event_prediction",
+          "macro_analysis",
+          "sentiment_processing"
+        ],
+        "status": "active"
+      },
+      "assignment_date": "2026-02-08T09:54:18.346488",
+      "integration_status": "complete"
+    },
+    "s25": {
+      "strategy_name": "Attention-Weighted TOM Overlay",
+      "strategy_category": "Calendar_Anomaly",
+      "trading_agent": {
+        "agent_id": "agent_25",
+        "agent_name": "TradingAgent_25",
+        "role": "execution",
+        "specialization": "Calendar_Anomaly",
+        "status": "active"
+      },
+      "executive_assistant": {
+        "agent_id": "innovation_3",
+        "agent_name": "Gamma Innovation Assistant",
+        "role": "intelligence_oversight",
+        "specialty": "Event Driven & Macro",
+        "capabilities": [
+          "event_prediction",
+          "macro_analysis",
+          "sentiment_processing"
+        ],
+        "status": "active"
+      },
+      "assignment_date": "2026-02-08T09:54:18.346495",
+      "integration_status": "complete"
+    },
+    "s26": {
+      "strategy_name": "Weekly Overnight Seasonality Timing",
+      "strategy_category": "Time_of_Day",
+      "trading_agent": {
+        "agent_id": "agent_26",
+        "agent_name": "TradingAgent_26",
+        "role": "execution",
+        "specialization": "Time_of_Day",
+        "status": "active"
+      },
+      "executive_assistant": {
+        "agent_id": "innovation_3",
+        "agent_name": "Gamma Innovation Assistant",
+        "role": "intelligence_oversight",
+        "specialty": "Event Driven & Macro",
+        "capabilities": [
+          "event_prediction",
+          "macro_analysis",
+          "sentiment_processing"
+        ],
+        "status": "active"
+      },
+      "assignment_date": "2026-02-08T09:54:18.346501",
+      "integration_status": "complete"
+    },
+    "s27": {
+      "strategy_name": "Clientele Split Allocator",
+      "strategy_category": "Time_of_Day",
+      "trading_agent": {
+        "agent_id": "agent_27",
+        "agent_name": "TradingAgent_27",
+        "role": "execution",
+        "specialization": "Time_of_Day",
+        "status": "active"
+      },
+      "executive_assistant": {
+        "agent_id": "innovation_3",
+        "agent_name": "Gamma Innovation Assistant",
+        "role": "intelligence_oversight",
+        "specialty": "Event Driven & Macro",
+        "capabilities": [
+          "event_prediction",
+          "macro_analysis",
+          "sentiment_processing"
+        ],
+        "status": "active"
+      },
+      "assignment_date": "2026-02-08T09:54:18.346508",
+      "integration_status": "complete"
+    },
+    "s28": {
+      "strategy_name": "Pre-FOMC VIX/Equity Pair",
+      "strategy_category": "Macro_Event",
+      "trading_agent": {
+        "agent_id": "agent_28",
+        "agent_name": "TradingAgent_28",
+        "role": "execution",
+        "specialization": "Macro_Event",
+        "status": "active"
+      },
+      "executive_assistant": {
+        "agent_id": "innovation_3",
+        "agent_name": "Gamma Innovation Assistant",
+        "role": "intelligence_oversight",
+        "specialty": "Event Driven & Macro",
+        "capabilities": [
+          "event_prediction",
+          "macro_analysis",
+          "sentiment_processing"
+        ],
+        "status": "active"
+      },
+      "assignment_date": "2026-02-08T09:54:18.346517",
+      "integration_status": "complete"
+    },
+    "s29": {
+      "strategy_name": "Pre-FOMC Regime Switch Filter",
+      "strategy_category": "Macro_Event",
+      "trading_agent": {
+        "agent_id": "agent_29",
+        "agent_name": "TradingAgent_29",
+        "role": "execution",
+        "specialization": "Macro_Event",
+        "status": "active"
+      },
+      "executive_assistant": {
+        "agent_id": "innovation_3",
+        "agent_name": "Gamma Innovation Assistant",
+        "role": "intelligence_oversight",
+        "specialty": "Event Driven & Macro",
+        "capabilities": [
+          "event_prediction",
+          "macro_analysis",
+          "sentiment_processing"
+        ],
+        "status": "active"
+      },
+      "assignment_date": "2026-02-08T09:54:18.346525",
+      "integration_status": "complete"
+    },
+    "s30": {
+      "strategy_name": "Index Inclusion Fade",
+      "strategy_category": "Index_Arbitrage",
+      "trading_agent": {
+        "agent_id": "agent_30",
+        "agent_name": "TradingAgent_30",
+        "role": "execution",
+        "specialization": "Index_Arbitrage",
+        "status": "active"
+      },
+      "executive_assistant": {
+        "agent_id": "innovation_3",
+        "agent_name": "Gamma Innovation Assistant",
+        "role": "intelligence_oversight",
+        "specialty": "Event Driven & Macro",
+        "capabilities": [
+          "event_prediction",
+          "macro_analysis",
+          "sentiment_processing"
+        ],
+        "status": "active"
+      },
+      "assignment_date": "2026-02-08T09:54:18.346531",
+      "integration_status": "complete"
+    },
+    "s31": {
+      "strategy_name": "Reconstitution Close Microstructure",
+      "strategy_category": "Index_Arbitrage",
+      "trading_agent": {
+        "agent_id": "agent_31",
+        "agent_name": "TradingAgent_31",
+        "role": "execution",
+        "specialization": "Index_Arbitrage",
+        "status": "active"
+      },
+      "executive_assistant": {
+        "agent_id": "innovation_4",
+        "agent_name": "Delta Innovation Assistant",
+        "role": "intelligence_oversight",
+        "specialty": "Microstructure & Flow",
+        "capabilities": [
+          "order_flow_analysis",
+          "microstructure_modeling",
+          "liquidity_assessment"
+        ],
+        "status": "active"
+      },
+      "assignment_date": "2026-02-08T09:54:18.346538",
+      "integration_status": "complete"
+    },
+    "s32": {
+      "strategy_name": "Euronext Imbalance Capture",
+      "strategy_category": "Microstructure",
+      "trading_agent": {
+        "agent_id": "agent_32",
+        "agent_name": "TradingAgent_32",
+        "role": "execution",
+        "specialization": "Microstructure",
+        "status": "active"
+      },
+      "executive_assistant": {
+        "agent_id": "innovation_4",
+        "agent_name": "Delta Innovation Assistant",
+        "role": "intelligence_oversight",
+        "specialty": "Microstructure & Flow",
+        "capabilities": [
+          "order_flow_analysis",
+          "microstructure_modeling",
+          "liquidity_assessment"
+        ],
+        "status": "active"
+      },
+      "assignment_date": "2026-02-08T09:54:18.346544",
+      "integration_status": "complete"
+    },
+    "s33": {
+      "strategy_name": "ETF Create/Redeem Latency Edge",
+      "strategy_category": "ETF_Arbitrage",
+      "trading_agent": {
+        "agent_id": "agent_33",
+        "agent_name": "TradingAgent_33",
+        "role": "execution",
+        "specialization": "ETF_Arbitrage",
+        "status": "active"
+      },
+      "executive_assistant": {
+        "agent_id": "innovation_4",
+        "agent_name": "Delta Innovation Assistant",
+        "role": "intelligence_oversight",
+        "specialty": "Microstructure & Flow",
+        "capabilities": [
+          "order_flow_analysis",
+          "microstructure_modeling",
+          "liquidity_assessment"
+        ],
+        "status": "active"
+      },
+      "assignment_date": "2026-02-08T09:54:18.346550",
+      "integration_status": "complete"
+    },
+    "s34": {
+      "strategy_name": "Bubble\u2011Watch Flow Contrarian (ETFs)",
+      "strategy_category": "Flow_Analysis",
+      "trading_agent": {
+        "agent_id": "agent_34",
+        "agent_name": "TradingAgent_34",
+        "role": "execution",
+        "specialization": "Flow_Analysis",
+        "status": "active"
+      },
+      "executive_assistant": {
+        "agent_id": "innovation_4",
+        "agent_name": "Delta Innovation Assistant",
+        "role": "intelligence_oversight",
+        "specialty": "Microstructure & Flow",
+        "capabilities": [
+          "order_flow_analysis",
+          "microstructure_modeling",
+          "liquidity_assessment"
+        ],
+        "status": "active"
+      },
+      "assignment_date": "2026-02-08T09:54:18.346557",
+      "integration_status": "complete"
+    },
+    "s35": {
+      "strategy_name": "Muni Fund Outflow Liquidity Provision",
+      "strategy_category": "Liquidity_Provision",
+      "trading_agent": {
+        "agent_id": "agent_35",
+        "agent_name": "TradingAgent_35",
+        "role": "execution",
+        "specialization": "Liquidity_Provision",
+        "status": "active"
+      },
+      "executive_assistant": {
+        "agent_id": "innovation_4",
+        "agent_name": "Delta Innovation Assistant",
+        "role": "intelligence_oversight",
+        "specialty": "Microstructure & Flow",
+        "capabilities": [
+          "order_flow_analysis",
+          "microstructure_modeling",
+          "liquidity_assessment"
+        ],
+        "status": "active"
+      },
+      "assignment_date": "2026-02-08T09:54:18.346563",
+      "integration_status": "complete"
+    },
+    "s36": {
+      "strategy_name": "Option\u2011Trading ETF Rollover Signal",
+      "strategy_category": "ETF_Arbitrage",
+      "trading_agent": {
+        "agent_id": "agent_36",
+        "agent_name": "TradingAgent_36",
+        "role": "execution",
+        "specialization": "ETF_Arbitrage",
+        "status": "active"
+      },
+      "executive_assistant": {
+        "agent_id": "innovation_4",
+        "agent_name": "Delta Innovation Assistant",
+        "role": "intelligence_oversight",
+        "specialty": "Microstructure & Flow",
+        "capabilities": [
+          "order_flow_analysis",
+          "microstructure_modeling",
+          "liquidity_assessment"
+        ],
+        "status": "active"
+      },
+      "assignment_date": "2026-02-08T09:54:18.346569",
+      "integration_status": "complete"
+    },
+    "s37": {
+      "strategy_name": "Cross\u2011Asset VRP Basket",
+      "strategy_category": "Volatility_Premium",
+      "trading_agent": {
+        "agent_id": "agent_37",
+        "agent_name": "TradingAgent_37",
+        "role": "execution",
+        "specialization": "Volatility_Premium",
+        "status": "active"
+      },
+      "executive_assistant": {
+        "agent_id": "innovation_4",
+        "agent_name": "Delta Innovation Assistant",
+        "role": "intelligence_oversight",
+        "specialty": "Microstructure & Flow",
+        "capabilities": [
+          "order_flow_analysis",
+          "microstructure_modeling",
+          "liquidity_assessment"
+        ],
+        "status": "active"
+      },
+      "assignment_date": "2026-02-08T09:54:18.346591",
+      "integration_status": "complete"
+    },
+    "s38": {
+      "strategy_name": "VRP Term\u2011Slope Timing",
+      "strategy_category": "Volatility_Premium",
+      "trading_agent": {
+        "agent_id": "agent_38",
+        "agent_name": "TradingAgent_38",
+        "role": "execution",
+        "specialization": "Volatility_Premium",
+        "status": "active"
+      },
+      "executive_assistant": {
+        "agent_id": "innovation_4",
+        "agent_name": "Delta Innovation Assistant",
+        "role": "intelligence_oversight",
+        "specialty": "Microstructure & Flow",
+        "capabilities": [
+          "order_flow_analysis",
+          "microstructure_modeling",
+          "liquidity_assessment"
+        ],
+        "status": "active"
+      },
+      "assignment_date": "2026-02-08T09:54:18.346601",
+      "integration_status": "complete"
+    },
+    "s39": {
+      "strategy_name": "Robust VRP via Synthetic Variance Swaps",
+      "strategy_category": "Volatility_Premium",
+      "trading_agent": {
+        "agent_id": "agent_39",
+        "agent_name": "TradingAgent_39",
+        "role": "execution",
+        "specialization": "Volatility_Premium",
+        "status": "active"
+      },
+      "executive_assistant": {
+        "agent_id": "innovation_4",
+        "agent_name": "Delta Innovation Assistant",
+        "role": "intelligence_oversight",
+        "specialty": "Microstructure & Flow",
+        "capabilities": [
+          "order_flow_analysis",
+          "microstructure_modeling",
+          "liquidity_assessment"
+        ],
+        "status": "active"
+      },
+      "assignment_date": "2026-02-08T09:54:18.346608",
+      "integration_status": "complete"
+    },
+    "s40": {
+      "strategy_name": "Overnight vs Intraday Variance Skew",
+      "strategy_category": "Volatility_Premium",
+      "trading_agent": {
+        "agent_id": "agent_40",
+        "agent_name": "TradingAgent_40",
+        "role": "execution",
+        "specialization": "Volatility_Premium",
+        "status": "active"
+      },
+      "executive_assistant": {
+        "agent_id": "innovation_4",
+        "agent_name": "Delta Innovation Assistant",
+        "role": "intelligence_oversight",
+        "specialty": "Microstructure & Flow",
+        "capabilities": [
+          "order_flow_analysis",
+          "microstructure_modeling",
+          "liquidity_assessment"
+        ],
+        "status": "active"
+      },
+      "assignment_date": "2026-02-08T09:54:18.346617",
+      "integration_status": "complete"
+    },
+    "s41": {
+      "strategy_name": "Conditional Dependence Trades",
+      "strategy_category": "Correlation",
+      "trading_agent": {
+        "agent_id": "agent_41",
+        "agent_name": "TradingAgent_41",
+        "role": "execution",
+        "specialization": "Correlation",
+        "status": "active"
+      },
+      "executive_assistant": {
+        "agent_id": "innovation_5",
+        "agent_name": "Epsilon Innovation Assistant",
+        "role": "intelligence_oversight",
+        "specialty": "Calendar Anomalies & Mean Reversion",
+        "capabilities": [
+          "seasonality_analysis",
+          "reversion_signals",
+          "calendar_effects"
+        ],
+        "status": "active"
+      },
+      "assignment_date": "2026-02-08T09:54:18.346624",
+      "integration_status": "complete"
+    },
+    "s42": {
+      "strategy_name": "IC\u2013RC Gate for Dispersion",
+      "strategy_category": "Dispersion",
+      "trading_agent": {
+        "agent_id": "agent_42",
+        "agent_name": "TradingAgent_42",
+        "role": "execution",
+        "specialization": "Dispersion",
+        "status": "active"
+      },
+      "executive_assistant": {
+        "agent_id": "innovation_5",
+        "agent_name": "Epsilon Innovation Assistant",
+        "role": "intelligence_oversight",
+        "specialty": "Calendar Anomalies & Mean Reversion",
+        "capabilities": [
+          "seasonality_analysis",
+          "reversion_signals",
+          "calendar_effects"
+        ],
+        "status": "active"
+      },
+      "assignment_date": "2026-02-08T09:54:18.346630",
+      "integration_status": "complete"
+    },
+    "s43": {
+      "strategy_name": "Concentration\u2011Aware Dispersion",
+      "strategy_category": "Dispersion",
+      "trading_agent": {
+        "agent_id": "agent_43",
+        "agent_name": "TradingAgent_43",
+        "role": "execution",
+        "specialization": "Dispersion",
+        "status": "active"
+      },
+      "executive_assistant": {
+        "agent_id": "innovation_5",
+        "agent_name": "Epsilon Innovation Assistant",
+        "role": "intelligence_oversight",
+        "specialty": "Calendar Anomalies & Mean Reversion",
+        "capabilities": [
+          "seasonality_analysis",
+          "reversion_signals",
+          "calendar_effects"
+        ],
+        "status": "active"
+      },
+      "assignment_date": "2026-02-08T09:54:18.346637",
+      "integration_status": "complete"
+    },
+    "s44": {
+      "strategy_name": "Overnight Jump Fade (Stock-Specific)",
+      "strategy_category": "Mean_Reversion",
+      "trading_agent": {
+        "agent_id": "agent_44",
+        "agent_name": "TradingAgent_44",
+        "role": "execution",
+        "specialization": "Mean_Reversion",
+        "status": "active"
+      },
+      "executive_assistant": {
+        "agent_id": "innovation_5",
+        "agent_name": "Epsilon Innovation Assistant",
+        "role": "intelligence_oversight",
+        "specialty": "Calendar Anomalies & Mean Reversion",
+        "capabilities": [
+          "seasonality_analysis",
+          "reversion_signals",
+          "calendar_effects"
+        ],
+        "status": "active"
+      },
+      "assignment_date": "2026-02-08T09:54:18.346647",
+      "integration_status": "complete"
+    },
+    "s45": {
+      "strategy_name": "Contextual Accruals",
+      "strategy_category": "Event_Driven",
+      "trading_agent": {
+        "agent_id": "agent_45",
+        "agent_name": "TradingAgent_45",
+        "role": "execution",
+        "specialization": "Event_Driven",
+        "status": "active"
+      },
+      "executive_assistant": {
+        "agent_id": "innovation_5",
+        "agent_name": "Epsilon Innovation Assistant",
+        "role": "intelligence_oversight",
+        "specialty": "Calendar Anomalies & Mean Reversion",
+        "capabilities": [
+          "seasonality_analysis",
+          "reversion_signals",
+          "calendar_effects"
+        ],
+        "status": "active"
+      },
+      "assignment_date": "2026-02-08T09:54:18.346653",
+      "integration_status": "complete"
+    },
+    "s46": {
+      "strategy_name": "PEAD Disaggregation",
+      "strategy_category": "Event_Driven",
+      "trading_agent": {
+        "agent_id": "agent_46",
+        "agent_name": "TradingAgent_46",
+        "role": "execution",
+        "specialization": "Event_Driven",
+        "status": "active"
+      },
+      "executive_assistant": {
+        "agent_id": "innovation_5",
+        "agent_name": "Epsilon Innovation Assistant",
+        "role": "intelligence_oversight",
+        "specialty": "Calendar Anomalies & Mean Reversion",
+        "capabilities": [
+          "seasonality_analysis",
+          "reversion_signals",
+          "calendar_effects"
+        ],
+        "status": "active"
+      },
+      "assignment_date": "2026-02-08T09:54:18.346660",
+      "integration_status": "complete"
+    },
+    "s47": {
+      "strategy_name": "Event Vega Calendars",
+      "strategy_category": "Event_Driven",
+      "trading_agent": {
+        "agent_id": "agent_47",
+        "agent_name": "TradingAgent_47",
+        "role": "execution",
+        "specialization": "Event_Driven",
+        "status": "active"
+      },
+      "executive_assistant": {
+        "agent_id": "innovation_5",
+        "agent_name": "Epsilon Innovation Assistant",
+        "role": "intelligence_oversight",
+        "specialty": "Calendar Anomalies & Mean Reversion",
+        "capabilities": [
+          "seasonality_analysis",
+          "reversion_signals",
+          "calendar_effects"
+        ],
+        "status": "active"
+      },
+      "assignment_date": "2026-02-08T09:54:18.346667",
+      "integration_status": "complete"
+    },
+    "s48": {
+      "strategy_name": "Tenor\u2011Matched IV\u2013RV",
+      "strategy_category": "Volatility_Arbitrage",
+      "trading_agent": {
+        "agent_id": "agent_48",
+        "agent_name": "TradingAgent_48",
+        "role": "execution",
+        "specialization": "Volatility_Arbitrage",
+        "status": "active"
+      },
+      "executive_assistant": {
+        "agent_id": "innovation_5",
+        "agent_name": "Epsilon Innovation Assistant",
+        "role": "intelligence_oversight",
+        "specialty": "Calendar Anomalies & Mean Reversion",
+        "capabilities": [
+          "seasonality_analysis",
+          "reversion_signals",
+          "calendar_effects"
+        ],
+        "status": "active"
+      },
+      "assignment_date": "2026-02-08T09:54:18.346675",
+      "integration_status": "complete"
+    },
+    "s49": {
+      "strategy_name": "TOM Futures\u2011Only Overlay",
+      "strategy_category": "Calendar_Anomaly",
+      "trading_agent": {
+        "agent_id": "agent_49",
+        "agent_name": "TradingAgent_49",
+        "role": "execution",
+        "specialization": "Calendar_Anomaly",
+        "status": "active"
+      },
+      "executive_assistant": {
+        "agent_id": "innovation_5",
+        "agent_name": "Epsilon Innovation Assistant",
+        "role": "intelligence_oversight",
+        "specialty": "Calendar Anomalies & Mean Reversion",
+        "capabilities": [
+          "seasonality_analysis",
+          "reversion_signals",
+          "calendar_effects"
+        ],
+        "status": "active"
+      },
+      "assignment_date": "2026-02-08T09:54:18.346681",
+      "integration_status": "complete"
+    }
+  }
+}

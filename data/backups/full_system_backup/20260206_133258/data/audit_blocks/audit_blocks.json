@@ -1,0 +1,24 @@
+[
+  {
+    "block_id": "04f2b4f0-908e-4590-a81a-20f272d22fc2",
+    "timestamp": "2026-02-06T13:32:58.818399",
+    "previous_hash": "GENESIS",
+    "events": [
+      {
+        "event_id": "05528630-f5ae-4936-adf7-dd2a10e27d13",
+        "timestamp": "2026-02-06T13:32:58.818361",
+        "category": "system",
+        "action": "integrity_system_initialized",
+        "user": "system",
+        "resource": "audit_trail",
+        "status": "success",
+        "details": {},
+        "custodian": "system"
+      }
+    ],
+    "block_hash": "75a2cc0d871ccffee4379842d73ec20fa936f8bafc43efe83105b4a85e1496a7",
+    "signature": "4c4b6a774f86b82bcee5c317dc30daaf254978edcf551b2f10f20d936e3231816d68ac7394a03c6cf11d4081d2d6ff690d6d0ba97d597507f033aa9d264ad91b3a46c312b75f0b7870e6e94f50d940cc4810011260e3a95c715cfc30a4c2af67c5fa4ec0f61d414771a15e7d41e74bcdc03fabfcc4f2a31d16534be838a563d1e6c23118d8bef60daf05d602ba1fda188435830cc37afb31162d7069102484da783e07230e2e7526cf5ad82048d848513f5c7b7dd3902479109efbf287f14dd96ae648c7557e85aa282af432f2e36805c482fa5a4977b03e8e17a9289051c71e759a7064f1c25892810660a7533f6a81764da0c6e20e3b8e0c53ffcbcf19ad1b",
+    "custodian": "system",
+    "sequence_number": 1
+  }
+]

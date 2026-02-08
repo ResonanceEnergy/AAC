@@ -1,0 +1,543 @@
+# AAC Performance Optimization Configuration
+# Maximum performance settings across all departments
+# Version: 1.0
+
+# ═══════════════════════════════════════════════════════════════════════════
+# GLOBAL PERFORMANCE SETTINGS
+# ═══════════════════════════════════════════════════════════════════════════
+
+global:
+  # Runtime mode
+  mode: production  # development | paper | production
+  
+  # Logging
+  log_level: INFO  # DEBUG | INFO | WARNING | ERROR
+  log_format: json
+  log_retention_days: 90
+  
+  # Metrics collection
+  metrics:
+    enabled: true
+    collection_interval_seconds: 5
+    retention_days: 365
+    
+  # Health checks
+  health_check:
+    enabled: true
+    interval_seconds: 30
+    timeout_seconds: 5
+
+# ═══════════════════════════════════════════════════════════════════════════
+# TRADING EXECUTION PERFORMANCE
+# ═══════════════════════════════════════════════════════════════════════════
+
+trading_execution:
+  # Connection pooling
+  connection_pool:
+    enabled: true
+    min_connections: 5
+    max_connections: 50
+    connection_timeout_ms: 5000
+    idle_timeout_ms: 300000  # 5 minutes
+    
+  # Order management
+  order_management:
+    # Pre-compute order templates for common operations
+    precompute_templates: true
+    template_cache_size: 1000
+    
+    # Async order submission
+    async_submission: true
+    max_concurrent_orders: 100
+    
+    # Order batching
+    batch_similar_orders: true
+    batch_window_ms: 50
+    max_batch_size: 20
+    
+    # Rate limiting awareness
+    rate_limit_buffer_pct: 10  # Stay 10% below limits
+    
+  # Latency optimization
+  latency:
+    # Target latencies
+    order_to_exchange_target_ms: 50
+    fill_processing_target_ms: 10
+    
+    # Circuit breaker for high latency
+    latency_circuit_breaker:
+      enabled: true
+      threshold_ms: 500
+      consecutive_failures: 3
+      reset_timeout_seconds: 30
+      
+  # Position management
+  position_management:
+    # Cache positions locally
+    position_cache:
+      enabled: true
+      refresh_interval_ms: 1000
+      
+    # Priority queue for urgent orders
+    priority_queue:
+      enabled: true
+      priority_levels: 3  # 1=highest
+      
+  # Fill processing
+  fill_processing:
+    # Stream processing
+    stream_mode: true
+    buffer_size: 10000
+    
+    # Idempotency
+    idempotency_cache:
+      enabled: true
+      ttl_hours: 24
+      max_entries: 100000
+
+# ═══════════════════════════════════════════════════════════════════════════
+# BIGBRAIN INTELLIGENCE PERFORMANCE
+# ═══════════════════════════════════════════════════════════════════════════
+
+bigbrain_intelligence:
+  # Signal generation
+  signal_generation:
+    # Parallel computation
+    parallel_workers: 8
+    
+    # Feature computation
+    feature_computation:
+      # Pre-compute during off-hours
+      precompute_features: true
+      precompute_schedule: "0 4 * * *"  # 4 AM daily
+      
+      # Feature caching
+      feature_cache:
+        enabled: true
+        max_memory_mb: 2048
+        ttl_minutes: 60
+        
+    # Model inference
+    model_inference:
+      # Batch inference
+      batch_size: 100
+      max_batch_delay_ms: 10
+      
+      # Model caching
+      model_cache:
+        enabled: true
+        max_models: 20
+        
+  # Data ingestion
+  data_ingestion:
+    # Streaming
+    streaming:
+      enabled: true
+      buffer_size: 50000
+      flush_interval_ms: 100
+      
+    # Schema validation
+    schema_validation:
+      enabled: true
+      fail_fast: true
+      quarantine_on_failure: true
+      
+    # Anomaly detection
+    anomaly_detection:
+      enabled: true
+      detection_interval_ms: 1000
+      
+  # Research pipeline
+  research_pipeline:
+    # Parallel backtests
+    parallel_backtests: 4
+    
+    # Result caching
+    result_cache:
+      enabled: true
+      max_results: 1000
+      ttl_hours: 168  # 1 week
+
+# ═══════════════════════════════════════════════════════════════════════════
+# CENTRAL ACCOUNTING PERFORMANCE
+# ═══════════════════════════════════════════════════════════════════════════
+
+central_accounting:
+  # Reconciliation
+  reconciliation:
+    # Real-time streaming
+    streaming_recon:
+      enabled: true
+      lag_threshold_seconds: 5
+      
+    # Fuzzy matching for partial fills
+    fuzzy_matching:
+      enabled: true
+      tolerance_bps: 1
+      
+    # Parallel processing
+    parallel_recon_workers: 4
+    
+    # Automatic discrepancy handling
+    auto_escalation:
+      enabled: true
+      threshold_usd: 100
+      
+  # P&L calculation
+  pnl_calculation:
+    # Incremental updates
+    incremental_mode: true
+    
+    # Pre-aggregation
+    pre_aggregation:
+      enabled: true
+      intervals: [1m, 5m, 1h, 1d]
+      
+    # Caching
+    pnl_cache:
+      enabled: true
+      ttl_seconds: 60
+      
+  # Risk computation
+  risk_computation:
+    # Portfolio greeks caching
+    greeks_cache:
+      enabled: true
+      refresh_interval_ms: 5000
+      
+    # Delta-based position updates
+    delta_updates: true
+    
+    # Parallel VaR computation
+    parallel_var:
+      enabled: true
+      scenarios: 1000
+      workers: 4
+      
+  # Reporting
+  reporting:
+    # Async report generation
+    async_reports: true
+    
+    # Pre-computed dashboards
+    precompute_dashboards:
+      enabled: true
+      refresh_interval_minutes: 5
+
+# ═══════════════════════════════════════════════════════════════════════════
+# CRYPTO INTELLIGENCE PERFORMANCE
+# ═══════════════════════════════════════════════════════════════════════════
+
+crypto_intelligence:
+  # Venue management
+  venue_management:
+    # Health score caching
+    health_cache:
+      enabled: true
+      ttl_seconds: 30
+      
+    # Predictive routing
+    predictive_routing:
+      enabled: true
+      history_window_hours: 24
+      model_refresh_minutes: 60
+      
+    # Auto-rebalance
+    auto_rebalance:
+      enabled: true
+      check_interval_minutes: 15
+      threshold_pct: 10
+      
+  # Withdrawal management
+  withdrawal_management:
+    # Multi-stage limits
+    staged_limits:
+      enabled: true
+      stages:
+        - limit_usd: 1000
+          delay_seconds: 0
+        - limit_usd: 10000
+          delay_seconds: 300
+        - limit_usd: 100000
+          delay_seconds: 3600
+          
+    # Anomaly detection
+    withdrawal_anomaly_detection:
+      enabled: true
+      baseline_window_days: 30
+      
+  # API optimization
+  api_optimization:
+    # Connection pooling
+    connection_pool:
+      enabled: true
+      min_connections: 2
+      max_connections: 10
+      per_venue: true
+      
+    # Request batching
+    request_batching:
+      enabled: true
+      batch_window_ms: 20
+      max_batch_size: 10
+
+# ═══════════════════════════════════════════════════════════════════════════
+# CROSS-DEPARTMENT OPTIMIZATION
+# ═══════════════════════════════════════════════════════════════════════════
+
+cross_department:
+  # Event bus
+  event_bus:
+    # Queue configuration
+    queue:
+      type: memory  # memory | redis | kafka
+      max_size: 100000
+      
+    # Processing
+    processing:
+      workers: 4
+      batch_size: 100
+      max_latency_ms: 100
+      
+  # Metric aggregation
+  metric_aggregation:
+    # Collection
+    collection:
+      parallel_collectors: true
+      timeout_ms: 1000
+      
+    # Storage
+    storage:
+      type: memory  # memory | prometheus | influxdb
+      retention_hours: 24
+      
+  # Communication
+  communication:
+    # gRPC settings (for future)
+    grpc:
+      enabled: false
+      max_message_size_mb: 10
+      keepalive_seconds: 30
+      
+    # REST settings
+    rest:
+      timeout_seconds: 30
+      retry_count: 3
+      retry_delay_ms: 100
+
+# ═══════════════════════════════════════════════════════════════════════════
+# CACHING STRATEGY
+# ═══════════════════════════════════════════════════════════════════════════
+
+caching:
+  # Global cache settings
+  global:
+    enabled: true
+    default_ttl_seconds: 300
+    max_memory_mb: 4096
+    
+  # Per-data-type settings
+  data_types:
+    prices:
+      ttl_seconds: 1
+      max_entries: 100000
+      
+    positions:
+      ttl_seconds: 5
+      max_entries: 10000
+      
+    signals:
+      ttl_seconds: 60
+      max_entries: 50000
+      
+    venue_health:
+      ttl_seconds: 30
+      max_entries: 100
+      
+    risk_metrics:
+      ttl_seconds: 60
+      max_entries: 1000
+      
+  # Cache warming
+  warming:
+    enabled: true
+    on_startup: true
+    schedule: "*/5 * * * *"  # Every 5 minutes
+
+# ═══════════════════════════════════════════════════════════════════════════
+# DATABASE OPTIMIZATION
+# ═══════════════════════════════════════════════════════════════════════════
+
+database:
+  # Connection pooling
+  pool:
+    min_connections: 5
+    max_connections: 50
+    connection_timeout_seconds: 30
+    idle_timeout_seconds: 300
+    
+  # Query optimization
+  queries:
+    # Prepared statements
+    prepared_statements: true
+    statement_cache_size: 1000
+    
+    # Query timeout
+    default_timeout_seconds: 30
+    
+    # Batch operations
+    batch_insert_size: 1000
+    batch_update_size: 500
+    
+  # Async operations
+  async:
+    enabled: true
+    max_concurrent: 20
+
+# ═══════════════════════════════════════════════════════════════════════════
+# NETWORK OPTIMIZATION
+# ═══════════════════════════════════════════════════════════════════════════
+
+network:
+  # TCP settings
+  tcp:
+    nodelay: true
+    keepalive: true
+    keepalive_idle_seconds: 60
+    
+  # HTTP client
+  http:
+    connection_pool_size: 100
+    timeout_seconds: 30
+    retry:
+      count: 3
+      backoff_ms: [100, 500, 1000]
+      
+  # WebSocket
+  websocket:
+    ping_interval_seconds: 30
+    ping_timeout_seconds: 10
+    reconnect:
+      enabled: true
+      max_attempts: 10
+      backoff_ms: [100, 500, 1000, 5000, 10000]
+
+# ═══════════════════════════════════════════════════════════════════════════
+# MEMORY OPTIMIZATION
+# ═══════════════════════════════════════════════════════════════════════════
+
+memory:
+  # Object pooling
+  object_pooling:
+    enabled: true
+    pools:
+      - name: order_objects
+        size: 10000
+      - name: fill_objects
+        size: 50000
+      - name: metric_objects
+        size: 100000
+        
+  # Garbage collection hints
+  gc:
+    # Python-specific
+    gc_threshold: [700, 10, 10]
+    
+  # Memory limits
+  limits:
+    max_heap_mb: 8192
+    alert_threshold_pct: 80
+    critical_threshold_pct: 95
+
+# ═══════════════════════════════════════════════════════════════════════════
+# PARALLELISM & CONCURRENCY
+# ═══════════════════════════════════════════════════════════════════════════
+
+parallelism:
+  # Process-level
+  processes:
+    trading_execution: 2
+    bigbrain_intelligence: 4
+    central_accounting: 2
+    crypto_intelligence: 2
+    
+  # Thread-level
+  threads:
+    io_workers: 20
+    compute_workers: 8
+    
+  # Async settings
+  async:
+    event_loop_policy: uvloop  # default | uvloop
+    max_concurrent_tasks: 1000
+
+# ═══════════════════════════════════════════════════════════════════════════
+# MONITORING & PROFILING
+# ═══════════════════════════════════════════════════════════════════════════
+
+monitoring:
+  # Performance profiling
+  profiling:
+    enabled: false  # Enable only when needed
+    sampling_rate: 0.01  # 1%
+    
+  # Latency tracking
+  latency_tracking:
+    enabled: true
+    percentiles: [50, 90, 95, 99, 99.9]
+    window_seconds: 60
+    
+  # Throughput tracking
+  throughput_tracking:
+    enabled: true
+    window_seconds: 60
+    
+  # Alerting
+  alerting:
+    enabled: true
+    channels:
+      - type: slack
+        url: "${SLACK_WEBHOOK_URL}"
+      - type: pagerduty
+        key: "${PAGERDUTY_KEY}"
+
+# ═══════════════════════════════════════════════════════════════════════════
+# OPTIMIZATION PHASES (Execution Order)
+# ═══════════════════════════════════════════════════════════════════════════
+
+optimization_phases:
+  phase_1_foundation:
+    description: "Basic optimizations with minimal risk"
+    items:
+      - connection_pooling
+      - basic_caching
+      - async_io
+      - prepared_statements
+    priority: critical
+    
+  phase_2_intermediate:
+    description: "Moderate optimizations"
+    items:
+      - feature_precomputation
+      - parallel_processing
+      - batch_operations
+      - object_pooling
+    priority: high
+    
+  phase_3_advanced:
+    description: "Advanced optimizations requiring tuning"
+    items:
+      - predictive_routing
+      - adaptive_caching
+      - memory_optimization
+      - profiling_guided
+    priority: medium
+    
+  phase_4_extreme:
+    description: "Maximum performance, requires careful monitoring"
+    items:
+      - uvloop
+      - zero_copy_io
+      - custom_allocators
+      - colocation
+    priority: low

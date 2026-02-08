@@ -1,0 +1,3911 @@
+# AAC Doctrine Packs: 500 Insights Clustered into 8 Categories
+# Per COPILOT_Continuation_Prompt.txt specifications
+
+doctrine_packs:
+  # ═══════════════════════════════════════════════════════════════════════════
+  # PACK 1: RISK ENVELOPE & CAPITAL ALLOCATION
+  # Primary Owner: CentralAccounting | ~60 insights
+  # ═══════════════════════════════════════════════════════════════════════════
+  pack_1_risk_envelope:
+    name: "Risk Envelope & Capital Allocation"
+    owner: CentralAccounting
+    insight_count: 62
+    
+    core_principles:
+      - id: 1
+        insight: "Arbitrage is a system, not a trade: sense → decide → act → reconcile"
+        level: minimum
+        
+      - id: 2
+        insight: "Define profit only as reconciled, net, risk-adjusted outcome"
+        level: minimum
+        
+      - id: 10
+        insight: "'Riskless' arbitrage is a myth; there is always basis, counterparty, or time risk"
+        level: minimum
+        
+      - id: 14
+        insight: "Treat fees, slippage, and failure rates as state variables"
+        level: scale
+        
+      - id: 22
+        insight: "A strategy without a kill switch is a liability"
+        level: minimum
+        
+      - id: 24
+        insight: "Your edge decays; your process must out-innovate decay"
+        level: institutional
+        
+      - id: 25
+        insight: "The most durable edge is measurement integrity"
+        level: institutional
+        
+      - id: 26
+        insight: "Model every venue as a service with SLOs, not as a price source"
+        level: scale
+        
+      - id: 27
+        insight: "Always ask: 'What breaks this edge when copied?'"
+        level: minimum
+        
+      - id: 28
+        insight: "The future belongs to systems that are adaptive, verified, and governable"
+        level: institutional
+        
+      - id: 29
+        insight: "Risk is not just volatility; it's the cost of being wrong"
+        level: minimum
+        
+      - id: 30
+        insight: "Capital allocation is the ultimate risk control mechanism"
+        level: scale
+        
+      - id: 31
+        insight: "Position limits must be dynamic, not static"
+        level: scale
+        
+      - id: 32
+        insight: "Correlation assumptions break during crises"
+        level: minimum
+        
+      - id: 33
+        insight: "Liquidity risk is the silent killer of arbitrage strategies"
+        level: scale
+        
+      - id: 34
+        insight: "Stress testing must include your own behavior under pressure"
+        level: institutional
+        
+      - id: 35
+        insight: "The best risk models are the ones that admit their limitations"
+        level: minimum
+        
+      - id: 36
+        insight: "Risk appetite must be defined in terms of maximum acceptable outcomes"
+        level: scale
+        
+      - id: 37
+        insight: "Counterparty risk includes operational risk of your counterparties"
+        level: minimum
+        
+      - id: 38
+        insight: "Basis risk is never zero; model it explicitly"
+        level: scale
+        
+      - id: 39
+        insight: "Time risk compounds with position size"
+        level: minimum
+        
+      - id: 40
+        insight: "The risk of rare events is not rare enough to ignore"
+        level: institutional
+        
+      - id: 41
+        insight: "Diversification works until it doesn't; have uncorrelated backups"
+        level: scale
+        
+      - id: 42
+        insight: "Margin requirements change faster than you can react"
+        level: minimum
+        
+      - id: 43
+        insight: "Liquidity dries up when you need it most"
+        level: scale
+        
+      - id: 44
+        insight: "Model risk is the risk that your models are wrong"
+        level: institutional
+        
+      - id: 45
+        insight: "Parameter uncertainty must be quantified and managed"
+        level: scale
+        
+      - id: 46
+        insight: "Backtesting overstates performance; forward testing understates risk"
+        level: minimum
+        
+      - id: 47
+        insight: "The Sharpe ratio is not a risk measure; it's a reward-to-variability measure"
+        level: scale
+        
+      - id: 48
+        insight: "VaR is a compliance tool, not a risk management tool"
+        level: minimum
+        
+      - id: 49
+        insight: "Expected shortfall is better than VaR, but still insufficient"
+        level: scale
+        
+      - id: 50
+        insight: "Stress testing must include plausible worst-case scenarios"
+        level: institutional
+        
+      - id: 51
+        insight: "Risk limits must be breached-tested regularly"
+        level: minimum
+        
+      - id: 52
+        insight: "The risk team must have veto power over trades"
+        level: scale
+        
+      - id: 53
+        insight: "Risk reports must be read and acted upon"
+        level: minimum
+        
+      - id: 54
+        insight: "Risk culture matters more than risk models"
+        level: institutional
+        
+      - id: 55
+        insight: "The board must understand and approve risk limits"
+        level: scale
+        
+      - id: 56
+        insight: "Risk escalation procedures must be tested"
+        level: minimum
+        
+      - id: 57
+        insight: "Business continuity planning includes risk management continuity"
+        level: scale
+        
+      - id: 58
+        insight: "Cyber risk is part of operational risk"
+        level: minimum
+        
+      - id: 59
+        insight: "Regulatory risk changes with the political climate"
+        level: institutional
+        
+      - id: 60
+        insight: "Reputational risk can destroy firms faster than financial risk"
+        level: scale
+        
+      - id: 61
+        insight: "The best risk management is prevention, not reaction"
+        level: minimum
+        
+      - id: 62
+        insight: "Risk management is a profit center, not a cost center"
+        level: institutional
+        
+    required_metrics:
+      - metric: max_drawdown_pct
+        definition: "Maximum peak-to-trough decline in portfolio value"
+        measurement: "Rolling window calculation with 1-minute granularity"
+        thresholds:
+          good: "< 5%"
+          warning: "5-10%"
+          critical: "> 10%"
+        frequency: real_time
+        
+      - metric: daily_loss_pct
+        definition: "Total loss as percentage of starting capital for the day"
+        measurement: "Mark-to-market at EOD vs SOD"
+        thresholds:
+          good: "< 1%"
+          warning: "1-2%"
+          critical: "> 2%"
+        frequency: daily
+        
+      - metric: tail_loss_p99
+        definition: "99th percentile of loss distribution"
+        measurement: "Historical simulation with 1000 scenarios"
+        thresholds:
+          good: "< 2x expected"
+          warning: "2-3x expected"
+          critical: "> 3x expected"
+        frequency: weekly
+        
+      - metric: capital_utilization
+        definition: "Deployed capital as percentage of available"
+        measurement: "Sum of position values / total capital"
+        thresholds:
+          good: "< 50%"
+          warning: "50-75%"
+          critical: "> 75%"
+        frequency: real_time
+        
+      - metric: margin_buffer
+        definition: "Available margin headroom"
+        measurement: "(Margin available - margin used) / margin available"
+        thresholds:
+          good: "> 50%"
+          warning: "25-50%"
+          critical: "< 25%"
+        frequency: real_time
+        
+      - metric: strategy_correlation_matrix
+        definition: "Pairwise correlation of strategy returns"
+        measurement: "Rolling 30-day correlation matrix of daily returns"
+        thresholds:
+          good: "max_pairwise < 0.5"
+          warning: "max_pairwise 0.5-0.7"
+          critical: "max_pairwise > 0.7"
+        frequency: daily
+        alert: "Hidden concentration risk when strategies correlate"
+        
+      - metric: stressed_var_99
+        definition: "Value at Risk under stressed market conditions"
+        measurement: "Parametric VaR using stressed volatility (2x historical)"
+        thresholds:
+          good: "< 3% of capital"
+          warning: "3-5% of capital"
+          critical: "> 5% of capital"
+        frequency: daily
+        
+      - metric: portfolio_heat
+        definition: "Aggregate risk score across all positions"
+        measurement: "Sum of (position_size * volatility * correlation_factor)"
+        thresholds:
+          good: "< 50"
+          warning: "50-75"
+          critical: "> 75"
+        frequency: real_time
+        
+    position_sizing:
+      kelly_criterion:
+        formula: "f* = (p*b - q) / b where p=win_prob, q=1-p, b=win/loss_ratio"
+        implementation: "Use half-Kelly (f*/2) for safety"
+        constraints:
+          - "Never exceed 25% of capital per strategy"
+          - "Scale by inverse of correlation to existing positions"
+          - "Reduce by 50% in CAUTION state"
+          
+      dynamic_sizing:
+        volatility_scaling: "Position_size = Base_size * (Target_vol / Current_vol)"
+        drawdown_scaling: "Reduce size by 10% for each 1% drawdown from peak"
+        correlation_adjustment: "Reduce size by correlation_factor when adding correlated strategy"
+        
+    failure_modes:
+      - mode: "Cascading liquidation"
+        description: "Position unwind triggers further liquidations"
+        trigger: "margin_buffer < 10%"
+        action: A_STOP_EXECUTION
+        
+      - mode: "Correlated drawdown"
+        description: "Multiple strategies lose simultaneously"
+        trigger: "correlation_of_losses > 0.8"
+        action: A_THROTTLE_RISK
+        
+      - mode: "Leverage trap"
+        description: "Unable to reduce leverage in stressed market"
+        trigger: "time_to_delever > 1_hour"
+        action: A_ENTER_SAFE_MODE
+        
+    az_prime_hooks:
+      - trigger: "drawdown_exceeds_5pct"
+        state_transition: "NORMAL → CAUTION"
+        action: A_THROTTLE_RISK
+        
+      - trigger: "drawdown_exceeds_10pct"
+        state_transition: "CAUTION → SAFE_MODE"
+        action: A_STOP_EXECUTION
+        
+      - trigger: "daily_loss_exceeds_2pct"
+        state_transition: "ANY → HALT"
+        actions: [A_STOP_EXECUTION, A_PAGE_ONCALL, A_CREATE_INCIDENT]
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # PACK 2: SECURITY / SECRETS / IAM / KEY CUSTODY
+  # Primary Owner: Shared Infrastructure | ~50 insights
+  # ═══════════════════════════════════════════════════════════════════════════
+  pack_2_security:
+    name: "Security / Secrets / IAM / Key Custody"
+    owner: SharedInfrastructure
+    insight_count: 48
+    
+    core_principles:
+      - id: 12
+        insight: "If you can't audit it, you can't scale it"
+        level: minimum
+        
+      - id: 23
+        insight: "Data 'truth' is a contract, not a given"
+        level: minimum
+        
+      - id: 50
+        insight: "Zero-trust architecture: verify every access, every time"
+        level: institutional
+        
+      - id: 63
+        insight: "Security is not a feature; it's the foundation"
+        level: minimum
+        
+      - id: 64
+        insight: "Every system has a security boundary; define and defend it"
+        level: scale
+        
+      - id: 65
+        insight: "Secrets management is non-negotiable for financial systems"
+        level: institutional
+        
+      - id: 66
+        insight: "Key rotation is a security hygiene requirement"
+        level: minimum
+        
+      - id: 67
+        insight: "Multi-factor authentication is the minimum for privileged access"
+        level: scale
+        
+      - id: 68
+        insight: "Access should be granted on a need-to-know basis"
+        level: minimum
+        
+      - id: 69
+        insight: "Audit logs must be tamper-proof and immutable"
+        level: institutional
+        
+      - id: 70
+        insight: "Encryption at rest and in transit is mandatory"
+        level: scale
+        
+      - id: 71
+        insight: "Network segmentation prevents lateral movement"
+        level: minimum
+        
+      - id: 72
+        insight: "Vulnerability scanning must be continuous"
+        level: scale
+        
+      - id: 73
+        insight: "Patch management is a risk mitigation strategy"
+        level: minimum
+        
+      - id: 74
+        insight: "Incident response plans must be tested regularly"
+        level: institutional
+        
+      - id: 75
+        insight: "Security monitoring must detect anomalies in real-time"
+        level: scale
+        
+      - id: 76
+        insight: "Backup security is as important as primary security"
+        level: minimum
+        
+      - id: 77
+        insight: "Third-party risk assessment is critical"
+        level: scale
+        
+      - id: 78
+        insight: "Social engineering is the biggest security threat"
+        level: minimum
+        
+      - id: 79
+        insight: "Security training must be mandatory and ongoing"
+        level: institutional
+        
+      - id: 80
+        insight: "Compliance is the floor, not the ceiling for security"
+        level: scale
+        
+      - id: 81
+        insight: "Hardware security modules provide the strongest protection"
+        level: minimum
+        
+      - id: 82
+        insight: "API security requires authentication and authorization"
+        level: scale
+        
+      - id: 83
+        insight: "Container security must include image scanning"
+        level: minimum
+        
+      - id: 84
+        insight: "Cloud security requires shared responsibility understanding"
+        level: institutional
+        
+      - id: 85
+        insight: "Data classification enables appropriate protection levels"
+        level: scale
+        
+      - id: 86
+        insight: "Privacy regulations impact security requirements"
+        level: minimum
+        
+      - id: 87
+        insight: "Security by obscurity is not security"
+        level: scale
+        
+      - id: 88
+        insight: "Defense in depth provides multiple security layers"
+        level: institutional
+        
+      - id: 89
+        insight: "Security metrics must be measurable and monitored"
+        level: minimum
+        
+      - id: 90
+        insight: "Threat modeling identifies potential attack vectors"
+        level: scale
+        
+      - id: 91
+        insight: "Red team exercises test security controls"
+        level: minimum
+        
+      - id: 92
+        insight: "Security awareness reduces human error risk"
+        level: institutional
+        
+      - id: 93
+        insight: "Cryptographic agility allows algorithm updates"
+        level: scale
+        
+      - id: 94
+        insight: "Certificate management requires automation"
+        level: minimum
+        
+      - id: 95
+        insight: "Secure coding practices prevent vulnerabilities"
+        level: scale
+        
+      - id: 96
+        insight: "Supply chain security protects against third-party risks"
+        level: institutional
+        
+      - id: 97
+        insight: "Zero-day vulnerabilities require proactive monitoring"
+        level: minimum
+        
+      - id: 98
+        insight: "Security operations center provides 24/7 monitoring"
+        level: scale
+        
+      - id: 99
+        insight: "Forensic capabilities enable incident investigation"
+        level: minimum
+        
+      - id: 100
+        insight: "Security governance ensures organizational alignment"
+        level: institutional
+        
+      - id: 101
+        insight: "Risk assessment drives security prioritization"
+        level: scale
+        
+      - id: 102
+        insight: "Security testing includes penetration testing"
+        level: minimum
+        
+      - id: 103
+        insight: "Configuration management prevents misconfigurations"
+        level: scale
+        
+      - id: 104
+        insight: "Identity management is central to access control"
+        level: institutional
+        
+      - id: 105
+        insight: "Session management prevents unauthorized access"
+        level: minimum
+        
+      - id: 106
+        insight: "Input validation prevents injection attacks"
+        level: scale
+        
+      - id: 107
+        insight: "Error handling should not leak sensitive information"
+        level: minimum
+        
+      - id: 108
+        insight: "Logging security events enables detection"
+        level: institutional
+        
+      - id: 109
+        insight: "Security controls must be auditable"
+        level: scale
+        
+      - id: 110
+        insight: "Business continuity includes security continuity"
+        level: minimum
+        
+    required_metrics:
+      - metric: key_age_days
+        definition: "Days since last key rotation"
+        measurement: "Current date - last rotation date"
+        thresholds:
+          good: "< 30"
+          warning: "30-60"
+          critical: "> 90"
+        frequency: daily
+        
+      - metric: failed_auth_rate
+        definition: "Failed authentication attempts per minute"
+        measurement: "Count of 401/403 responses / minute"
+        thresholds:
+          good: "< 1"
+          warning: "1-3"
+          critical: "> 5"
+        frequency: real_time
+        
+      - metric: audit_log_completeness
+        definition: "Percentage of operations with complete audit trail"
+        measurement: "Audited operations / total operations"
+        thresholds:
+          good: "> 99.9%"
+          warning: "99-99.9%"
+          critical: "< 99%"
+        frequency: hourly
+        
+      - metric: mfa_compliance_rate
+        definition: "Percentage of accounts with MFA enabled"
+        measurement: "MFA-enabled accounts / total accounts"
+        thresholds:
+          good: "100%"
+          warning: "< 100%"
+          critical: "< 95%"
+        frequency: daily
+        
+      - metric: secret_scan_coverage
+        definition: "Percentage of repos/configs scanned for secrets"
+        measurement: "Scanned assets / total assets"
+        thresholds:
+          good: "100%"
+          warning: "< 100%"
+          critical: "< 90%"
+        frequency: hourly
+        
+    mfa_policy:
+      required_for:
+        - all_human_accounts
+        - admin_operations
+        - key_rotation
+        - withdrawal_approval
+      methods_allowed:
+        - hardware_key_yubikey
+        - totp_authenticator
+      backup_codes: "10 single-use codes, stored encrypted"
+      
+    key_hierarchy:
+      master_key:
+        storage: "HSM or cloud KMS (AWS KMS, GCP KMS)"
+        rotation: "Annual or on compromise"
+        access: "2-of-3 multisig for operations"
+      derived_keys:
+        exchange_api_keys:
+          derived_from: master_key
+          rotation: "90 days"
+          scope: "Per-exchange, per-environment"
+        data_encryption_keys:
+          derived_from: master_key
+          rotation: "30 days"
+          scope: "Per-data-category"
+        signing_keys:
+          derived_from: master_key
+          rotation: "On deployment"
+          scope: "Per-service"
+          
+    secret_scanning:
+      automation:
+        pre_commit_hook: "gitleaks or trufflehog"
+        ci_pipeline: "Scan on every PR"
+        scheduled_scan: "Full repo scan daily at 3 AM"
+        runtime_scan: "Monitor logs for credential patterns"
+      patterns:
+        - "API keys (alphanumeric 32+ chars)"
+        - "Private keys (BEGIN.*PRIVATE KEY)"
+        - "Connection strings"
+        - "JWT tokens"
+      response:
+        on_detection: "Block commit/deploy, alert security"
+        remediation: "Rotate immediately, audit usage"
+        
+    network_security:
+      ip_allowlisting:
+        enabled: true
+        exchange_apis: "Allowlist exchange IPs only"
+        admin_access: "VPN or allowlisted office IPs"
+        monitoring: "Alert on access from new IPs"
+      egress_filtering:
+        allowed_destinations: "Explicit allowlist of exchange/data endpoints"
+        blocked: "All other outbound traffic"
+        
+    failure_modes:
+      - mode: "Key compromise"
+        description: "API key exposed or stolen"
+        trigger: "anomalous_api_usage OR github_secret_scan"
+        action: A_LOCK_KEYS
+        
+      - mode: "Audit gap"
+        description: "Missing audit records for transactions"
+        trigger: "audit_log_completeness < 99%"
+        action: A_CREATE_INCIDENT
+        
+    az_prime_hooks:
+      - trigger: "failed_auth_count > 5/min"
+        state_transition: "ANY → SAFE_MODE"
+        action: A_LOCK_KEYS
+        
+      - trigger: "key_exposure_detected"
+        state_transition: "ANY → HALT"
+        actions: [A_LOCK_KEYS, A_PAGE_ONCALL, A_CREATE_INCIDENT]
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # PACK 3: TESTING / SIMULATION / REPLAY / CHAOS
+  # Primary Owner: BigBrainIntelligence | ~70 insights
+  # ═══════════════════════════════════════════════════════════════════════════
+  pack_3_testing:
+    name: "Testing, Simulation, Replay, Chaos"
+    owner: BigBrainIntelligence
+    insight_count: 68
+    
+    core_principles:
+      - id: 8
+        insight: "Maintain raw-event retention for replay and postmortems"
+        level: minimum
+        
+      - id: 21
+        insight: "Every strategy must have a defined failure signature"
+        level: minimum
+        
+      - id: 25
+        insight: "The system should be robust to new asset classes without rewrites"
+        level: scale
+        
+      - id: 60
+        insight: "Test the recovery, not just the failure"
+        level: institutional
+        
+      - id: 111
+        insight: "Testing is not optional; it's mandatory for financial systems"
+        level: minimum
+        
+      - id: 112
+        insight: "Simulation accuracy determines strategy viability"
+        level: scale
+        
+      - id: 113
+        insight: "Chaos engineering finds hidden dependencies"
+        level: institutional
+        
+      - id: 114
+        insight: "Replay testing validates system behavior"
+        level: minimum
+        
+      - id: 115
+        insight: "Backtesting overstates returns; forward testing understates risk"
+        level: scale
+        
+      - id: 116
+        insight: "Out-of-sample testing is the only valid validation"
+        level: minimum
+        
+      - id: 117
+        insight: "Stress testing must include extreme market conditions"
+        level: institutional
+        
+      - id: 118
+        insight: "Scenario analysis requires diverse economic conditions"
+        level: scale
+        
+      - id: 119
+        insight: "Monte Carlo simulation captures parameter uncertainty"
+        level: minimum
+        
+      - id: 120
+        insight: "Walk-forward optimization prevents overfitting"
+        level: scale
+        
+      - id: 121
+        insight: "Cross-validation ensures model robustness"
+        level: institutional
+        
+      - id: 122
+        insight: "A/B testing validates strategy improvements"
+        level: minimum
+        
+      - id: 123
+        insight: "Shadow testing runs new code alongside production"
+        level: scale
+        
+      - id: 124
+        insight: "Canary deployments test system changes safely"
+        level: minimum
+        
+      - id: 125
+        insight: "Feature flags enable gradual rollout"
+        level: institutional
+        
+      - id: 126
+        insight: "Regression testing prevents functionality loss"
+        level: scale
+        
+      - id: 127
+        insight: "Integration testing validates component interaction"
+        level: minimum
+        
+      - id: 128
+        insight: "Unit testing ensures code correctness"
+        level: scale
+        
+      - id: 129
+        insight: "Property-based testing finds edge cases"
+        level: institutional
+        
+      - id: 130
+        insight: "Fuzz testing discovers input vulnerabilities"
+        level: minimum
+        
+      - id: 131
+        insight: "Performance testing validates latency requirements"
+        level: scale
+        
+      - id: 132
+        insight: "Load testing ensures scalability"
+        level: minimum
+        
+      - id: 133
+        insight: "Volume testing handles data scale"
+        level: institutional
+        
+      - id: 134
+        insight: "Concurrency testing validates parallel execution"
+        level: scale
+        
+      - id: 135
+        insight: "Race condition testing prevents timing bugs"
+        level: minimum
+        
+      - id: 136
+        insight: "Memory leak testing ensures resource efficiency"
+        level: scale
+        
+      - id: 137
+        insight: "Security testing prevents vulnerabilities"
+        level: institutional
+        
+      - id: 138
+        insight: "Compliance testing ensures regulatory adherence"
+        level: minimum
+        
+      - id: 139
+        insight: "Usability testing validates user interfaces"
+        level: scale
+        
+      - id: 140
+        insight: "Accessibility testing ensures inclusive design"
+        level: minimum
+        
+      - id: 141
+        insight: "Localization testing handles international markets"
+        level: institutional
+        
+      - id: 142
+        insight: "Browser compatibility testing ensures web functionality"
+        level: scale
+        
+      - id: 143
+        insight: "Mobile testing validates app performance"
+        level: minimum
+        
+      - id: 144
+        insight: "API testing ensures service reliability"
+        level: scale
+        
+      - id: 145
+        insight: "Database testing validates data integrity"
+        level: institutional
+        
+      - id: 146
+        insight: "Network testing handles connectivity issues"
+        level: minimum
+        
+      - id: 147
+        insight: "Disaster recovery testing ensures business continuity"
+        level: scale
+        
+      - id: 148
+        insight: "Failover testing validates redundancy"
+        level: minimum
+        
+      - id: 149
+        insight: "Backup restoration testing ensures data recoverability"
+        level: institutional
+        
+      - id: 150
+        insight: "Penetration testing finds security weaknesses"
+        level: scale
+        
+      - id: 151
+        insight: "Vulnerability scanning identifies known issues"
+        level: minimum
+        
+      - id: 152
+        insight: "Code review testing catches logic errors"
+        level: scale
+        
+      - id: 153
+        insight: "Pair programming improves code quality"
+        level: institutional
+        
+      - id: 154
+        insight: "Continuous integration prevents integration hell"
+        level: minimum
+        
+      - id: 155
+        insight: "Continuous deployment enables rapid iteration"
+        level: scale
+        
+      - id: 156
+        insight: "Test-driven development ensures testable code"
+        level: minimum
+        
+      - id: 157
+        insight: "Behavior-driven development aligns with business needs"
+        level: institutional
+        
+      - id: 158
+        insight: "Acceptance testing validates business requirements"
+        level: scale
+        
+      - id: 159
+        insight: "Exploratory testing finds unexpected issues"
+        level: minimum
+        
+      - id: 160
+        insight: "Session-based testing structures exploratory work"
+        level: scale
+        
+      - id: 161
+        insight: "Risk-based testing prioritizes critical functionality"
+        level: institutional
+        
+      - id: 162
+        insight: "Equivalence partitioning reduces test cases"
+        level: minimum
+        
+      - id: 163
+        insight: "Boundary value analysis finds edge case bugs"
+        level: scale
+        
+      - id: 164
+        insight: "Decision table testing handles complex logic"
+        level: minimum
+        
+      - id: 165
+        insight: "State transition testing validates workflows"
+        level: institutional
+        
+      - id: 166
+        insight: "Use case testing ensures user scenarios work"
+        level: scale
+        
+      - id: 167
+        insight: "User story testing validates agile requirements"
+        level: minimum
+        
+      - id: 168
+        insight: "Contract testing ensures API compatibility"
+        level: scale
+        
+      - id: 169
+        insight: "Consumer-driven contract testing prevents breaking changes"
+        level: institutional
+        
+      - id: 170
+        insight: "Mutation testing validates test suite effectiveness"
+        level: minimum
+        
+      - id: 171
+        insight: "Test coverage metrics guide testing efforts"
+        level: scale
+        
+      - id: 172
+        insight: "Code coverage ensures tested code"
+        level: minimum
+        
+      - id: 173
+        insight: "Branch coverage validates decision paths"
+        level: institutional
+        
+      - id: 174
+        insight: "Path coverage ensures all execution paths tested"
+        level: scale
+        
+      - id: 175
+        insight: "Function coverage validates method execution"
+        level: minimum
+        
+      - id: 176
+        insight: "Statement coverage ensures code execution"
+        level: scale
+        
+      - id: 177
+        insight: "Condition coverage validates boolean expressions"
+        level: minimum
+        
+      - id: 178
+        insight: "Multiple condition coverage ensures complex logic"
+        level: institutional
+        
+    simulation_realism_levels:
+      SIM:
+        fee_model: "Conservative (+50%)"
+        latency: "Injected jitter (50-500ms)"
+        partial_fills: "Model A/B (Fill Fraction + Hazard)"
+        data: "Historical replay"
+        chaos_injection: false
+        
+      PAPER:
+        fee_model: "Realistic (calibrated)"
+        latency: "Measured p95/p99"
+        partial_fills: "Model B/C (Hazard + Queue)"
+        data: "Live feed"
+        chaos_injection: true
+        
+      PILOT:
+        fee_model: "Actual"
+        latency: "Real"
+        partial_fills: "Actual"
+        data: "Live"
+        chaos_injection: false
+        
+    required_metrics:
+      - metric: backtest_vs_live_correlation
+        definition: "Correlation of simulated vs actual returns"
+        measurement: "Rolling 30-day correlation coefficient"
+        thresholds:
+          good: "> 0.8"
+          warning: "0.6-0.8"
+          critical: "< 0.6"
+        frequency: weekly
+        
+      - metric: chaos_test_pass_rate
+        definition: "Percentage of chaos scenarios handled correctly"
+        measurement: "Passed tests / total tests"
+        thresholds:
+          good: "> 95%"
+          warning: "90-95%"
+          critical: "< 90%"
+        frequency: monthly
+        
+      - metric: regression_test_pass_rate
+        definition: "Percentage of regression tests passing"
+        measurement: "Passed tests / total tests"
+        thresholds:
+          good: "100%"
+          warning: "< 100%"
+          critical: "< 95%"
+        frequency: per_deploy
+        
+      - metric: replay_fidelity_score
+        definition: "How closely replay matches live execution"
+        measurement: "1 - abs(replay_pnl - live_pnl) / live_pnl"
+        thresholds:
+          good: "> 0.95"
+          warning: "0.90-0.95"
+          critical: "< 0.90"
+        frequency: weekly
+        
+    regression_test_suite:
+      categories:
+        unit_tests:
+          scope: "Individual functions and classes"
+          coverage_target: "> 80%"
+          run_on: "Every commit"
+        integration_tests:
+          scope: "Cross-module interactions"
+          coverage_target: "> 70%"
+          run_on: "Every PR"
+        end_to_end_tests:
+          scope: "Full signal-to-fill pipeline"
+          coverage_target: "Critical paths 100%"
+          run_on: "Pre-deploy"
+        performance_tests:
+          scope: "Latency and throughput benchmarks"
+          baseline: "Established from production metrics"
+          regression_threshold: "10% degradation = fail"
+          run_on: "Weekly and pre-deploy"
+      golden_datasets:
+        - name: "normal_market_day"
+          description: "Typical trading day with average volatility"
+          date_range: "2025-06-15"
+          use_case: "Baseline behavior validation"
+        - name: "high_volatility_event"
+          description: "FOMC announcement day with 3x normal vol"
+          date_range: "2025-03-19"
+          use_case: "Stress response validation"
+        - name: "flash_crash"
+          description: "5% drop in 10 minutes, recovery"
+          date_range: "2025-08-24"
+          use_case: "Circuit breaker validation"
+        - name: "low_liquidity"
+          description: "Holiday with 20% normal volume"
+          date_range: "2025-12-26"
+          use_case: "Fill model calibration"
+          
+    ab_testing_framework:
+      purpose: "Compare strategy variants safely"
+      implementation:
+        traffic_split: "Randomized by symbol or time bucket"
+        minimum_sample: "1000 decisions or 2 weeks"
+        significance_level: "p < 0.05"
+      safeguards:
+        - "Both variants subject to same risk limits"
+        - "Automatic stop if either variant breaches limits"
+        - "Human review before promoting winner"
+      metrics_tracked:
+        - net_pnl
+        - sharpe_ratio
+        - fill_rate
+        - latency_p95
+        
+    data_replay_infrastructure:
+      storage:
+        format: "Parquet with timestamp index"
+        retention: "7 years raw, 1 year hot"
+        compression: "zstd"
+      replay_engine:
+        deterministic: true
+        time_acceleration: "1x to 1000x"
+        injection_points:
+          - "Market data feed"
+          - "Order acknowledgments"
+          - "Fill reports"
+      use_cases:
+        - "Strategy backtesting"
+        - "Incident postmortem"
+        - "Model calibration"
+        - "Regression testing"
+        
+    chaos_scenarios:
+      - name: "Exchange outage"
+        target_departments: [TradingExecution, CryptoIntelligence]
+        test: "Kill primary venue connection for 5 minutes"
+        expected_response: "A_ROUTE_FAILOVER triggers within 30s"
+        
+      - name: "Data feed corruption"
+        target_departments: [BigBrainIntelligence, TradingExecution]
+        test: "Inject malformed schema for 1 minute"
+        expected_response: "A_QUARANTINE_SOURCE triggers within 10s"
+        
+      - name: "Latency spike"
+        target_departments: [TradingExecution]
+        test: "Increase latency to 5s for 2 minutes"
+        expected_response: "A_THROTTLE_RISK triggers"
+        
+      - name: "Settlement delay"
+        target_departments: [CentralAccounting]
+        test: "Delay reconciliation by 4 hours"
+        expected_response: "recon_backlog_alert fires"
+        
+    failure_modes:
+      - mode: "Test environment drift"
+        description: "Test env diverges from production configuration"
+        trigger: "config_hash_mismatch || version_drift > 1"
+        mitigation: "Weekly sync of test/prod configs"
+        action: A_CREATE_INCIDENT
+        
+      - mode: "Flaky test syndrome"
+        description: "Tests intermittently fail due to timing/race conditions"
+        trigger: "same_test_flap_count > 3 in 7 days"
+        mitigation: "Quarantine and fix or remove flaky tests"
+        action: A_QUARANTINE_SOURCE
+        
+      - mode: "Backtest overfitting"
+        description: "Strategy looks good in backtest but fails live"
+        trigger: "backtest_sharpe > 3 * live_sharpe"
+        mitigation: "Walk-forward validation, out-of-sample testing"
+        action: A_FREEZE_STRATEGY
+        
+      - mode: "Replay data corruption"
+        description: "Historical data for replay is incomplete or corrupted"
+        trigger: "data_gap_detected || checksum_mismatch"
+        mitigation: "Data integrity checks before replay"
+        action: A_QUARANTINE_SOURCE
+        
+    az_prime_hooks:
+      - trigger: "test_coverage_pct < 70"
+        state_transition: "NORMAL → CAUTION"
+        action: A_CREATE_INCIDENT
+        
+      - trigger: "regression_test_failures > 0"
+        state_transition: "NORMAL → CAUTION"
+        action: A_STOP_EXECUTION
+        
+      - trigger: "chaos_test_failed"
+        state_transition: "ANY → SAFE_MODE"
+        actions: [A_ENTER_SAFE_MODE, A_CREATE_INCIDENT]
+        
+      - trigger: "backtest_vs_live_drift > 50%"
+        state_transition: "NORMAL → CAUTION"
+        action: A_FREEZE_STRATEGY
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # PACK 4: INCIDENT RESPONSE + ON-CALL + POSTMORTEMS
+  # Primary Owner: Shared Infrastructure | ~45 insights
+  # ═══════════════════════════════════════════════════════════════════════════
+  pack_4_incident_response:
+    name: "Incident Response + On-Call + Postmortems"
+    owner: SharedInfrastructure
+    insight_count: 47
+    
+    core_principles:
+      - id: 100
+        insight: "Every incident is a system improvement opportunity"
+        level: minimum
+        
+      - id: 101
+        insight: "Blameless postmortems enable systemic fixes"
+        level: minimum
+        
+      - id: 102
+        insight: "MTTD (detect) is as important as MTTR (repair)"
+        level: scale
+        
+      - id: 179
+        insight: "Incident response is a core competency for trading systems"
+        level: institutional
+        
+      - id: 180
+        insight: "On-call rotation prevents burnout and ensures coverage"
+        level: minimum
+        
+      - id: 181
+        insight: "Postmortems must lead to action items"
+        level: scale
+        
+      - id: 182
+        insight: "Incident classification enables appropriate response"
+        level: minimum
+        
+      - id: 183
+        insight: "Escalation procedures must be clear and tested"
+        level: institutional
+        
+      - id: 184
+        insight: "Communication during incidents prevents confusion"
+        level: scale
+        
+      - id: 185
+        insight: "Root cause analysis prevents recurrence"
+        level: minimum
+        
+      - id: 186
+        insight: "Incident metrics drive continuous improvement"
+        level: scale
+        
+      - id: 187
+        insight: "Runbooks standardize incident response"
+        level: institutional
+        
+      - id: 188
+        insight: "War rooms coordinate complex incident response"
+        level: minimum
+        
+      - id: 189
+        insight: "Stakeholder communication manages expectations"
+        level: scale
+        
+      - id: 190
+        insight: "Incident retrospectives improve processes"
+        level: minimum
+        
+      - id: 191
+        insight: "Alert fatigue reduces response effectiveness"
+        level: institutional
+        
+      - id: 192
+        insight: "Monitoring must detect incidents early"
+        level: scale
+        
+      - id: 193
+        insight: "Automated remediation reduces MTTR"
+        level: minimum
+        
+      - id: 194
+        insight: "Incident simulation prepares teams"
+        level: scale
+        
+      - id: 195
+        insight: "Knowledge base captures institutional learning"
+        level: institutional
+        
+      - id: 196
+        insight: "Incident trends identify systemic issues"
+        level: minimum
+        
+      - id: 197
+        insight: "On-call training ensures competency"
+        level: scale
+        
+      - id: 198
+        insight: "Shift handoffs prevent knowledge loss"
+        level: minimum
+        
+      - id: 199
+        insight: "Incident commanders coordinate response"
+        level: institutional
+        
+      - id: 200
+        insight: "Communication channels must be reliable"
+        level: scale
+        
+      - id: 201
+        insight: "Status pages keep stakeholders informed"
+        level: minimum
+        
+      - id: 202
+        insight: "Incident timelines document response"
+        level: scale
+        
+      - id: 203
+        insight: "Action items must be tracked to completion"
+        level: institutional
+        
+      - id: 204
+        insight: "Postmortem culture encourages learning"
+        level: minimum
+        
+      - id: 205
+        insight: "Incident reviews identify improvement opportunities"
+        level: scale
+        
+      - id: 206
+        insight: "Metrics review validates incident handling"
+        level: minimum
+        
+      - id: 207
+        insight: "Process improvements prevent future incidents"
+        level: institutional
+        
+      - id: 208
+        insight: "Tool improvements enhance response capabilities"
+        level: scale
+        
+      - id: 209
+        insight: "Training improvements build team skills"
+        level: minimum
+        
+      - id: 210
+        insight: "Alert tuning reduces noise"
+        level: scale
+        
+      - id: 211
+        insight: "Monitoring enhancements detect issues earlier"
+        level: institutional
+        
+      - id: 212
+        insight: "Automation reduces manual intervention needs"
+        level: minimum
+        
+      - id: 213
+        insight: "Documentation improvements aid response"
+        level: scale
+        
+      - id: 214
+        insight: "Process standardization ensures consistency"
+        level: minimum
+        
+      - id: 215
+        insight: "Team rotation maintains fresh perspectives"
+        level: institutional
+        
+      - id: 216
+        insight: "Cross-training enables flexible response"
+        level: scale
+        
+      - id: 217
+        insight: "Vendor coordination manages third-party incidents"
+        level: minimum
+        
+      - id: 218
+        insight: "Regulatory reporting handles compliance incidents"
+        level: scale
+        
+      - id: 219
+        insight: "Customer communication manages external impact"
+        level: institutional
+        
+      - id: 220
+        insight: "Business continuity activates for major incidents"
+        level: minimum
+        
+      - id: 221
+        insight: "Crisis management handles reputation impact"
+        level: scale
+        
+      - id: 222
+        insight: "Recovery testing validates restoration procedures"
+        level: minimum
+        
+      - id: 223
+        insight: "Backup validation ensures data recoverability"
+        level: institutional
+        
+      - id: 224
+        insight: "Failover testing confirms redundancy"
+        level: scale
+        
+      - id: 225
+        insight: "Disaster recovery drills prepare for worst case"
+        level: minimum
+        
+    severity_levels:
+      sev1:
+        definition: "Real money loss or safety breach"
+        mttd_target: "<1 min"
+        mttr_target: "<5 min"
+        escalation: "Immediate page to all on-call"
+        examples:
+          - "Unintended position opened"
+          - "API key compromised"
+          - "Reconciliation shows loss"
+          
+      sev2:
+        definition: "Degraded execution or data quality"
+        mttd_target: "<5 min"
+        mttr_target: "<30 min"
+        escalation: "Page within 5 min"
+        examples:
+          - "Primary venue down, failover active"
+          - "Data feed delayed >30s"
+          - "Fill rate dropped below 80%"
+          
+      sev3:
+        definition: "Non-critical degradation"
+        mttd_target: "<15 min"
+        mttr_target: "<2 hours"
+        escalation: "Slack alert"
+        examples:
+          - "Secondary venue down"
+          - "Minor latency increase"
+          - "Non-critical feature broken"
+          
+      sev4:
+        definition: "Minor issue"
+        mttd_target: "<1 hour"
+        mttr_target: "<8 hours"
+        escalation: "Next standup"
+        examples:
+          - "Log formatting issue"
+          - "Dashboard cosmetic bug"
+          - "Documentation out of date"
+          
+    required_metrics:
+      - metric: mttd_minutes
+        definition: "Mean time to detect incidents"
+        measurement: "(Detection time - Start time) averaged"
+        thresholds:
+          good: "< 2"
+          warning: "2-10"
+          critical: "> 10"
+        frequency: per_incident
+        
+      - metric: mttr_minutes
+        definition: "Mean time to resolve incidents"
+        measurement: "(Resolution time - Detection time) averaged"
+        thresholds:
+          good: "< 15"
+          warning: "15-60"
+          critical: "> 60"
+        frequency: per_incident
+        
+      - metric: incident_recurrence_rate
+        definition: "Percentage of incidents that repeat within 30 days"
+        measurement: "Repeat incidents / total incidents"
+        thresholds:
+          good: "< 5%"
+          warning: "5-15%"
+          critical: "> 15%"
+        frequency: monthly
+        
+      - metric: active_sev1_count
+        definition: "Number of currently active SEV1 incidents"
+        measurement: "Count of open SEV1 incidents"
+        thresholds:
+          good: "0"
+          warning: "1"
+          critical: "> 1"
+        frequency: real_time
+        
+    postmortem_template:
+      required_sections:
+        - incident_summary
+        - timeline
+        - root_cause_analysis
+        - impact_assessment
+        - action_items
+        - lessons_learned
+      action_item_requirements:
+        - owner_assigned
+        - deadline_set
+        - priority_tagged
+        - tracked_in_system
+        
+    runbook_library:
+      RB001_exchange_outage:
+        trigger: "Primary exchange unreachable for >30s"
+        steps:
+          - "Verify outage (check status page, ping)"
+          - "Execute A_ROUTE_FAILOVER to backup venue"
+          - "Notify team via Slack #incidents"
+          - "Monitor backup venue health"
+          - "Document in incident log"
+        rollback: "Revert routing when primary recovers"
+        owner: TradingExecution
+        
+      RB002_data_feed_stale:
+        trigger: "Data feed >5s stale"
+        steps:
+          - "Check data provider status"
+          - "Execute A_QUARANTINE_SOURCE"
+          - "Switch to backup data source"
+          - "Alert BigBrain team"
+          - "Verify signal quality on backup"
+        rollback: "Re-enable primary when fresh"
+        owner: BigBrainIntelligence
+        
+      RB003_reconciliation_mismatch:
+        trigger: "P&L mismatch >$100 or >1%"
+        steps:
+          - "Freeze affected strategy (A_FREEZE_STRATEGY)"
+          - "Pull exchange fill records"
+          - "Compare to internal records"
+          - "Identify discrepancy source"
+          - "Adjust records or escalate"
+        rollback: "Unfreeze after resolution"
+        owner: CentralAccounting
+        
+      RB004_position_limit_breach:
+        trigger: "Position exceeds defined limits"
+        steps:
+          - "Execute A_STOP_EXECUTION for strategy"
+          - "Calculate required reduction"
+          - "Execute reduction orders"
+          - "Verify compliance"
+          - "Root cause analysis"
+        rollback: "Resume after limit restored"
+        owner: TradingExecution
+        
+      RB005_api_key_compromise:
+        trigger: "Suspected key exposure"
+        steps:
+          - "Execute A_LOCK_KEYS immediately"
+          - "Rotate all affected keys"
+          - "Audit recent API activity"
+          - "Check for unauthorized trades"
+          - "Update key in all systems"
+          - "Page security team"
+        rollback: "N/A - keys must be rotated"
+        owner: SharedInfrastructure
+        
+    escalation_matrix:
+      sev1:
+        immediate:
+          - role: "On-call engineer"
+            method: "PagerDuty"
+          - role: "Trading lead"
+            method: "Phone call"
+        after_5_min:
+          - role: "Engineering manager"
+            method: "PagerDuty"
+        after_15_min:
+          - role: "CTO"
+            method: "Phone call"
+      sev2:
+        immediate:
+          - role: "On-call engineer"
+            method: "PagerDuty"
+        after_15_min:
+          - role: "Team lead"
+            method: "Slack DM"
+      sev3:
+        immediate:
+          - role: "On-call engineer"
+            method: "Slack #incidents"
+      sev4:
+        immediate:
+          - role: "Owning team"
+            method: "Slack channel"
+            
+    war_room_protocol:
+      activation: "Any SEV1 incident or SEV2 lasting >30 min"
+      participants:
+        required:
+          - incident_commander
+          - technical_lead
+          - communications_lead
+        optional:
+          - domain_experts
+          - executive_sponsor
+      communication:
+        channel: "Dedicated Slack channel per incident"
+        updates: "Every 15 minutes minimum"
+        external: "Status page update within 30 min"
+      artifacts:
+        - real_time_timeline
+        - decision_log
+        - action_tracker
+        
+    communication_templates:
+      internal_alert:
+        format: "[SEV{level}] {summary} | Impact: {impact} | Status: {status}"
+      status_page:
+        investigating: "We are investigating an issue affecting {service}."
+        identified: "The issue has been identified. We are working on a fix."
+        resolved: "The issue has been resolved. {summary}"
+        
+    failure_modes:
+      - mode: "Alert fatigue"
+        description: "Too many alerts cause responders to ignore or delay response"
+        trigger: "false_positive_rate > 30% || alert_count > 50/day"
+        mitigation: "Tune thresholds, deduplicate alerts, implement alert bundling"
+        action: A_CREATE_INCIDENT
+        
+      - mode: "Escalation failure"
+        description: "Critical incident not escalated in time"
+        trigger: "sev1_no_ack > 5min || sev2_no_ack > 15min"
+        mitigation: "Auto-escalate on acknowledgment timeout"
+        action: A_PAGE_ONCALL
+        
+      - mode: "Communication breakdown"
+        description: "Stakeholders not informed of incident status"
+        trigger: "status_update_gap > 30min during active incident"
+        mitigation: "Automated reminders, communication lead role"
+        action: A_CREATE_INCIDENT
+        
+      - mode: "Incomplete postmortem"
+        description: "Postmortem missing action items or root cause"
+        trigger: "postmortem_incomplete && incident_age > 7 days"
+        mitigation: "Postmortem review checklist, manager sign-off"
+        action: A_CREATE_INCIDENT
+        
+    az_prime_hooks:
+      - trigger: "active_sev1_count > 0"
+        state_transition: "NORMAL → CAUTION"
+        actions: [A_THROTTLE_RISK, A_PAGE_ONCALL]
+        
+      - trigger: "mttd > 10min for sev1"
+        state_transition: "ANY → CAUTION"
+        action: A_CREATE_INCIDENT
+        
+      - trigger: "mttr > 60min for sev1"
+        state_transition: "CAUTION → SAFE_MODE"
+        actions: [A_ENTER_SAFE_MODE, A_PAGE_ONCALL]
+        
+      - trigger: "incident_recurrence within 7 days"
+        state_transition: "NORMAL → CAUTION"
+        action: A_CREATE_INCIDENT
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # PACK 5: LIQUIDITY / MARKET IMPACT / PARTIAL FILL LOGIC
+  # Primary Owner: TradingExecution | ~65 insights
+  # ═══════════════════════════════════════════════════════════════════════════
+  pack_5_liquidity:
+    name: "Liquidity, Market Impact, Partial Fill Logic"
+    owner: TradingExecution
+    insight_count: 63
+    
+    core_principles:
+      - id: 3
+        insight: "Design with explicit SLOs for p95/p99 latency; tail latency is where opportunities die"
+        level: minimum
+        
+      - id: 6
+        insight: "Model fees as part of strategy logic; net spread is the only spread"
+        level: minimum
+        
+      - id: 8
+        insight: "Treat opportunity as conditional on fill probability and cost realism"
+        level: scale
+        
+      - id: 17
+        insight: "'Best price' is meaningless without time-to-access and time-to-settle"
+        level: institutional
+        
+      - id: 226
+        insight: "Liquidity is the lifeblood of arbitrage strategies"
+        level: minimum
+        
+      - id: 227
+        insight: "Market impact destroys small edges"
+        level: scale
+        
+      - id: 228
+        insight: "Partial fills are the norm, not the exception"
+        level: minimum
+        
+      - id: 229
+        insight: "Queue position determines fill probability"
+        level: institutional
+        
+      - id: 230
+        insight: "Time-in-market affects execution quality"
+        level: scale
+        
+      - id: 231
+        insight: "Liquidity varies by time of day"
+        level: minimum
+        
+      - id: 232
+        insight: "Market depth determines impact cost"
+        level: scale
+        
+      - id: 233
+        insight: "Order size relative to market matters"
+        level: institutional
+        
+      - id: 234
+        insight: "Hidden liquidity affects fill rates"
+        level: minimum
+        
+      - id: 235
+        insight: "Algorithm choice impacts execution"
+        level: scale
+        
+      - id: 236
+        insight: "Venue selection affects outcomes"
+        level: minimum
+        
+      - id: 237
+        insight: "Routing logic optimizes fills"
+        level: institutional
+        
+      - id: 238
+        impact: "Price impact follows square root law"
+        level: scale
+        
+      - id: 239
+        insight: "Temporary impact decays over time"
+        level: minimum
+        
+      - id: 240
+        insight: "Permanent impact affects future prices"
+        level: scale
+        
+      - id: 241
+        insight: "Information leakage hurts execution"
+        level: institutional
+        
+      - id: 242
+        insight: "Order slicing reduces impact"
+        level: minimum
+        
+      - id: 243
+        insight: "Participation rate controls aggression"
+        level: scale
+        
+      - id: 244
+        insight: "Schedule optimization improves fills"
+        level: minimum
+        
+      - id: 245
+        insight: "Adaptive algorithms learn from experience"
+        level: institutional
+        
+      - id: 246
+        insight: "Benchmarking measures execution quality"
+        level: scale
+        
+      - id: 247
+        insight: "Cost analysis includes all components"
+        level: minimum
+        
+      - id: 248
+        insight: "Slippage modeling predicts reality"
+        level: scale
+        
+      - id: 249
+        insight: "Fill probability estimation guides decisions"
+        level: institutional
+        
+      - id: 250
+        insight: "Liquidity provision creates opportunities"
+        level: minimum
+        
+      - id: 251
+        insight: "Market making requires two-way quotes"
+        level: scale
+        
+      - id: 252
+        insight: "Inventory management affects spreads"
+        level: minimum
+        
+      - id: 253
+        insight: "Risk management limits position taking"
+        level: institutional
+        
+      - id: 254
+        insight: "Order flow analysis predicts fills"
+        level: scale
+        
+      - id: 255
+        insight: "Time priority affects queue position"
+        level: minimum
+        
+      - id: 256
+        insight: "Display quantity influences behavior"
+        level: scale
+        
+      - id: 257
+        insight: "Iceberg orders hide true size"
+        level: institutional
+        
+      - id: 258
+        insight: "Stop orders create liquidity events"
+        level: minimum
+        
+      - id: 259
+        insight: "Market orders demand immediate fills"
+        level: scale
+        
+      - id: 260
+        insight: "Limit orders provide price improvement"
+        level: minimum
+        
+      - id: 261
+        insight: "Peg orders follow market movement"
+        level: institutional
+        
+      - id: 262
+        insight: "TWAP execution minimizes impact"
+        level: scale
+        
+      - id: 263
+        insight: "VWAP execution matches volume profile"
+        level: minimum
+        
+      - id: 264
+        insight: "POV execution controls participation"
+        level: scale
+        
+      - id: 265
+        insight: "Arrival price benchmarks performance"
+        level: institutional
+        
+      - id: 266
+        insight: "Implementation shortfall measures cost"
+        level: minimum
+        
+      - id: 267
+        insight: "Liquidity scoring ranks venues"
+        level: scale
+        
+      - id: 268
+        insight: "Venue health affects routing"
+        level: minimum
+        
+      - id: 269
+        insight: "Connectivity reliability matters"
+        level: institutional
+        
+      - id: 270
+        insight: "API rate limits constrain execution"
+        level: scale
+        
+      - id: 271
+        insight: "Order types enable different strategies"
+        level: minimum
+        
+      - id: 272
+        insight: "Conditional orders handle complex logic"
+        level: scale
+        
+      - id: 273
+        insight: "Bracket orders manage risk automatically"
+        level: institutional
+        
+      - id: 274
+        insight: "OCO orders prevent unwanted fills"
+        level: minimum
+        
+      - id: 275
+        insight: "Trailing stops follow profits"
+        level: scale
+        
+      - id: 276
+        insight: "Fill-or-kill orders demand immediacy"
+        level: minimum
+        
+      - id: 277
+        insight: "All-or-none orders require full quantity"
+        level: institutional
+        
+      - id: 278
+        insight: "Minimum quantity orders set thresholds"
+        level: scale
+        
+      - id: 279
+        insight: "Discretionary orders allow negotiation"
+        level: minimum
+        
+      - id: 280
+        insight: "Hidden orders avoid signaling"
+        level: scale
+        
+      - id: 281
+        insight: "Post-only orders prevent taking liquidity"
+        level: institutional
+        
+      - id: 282
+        insight: "Reduce-only orders prevent position increases"
+        level: minimum
+        
+      - id: 283
+        insight: "Leverage affects margin requirements"
+        level: scale
+        
+      - id: 284
+        insight: "Cross-margin enables portfolio optimization"
+        level: minimum
+        
+      - id: 285
+        insight: "Isolated margin contains risk"
+        level: institutional
+        
+      - id: 286
+        insight: "Liquidation engines enforce margin calls"
+        level: scale
+        
+      - id: 287
+        insight: "Auto-deleveraging protects solvent positions"
+        level: minimum
+        
+      - id: 288
+        insight: "Insurance funds absorb losses"
+        level: scale
+        
+    partial_fill_models:
+      model_a_fill_fraction:
+        owner: CentralAccounting
+        purpose: "Conservative SIM baseline"
+        formula: "filled_qty = Q * F, F~Beta(α,β) with no-fill probability p0"
+        use_case: "Initial backtesting"
+        calibration: "Historical fill rate distribution"
+        
+      model_b_hazard_intensity:
+        owner: BigBrainIntelligence
+        purpose: "Time-to-fill modeling"
+        formula: "P(fill by t) = 1 - exp(-∫λ(s)ds)"
+        use_case: "Time-sensitive strategies"
+        calibration: "PAPER fill time distributions"
+        
+      model_c_queue_ahead:
+        owner: TradingExecution
+        purpose: "L2-aware execution"
+        requirements: "Level 2 order book data"
+        formula: "Queue position → expected fill time given volume"
+        use_case: "Market making, limit order strategies"
+        calibration: "Live L2 data"
+        
+      model_d_adverse_selection:
+        owner: BigBrainIntelligence
+        purpose: "Slippage-fill coupling"
+        formula: "Expected_slippage = f(fill_speed, volatility, order_size)"
+        use_case: "Large order execution"
+        calibration: "Post-trade analysis"
+        
+    required_metrics:
+      - metric: fill_rate
+        definition: "Percentage of order quantity executed"
+        measurement: "Filled qty / Ordered qty"
+        thresholds:
+          good: "> 95%"
+          warning: "90-95%"
+          critical: "< 90%"
+        frequency: per_order
+        
+      - metric: time_to_fill_p95
+        definition: "95th percentile of time from order to fill"
+        measurement: "Fill timestamp - Order timestamp"
+        thresholds:
+          good: "< 500ms"
+          warning: "500ms-2s"
+          critical: "> 2s"
+        frequency: per_order
+        
+      - metric: slippage_bps
+        definition: "Price impact in basis points"
+        measurement: "100 * (Fill price - Expected price) / Expected price"
+        thresholds:
+          good: "< 5"
+          warning: "5-15"
+          critical: "> 15"
+        frequency: per_order
+        
+      - metric: partial_fill_rate
+        definition: "Percentage of orders only partially filled"
+        measurement: "Partial fills / Total orders"
+        thresholds:
+          good: "< 10%"
+          warning: "10-20%"
+          critical: "> 20%"
+        frequency: daily
+        
+      - metric: adverse_selection_cost
+        definition: "Cost due to informed counterparties trading against us"
+        measurement: "Avg price move against us within 1 min of fill"
+        thresholds:
+          good: "< 2 bps"
+          warning: "2-5 bps"
+          critical: "> 5 bps"
+        frequency: per_order
+        
+      - metric: market_impact_bps
+        definition: "Price impact of our orders"
+        measurement: "Price change from order entry to completion"
+        thresholds:
+          good: "< 3 bps"
+          warning: "3-10 bps"
+          critical: "> 10 bps"
+        frequency: per_order
+        
+      - metric: liquidity_available_pct
+        definition: "Available liquidity vs order size"
+        measurement: "Visible book depth / order size"
+        thresholds:
+          good: "> 500%"
+          warning: "200-500%"
+          critical: "< 200%"
+        frequency: pre_order
+        
+    market_impact_model:
+      almgren_chriss:
+        description: "Optimal execution model balancing impact vs timing risk"
+        formula: "Impact = η * (Q/V)^β + γ * σ * √(T)"
+        parameters:
+          eta: "Temporary impact coefficient (calibrate per asset)"
+          beta: "Impact exponent (typically 0.5-1.0)"
+          gamma: "Permanent impact coefficient"
+          sigma: "Volatility"
+        use_case: "Large orders requiring multi-leg execution"
+        
+      square_root_model:
+        description: "Simple market impact estimation"
+        formula: "Impact = k * σ * √(Q / ADV)"
+        parameters:
+          k: "Constant ~0.1 for liquid assets"
+          sigma: "Daily volatility"
+          Q: "Order quantity"
+          ADV: "Average daily volume"
+        use_case: "Quick impact estimation for sizing"
+        
+      calibration:
+        method: "Regression on historical fills"
+        data: "6 months of execution data per asset"
+        refresh: "Monthly recalibration"
+        
+    order_type_strategy:
+      decision_tree:
+        urgency_high:
+          liquidity_high: "Market order"
+          liquidity_low: "Aggressive limit (cross spread)"
+        urgency_medium:
+          liquidity_high: "Limit at mid"
+          liquidity_low: "TWAP over 5 minutes"
+        urgency_low:
+          liquidity_high: "Limit at passive side"
+          liquidity_low: "VWAP over session"
+      order_types:
+        market:
+          use_when: "Urgent, small size, liquid asset"
+          risk: "Slippage in fast markets"
+        limit:
+          use_when: "Price-sensitive, can wait"
+          risk: "Non-fill risk"
+        twap:
+          use_when: "Large order, minimize impact"
+          risk: "Information leakage over time"
+        vwap:
+          use_when: "Benchmark to volume, patient"
+          risk: "Underperform in trending market"
+        iceberg:
+          use_when: "Hide size, liquid venue"
+          risk: "Detection by sophisticated traders"
+          
+    liquidity_forecasting:
+      inputs:
+        - historical_volume_patterns
+        - time_of_day
+        - day_of_week
+        - event_calendar
+        - current_volatility
+      model: "Gradient boosting on historical liquidity"
+      output: "Expected available liquidity next 5/15/60 minutes"
+      use_case: "Pre-trade sizing and timing"
+      accuracy_target: "MAE < 20% of actual"
+      refresh: "Every 5 minutes"
+      
+    failure_modes:
+      - mode: "Liquidity mirage"
+        description: "Displayed liquidity disappears when we try to execute"
+        trigger: "book_depth_reduction > 80% within 100ms of our order"
+        mitigation: "Iceberg orders, split across venues, detect quote stuffing"
+        action: A_THROTTLE_RISK
+        
+      - mode: "Market impact underestimation"
+        description: "Actual impact exceeds model prediction"
+        trigger: "realized_impact > 2 * predicted_impact"
+        mitigation: "Recalibrate impact model, reduce order sizes"
+        action: A_CREATE_INCIDENT
+        
+      - mode: "Partial fill cascade"
+        description: "Excessive partial fills create position imbalance"
+        trigger: "partial_fill_rate > 30% && position_imbalance > 5%"
+        mitigation: "Cancel-replace logic, minimum fill requirements"
+        action: A_STOP_EXECUTION
+        
+      - mode: "Adverse selection trap"
+        description: "Only getting filled when price moves against us"
+        trigger: "adverse_selection_cost > 5 bps consistently"
+        mitigation: "Faster signal decay, order type adjustment"
+        action: A_FREEZE_STRATEGY
+        
+    az_prime_hooks:
+      - trigger: "slippage_bps_p95 > 10"
+        state_transition: "NORMAL → CAUTION"
+        action: A_THROTTLE_RISK
+        
+      - trigger: "partial_fill_rate > 30%"
+        state_transition: "NORMAL → CAUTION"
+        action: A_CREATE_INCIDENT
+        
+      - trigger: "market_impact_bps > 20"
+        state_transition: "CAUTION → SAFE_MODE"
+        actions: [A_STOP_EXECUTION, A_CREATE_INCIDENT]
+        
+      - trigger: "liquidity_available_pct < 100%"
+        state_transition: "NORMAL → CAUTION"
+        action: A_THROTTLE_RISK
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # PACK 6: COUNTERPARTY SCORING + VENUE HEALTH + WITHDRAWAL RISK
+  # Primary Owner: CryptoIntelligence | ~45 insights
+  # ═══════════════════════════════════════════════════════════════════════════
+  pack_6_counterparty:
+    name: "Counterparty Scoring + Venue Health + Withdrawal Risk"
+    owner: CryptoIntelligence
+    insight_count: 44
+    
+    core_principles:
+      - id: 11
+        insight: "In any market, you're trading constraints (time, liquidity, trust)"
+        level: minimum
+        
+      - id: 18
+        insight: "Model every venue as a service with SLOs, not as a price source"
+        level: scale
+        
+      - id: 19
+        insight: "Always ask: 'What breaks this edge when copied?'"
+        level: institutional
+        
+      - id: 289
+        insight: "Counterparty risk is the foundation of trust"
+        level: minimum
+        
+      - id: 290
+        insight: "Venue health determines execution reliability"
+        level: scale
+        
+      - id: 291
+        insight: "Withdrawal risk affects capital mobility"
+        level: institutional
+        
+      - id: 292
+        insight: "Reputation scoring predicts behavior"
+        level: minimum
+        
+      - id: 293
+        insight: "Regulatory compliance builds trust"
+        level: scale
+        
+      - id: 294
+        insight: "Financial stability prevents defaults"
+        level: minimum
+        
+      - id: 295
+        insight: "Technical competence ensures reliability"
+        level: institutional
+        
+      - id: 296
+        insight: "Transparency reduces information asymmetry"
+        level: scale
+        
+      - id: 297
+        insight: "Audit reports validate operations"
+        level: minimum
+        
+      - id: 298
+        insight: "Insurance coverage protects against losses"
+        level: scale
+        
+      - id: 299
+        insight: "Reserve proofs demonstrate solvency"
+        level: institutional
+        
+      - id: 300
+        insight: "Multi-sig requirements enhance security"
+        level: minimum
+        
+      - id: 301
+        insight: "Cold storage protects assets"
+        level: scale
+        
+      - id: 302
+        insight: "Hot wallet limits reduce risk"
+        level: minimum
+        
+      - id: 303
+        insight: "Withdrawal limits prevent large losses"
+        level: institutional
+        
+      - id: 304
+        insight: "KYC requirements ensure legitimacy"
+        level: scale
+        
+      - id: 305
+        insight: "AML monitoring prevents illicit activity"
+        level: minimum
+        
+      - id: 306
+        insight: "Geographic diversification reduces concentration"
+        level: scale
+        
+      - id: 307
+        insight: "Exchange concentration risk affects liquidity"
+        level: institutional
+        
+      - id: 308
+        insight: "Platform risk includes smart contract bugs"
+        level: minimum
+        
+      - id: 309
+        insight: "Bridge risk affects cross-chain operations"
+        level: scale
+        
+      - id: 310
+        insight: "Oracle risk impacts price feeds"
+        level: minimum
+        
+      - id: 311
+        insight: "Liquidity provider risk affects yields"
+        level: institutional
+        
+      - id: 312
+        insight: "Validator risk affects proof-of-stake networks"
+        level: scale
+        
+      - id: 313
+        insight: "Miner risk affects proof-of-work networks"
+        level: minimum
+        
+      - id: 314
+        insight: "Governance risk affects protocol changes"
+        level: scale
+        
+      - id: 315
+        insight: "Upgrade risk introduces breaking changes"
+        level: institutional
+        
+      - id: 316
+        insight: "Fork risk creates chain splits"
+        level: minimum
+        
+      - id: 317
+        insight: " rug pull risk affects new projects"
+        level: scale
+        
+      - id: 318
+        insight: "Scam risk targets unsuspecting users"
+        level: minimum
+        
+      - id: 319
+        insight: "Phishing risk compromises credentials"
+        level: institutional
+        
+      - id: 320
+        insight: "Social engineering exploits human weakness"
+        level: scale
+        
+      - id: 321
+        insight: "Supply chain attacks target dependencies"
+        level: minimum
+        
+      - id: 322
+        insight: "Third-party risk affects service providers"
+        level: scale
+        
+      - id: 323
+        insight: "Vendor risk impacts critical suppliers"
+        level: institutional
+        
+      - id: 324
+        insight: "Cloud provider risk affects infrastructure"
+        level: minimum
+        
+      - id: 325
+        insight: "DNS risk impacts domain resolution"
+        level: scale
+        
+      - id: 326
+        insight: "CDN risk affects content delivery"
+        level: minimum
+        
+      - id: 327
+        insight: "API provider risk impacts integrations"
+        level: institutional
+        
+      - id: 328
+        insight: "Payment processor risk affects settlements"
+        level: scale
+        
+      - id: 329
+        insight: "Bank risk impacts fiat operations"
+        level: minimum
+        
+      - id: 330
+        insight: "Custody risk affects asset storage"
+        level: scale
+        
+      - id: 331
+        insight: "Insurance risk covers loss events"
+        level: institutional
+        
+      - id: 332
+        insight: "Legal risk involves regulatory changes"
+        level: minimum
+        
+    venue_health_scoring:
+      components:
+        - name: uptime_30d
+          weight: 0.25
+          source: "Monitoring system"
+          
+        - name: latency_p99
+          weight: 0.20
+          source: "Ping measurements"
+          
+        - name: fill_quality
+          weight: 0.20
+          source: "Historical fills analysis"
+          
+        - name: spread_consistency
+          weight: 0.15
+          source: "Quote analysis"
+          
+        - name: withdrawal_reliability
+          weight: 0.20
+          source: "Withdrawal success rate"
+          
+      thresholds:
+        good: "> 0.85"
+        warning: "0.70-0.85"
+        critical: "< 0.70"
+        
+    required_metrics:
+      - metric: venue_health_score
+        definition: "Composite score of venue reliability"
+        measurement: "Weighted sum of health components"
+        thresholds:
+          good: "> 0.85"
+          warning: "0.70-0.85"
+          critical: "< 0.70"
+        frequency: every_30s
+        
+      - metric: withdrawal_success_rate
+        definition: "Percentage of withdrawals completed successfully"
+        measurement: "Successful withdrawals / Total withdrawal attempts"
+        thresholds:
+          good: "> 99%"
+          warning: "95-99%"
+          critical: "< 95%"
+        frequency: per_withdrawal
+        
+      - metric: counterparty_exposure_pct
+        definition: "Capital exposed to each counterparty"
+        measurement: "Capital at venue / Total capital"
+        thresholds:
+          good: "< 20%"
+          warning: "20-40%"
+          critical: "> 40%"
+        frequency: real_time
+        
+      - metric: settlement_failure_rate
+        definition: "Percentage of trades failing to settle"
+        measurement: "Failed settlements / Total settlements"
+        thresholds:
+          good: "< 0.1%"
+          warning: "0.1-1%"
+          critical: "> 1%"
+        frequency: per_settlement
+        
+      - metric: counterparty_credit_score
+        definition: "Composite credit risk score for counterparty"
+        measurement: "Weighted sum of credit risk components"
+        thresholds:
+          good: "> 70"
+          warning: "50-70"
+          critical: "< 50"
+        frequency: daily
+        
+    failure_modes:
+      - mode: "Venue insolvency"
+        description: "Exchange/broker becomes insolvent"
+        mitigation: "Max 20% capital per venue"
+        action: A_ROUTE_FAILOVER
+        
+      - mode: "Withdrawal freeze"
+        description: "Unable to withdraw funds"
+        trigger: "withdrawal_pending > 24h"
+        action: A_CREATE_INCIDENT
+        
+    az_prime_hooks:
+      - trigger: "venue_health_score < 0.70"
+        state_transition: "NORMAL → CAUTION"
+        action: A_ROUTE_FAILOVER
+        
+      - trigger: "withdrawal_frozen"
+        state_transition: "ANY → SAFE_MODE"
+        actions: [A_CREATE_INCIDENT, A_PAGE_ONCALL]
+        
+      - trigger: "settlement_failure_rate > 1%"
+        state_transition: "NORMAL → CAUTION"
+        action: A_THROTTLE_RISK
+        
+      - trigger: "counterparty_credit_score < 50"
+        state_transition: "ANY → SAFE_MODE"
+        actions: [A_ROUTE_FAILOVER, A_CREATE_INCIDENT]
+        
+    credit_risk_scoring:
+      components:
+        - name: financial_health
+          weight: 0.30
+          inputs: ["public_financials", "credit_rating", "market_cap"]
+        - name: operational_history
+          weight: 0.25
+          inputs: ["years_operating", "incident_history", "regulatory_actions"]
+        - name: security_posture
+          weight: 0.20
+          inputs: ["audit_reports", "insurance_coverage", "custody_method"]
+        - name: liquidity_depth
+          weight: 0.15
+          inputs: ["daily_volume", "order_book_depth", "market_share"]
+        - name: regulatory_compliance
+          weight: 0.10
+          inputs: ["licenses", "jurisdiction", "compliance_record"]
+      score_range: "0-100"
+      thresholds:
+        good: "> 70"
+        warning: "50-70"
+        critical: "< 50"
+      update_frequency: "Weekly + on material news"
+      
+    settlement_risk:
+      metrics:
+        - metric: settlement_failure_rate
+          definition: "Percentage of trades failing to settle"
+          measurement: "Failed settlements / total settlements"
+          thresholds:
+            good: "< 0.1%"
+            warning: "0.1-1%"
+            critical: "> 1%"
+        - metric: settlement_delay_hours
+          definition: "Average delay beyond expected settlement"
+          thresholds:
+            good: "< 1 hour"
+            warning: "1-4 hours"
+            critical: "> 4 hours"
+        - metric: pending_settlement_exposure
+          definition: "Capital at risk in pending settlements"
+          thresholds:
+            good: "< 10% of capital"
+            warning: "10-25%"
+            critical: "> 25%"
+      mitigation:
+        - "Prefer T+0 or T+1 settlement venues"
+        - "Diversify settlement counterparties"
+        - "Monitor pending settlements in real-time"
+        - "Reduce exposure to slow-settling venues"
+        
+    regulatory_risk:
+      monitoring:
+        - jurisdiction_changes: "Track regulatory announcements"
+        - license_status: "Verify venue licenses quarterly"
+        - sanction_lists: "Daily OFAC/SDN screening"
+      risk_flags:
+        - "Venue operating without required licenses"
+        - "Jurisdiction with pending adverse regulation"
+        - "Recent regulatory enforcement action"
+      response:
+        flag_detected: "Reduce exposure by 50%"
+        license_revoked: "Exit venue within 24 hours"
+        sanction_hit: "Immediate freeze + legal review"
+        
+    insurance_tracking:
+      required_coverage:
+        - type: "Crime/theft insurance"
+          minimum: "$10M or 50% of assets under custody"
+        - type: "Errors & omissions"
+          minimum: "$5M"
+        - type: "Cyber liability"
+          minimum: "$5M"
+      verification: "Annual proof of coverage required"
+      self_insurance_reserve: "5% of capital held in cold storage"
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # PACK 7: RESEARCH FACTORY + EXPERIMENTATION + STRATEGY RETIREMENT
+  # Primary Owner: BigBrainIntelligence | ~75 insights
+  # ═══════════════════════════════════════════════════════════════════════════
+  pack_7_research_factory:
+    name: "Research Factory + Experimentation + Strategy Retirement"
+    owner: BigBrainIntelligence
+    insight_count: 73
+    
+    core_principles:
+      - id: 5
+        insight: "Your true edge is often operational efficiency, not the signal itself"
+        level: minimum
+        
+      - id: 7
+        insight: "Separate signal generation from execution to avoid coupling model changes to routing"
+        level: scale
+        
+      - id: 24
+        insight: "Your edge decays; your process must out-innovate decay"
+        level: institutional
+        
+      - id: 333
+        insight: "Research is the engine of innovation"
+        level: minimum
+        
+      - id: 334
+        insight: "Experimentation validates hypotheses"
+        level: scale
+        
+      - id: 335
+        insight: "Strategy retirement prevents decay"
+        level: institutional
+        
+      - id: 336
+        insight: "Hypothesis testing drives discovery"
+        level: minimum
+        
+      - id: 337
+        insight: "Data quality determines research validity"
+        level: scale
+        
+      - id: 338
+        insight: "Statistical significance prevents false positives"
+        level: minimum
+        
+      - id: 339
+        insight: "Out-of-sample testing validates robustness"
+        level: institutional
+        
+      - id: 340
+        insight: "Cross-validation prevents overfitting"
+        level: scale
+        
+      - id: 341
+        insight: "Feature engineering creates edges"
+        level: minimum
+        
+      - id: 342
+        insight: "Model selection affects performance"
+        level: scale
+        
+      - id: 343
+        insight: "Hyperparameter tuning optimizes results"
+        level: institutional
+        
+      - id: 344
+        insight: "Ensemble methods improve stability"
+        level: minimum
+        
+      - id: 345
+        insight: "Regularization prevents complexity"
+        level: scale
+        
+      - id: 346
+        insight: "Dimensionality reduction aids understanding"
+        level: minimum
+        
+      - id: 347
+        insight: "Time series analysis handles temporal data"
+        level: institutional
+        
+      - id: 348
+        insight: "Causal inference identifies true relationships"
+        level: scale
+        
+      - id: 349
+        insight: "Machine learning automates pattern discovery"
+        level: minimum
+        
+      - id: 350
+        insight: "Deep learning handles complex relationships"
+        level: scale
+        
+      - id: 351
+        insight: "Reinforcement learning optimizes decisions"
+        level: institutional
+        
+      - id: 352
+        insight: "Natural language processing extracts insights"
+        level: minimum
+        
+      - id: 353
+        insight: "Computer vision analyzes visual data"
+        level: scale
+        
+      - id: 354
+        insight: "Network analysis reveals connections"
+        level: minimum
+        
+      - id: 355
+        insight: "Graph theory models relationships"
+        level: institutional
+        
+      - id: 356
+        insight: "Bayesian methods handle uncertainty"
+        level: scale
+        
+      - id: 357
+        insight: "Monte Carlo simulation explores scenarios"
+        level: minimum
+        
+      - id: 358
+        insight: "Bootstrapping estimates variability"
+        level: scale
+        
+      - id: 359
+        insight: "A/B testing compares alternatives"
+        level: institutional
+        
+      - id: 360
+        insight: "Multi-armed bandit optimizes exploration"
+        level: minimum
+        
+      - id: 361
+        insight: "Genetic algorithms evolve solutions"
+        level: scale
+        
+      - id: 362
+        insight: "Swarm intelligence finds optima"
+        level: minimum
+        
+      - id: 363
+        insight: "Neural architecture search designs models"
+        level: institutional
+        
+      - id: 364
+        insight: "AutoML democratizes modeling"
+        level: scale
+        
+      - id: 365
+        insight: "Transfer learning leverages knowledge"
+        level: minimum
+        
+      - id: 366
+        insight: "Few-shot learning handles sparse data"
+        level: scale
+        
+      - id: 367
+        insight: "Meta-learning improves learning"
+        level: institutional
+        
+      - id: 368
+        insight: "Federated learning preserves privacy"
+        level: minimum
+        
+      - id: 369
+        insight: "Differential privacy protects data"
+        level: scale
+        
+      - id: 370
+        insight: "Homomorphic encryption enables computation"
+        level: minimum
+        
+      - id: 371
+        insight: "Zero-knowledge proofs verify without revealing"
+        level: institutional
+        
+      - id: 372
+        insight: "Blockchain provides immutable records"
+        level: scale
+        
+      - id: 373
+        insight: "Smart contracts automate execution"
+        level: minimum
+        
+      - id: 374
+        insight: "Decentralized finance creates new opportunities"
+        level: scale
+        
+      - id: 375
+        insight: "Algorithmic trading optimizes execution"
+        level: institutional
+        
+      - id: 376
+        insight: "High-frequency trading exploits latency"
+        level: minimum
+        
+      - id: 377
+        insight: "Market microstructure reveals behavior"
+        level: scale
+        
+      - id: 378
+        insight: "Order flow analysis predicts movements"
+        level: minimum
+        
+      - id: 379
+        insight: "Sentiment analysis gauges emotion"
+        level: institutional
+        
+      - id: 380
+        insight: "News analytics extracts signals"
+        level: scale
+        
+      - id: 381
+        insight: "Social media monitoring tracks trends"
+        level: minimum
+        
+      - id: 382
+        insight: "Alternative data provides edges"
+        level: scale
+        
+      - id: 383
+        insight: "Satellite imagery reveals economic activity"
+        level: institutional
+        
+      - id: 384
+        insight: "IoT data streams real-time information"
+        level: minimum
+        
+      - id: 385
+        insight: "Web scraping gathers public data"
+        level: scale
+        
+      - id: 386
+        insight: "API integration accesses proprietary data"
+        level: minimum
+        
+      - id: 387
+        insight: "Data cleansing ensures quality"
+        level: institutional
+        
+      - id: 388
+        insight: "Feature selection reduces noise"
+        level: scale
+        
+      - id: 389
+        insight: "Data versioning tracks changes"
+        level: minimum
+        
+      - id: 390
+        insight: "Model versioning enables rollback"
+        level: scale
+        
+      - id: 391
+        insight: "Experiment tracking documents results"
+        level: institutional
+        
+      - id: 392
+        insight: "Reproducibility ensures reliability"
+        level: minimum
+        
+      - id: 393
+        insight: "Code review maintains quality"
+        level: scale
+        
+      - id: 394
+        insight: "Documentation preserves knowledge"
+        level: minimum
+        
+      - id: 395
+        insight: "Knowledge sharing accelerates innovation"
+        level: institutional
+        
+      - id: 396
+        insight: "Collaboration tools enable teamwork"
+        level: scale
+        
+      - id: 397
+        insight: "Version control manages changes"
+        level: minimum
+        
+      - id: 398
+        insight: "Continuous integration automates testing"
+        level: scale
+        
+      - id: 399
+        insight: "Continuous deployment enables iteration"
+        level: institutional
+        
+      - id: 400
+        insight: "DevOps culture improves delivery"
+        level: minimum
+        
+      - id: 401
+        insight: "Infrastructure as code ensures consistency"
+        level: scale
+        
+      - id: 402
+        insight: "Monitoring provides observability"
+        level: minimum
+        
+      - id: 403
+        insight: "Logging captures system behavior"
+        level: institutional
+        
+      - id: 404
+        insight: "Alerting enables proactive response"
+        level: scale
+        
+      - id: 405
+        insight: "Dashboards visualize performance"
+        level: minimum
+        
+    strategy_lifecycle:
+      SPEC:
+        owner: BigBrainIntelligence
+        entry_requirements:
+          - hypothesis_documented
+          - data_contracts_defined
+          - risk_envelope_specified
+          - failure_modes_identified
+        outputs:
+          - strategy_spec_document
+          - data_requirements_list
+          - risk_parameters
+          
+      SIM:
+        owner: BigBrainIntelligence
+        entry_requirements:
+          - SPEC_gate_passed
+          - historical_data_available
+          - backtest_framework_ready
+        validation_requirements:
+          - walk_forward_test_passed
+          - stress_test_passed
+          - fee_sensitivity_analyzed
+        outputs:
+          - backtest_report
+          - parameter_sensitivity
+          - risk_metrics
+          
+      PAPER:
+        owner: TradingExecution
+        entry_requirements:
+          - SIM_gate_passed
+          - live_data_connection
+          - paper_trading_infrastructure
+        validation_requirements:
+          - latency_meets_slo
+          - fill_simulation_realistic
+          - 2_weeks_minimum_runtime
+        outputs:
+          - execution_quality_report
+          - latency_metrics
+          - live_vs_sim_comparison
+          
+      PILOT:
+        owner: TradingExecution
+        entry_requirements:
+          - PAPER_gate_passed
+          - risk_approval
+          - kill_switch_armed
+        rules:
+          - max_capital: $1000
+          - no_leverage: true
+          - daily_loss_cap: 2%
+        outputs:
+          - reconciled_pnl
+          - live_metrics
+          - incident_log
+          
+      POST_ANALYSIS:
+        owner: CentralAccounting
+        validation_requirements:
+          - 4_weeks_minimum_data
+          - reconciliation_complete
+          - attribution_analysis_done
+        decision_criteria:
+          promote:
+            - net_sharpe > 0.5
+            - max_drawdown < 10%
+            - incident_count < 2
+          retire:
+            - net_sharpe < 0 for 4 weeks
+            - data_quality_issues
+            - excessive_ops_burden
+        outputs:
+          - promotion_decision
+          - lessons_learned
+          - parameter_updates
+          
+    retirement_criteria:
+      performance_based:
+        trigger: "net_sharpe < 0.5 for 4 consecutive weeks"
+        owner: CentralAccounting
+        process: "Automatic flag, manual review"
+        
+      data_quality:
+        trigger: "source_reliability < 95% for 2 weeks"
+        owner: BigBrainIntelligence
+        process: "A_QUARANTINE_SOURCE, then review"
+        
+      execution_degradation:
+        trigger: "fill_rate < 80% for 1 week"
+        owner: TradingExecution
+        process: "A_FREEZE_STRATEGY, investigate"
+        
+      ops_burden:
+        trigger: "incident_count > 3/week for 2 weeks"
+        owner: SharedInfrastructure
+        process: "Review for retirement or redesign"
+        
+    required_metrics:
+      - metric: research_pipeline_velocity
+        definition: "Strategies promoted per quarter"
+        measurement: "Count of strategies reaching PILOT"
+        thresholds:
+          good: "> 3"
+          warning: "1-3"
+          critical: "< 1"
+        frequency: quarterly
+        
+      - metric: strategy_survival_rate
+        definition: "Percentage of PILOT strategies still active after 6 months"
+        measurement: "Active strategies / Total promoted"
+        thresholds:
+          good: "> 50%"
+          warning: "25-50%"
+          critical: "< 25%"
+        frequency: semi_annual
+        
+      - metric: feature_reuse_rate
+        definition: "Percentage of features used by multiple strategies"
+        measurement: "Shared features / total features"
+        thresholds:
+          good: "> 30%"
+          warning: "15-30%"
+          critical: "< 15%"
+        frequency: monthly
+        
+      - metric: experiment_completion_rate
+        definition: "Percentage of experiments reaching statistical significance"
+        measurement: "Completed experiments / started experiments"
+        thresholds:
+          good: "> 70%"
+          warning: "50-70%"
+          critical: "< 50%"
+        frequency: quarterly
+        
+      # Gap Analysis & Arbitrage Metrics
+      - metric: overnight_gap_data
+        definition: "Overnight price gap statistics across all instruments"
+        measurement: "Mean, std dev, and distribution of overnight gaps"
+        thresholds:
+          good: "gaps within 2σ of historical mean"
+          warning: "gaps 2-3σ from mean"
+          critical: "gaps > 3σ from mean"
+        frequency: daily
+        
+      - metric: gap_magnitude_classification
+        definition: "Classification of gap sizes by magnitude bands"
+        measurement: "Percentage of gaps in small/medium/large bands"
+        thresholds:
+          good: "small gaps > 60%"
+          warning: "small gaps 40-60%"
+          critical: "small gaps < 40%"
+        frequency: daily
+        
+      - metric: gap_fade_alpha_bps
+        definition: "Expected fade in basis points for different gap sizes"
+        measurement: "Regression coefficient of gap size vs fade amount"
+        thresholds:
+          good: "alpha < 50bps per 1% gap"
+          warning: "alpha 50-100bps per 1% gap"
+          critical: "alpha > 100bps per 1% gap"
+        frequency: weekly
+        
+      - metric: gap_exploitability_score
+        definition: "Combined score of gap fade predictability and size"
+        measurement: "fade_alpha * gap_magnitude / transaction_costs"
+        thresholds:
+          good: "> 2.0"
+          warning: "1.0-2.0"
+          critical: "< 1.0"
+        frequency: real_time
+        
+      - metric: pre_market_gap_pct
+        definition: "Pre-market gap percentage vs previous close"
+        measurement: "Average gap across all monitored instruments"
+        thresholds:
+          good: "< 1.0%"
+          warning: "1.0-2.0%"
+          critical: "> 2.0%"
+        frequency: daily
+        
+      - metric: gap_persistence_hours
+        definition: "Average time for gaps to fully fade"
+        measurement: "Mean time from gap open to full reversion"
+        thresholds:
+          good: "< 2 hours"
+          warning: "2-4 hours"
+          critical: "> 4 hours"
+        frequency: daily
+        
+      - metric: iv_rv_gap_model
+        definition: "Implied vs Realized volatility gap model accuracy"
+        measurement: "R-squared of IV predicting RV gaps"
+        thresholds:
+          good: "> 0.6"
+          warning: "0.3-0.6"
+          critical: "< 0.3"
+        frequency: weekly
+        
+      - metric: vol_gap_alpha
+        definition: "Volatility gap arbitrage alpha"
+        measurement: "Excess returns from vol gap strategies"
+        thresholds:
+          good: "> 50bps annualized"
+          warning: "25-50bps annualized"
+          critical: "< 25bps annualized"
+        frequency: monthly
+        
+      - metric: vol_gap_persistence
+        definition: "How long volatility gaps persist"
+        measurement: "Half-life of volatility gap reversion"
+        thresholds:
+          good: "< 1 day"
+          warning: "1-3 days"
+          critical: "> 3 days"
+        frequency: weekly
+        
+      - metric: ic_rc_gap_model
+        definition: "Information Coefficient vs Risk-Adjusted gap model"
+        measurement: "IC of gap predictions adjusted for risk"
+        thresholds:
+          good: "> 0.15"
+          warning: "0.08-0.15"
+          critical: "< 0.08"
+        frequency: monthly
+        
+      - metric: information_gap_efficiency
+        definition: "Efficiency of information processing in gaps"
+        measurement: "Gap fade speed / information processing time"
+        thresholds:
+          good: "> 1.5"
+          warning: "1.0-1.5"
+          critical: "< 1.0"
+        frequency: real_time
+        
+      - metric: gap_arbitrage_alpha
+        definition: "Total alpha from gap arbitrage strategies"
+        measurement: "Risk-adjusted returns from gap strategies"
+        thresholds:
+          good: "> 100bps annualized"
+          warning: "50-100bps annualized"
+          critical: "< 50bps annualized"
+        frequency: monthly
+        
+      - metric: gap_type_distribution
+        definition: "Distribution of gap types by cause"
+        measurement: "Percentage breakdown: earnings/news/economic/technical"
+        thresholds:
+          good: "technical gaps < 40%"
+          warning: "technical gaps 40-60%"
+          critical: "technical gaps > 60%"
+        frequency: weekly
+        
+      - metric: reversion_probability
+        definition: "Probability that gaps will revert"
+        measurement: "Historical reversion rate by gap size"
+        thresholds:
+          good: "> 85% for gaps < 2%"
+          warning: "75-85% for gaps < 2%"
+          critical: "< 75% for gaps < 2%"
+        frequency: daily
+        
+      - metric: gap_half_life_hours
+        definition: "Half-life of gap reversion in hours"
+        measurement: "Time for 50% of gap to fade"
+        thresholds:
+          good: "< 1.5 hours"
+          warning: "1.5-3 hours"
+          critical: "> 3 hours"
+        frequency: daily
+        
+    feature_store:
+      purpose: "Centralized repository for reusable signal features"
+      architecture:
+        storage: "Delta Lake / Parquet with time-travel"
+        compute: "Spark or DuckDB for feature computation"
+        serving: "Redis for low-latency feature serving"
+      feature_categories:
+        price_features:
+          - returns_1m, returns_5m, returns_1h, returns_1d
+          - volatility_realized_1h, volatility_realized_1d
+          - momentum_rsi_14, momentum_macd
+        volume_features:
+          - volume_ratio_vs_avg
+          - volume_imbalance
+          - trade_count_ratio
+        microstructure_features:
+          - bid_ask_spread_bps
+          - order_book_imbalance
+          - trade_arrival_rate
+        alternative_features:
+          - sentiment_score
+          - news_volume
+          - social_mention_count
+      feature_metadata:
+        required_fields:
+          - name
+          - description
+          - owner
+          - computation_logic
+          - data_sources
+          - freshness_sla
+          - version
+      governance:
+        - "All features must be documented"
+        - "Breaking changes require version bump"
+        - "Deprecated features retained for 90 days"
+        
+    experiment_tracking:
+      system: "MLflow or similar"
+      tracked_artifacts:
+        - experiment_hypothesis
+        - parameter_configuration
+        - training_data_snapshot
+        - model_artifacts
+        - evaluation_metrics
+        - code_version
+      experiment_lifecycle:
+        proposed: "Idea documented, awaiting resources"
+        active: "Currently running, collecting data"
+        analyzing: "Data collection complete, evaluating"
+        concluded: "Decision made (promote/reject/iterate)"
+      required_documentation:
+        - hypothesis_statement
+        - success_criteria
+        - sample_size_calculation
+        - risk_assessment
+        
+    model_versioning:
+      scheme: "MAJOR.MINOR.PATCH"
+      rules:
+        major: "Breaking changes to signal output"
+        minor: "New features, backward compatible"
+        patch: "Bug fixes, parameter tuning"
+      artifacts_stored:
+        - model_weights
+        - feature_configuration
+        - training_data_hash
+        - evaluation_results
+        - deployment_config
+      rollback:
+        enabled: true
+        retention: "Last 5 versions minimum"
+        procedure: "One-click rollback via deployment system"
+      deployment:
+        canary: "5% traffic for 24 hours"
+        gradual: "25% → 50% → 100% over 3 days"
+        instant: "Only for critical fixes"
+        
+    idea_backlog:
+      intake:
+        sources: ["Research team", "Trading team", "External research", "Incident learnings"]
+        required_fields:
+          - hypothesis
+          - expected_edge
+          - data_requirements
+          - estimated_effort
+          - priority_score
+      prioritization:
+        formula: "(Expected Sharpe * Confidence) / Effort"
+        review_cadence: "Weekly research planning"
+      statuses:
+        - backlog
+        - researching
+        - developing
+        - testing
+        - deployed
+        - retired
+        
+    failure_modes:
+      - mode: "Research stagnation"
+        description: "No new strategies reaching PILOT stage"
+        trigger: "research_pipeline_velocity < 1 per quarter"
+        mitigation: "Increase research capacity, review idea backlog"
+        action: A_CREATE_INCIDENT
+        
+      - mode: "Strategy overfitting"
+        description: "Strategies perform well in backtest but fail in production"
+        trigger: "strategy_survival_rate < 25%"
+        mitigation: "Stricter validation, walk-forward testing"
+        action: A_FREEZE_STRATEGY
+        
+      - mode: "Feature bloat"
+        description: "Too many features reduce model interpretability and performance"
+        trigger: "feature_count > 100 && feature_reuse_rate < 10%"
+        mitigation: "Feature pruning, consolidation review"
+        action: A_CREATE_INCIDENT
+        
+      - mode: "Experiment sprawl"
+        description: "Too many concurrent experiments dilute focus"
+        trigger: "active_experiments > 10 && completion_rate < 50%"
+        mitigation: "Prioritize and close incomplete experiments"
+        action: A_CREATE_INCIDENT
+        
+    az_prime_hooks:
+      - trigger: "research_pipeline_velocity < 1"
+        state_transition: "NORMAL → CAUTION"
+        action: A_CREATE_INCIDENT
+        
+      - trigger: "strategy_survival_rate < 25%"
+        state_transition: "NORMAL → CAUTION"
+        actions: [A_CREATE_INCIDENT, A_FREEZE_STRATEGY]
+        
+      - trigger: "experiment_completion_rate < 50%"
+        state_transition: "NORMAL → CAUTION"
+        action: A_CREATE_INCIDENT
+        
+      - trigger: "model_version_rollback_count > 2 in 7 days"
+        state_transition: "CAUTION → SAFE_MODE"
+        actions: [A_FREEZE_STRATEGY, A_PAGE_ONCALL]
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # PACK 8: METRIC CANON + TRUTH ARBITRATION + RETENTION/PRIVACY
+  # Primary Owner: CentralAccounting | ~90 insights
+  # ═══════════════════════════════════════════════════════════════════════════
+  pack_8_metric_canon:
+    name: "Metric Canon + Truth Arbitration + Retention/Privacy"
+    owner: CentralAccounting
+    insight_count: 95
+    
+    core_principles:
+      - id: 2
+        insight: "Define profit only as reconciled, net, risk-adjusted outcome"
+        level: minimum
+        
+      - id: 13
+        insight: "The most durable edge is measurement integrity"
+        level: minimum
+        
+      - id: 23
+        insight: "Data 'truth' is a contract, not a given"
+        level: scale
+        
+      - id: 406
+        insight: "Metrics are the language of performance"
+        level: institutional
+        
+      - id: 407
+        insight: "Truth arbitration resolves conflicts"
+        level: minimum
+        
+      - id: 408
+        insight: "Data retention enables analysis"
+        level: scale
+        
+      - id: 409
+        insight: "Privacy protection builds trust"
+        level: minimum
+        
+      - id: 410
+        insight: "Data lineage tracks provenance"
+        level: institutional
+        
+      - id: 411
+        insight: "Metadata enables discovery"
+        level: scale
+        
+      - id: 412
+        insight: "Data quality metrics prevent errors"
+        level: minimum
+        
+      - id: 413
+        insight: "Completeness checks ensure coverage"
+        level: scale
+        
+      - id: 414
+        insight: "Accuracy validation prevents mistakes"
+        level: institutional
+        
+      - id: 415
+        insight: "Timeliness measures freshness"
+        level: minimum
+        
+      - id: 416
+        insight: "Consistency ensures coherence"
+        level: scale
+        
+      - id: 417
+        insight: "Validity checks data correctness"
+        level: minimum
+        
+      - id: 418
+        insight: "Uniqueness prevents duplicates"
+        level: institutional
+        
+      - id: 419
+        insight: "Integrity protects against tampering"
+        level: scale
+        
+      - id: 420
+        insight: "Confidentiality safeguards sensitive data"
+        level: minimum
+        
+      - id: 421
+        insight: "Availability ensures access"
+        level: scale
+        
+      - id: 422
+        insight: "Auditability enables verification"
+        level: institutional
+        
+      - id: 423
+        insight: "Traceability tracks changes"
+        level: minimum
+        
+      - id: 424
+        insight: "Accountability assigns responsibility"
+        level: scale
+        
+      - id: 425
+        insight: "Transparency builds confidence"
+        level: minimum
+        
+      - id: 426
+        insight: "Governance establishes rules"
+        level: institutional
+        
+      - id: 427
+        insight: "Standards ensure interoperability"
+        level: scale
+        
+      - id: 428
+        insight: "Policies guide behavior"
+        level: minimum
+        
+      - id: 429
+        insight: "Procedures define processes"
+        level: scale
+        
+      - id: 430
+        insight: "Controls prevent issues"
+        level: institutional
+        
+      - id: 431
+        insight: "Monitoring detects problems"
+        level: minimum
+        
+      - id: 432
+        insight: "Alerting notifies stakeholders"
+        level: scale
+        
+      - id: 433
+        insight: "Reporting communicates status"
+        level: minimum
+        
+      - id: 434
+        insight: "Dashboards visualize information"
+        level: institutional
+        
+      - id: 435
+        insight: "Analytics uncover insights"
+        level: scale
+        
+      - id: 436
+        insight: "Intelligence drives decisions"
+        level: minimum
+        
+      - id: 437
+        insight: "Forecasting predicts future"
+        level: scale
+        
+      - id: 438
+        insight: "Planning guides actions"
+        level: institutional
+        
+      - id: 439
+        insight: "Optimization improves performance"
+        level: minimum
+        
+      - id: 440
+        insight: "Benchmarking measures progress"
+        level: scale
+        
+      - id: 441
+        insight: "KPI tracking monitors goals"
+        level: minimum
+        
+      - id: 442
+        insight: "SLA compliance ensures service"
+        level: institutional
+        
+      - id: 443
+        insight: "SLO achievement validates reliability"
+        level: scale
+        
+      - id: 444
+        insight: "Error budgets allow experimentation"
+        level: minimum
+        
+      - id: 445
+        insight: "MTTR measures responsiveness"
+        level: scale
+        
+      - id: 446
+        insight: "MTTD detects issues early"
+        level: institutional
+        
+      - id: 447
+        insight: "Uptime quantifies availability"
+        level: minimum
+        
+      - id: 448
+        insight: "Throughput measures capacity"
+        level: scale
+        
+      - id: 449
+        insight: "Latency quantifies speed"
+        level: minimum
+        
+      - id: 450
+        insight: "Jitter measures variability"
+        level: institutional
+        
+      - id: 451
+        insight: "Error rate tracks failures"
+        level: scale
+        
+      - id: 452
+        insight: "Success rate measures achievement"
+        level: minimum
+        
+      - id: 453
+        insight: "Conversion rate quantifies effectiveness"
+        level: scale
+        
+      - id: 454
+        insight: "Retention rate measures loyalty"
+        level: institutional
+        
+      - id: 455
+        insight: "Churn rate identifies problems"
+        level: minimum
+        
+      - id: 456
+        insight: "Growth rate tracks expansion"
+        level: scale
+        
+      - id: 457
+        insight: "Market share measures position"
+        level: minimum
+        
+      - id: 458
+        insight: "Competitive analysis identifies threats"
+        level: institutional
+        
+      - id: 459
+        insight: "SWOT analysis guides strategy"
+        level: scale
+        
+      - id: 460
+        insight: "PESTEL analysis considers environment"
+        level: minimum
+        
+      - id: 461
+        insight: "Porter's five forces evaluates industry"
+        level: scale
+        
+      - id: 462
+        insight: "Value chain analysis identifies activities"
+        level: institutional
+        
+      - id: 463
+        insight: "Balanced scorecard aligns objectives"
+        level: minimum
+        
+      - id: 464
+        insight: "OKR framework sets goals"
+        level: scale
+        
+      - id: 465
+        insight: "SMART criteria ensures achievability"
+        level: minimum
+        
+      - id: 466
+        insight: "ROI measures investment returns"
+        level: institutional
+        
+      - id: 467
+        insight: "NPV evaluates project value"
+        level: scale
+        
+      - id: 468
+        insight: "IRR calculates return rate"
+        level: minimum
+        
+      - id: 469
+        insight: "Payback period measures recovery time"
+        level: scale
+        
+      - id: 470
+        insight: "Break-even analysis finds equilibrium"
+        level: institutional
+        
+      - id: 471
+        insight: "Sensitivity analysis tests assumptions"
+        level: minimum
+        
+      - id: 472
+        insight: "Scenario planning prepares for futures"
+        level: scale
+        
+      - id: 473
+        insight: "Risk assessment identifies threats"
+        level: minimum
+        
+      - id: 474
+        insight: "Impact analysis evaluates consequences"
+        level: institutional
+        
+      - id: 475
+        insight: "Probability assessment quantifies likelihood"
+        level: scale
+        
+      - id: 476
+        insight: "Cost-benefit analysis weighs decisions"
+        level: minimum
+        
+      - id: 477
+        insight: "Decision trees structure choices"
+        level: scale
+        
+      - id: 478
+        insight: "Monte Carlo simulation explores uncertainty"
+        level: institutional
+        
+      - id: 479
+        insight: "Real options analysis values flexibility"
+        level: minimum
+        
+      - id: 480
+        insight: "Game theory models interactions"
+        level: scale
+        
+      - id: 481
+        insight: "Nash equilibrium finds stability"
+        level: minimum
+        
+      - id: 482
+        insight: "Prisoner's dilemma illustrates cooperation"
+        level: institutional
+        
+      - id: 483
+        insight: "Auction theory explains bidding"
+        level: scale
+        
+      - id: 484
+        insight: "Mechanism design creates incentives"
+        level: minimum
+        
+      - id: 485
+        insight: "Contract theory aligns interests"
+        level: scale
+        
+      - id: 486
+        insight: "Agency theory addresses conflicts"
+        level: institutional
+        
+      - id: 487
+        insight: "Behavioral economics explains biases"
+        level: minimum
+        
+      - id: 488
+        insight: "Prospect theory models decisions"
+        level: scale
+        
+      - id: 489
+        insight: "Mental accounting tracks cognition"
+        level: minimum
+        
+      - id: 490
+        insight: "Herding behavior influences markets"
+        level: institutional
+        
+      - id: 491
+        insight: "Information cascades spread ideas"
+        level: scale
+        
+      - id: 492
+        insight: "Network effects create value"
+        level: minimum
+        
+      - id: 493
+        insight: "Scale economies reduce costs"
+        level: scale
+        
+      - id: 494
+        insight: "Scope economies enable diversification"
+        level: institutional
+        
+      - id: 495
+        insight: "Learning curves improve efficiency"
+        level: minimum
+        
+      - id: 496
+        insight: "Experience curves build capability"
+        level: scale
+        
+      - id: 497
+        insight: "Knowledge management captures learning"
+        level: minimum
+        
+      - id: 498
+        insight: "Organizational learning builds competence"
+        level: institutional
+        
+      - id: 499
+        insight: "Cultural intelligence enables adaptation"
+        level: scale
+        
+      - id: 500
+        insight: "Change management ensures transition"
+        level: minimum
+        
+    metric_categories:
+      performance:
+        owner: CentralAccounting
+        retention: 7_years
+        metrics:
+          - gross_return
+          - net_return
+          - reconciled_net_return
+          - profit_factor
+          - sharpe_ratio
+          - sortino_ratio
+          - calmar_ratio
+          
+      risk:
+        owner: CentralAccounting
+        retention: 7_years
+        metrics:
+          - max_drawdown_pct
+          - daily_loss_pct
+          - weekly_loss_pct
+          - tail_loss_p95
+          - tail_loss_p99
+          - var_95
+          - var_99
+          
+      execution:
+        owner: TradingExecution
+        retention: 3_years
+        metrics:
+          - slippage_bps_p50
+          - slippage_bps_p95
+          - fill_rate
+          - partial_fill_rate
+          - time_to_fill_p95
+          - rejection_rate
+          
+      data:
+        owner: BigBrainIntelligence
+        retention: 1_year
+        metrics:
+          - freshness_p95
+          - schema_mismatch_count
+          - null_rate_key_fields
+          - volume_anomaly_score
+          - source_reliability_pct
+          
+      ops:
+        owner: SharedInfrastructure
+        retention: 2_years
+        metrics:
+          - incident_count
+          - sev1_count
+          - mttd
+          - mttr
+          - recon_backlog_minutes
+          - uptime_pct
+          
+      system:
+        owner: SharedInfrastructure
+        retention: 90_days
+        metrics:
+          - cpu_utilization
+          - memory_utilization
+          - network_latency_p99
+          - error_rate
+          - throughput_rps
+          
+    truth_arbitration:
+      single_source_of_truth:
+        pnl: CentralAccounting
+        fills: TradingExecution
+        signals: BigBrainIntelligence
+        venue_health: CryptoIntelligence
+        
+      reconciliation_rules:
+        - rule: "Exchange fill records are authoritative"
+          arbiter: TradingExecution
+          
+        - rule: "Reconciled P&L is the only P&L"
+          arbiter: CentralAccounting
+          
+        - rule: "Signal timestamps use BigBrain system time"
+          arbiter: BigBrainIntelligence
+          
+    retention_policy:
+      raw_events:
+        retention: 7_years
+        storage: cold_archive
+        access: audit_only_after_90_days
+        
+      aggregated_metrics:
+        retention: 7_years
+        storage: warm_storage
+        access: dashboard_and_api
+        
+      logs:
+        retention: 1_year
+        storage: log_aggregator
+        access: ops_team
+        
+      pii_handling:
+        - "No customer PII stored"
+        - "API keys hashed, not stored in plain text"
+        - "Access logs anonymized after 90 days"
+        
+    metric_lineage:
+      purpose: "Track how metrics are derived for auditability"
+      tracked_attributes:
+        - source_data: "Raw data tables/feeds used"
+        - transformations: "SQL/code that computes metric"
+        - dependencies: "Other metrics this depends on"
+        - consumers: "Dashboards/alerts using this metric"
+        - owner: "Team responsible for accuracy"
+      implementation:
+        tool: "Data catalog (Datahub, Amundsen, or custom)"
+        automation: "Parse SQL/code to extract lineage"
+        visualization: "DAG view of metric dependencies"
+      examples:
+        reconciled_net_return:
+          sources: ["fills_table", "fees_table", "positions_table"]
+          transformations:
+            - "Join fills with fees on order_id"
+            - "Calculate gross return from position changes"
+            - "Subtract fees to get net return"
+            - "Reconcile with exchange statements"
+          depends_on: ["gross_return", "total_fees"]
+          consumed_by: ["daily_dashboard", "sharpe_calculation"]
+          
+    data_quality_sla:
+      tiers:
+        tier_1_critical:
+          metrics: ["reconciled_pnl", "position_value", "margin_used"]
+          accuracy: "> 99.99%"
+          freshness: "< 1 minute"
+          completeness: "100%"
+          escalation: "SEV1 on breach"
+        tier_2_important:
+          metrics: ["fill_rate", "slippage_bps", "venue_health"]
+          accuracy: "> 99.9%"
+          freshness: "< 5 minutes"
+          completeness: "> 99%"
+          escalation: "SEV2 on breach"
+        tier_3_informational:
+          metrics: ["research_velocity", "backtest_correlation"]
+          accuracy: "> 99%"
+          freshness: "< 1 hour"
+          completeness: "> 95%"
+          escalation: "SEV3 on breach"
+      monitoring:
+        - "Automated data quality checks every 5 minutes"
+        - "Schema validation on all ingestion"
+        - "Anomaly detection on metric values"
+        - "Cross-source reconciliation daily"
+        
+    alerting_thresholds:
+      configuration:
+        format: "metric_name: {warning: X, critical: Y, action: Z}"
+        inheritance: "Child metrics inherit parent thresholds unless overridden"
+      master_alert_list:
+        # Performance alerts
+        - metric: reconciled_net_return
+          warning: "< 0 for 3 days"
+          critical: "< -1% for 1 day"
+          action: A_FREEZE_STRATEGY
+        - metric: sharpe_ratio
+          warning: "< 0.5 trailing 30d"
+          critical: "< 0 trailing 30d"
+          action: A_THROTTLE_RISK
+        # Risk alerts
+        - metric: max_drawdown_pct
+          warning: "> 5%"
+          critical: "> 10%"
+          action: A_ENTER_SAFE_MODE
+        - metric: correlation_spike
+          warning: "max_pairwise > 0.6"
+          critical: "max_pairwise > 0.8"
+          action: A_THROTTLE_RISK
+        # Execution alerts
+        - metric: fill_rate
+          warning: "< 90%"
+          critical: "< 80%"
+          action: A_CREATE_INCIDENT
+        - metric: latency_p99
+          warning: "> 1s"
+          critical: "> 5s"
+          action: A_THROTTLE_RISK
+        # Data alerts
+        - metric: data_freshness
+          warning: "> 10s"
+          critical: "> 60s"
+          action: A_QUARANTINE_SOURCE
+        - metric: schema_errors
+          warning: "> 0"
+          critical: "> 10/hour"
+          action: A_QUARANTINE_SOURCE
+        # Ops alerts
+        - metric: incident_count
+          warning: "> 2/day"
+          critical: "> 5/day"
+          action: A_CREATE_INCIDENT
+        - metric: recon_backlog
+          warning: "> 15 min"
+          critical: "> 60 min"
+          action: A_FORCE_RECON
+          
+    dashboard_specification:
+      executive_dashboard:
+        refresh: "5 minutes"
+        metrics:
+          - total_capital
+          - daily_pnl
+          - mtd_pnl
+          - ytd_pnl
+          - active_strategies
+          - system_health
+        visualizations:
+          - equity_curve_chart
+          - strategy_attribution_pie
+          - risk_gauge
+          
+      trading_dashboard:
+        refresh: "10 seconds"
+        metrics:
+          - open_positions
+          - unrealized_pnl
+          - fill_rate
+          - slippage_bps
+          - venue_health
+        visualizations:
+          - position_table
+          - order_flow_chart
+          - latency_histogram
+          
+      risk_dashboard:
+        refresh: "1 minute"
+        metrics:
+          - drawdown_current
+          - var_95
+          - stressed_var
+          - correlation_matrix
+          - margin_utilization
+        visualizations:
+          - drawdown_chart
+          - correlation_heatmap
+          - exposure_treemap
+          
+      ops_dashboard:
+        refresh: "1 minute"
+        metrics:
+          - incident_count
+          - mttd
+          - mttr
+          - recon_status
+          - system_errors
+        visualizations:
+          - incident_timeline
+          - service_health_grid
+          - alert_stream
+          
+    required_metrics:
+      - metric: data_quality_score
+        definition: "Composite score of data accuracy, freshness, completeness"
+        measurement: "Weighted average of quality dimensions per source"
+        thresholds:
+          good: "> 0.95"
+          warning: "0.85-0.95"
+          critical: "< 0.85"
+        frequency: every_5min
+        
+      - metric: metric_lineage_coverage
+        definition: "Percentage of metrics with documented lineage"
+        measurement: "Documented metrics / Total metrics"
+        thresholds:
+          good: "> 90%"
+          warning: "70-90%"
+          critical: "< 70%"
+        frequency: weekly
+        
+      - metric: reconciliation_accuracy
+        definition: "Percentage of reconciliation passes without adjustments"
+        measurement: "Clean reconciliations / Total reconciliations"
+        thresholds:
+          good: "> 99%"
+          warning: "95-99%"
+          critical: "< 95%"
+        frequency: daily
+        
+      - metric: truth_arbitration_latency
+        definition: "Time to resolve data conflicts between sources"
+        measurement: "Avg time from conflict detection to resolution"
+        thresholds:
+          good: "< 5 min"
+          warning: "5-30 min"
+          critical: "> 30 min"
+        frequency: per_conflict
+        
+    failure_modes:
+      - mode: "Metric drift"
+        description: "Metric calculation changes without documentation"
+        trigger: "metric_hash_changed && no_changelog_entry"
+        mitigation: "Version control for metric definitions, change review"
+        action: A_CREATE_INCIDENT
+        
+      - mode: "Truth conflict stalemate"
+        description: "Unable to resolve conflicting data from multiple sources"
+        trigger: "conflict_unresolved > 30min"
+        mitigation: "Escalation to designated arbiter, default to conservative value"
+        action: A_PAGE_ONCALL
+        
+      - mode: "Retention policy violation"
+        description: "Data retained longer than policy or deleted prematurely"
+        trigger: "audit_flag_retention_violation"
+        mitigation: "Automated retention enforcement, compliance review"
+        action: A_CREATE_INCIDENT
+        
+      - mode: "Dashboard stale data"
+        description: "Dashboard showing outdated information"
+        trigger: "dashboard_data_age > 2 * expected_refresh"
+        mitigation: "Staleness indicators, auto-refresh monitoring"
+        action: A_QUARANTINE_SOURCE
+        
+    az_prime_hooks:
+      - trigger: "data_quality_score < 0.85"
+        state_transition: "NORMAL → CAUTION"
+        action: A_QUARANTINE_SOURCE
+        
+      - trigger: "reconciliation_accuracy < 95%"
+        state_transition: "NORMAL → CAUTION"
+        actions: [A_FORCE_RECON, A_CREATE_INCIDENT]
+        
+      - trigger: "truth_conflict_unresolved > 30min"
+        state_transition: "CAUTION → SAFE_MODE"
+        actions: [A_PAGE_ONCALL, A_ENTER_SAFE_MODE]
+        
+      - trigger: "metric_lineage_coverage < 70%"
+        state_transition: "NORMAL → CAUTION"
+        action: A_CREATE_INCIDENT

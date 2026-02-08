@@ -19,7 +19,7 @@ AAC is a comprehensive, production-ready arbitrage trading system that identifie
 │   & Narrative  │   & Latency    │   & Alpha                         │
 ├────────────────┴────────────────┴───────────────────────────────────┤
 │                    BIGBRAIN INTELLIGENCE                            │
-│         11 Research Agents + CryptoIntelligence Integration         │
+│         20 Research Agents + 6 Super Agents + CryptoIntelligence Integration         │
 ├─────────────────────────────────────────────────────────────────────┤
 │                    TRADING EXECUTION                                │
 │      Binance • Coinbase • Kraken | Risk Manager | Order Manager     │
@@ -145,42 +145,113 @@ MAX_DAILY_LOSS_USD=1000
 MIN_CONFIDENCE_THRESHOLD=0.7
 ```
 
-### Running the Enhanced System
+### Running the Complete AAC System
 
 ```bash
-# Test multi-source arbitrage detection
-python multi_source_arbitrage_demo.py
+# 🚀 UNIFIED SYSTEM LAUNCH (Recommended)
+# Launch complete system: doctrine + agents + trading + monitoring
+python core/aac_master_launcher.py --mode paper    # Paper trading (default)
+python core/aac_master_launcher.py --mode live     # Live trading (CAUTION!)
+python core/aac_master_launcher.py --mode dry-run  # Dry run mode
 
-# Start monitoring dashboard
-streamlit run aac_monitoring_dashboard.py
+# 🔍 COMPONENT-SPECIFIC LAUNCH
+python core/aac_master_launcher.py --doctrine-only  # Doctrine compliance only
+python core/aac_master_launcher.py --agents-only    # Department agents only
+python core/aac_master_launcher.py --trading-only   # Trading systems only
 
-# Deploy in test mode
-python deploy_production.py --mode test
-
-# Deploy in live mode (CAUTION!)
-python deploy_production.py --mode live
+# 📊 MONITORING ONLY
+python core/aac_master_launcher.py --monitoring-only   # Full monitoring system
+python core/aac_master_launcher.py --dashboard-only    # Dashboard only (terminal)
+python core/aac_master_launcher.py --service-only      # Background service only
+python core/aac_master_launcher.py --dashboard-only --display-mode web  # Web dashboard
 ```
 
-### Running Original ACC System
+### ⚠️ DEPRECATED Startup Methods
+
+The following startup methods are **deprecated** and will be removed:
 
 ```bash
-# Start with paper trading (recommended for testing)
-python main.py
+# ❌ DEPRECATED - Use aac_master_launcher.py instead
+python core/main.py                           # → python core/aac_master_launcher.py
+python integrations/run_integrated_system.py          # → python core/aac_master_launcher.py --doctrine-only
+python deployment/deploy_aac_system.py              # → python core/aac_master_launcher.py
+python monitoring/monitoring_launcher.py            # → python core/aac_master_launcher.py --monitoring-only
+python monitoring/aac_monitoring_dashboard.py       # → python core/aac_master_launcher.py --dashboard-only
+.\scripts\Start-ACC.ps1                         # → python core/aac_master_launcher.py
+```
 
-# Or use PowerShell launcher
-.\Start-ACC.ps1
+### Legacy Testing Commands
+
+```bash
+# Test individual components
+python multi_source_arbitrage_demo.py
+streamlit run aac_monitoring_dashboard.py
 ```
 
 ## 📁 Project Structure
 
-### Enhanced AAC Arbitrage System
+### New Organized Directory Structure
 ```
-AAC/
-├── aac_arbitrage_execution_system.py    # Main execution system
-├── binance_trading_engine.py            # Binance trading engine
-├── binance_arbitrage_integration.py     # Binance API integration
-├── multi_source_arbitrage_demo.py       # Arbitrage detection demo
-├── aac_monitoring_dashboard.py          # Streamlit monitoring dashboard
+aac-main/
+├── core/                          # Core application files
+│   ├── aac_master_launcher.py     # Main system launcher
+│   ├── main.py                    # Legacy entry point (deprecated)
+│   ├── orchestrator.py            # System orchestrator
+│   └── command_center.py          # Command center interface
+├── agents/                        # Agent-related files
+│   ├── agent_based_trading.py     # Trading agent contest system
+│   ├── aac_agent_consolidation.py # Agent consolidation system
+│   └── avatar_system.py           # Avatar agent system
+├── strategies/                    # Strategy implementation
+│   ├── strategy_agent_master_mapping.py # Agent-strategy mapping
+│   ├── etf_nav_dislocation.py      # Individual strategy files
+│   └── ...                        # 49 strategy implementations
+├── trading/                       # Trading systems
+│   ├── aac_arbitrage_execution_system.py
+│   ├── binance_trading_engine.py
+│   └── live_trading_environment.py
+├── integrations/                  # API integrations
+│   ├── api_integration_hub.py
+│   ├── market_data_aggregator.py
+│   └── coinbase_api_async.py
+├── monitoring/                    # Monitoring and dashboards
+│   ├── aac_master_monitoring_dashboard.py
+│   ├── continuous_monitoring.py
+│   └── security_dashboard.py
+├── deployment/                    # Deployment and production
+│   ├── aac_deployment_engine.py
+│   ├── deploy_aac_system.py
+│   └── production_readiness_integration.py
+├── reddit/                        # Reddit integration
+│   ├── aac_reddit_integration.py
+│   ├── aac_reddit_web_scraper.py
+│   └── reddit_sentiment_integration.py
+├── docs/                          # Documentation
+│   ├── AAC_2100_DOCTRINE_PACKS_COMPLETE.md
+│   ├── AAC_2100_IMPLEMENTATION_ROADMAP.md
+│   └── business_continuity/
+├── tools/                         # Utility tools
+│   ├── deep_dive_analysis.py
+│   ├── validate_strategies.py
+│   └── fix_json.py
+├── demos/                         # Demonstration files
+├── scripts/                       # Setup and utility scripts
+├── tests/                         # Test files
+├── data/                          # Data files and samples
+├── logs/                          # Log files
+├── reports/                       # Report files and metrics
+├── temp/                          # Temporary files
+├── archive/                       # Deprecated/orphaned files
+├── config/                        # Configuration files
+├── shared/                        # Shared utilities
+├── models/                        # ML models
+├── assets/                        # Static assets
+└── divisions/                     # Department-specific code
+    ├── BigBrainIntelligence/
+    ├── CentralAccounting/
+    ├── ComplianceArbitrageDivision/
+    └── ...
+```
 ├── deploy_production.py                 # Production deployment script
 ├── additional_data_sources.py           # Extended data source catalog
 ├── polygon_arbitrage_integration.py     # Polygon.io integration
@@ -198,7 +269,7 @@ ACC/
 ├── orchestrator.py                      # Central coordinator
 ├── main.py                              # Entry point
 ├── BigBrainIntelligence/                # Research agents
-│   ├── agents.py                        # 11 specialized agents
+│   ├── agents.py                        # 20 specialized research agents
 │   └── research_agent.py                # Agent base classes
 ├── TradingExecution/                    # Trading engine
 │   ├── execution_engine.py              # Order execution

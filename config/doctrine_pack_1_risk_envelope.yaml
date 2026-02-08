@@ -1,0 +1,123 @@
+doctrine_pack: 1
+name: "RISK ENVELOPE & CAPITAL ALLOCATION"
+owner: "CentralAccounting"
+insight_count: 62
+description: "Comprehensive risk management framework with capital allocation and position limits for institutional-grade arbitrage"
+
+core_principles:
+  - "Arbitrage is a system, not a trade: sense → decide → act → reconcile"
+  - "Define profit only as reconciled, net, risk-adjusted outcome"
+  - "'Riskless' arbitrage is a myth; there is always basis, counterparty, or time risk"
+  - "A strategy without a kill switch is a liability"
+  - "Treat fees, slippage, and failure rates as state variables"
+  - "Your edge decays; your process must out-innovate decay"
+  - "The most durable edge is measurement integrity"
+  - "Model every venue as a service with SLOs, not as a price source"
+  - "Always ask: 'What breaks this edge when copied?'"
+  - "The future belongs to systems that are adaptive, verified, and governable"
+
+required_metrics:
+  - max_drawdown_pct:
+      definition: "Maximum peak-to-trough decline in portfolio value"
+      measurement: "Rolling window calculation with 1-minute granularity"
+      thresholds:
+        good: "<5%"
+        warning: "5-10%"
+        critical: ">10%"
+      frequency: "real-time"
+  - daily_loss_pct:
+      definition: "Total loss as percentage of starting capital for the day"
+      measurement: "End-of-day P&L calculation"
+      thresholds:
+        good: "<1%"
+        warning: "1-2%"
+        critical: ">2%"
+      frequency: "daily"
+  - portfolio_heat:
+      definition: "Aggregate risk score across all positions"
+      measurement: "Σ(position_size × volatility × correlation_factor)"
+      thresholds:
+        good: "<50"
+        warning: "50-75"
+        critical: ">75"
+      frequency: "real-time"
+  - capital_efficiency:
+      definition: "Risk-adjusted return per unit of capital deployed"
+      measurement: "(Net return × Risk multiplier) / Capital utilized"
+      thresholds:
+        good: ">2.0"
+        warning: "1.0-2.0"
+        critical: "<1.0"
+      frequency: "per trade"
+  - reconciliation_accuracy:
+      definition: "Percentage of trades with perfect P&L reconciliation"
+      measurement: "Reconciled trades / Total trades"
+      thresholds:
+        good: ">99.9%"
+        warning: "99-99.9%"
+        critical: "<99%"
+      frequency: "daily"
+
+position_sizing_models:
+  kelly_criterion:
+    formula: "f* = (p×b - q) / b where p=win_prob, q=1-p, b=win/loss_ratio"
+    safety: "Use half-Kelly (f*/2) for conservative sizing"
+    constraints: "Never exceed 25% of capital per strategy"
+  dynamic_sizing:
+    volatility_scaling: "Position_size = Base_size × (Target_vol / Current_vol)"
+    drawdown_scaling: "Reduce by 10% for each 1% drawdown from peak"
+    correlation_adjustment: "Reduce by correlation_factor when adding correlated positions"
+
+failure_modes:
+  - cascading_liquidation:
+      trigger: "margin_buffer < 10%"
+      mitigation: "Automatic position reduction, correlation-based liquidation priority"
+      action: "A_STOP_EXECUTION"
+  - correlated_drawdown:
+      trigger: "correlation_of_losses > 0.8"
+      mitigation: "Diversification requirements, sector exposure limits"
+      action: "A_THROTTLE_RISK"
+  - leverage_trap:
+      trigger: "time_to_delever > 1_hour"
+      mitigation: "Pre-defined deleveraging triggers, emergency liquidation protocols"
+      action: "A_ENTER_SAFE_MODE"
+  - reconciliation_failure:
+      trigger: "unreconciled_positions > 1% of capital"
+      mitigation: "Automated reconciliation checks, manual override protocols"
+      action: "A_FORCE_RECON"
+
+az_prime_hooks:
+  - trigger: "drawdown_exceeds_5pct"
+    from_state: "NORMAL"
+    to_state: "CAUTION"
+    actions: ["A_THROTTLE_RISK"]
+  - trigger: "drawdown_exceeds_10pct"
+    from_state: "CAUTION"
+    to_state: "SAFE_MODE"
+    actions: ["A_STOP_EXECUTION"]
+  - trigger: "daily_loss_exceeds_2pct"
+    from_state: "ANY"
+    to_state: "HALT"
+    actions: ["A_STOP_EXECUTION", "A_PAGE_ONCALL", "A_CREATE_INCIDENT"]
+  - trigger: "reconciliation_accuracy < 99%"
+    from_state: "NORMAL"
+    to_state: "CAUTION"
+    actions: ["A_FORCE_RECON"]
+  - trigger: "capital_efficiency < 1.0"
+    from_state: "CAUTION"
+    to_state: "SAFE_MODE"
+    actions: ["A_FREEZE_STRATEGY"]
+
+future_proofing_2100:
+  - "Quantum risk modeling for portfolio optimization"
+  - "AI-driven position sizing based on market conditions"
+  - "Cross-temporal arbitrage risk management"
+  - "Decentralized capital allocation via smart contracts"
+  - "Predictive risk assessment systems"
+
+integration_points:
+  - "CentralAccounting/database.py: Store risk metrics and position data"
+  - "CentralAccounting/financial_analysis_engine.py: Calculate risk metrics in real-time"
+  - "TradingExecution/risk_manager.py: Enforce position limits and kill switches"
+  - "orchestrator.py: Coordinate global risk across all strategies"
+  - "shared/audit_logger.py: Log all risk-related decisions and actions"

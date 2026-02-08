@@ -1,0 +1,15 @@
+# AAC LFGCC! Icon Configuration
+# This file defines the icon settings for the LFGCC! desktop shortcut
+
+# Icon Source: Use system shell32.dll for a professional look
+# Icon Index: 13 (folder icon) or 43 (network icon) or 67 (computer icon)
+
+# For crypto/trading theme, we'll use:
+# - Icon Location: %SystemRoot%\System32\SHELL32.dll
+# - Icon Index: 43 (network/world icon - represents global trading)
+
+# Alternative icons if available:
+# - imageres.dll,277 (bitcoin-like icon if available)
+# - mmres.dll,0 (media/network icon)
+
+# The PowerShell script will automatically select the best available icon

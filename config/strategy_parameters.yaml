@@ -1,0 +1,216 @@
+# Strategy Parameter Configurations
+# ================================
+# Parameter ranges and constraints for different arbitrage strategies
+
+statistical_arbitrage:
+  description: "Statistical arbitrage using mean reversion and correlation"
+  parameters:
+    entry_threshold:
+      min: 0.5
+      max: 3.0
+      step: 0.25
+      distribution: "uniform"
+      description: "Standard deviations from mean for entry signal"
+    exit_threshold:
+      min: 0.1
+      max: 1.0
+      step: 0.1
+      distribution: "uniform"
+      description: "Standard deviations from mean for exit signal"
+    lookback_period:
+      min: 20
+      max: 200
+      step: 20
+      distribution: "uniform"
+      description: "Historical lookback period for mean/std calculation"
+    max_holding_period:
+      min: 5
+      max: 50
+      step: 5
+      distribution: "uniform"
+      description: "Maximum time to hold position"
+    position_size_pct:
+      min: 0.01
+      max: 0.10
+      step: 0.01
+      distribution: "uniform"
+      description: "Position size as percentage of portfolio"
+    stop_loss_pct:
+      min: 0.005
+      max: 0.05
+      step: 0.005
+      distribution: "uniform"
+      description: "Stop loss percentage"
+  constraints:
+    - "entry_threshold > exit_threshold"
+    - "lookback_period > max_holding_period"
+  fixed_parameters:
+    min_volume: 100000
+    max_spread: 0.02
+
+triangular_arbitrage:
+  description: "Triangular arbitrage across three currency pairs"
+  parameters:
+    min_profit_threshold:
+      min: 0.001
+      max: 0.01
+      step: 0.001
+      distribution: "uniform"
+      description: "Minimum profit threshold to execute trade"
+    max_slippage:
+      min: 0.0001
+      max: 0.001
+      step: 0.0001
+      distribution: "uniform"
+      description: "Maximum allowed slippage"
+    execution_delay_ms:
+      min: 10
+      max: 500
+      step: 50
+      distribution: "uniform"
+      description: "Maximum execution delay in milliseconds"
+    volume_threshold:
+      min: 10000
+      max: 1000000
+      step: 10000
+      distribution: "log"
+      log_base: 10
+      description: "Minimum volume threshold"
+    confidence_threshold:
+      min: 0.7
+      max: 0.95
+      step: 0.05
+      distribution: "uniform"
+      description: "Minimum confidence level to execute"
+  constraints: []
+  fixed_parameters:
+    max_triangle_size: 3
+    require_all_exchanges: true
+
+cross_exchange_arbitrage:
+  description: "Price difference arbitrage across exchanges"
+  parameters:
+    price_diff_threshold:
+      min: 0.001
+      max: 0.05
+      step: 0.001
+      distribution: "uniform"
+      description: "Minimum price difference threshold"
+    min_volume_ratio:
+      min: 0.1
+      max: 1.0
+      step: 0.1
+      distribution: "uniform"
+      description: "Minimum volume ratio between exchanges"
+    max_age_seconds:
+      min: 1
+      max: 300
+      step: 10
+      distribution: "uniform"
+      description: "Maximum age of price data in seconds"
+    transaction_fee_buffer:
+      min: 0.0001
+      max: 0.01
+      step: 0.0001
+      distribution: "uniform"
+      description: "Buffer for transaction fees"
+    liquidity_threshold:
+      min: 1000
+      max: 100000
+      step: 1000
+      distribution: "log"
+      log_base: 10
+      description: "Minimum liquidity threshold"
+  constraints: []
+  fixed_parameters:
+    max_exchanges: 5
+    require_price_feed: true
+
+ml_enhanced_arbitrage:
+  description: "Machine learning enhanced arbitrage detection"
+  parameters:
+    model_complexity:
+      min: 10
+      max: 1000
+      step: 50
+      distribution: "log"
+      log_base: 10
+      description: "Model complexity parameter"
+    learning_rate:
+      min: 0.001
+      max: 0.1
+      step: 0.01
+      distribution: "log"
+      log_base: 10
+      description: "Learning rate for model training"
+    feature_window:
+      min: 5
+      max: 100
+      step: 5
+      distribution: "uniform"
+      description: "Feature window size"
+    prediction_horizon:
+      min: 1
+      max: 60
+      step: 5
+      distribution: "uniform"
+      description: "Prediction horizon in minutes"
+    confidence_threshold:
+      min: 0.5
+      max: 0.9
+      step: 0.05
+      distribution: "uniform"
+      description: "Minimum prediction confidence"
+    max_features:
+      min: 5
+      max: 50
+      step: 5
+      distribution: "uniform"
+      description: "Maximum number of features"
+  constraints: []
+  fixed_parameters:
+    model_type: "gradient_boosting"
+    cv_folds: 5
+    use_feature_selection: true
+
+# Parameter optimization settings
+optimization:
+  default_method: "grid_search"
+  default_iterations: 100
+  default_samples_per_param: 5
+  score_weights:
+    total_return: 0.3
+    win_rate: 0.25
+    sharpe_ratio: 0.2
+    profit_factor: 0.15
+    max_drawdown: -0.1  # Negative weight
+
+# A/B testing configurations
+ab_testing:
+  statistical_significance: 0.05
+  minimum_sample_size: 30
+  metrics_to_test:
+    - total_return
+    - win_rate
+    - sharpe_ratio
+    - max_drawdown
+
+# Experiment configurations
+experiments:
+  quick_test:
+    strategies: ["statistical_arbitrage"]
+    methods: ["grid_search"]
+    iterations: 25
+    description: "Quick parameter test for development"
+
+  comprehensive_test:
+    strategies: ["statistical_arbitrage", "triangular_arbitrage", "cross_exchange_arbitrage"]
+    methods: ["grid_search", "random_search"]
+    iterations: 100
+    description: "Comprehensive parameter optimization"
+
+  ml_focused:
+    strategies: ["ml_enhanced_arbitrage"]
+    methods: ["random_search"]
+    iterations: 200
+    description: "ML-specific parameter optimization"

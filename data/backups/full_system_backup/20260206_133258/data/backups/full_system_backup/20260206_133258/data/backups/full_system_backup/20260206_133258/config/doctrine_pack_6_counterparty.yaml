@@ -1,0 +1,131 @@
+doctrine_pack: 6
+name: "COUNTERPARTY SCORING + VENUE HEALTH + WITHDRAWAL RISK"
+owner: "CryptoIntelligence"
+insight_count: 44
+description: "Comprehensive counterparty risk assessment, venue reliability monitoring, and withdrawal risk management"
+
+core_principles:
+  - "Counterparty risk is multi-dimensional"
+  - "Venue health degrades gradually"
+  - "Withdrawal risk compounds over time"
+  - "Scoring must be continuous and predictive"
+
+required_metrics:
+  - name: "venue_health_score"
+    definition: "Composite reliability score (0-100)"
+    measurement: "Weighted average of venue health components"
+    thresholds:
+      good: ">85"
+      warning: "70-85"
+      critical: "<70"
+    frequency: "Real-time"
+  - name: "withdrawal_success_rate"
+    definition: "Successful withdrawals / attempts (>99% good)"
+    measurement: "Percentage of successful withdrawal attempts"
+    thresholds:
+      good: ">99%"
+      warning: "95-99%"
+      critical: "<95%"
+    frequency: "Hourly"
+  - name: "counterparty_exposure_pct"
+    definition: "Capital at venue / total capital (<20% good)"
+    measurement: "Percentage of total capital exposed to single counterparty"
+    thresholds:
+      good: "<20%"
+      warning: "20-30%"
+      critical: ">30%"
+    frequency: "Real-time"
+  - name: "counterparty_credit_score"
+    definition: "Dynamic credit assessment (0-100)"
+    measurement: "AI-calculated creditworthiness score"
+    thresholds:
+      good: ">80"
+      warning: "50-80"
+      critical: "<50"
+    frequency: "Daily"
+  - name: "venue_uptime_30d"
+    definition: "30-day uptime percentage (>99.9% good)"
+    measurement: "Percentage of time venue was operational in last 30 days"
+    thresholds:
+      good: ">99.9%"
+      warning: "99-99.9%"
+      critical: "<99%"
+    frequency: "Daily"
+
+venue_health_scoring:
+  components:
+    uptime_30d:
+      weight: 0.25
+      threshold_good: 0.999
+      threshold_warning: 0.995
+      threshold_critical: 0.990
+    latency_p99:
+      weight: 0.20
+      threshold_good: 100
+      threshold_warning: 200
+      threshold_critical: 500
+    fill_quality:
+      weight: 0.20
+      threshold_good: 0.95
+      threshold_warning: 0.90
+      threshold_critical: 0.80
+    spread_consistency:
+      weight: 0.15
+      threshold_good: 0.90
+      threshold_warning: 0.80
+      threshold_critical: 0.70
+    withdrawal_reliability:
+      weight: 0.20
+      threshold_good: 0.995
+      threshold_warning: 0.990
+      threshold_critical: 0.980
+  overall_thresholds:
+    good: 0.85
+    warning: 0.70
+    critical: 0.70
+
+counterparty_risk_factors:
+  - "Financial stability indicators"
+  - "Regulatory compliance history"
+  - "Technical infrastructure quality"
+  - "Operational track record"
+  - "Market reputation and transparency"
+
+withdrawal_risk_assessment:
+  - "Historical withdrawal success rates"
+  - "Current queue depths and processing times"
+  - "Network congestion indicators"
+  - "Geographic distribution of validators"
+  - "Smart contract risk factors"
+
+failure_modes:
+  - "Over-reliance on single venue"
+  - "Ignoring early warning signals"
+  - "Poor diversification of counterparty risk"
+  - "Static scoring without updates"
+
+az_prime_hooks:
+  - trigger: "venue_health_score < 0.70"
+    state_transition: "NORMAL → CAUTION"
+    actions: ["A_ROUTE_FAILOVER"]
+  - trigger: "withdrawal_success_rate < 95%"
+    state_transition: "ANY → SAFE_MODE"
+    actions: ["A_CREATE_INCIDENT", "A_PAGE_ONCALL"]
+  - trigger: "counterparty_credit_score < 50"
+    state_transition: "ANY → SAFE_MODE"
+    actions: ["A_ROUTE_FAILOVER", "A_CREATE_INCIDENT"]
+  - trigger: "counterparty_exposure_pct > 30"
+    state_transition: "NORMAL → CAUTION"
+    actions: ["A_REBALANCE_EXPOSURE"]
+
+future_proofing_enhancements:
+  - "AI-driven counterparty behavior prediction"
+  - "Quantum-secure venue communication"
+  - "Cross-chain reputation systems"
+  - "Predictive venue failure modeling"
+  - "Decentralized credit scoring networks"
+
+integration_points:
+  - "CryptoIntelligence/crypto_intelligence_engine.py: Venue health monitoring"
+  - "SharedInfrastructure/secrets_manager.py: Secure API key management"
+  - "CentralAccounting/database.py: Exposure tracking and limits"

@@ -1,0 +1,161 @@
+# AAC Production Market Data Configuration
+# Live data feed connections for production deployment
+# Version: 1.0
+
+# PRODUCTION MARKET DATA FEEDS
+
+production_market_data:
+  # Global settings
+  enabled: true
+  mode: production  # production | paper | simulation
+
+  # Data quality requirements
+  data_quality:
+    max_age_seconds: 30  # Maximum age for real-time data
+    min_update_frequency_hz: 1  # Minimum updates per second
+    require_redundancy: true  # Require multiple sources per symbol
+
+  # Primary exchanges (NYSE, NASDAQ, CME)
+  primary_exchanges:
+    - name: "NYSE_ARCA"
+      type: "exchange_direct"
+      url: "wss://api.nyse.com/realtime"
+      api_key: "${NYSE_API_KEY}"
+      symbols: ["SPY", "QQQ", "IWM", "DIA"]
+      priority: 1
+
+    - name: "NASDAQ_TOTALVIEW"
+      type: "exchange_direct"
+      url: "wss://api.nasdaq.com/totalview"
+      api_key: "${NASDAQ_API_KEY}"
+      symbols: ["AAPL", "MSFT", "GOOGL", "AMZN", "TSLA"]
+      priority: 1
+
+    - name: "CME_GLOBEX"
+      type: "exchange_direct"
+      url: "wss://api.cmegroup.com/globex"
+      api_key: "${CME_API_KEY}"
+      symbols: ["ES", "NQ", "CL", "GC"]
+      priority: 1
+
+  # Crypto exchanges
+  crypto_exchanges:
+    - name: "BINANCE"
+      type: "crypto_exchange"
+      url: "wss://stream.binance.com:9443/ws"
+      api_key: "${BINANCE_API_KEY}"
+      api_secret: "${BINANCE_API_SECRET}"
+      symbols: ["BTCUSDT", "ETHUSDT", "BNBUSDT"]
+      priority: 1
+
+    - name: "COINBASE_PRO"
+      type: "crypto_exchange"
+      url: "wss://ws-feed.pro.coinbase.com"
+      api_key: "${COINBASE_API_KEY}"
+      api_secret: "${COINBASE_API_SECRET}"
+      symbols: ["BTC-USD", "ETH-USD", "SOL-USD"]
+      priority: 1
+
+    - name: "KRAKEN"
+      type: "crypto_exchange"
+      url: "wss://ws.kraken.com"
+      api_key: "${KRAKEN_API_KEY}"
+      api_secret: "${KRAKEN_API_SECRET}"
+      symbols: ["XBT/USD", "ETH/USD", "ADA/USD"]
+      priority: 2
+
+  # Data vendors (for redundancy)
+  data_vendors:
+    - name: "ALPHA_VANTAGE"
+      type: "data_vendor"
+      url: "https://www.alphavantage.co/query"
+      api_key: "${ALPHA_VANTAGE_API_KEY}"
+      symbols: ["SPY", "QQQ", "BTCUSD", "ETHUSD"]
+      priority: 2
+
+    - name: "IEX_CLOUD"
+      type: "data_vendor"
+      url: "https://cloud.iexapis.com/stable"
+      api_key: "${IEX_CLOUD_API_KEY}"
+      symbols: ["AAPL", "MSFT", "GOOGL", "AMZN"]
+      priority: 2
+
+  # Forex feeds
+  forex_providers:
+    - name: "OANDA"
+      type: "forex_provider"
+      url: "https://stream-fxpractice.oanda.com/v3/accounts"
+      api_key: "${OANDA_API_KEY}"
+      symbols: ["EURUSD", "GBPUSD", "USDJPY"]
+      priority: 1
+
+  # Failover configuration
+  failover:
+    enabled: true
+    max_failover_attempts: 3
+    failover_delay_seconds: 5
+    circuit_breaker:
+      enabled: true
+      failure_threshold: 5
+      recovery_timeout_seconds: 60
+
+  # Data validation
+  validation:
+    enabled: true
+    price_validation:
+      max_price_change_pct: 10  # Max 10% price change per second
+      min_price: 0.000001
+      max_price: 1000000
+    volume_validation:
+      min_volume: 0
+      max_volume_multiplier: 100  # Max 100x average volume
+
+  # Monitoring
+  monitoring:
+    enabled: true
+    metrics_interval_seconds: 30
+    alert_on_stale_data: true
+    alert_on_price_anomalies: true
+
+# PRODUCTION DEPLOYMENT SETTINGS
+
+production_deployment:
+  # Gradual rollout configuration
+  gradual_rollout:
+    enabled: true
+    initial_capital_pct: 10  # Start with 10% of total capital
+    capital_increase_pct: 25  # Increase by 25% every 24 hours
+    max_capital_pct: 100
+    monitoring_period_hours: 24
+
+  # Single strategy deployment
+  single_strategy:
+    enabled: true
+    max_strategies: 1  # Start with only 1 strategy
+    strategy_selection: "highest_sharpe"  # highest_sharpe | lowest_drawdown | highest_win_rate
+
+  # Risk limits for production
+  risk_limits:
+    max_position_size_pct: 5  # Max 5% of portfolio per position
+    max_daily_loss_pct: 2     # Max 2% daily loss
+    max_drawdown_pct: 5       # Max 5% drawdown
+    max_trades_per_hour: 50
+    max_trades_per_day: 200
+
+  # Safety systems
+  safety_systems:
+    circuit_breakers: true
+    emergency_shutdown: true
+    position_limits: true
+    loss_limits: true
+
+  # Monitoring and alerting
+  monitoring:
+    enabled: true
+    alert_channels: ["email", "slack", "pagerduty"]
+    alert_on:
+      - position_size_exceeded
+      - daily_loss_exceeded
+      - system_errors
+      - data_feed_failures
+      - strategy_failures

@@ -1,0 +1,866 @@
+[
+  {
+    "strategy_id": "param_test_statistical_arbitrage_1770317955.62949",
+    "parameters": {
+      "entry_threshold": 3.0,
+      "exit_threshold": 0.1,
+      "lookback_period": 200.0,
+      "max_holding_period": 5.0,
+      "position_size_pct": 0.1,
+      "stop_loss_pct": 0.005
+    },
+    "metrics": {
+      "total_return": 0.0010920431880935477,
+      "win_rate": 0.5,
+      "max_drawdown": 0.0,
+      "sharpe_ratio": 0.8887662434655705,
+      "profit_factor": 10.0,
+      "total_trades": 8,
+      "avg_trade_pnl": 136.50539851169347
+    },
+    "score": 1.703080861649542,
+    "timestamp": "2026-02-05T11:59:15.699709",
+    "test_duration": 0.070199,
+    "trade_count": 8
+  },
+  {
+    "strategy_id": "param_test_statistical_arbitrage_1770317955.954925",
+    "parameters": {
+      "entry_threshold": 3.0,
+      "exit_threshold": 0.1,
+      "lookback_period": 200.0,
+      "max_holding_period": 50.0,
+      "position_size_pct": 0.1,
+      "stop_loss_pct": 0.05
+    },
+    "metrics": {
+      "total_return": 0.0010434969101002613,
+      "win_rate": 0.5,
+      "max_drawdown": 0.0,
+      "sharpe_ratio": 0.8432475545344311,
+      "profit_factor": 10.0,
+      "total_trades": 8,
+      "avg_trade_pnl": 130.43711376253268
+    },
+    "score": 1.6939625599799162,
+    "timestamp": "2026-02-05T11:59:16.025080",
+    "test_duration": 0.070133,
+    "trade_count": 8
+  },
+  {
+    "strategy_id": "param_test_statistical_arbitrage_1770317955.235452",
+    "parameters": {
+      "entry_threshold": 3.0,
+      "exit_threshold": 0.1,
+      "lookback_period": 20.0,
+      "max_holding_period": 5.0,
+      "position_size_pct": 0.01,
+      "stop_loss_pct": 0.005
+    },
+    "metrics": {
+      "total_return": 0.0007205474599464403,
+      "win_rate": 0.375,
+      "max_drawdown": 2.4289532290593002e-05,
+      "sharpe_ratio": 0.7100764672701592,
+      "profit_factor": 10.0,
+      "total_trades": 8,
+      "avg_trade_pnl": 90.06843249330504
+    },
+    "score": 1.635983886645245,
+    "timestamp": "2026-02-05T11:59:15.302195",
+    "test_duration": 0.066723,
+    "trade_count": 8
+  },
+  {
+    "strategy_id": "param_test_statistical_arbitrage_1770317956.223243",
+    "parameters": {
+      "entry_threshold": 3.0,
+      "exit_threshold": 1.0,
+      "lookback_period": 20.0,
+      "max_holding_period": 5.0,
+      "position_size_pct": 0.1,
+      "stop_loss_pct": 0.05
+    },
+    "metrics": {
+      "total_return": 0.000762442392503413,
+      "win_rate": 0.375,
+      "max_drawdown": 2.1990686187417394e-05,
+      "sharpe_ratio": 0.6329705561202347,
+      "profit_factor": 10.0,
+      "total_trades": 8,
+      "avg_trade_pnl": 95.30529906292662
+    },
+    "score": 1.6205750430104167,
+    "timestamp": "2026-02-05T11:59:16.285626",
+    "test_duration": 0.062364,
+    "trade_count": 8
+  },
+  {
+    "strategy_id": "param_test_statistical_arbitrage_1770317956.285654",
+    "parameters": {
+      "entry_threshold": 3.0,
+      "exit_threshold": 1.0,
+      "lookback_period": 200.0,
+      "max_holding_period": 5.0,
+      "position_size_pct": 0.01,
+      "stop_loss_pct": 0.005
+    },
+    "metrics": {
+      "total_return": 0.0003618148063186952,
+      "win_rate": 0.375,
+      "max_drawdown": 6.526754742360492e-05,
+      "sharpe_ratio": 0.4685687202282048,
+      "profit_factor": 6.5435636943796025,
+      "total_trades": 8,
+      "avg_trade_pnl": 45.2268507898369
+    },
+    "score": 1.0691133693992192,
+    "timestamp": "2026-02-05T11:59:16.360974",
+    "test_duration": 0.075298,
+    "trade_count": 8
+  },
+  {
+    "strategy_id": "param_test_statistical_arbitrage_1770317955.441615",
+    "parameters": {
+      "entry_threshold": 3.0,
+      "exit_threshold": 0.1,
+      "lookback_period": 20.0,
+      "max_holding_period": 5.0,
+      "position_size_pct": 0.1,
+      "stop_loss_pct": 0.05
+    },
+    "metrics": {
+      "total_return": 0.000912252393352869,
+      "win_rate": 0.375,
+      "max_drawdown": 0.00020190511617271796,
+      "sharpe_ratio": 0.5139317290116443,
+      "profit_factor": 5.518223265687288,
+      "total_trades": 8,
+      "avg_trade_pnl": 114.03154916910862
+    },
+    "score": 0.9245637018850451,
+    "timestamp": "2026-02-05T11:59:15.505809",
+    "test_duration": 0.064172,
+    "trade_count": 8
+  },
+  {
+    "strategy_id": "param_test_statistical_arbitrage_1770317956.025114",
+    "parameters": {
+      "entry_threshold": 3.0,
+      "exit_threshold": 1.0,
+      "lookback_period": 20.0,
+      "max_holding_period": 5.0,
+      "position_size_pct": 0.01,
+      "stop_loss_pct": 0.005
+    },
+    "metrics": {
+      "total_return": 0.0003363153112563692,
+      "win_rate": 0.25,
+      "max_drawdown": 0.0001320671039055709,
+      "sharpe_ratio": 0.32664837111310424,
+      "profit_factor": 3.546548696160079,
+      "total_trades": 8,
+      "avg_trade_pnl": 42.03941390704615
+    },
+    "score": 0.5599260799504001,
+    "timestamp": "2026-02-05T11:59:16.090606",
+    "test_duration": 0.065468,
+    "trade_count": 8
+  },
+  {
+    "strategy_id": "param_test_statistical_arbitrage_1770317954.95573",
+    "parameters": {
+      "entry_threshold": 0.5,
+      "exit_threshold": 0.1,
+      "lookback_period": 200.0,
+      "max_holding_period": 5.0,
+      "position_size_pct": 0.1,
+      "stop_loss_pct": 0.05
+    },
+    "metrics": {
+      "total_return": 0.0004635841653804323,
+      "win_rate": 0.25,
+      "max_drawdown": 0.00022041977973757867,
+      "sharpe_ratio": 0.3343615628200173,
+      "profit_factor": 3.10318768094385,
+      "total_trades": 8,
+      "avg_trade_pnl": 57.94802067255404
+    },
+    "score": 0.49501158193316874,
+    "timestamp": "2026-02-05T11:59:15.013188",
+    "test_duration": 0.057439,
+    "trade_count": 8
+  },
+  {
+    "strategy_id": "param_test_statistical_arbitrage_1770317955.069493",
+    "parameters": {
+      "entry_threshold": 0.5,
+      "exit_threshold": 0.1,
+      "lookback_period": 200.0,
+      "max_holding_period": 50.0,
+      "position_size_pct": 0.01,
+      "stop_loss_pct": 0.05
+    },
+    "metrics": {
+      "total_return": 0.00016704155865376855,
+      "win_rate": 0.25,
+      "max_drawdown": 0.0001059244222438333,
+      "sharpe_ratio": 0.26364759019079337,
+      "profit_factor": 2.5769881498078537,
+      "total_trades": 8,
+      "avg_trade_pnl": 20.88019483172107
+    },
+    "score": 0.40183844541915725,
+    "timestamp": "2026-02-05T11:59:15.122790",
+    "test_duration": 0.053279,
+    "trade_count": 8
+  },
+  {
+    "strategy_id": "param_test_statistical_arbitrage_1770317955.122816",
+    "parameters": {
+      "entry_threshold": 0.5,
+      "exit_threshold": 0.1,
+      "lookback_period": 200.0,
+      "max_holding_period": 50.0,
+      "position_size_pct": 0.1,
+      "stop_loss_pct": 0.005
+    },
+    "metrics": {
+      "total_return": 0.0002084813995397983,
+      "win_rate": 0.25,
+      "max_drawdown": 0.00013618388066703686,
+      "sharpe_ratio": 0.1861854940092027,
+      "profit_factor": 1.930034603158499,
+      "total_trades": 8,
+      "avg_trade_pnl": 26.060174942474788
+    },
+    "score": 0.289318452083544,
+    "timestamp": "2026-02-05T11:59:15.179253",
+    "test_duration": 0.056416,
+    "trade_count": 8
+  },
+  {
+    "strategy_id": "param_test_statistical_arbitrage_1770317956.8506",
+    "parameters": {
+      "entry_threshold": 3.0,
+      "exit_threshold": 1.0,
+      "lookback_period": 200.0,
+      "max_holding_period": 50.0,
+      "position_size_pct": 0.1,
+      "stop_loss_pct": 0.05
+    },
+    "metrics": {
+      "total_return": 0.00017794466771590124,
+      "win_rate": 0.375,
+      "max_drawdown": 0.0005552977118410079,
+      "sharpe_ratio": 0.0904514877288333,
+      "profit_factor": 1.320449128317046,
+      "total_trades": 8,
+      "avg_trade_pnl": 22.243083464487654
+    },
+    "score": 0.21001657996482243,
+    "timestamp": "2026-02-05T11:59:16.943016",
+    "test_duration": 0.092392,
+    "trade_count": 8
+  },
+  {
+    "strategy_id": "param_test_statistical_arbitrage_1770317955.302575",
+    "parameters": {
+      "entry_threshold": 3.0,
+      "exit_threshold": 0.1,
+      "lookback_period": 20.0,
+      "max_holding_period": 5.0,
+      "position_size_pct": 0.01,
+      "stop_loss_pct": 0.05
+    },
+    "metrics": {
+      "total_return": 8.494361421879467e-05,
+      "win_rate": 0.375,
+      "max_drawdown": 0.00034421548525042224,
+      "sharpe_ratio": 0.0685866209675214,
+      "profit_factor": 1.2467745289175378,
+      "total_trades": 8,
+      "avg_trade_pnl": 10.617951777349333
+    },
+    "score": 0.19454340816392562,
+    "timestamp": "2026-02-05T11:59:15.372188",
+    "test_duration": 0.069589,
+    "trade_count": 8
+  },
+  {
+    "strategy_id": "param_test_statistical_arbitrage_1770317955.013217",
+    "parameters": {
+      "entry_threshold": 0.5,
+      "exit_threshold": 0.1,
+      "lookback_period": 200.0,
+      "max_holding_period": 50.0,
+      "position_size_pct": 0.01,
+      "stop_loss_pct": 0.005
+    },
+    "metrics": {
+      "total_return": 0.00010079002242354137,
+      "win_rate": 0.25,
+      "max_drawdown": 0.00028870008234937984,
+      "sharpe_ratio": 0.09031313027805973,
+      "profit_factor": 1.3491167082576965,
+      "total_trades": 8,
+      "avg_trade_pnl": 12.59875280294267
+    },
+    "score": 0.1829892393092284,
+    "timestamp": "2026-02-05T11:59:15.069469",
+    "test_duration": 0.056235,
+    "trade_count": 8
+  },
+  {
+    "strategy_id": "param_test_statistical_arbitrage_1770317956.683344",
+    "parameters": {
+      "entry_threshold": 3.0,
+      "exit_threshold": 1.0,
+      "lookback_period": 200.0,
+      "max_holding_period": 50.0,
+      "position_size_pct": 0.01,
+      "stop_loss_pct": 0.05
+    },
+    "metrics": {
+      "total_return": 2.2355171624414084e-05,
+      "win_rate": 0.375,
+      "max_drawdown": 0.00015687566124400303,
+      "sharpe_ratio": 0.03700344942151807,
+      "profit_factor": 1.1425024853896428,
+      "total_trades": 8,
+      "avg_trade_pnl": 2.7943964530517604
+    },
+    "score": 0.17254845681036174,
+    "timestamp": "2026-02-05T11:59:16.760250",
+    "test_duration": 0.076883,
+    "trade_count": 8
+  },
+  {
+    "strategy_id": "param_test_statistical_arbitrage_1770317955.829102",
+    "parameters": {
+      "entry_threshold": 3.0,
+      "exit_threshold": 0.1,
+      "lookback_period": 200.0,
+      "max_holding_period": 50.0,
+      "position_size_pct": 0.01,
+      "stop_loss_pct": 0.05
+    },
+    "metrics": {
+      "total_return": 1.3567911496619899e-05,
+      "win_rate": 0.375,
+      "max_drawdown": 0.0002492080607565783,
+      "sharpe_ratio": 0.016307014769087184,
+      "profit_factor": 1.0544441117009966,
+      "total_trades": 8,
+      "avg_trade_pnl": 1.6959889370774874
+    },
+    "score": 0.15520701088849154,
+    "timestamp": "2026-02-05T11:59:15.887180",
+    "test_duration": 0.058058,
+    "trade_count": 8
+  },
+  {
+    "strategy_id": "param_test_statistical_arbitrage_1770317956.53554",
+    "parameters": {
+      "entry_threshold": 3.0,
+      "exit_threshold": 1.0,
+      "lookback_period": 200.0,
+      "max_holding_period": 5.0,
+      "position_size_pct": 0.1,
+      "stop_loss_pct": 0.05
+    },
+    "metrics": {
+      "total_return": 2.5760488814940572e-05,
+      "win_rate": 0.25,
+      "max_drawdown": 0.00035696969706887924,
+      "sharpe_ratio": 0.019036681462577375,
+      "profit_factor": 1.0710019236849178,
+      "total_trades": 8,
+      "avg_trade_pnl": 3.2200611018675716
+    },
+    "score": 0.1270010499616045,
+    "timestamp": "2026-02-05T11:59:16.612438",
+    "test_duration": 0.076877,
+    "trade_count": 8
+  },
+  {
+    "strategy_id": "param_test_statistical_arbitrage_1770317956.361019",
+    "parameters": {
+      "entry_threshold": 3.0,
+      "exit_threshold": 1.0,
+      "lookback_period": 200.0,
+      "max_holding_period": 5.0,
+      "position_size_pct": 0.01,
+      "stop_loss_pct": 0.05
+    },
+    "metrics": {
+      "total_return": -2.2217785092025337e-05,
+      "win_rate": 0.25,
+      "max_drawdown": 0.0003461399213177224,
+      "sharpe_ratio": -0.022689093876353286,
+      "profit_factor": 0.9358127054300922,
+      "total_trades": 8,
+      "avg_trade_pnl": -2.777223136503167
+    },
+    "score": 0.09836203569584732,
+    "timestamp": "2026-02-05T11:59:16.454102",
+    "test_duration": 0.093056,
+    "trade_count": 8
+  },
+  {
+    "strategy_id": "param_test_statistical_arbitrage_1770317956.760289",
+    "parameters": {
+      "entry_threshold": 3.0,
+      "exit_threshold": 1.0,
+      "lookback_period": 200.0,
+      "max_holding_period": 50.0,
+      "position_size_pct": 0.1,
+      "stop_loss_pct": 0.005
+    },
+    "metrics": {
+      "total_return": -5.535654088297906e-05,
+      "win_rate": 0.25,
+      "max_drawdown": 0,
+      "sharpe_ratio": -0.03368284600698443,
+      "profit_factor": 0.9025369038078249,
+      "total_trades": 8,
+      "avg_trade_pnl": -6.919567610372383
+    },
+    "score": 0.09112735940751196,
+    "timestamp": "2026-02-05T11:59:16.850567",
+    "test_duration": 0.090255,
+    "trade_count": 8
+  },
+  {
+    "strategy_id": "param_test_statistical_arbitrage_1770317954.788161",
+    "parameters": {
+      "entry_threshold": 0.5,
+      "exit_threshold": 0.1,
+      "lookback_period": 200.0,
+      "max_holding_period": 5.0,
+      "position_size_pct": 0.01,
+      "stop_loss_pct": 0.005
+    },
+    "metrics": {
+      "total_return": -6.022513928112755e-05,
+      "win_rate": 0.25,
+      "max_drawdown": 0,
+      "sharpe_ratio": -0.1020559801800223,
+      "profit_factor": 0.7188413561458932,
+      "total_trades": 8,
+      "avg_trade_pnl": -7.528142410140944
+    },
+    "score": 0.049896939844095184,
+    "timestamp": "2026-02-05T11:59:14.844344",
+    "test_duration": 0.056164,
+    "trade_count": 8
+  },
+  {
+    "strategy_id": "param_test_statistical_arbitrage_1770317955.505842",
+    "parameters": {
+      "entry_threshold": 3.0,
+      "exit_threshold": 0.1,
+      "lookback_period": 200.0,
+      "max_holding_period": 5.0,
+      "position_size_pct": 0.01,
+      "stop_loss_pct": 0.005
+    },
+    "metrics": {
+      "total_return": -7.981279031552333e-05,
+      "win_rate": 0.25,
+      "max_drawdown": 0.00023111998066642877,
+      "sharpe_ratio": -0.10993907011737862,
+      "profit_factor": 0.6672155515094728,
+      "total_trades": 8,
+      "avg_trade_pnl": -9.976598789440416
+    },
+    "score": 0.040593686863917136,
+    "timestamp": "2026-02-05T11:59:15.564807",
+    "test_duration": 0.058946,
+    "trade_count": 8
+  },
+  {
+    "strategy_id": "param_test_statistical_arbitrage_1770317954.627494",
+    "parameters": {
+      "entry_threshold": 0.5,
+      "exit_threshold": 0.1,
+      "lookback_period": 20.0,
+      "max_holding_period": 5.0,
+      "position_size_pct": 0.01,
+      "stop_loss_pct": 0.05
+    },
+    "metrics": {
+      "total_return": -0.00017346886093814386,
+      "win_rate": 0.25,
+      "max_drawdown": 0.0002969914421997028,
+      "sharpe_ratio": -0.1353162256042055,
+      "profit_factor": 0.6662101514649752,
+      "total_trades": 8,
+      "avg_trade_pnl": -21.68360761726798
+    },
+    "score": 0.035345936084843696,
+    "timestamp": "2026-02-05T11:59:14.683766",
+    "test_duration": 0.05625,
+    "trade_count": 8
+  },
+  {
+    "strategy_id": "param_test_statistical_arbitrage_1770317955.564836",
+    "parameters": {
+      "entry_threshold": 3.0,
+      "exit_threshold": 0.1,
+      "lookback_period": 200.0,
+      "max_holding_period": 5.0,
+      "position_size_pct": 0.01,
+      "stop_loss_pct": 0.05
+    },
+    "metrics": {
+      "total_return": -0.00016915697141056273,
+      "win_rate": 0.25,
+      "max_drawdown": 0.0003544137825399175,
+      "sharpe_ratio": -0.21266633783241792,
+      "profit_factor": 0.522713337505404,
+      "total_trades": 8,
+      "avg_trade_pnl": -21.14462142632034
+    },
+    "score": -0.0016415726538421826,
+    "timestamp": "2026-02-05T11:59:15.629461",
+    "test_duration": 0.064605,
+    "trade_count": 8
+  },
+  {
+    "strategy_id": "param_test_statistical_arbitrage_1770317954.734203",
+    "parameters": {
+      "entry_threshold": 0.5,
+      "exit_threshold": 0.1,
+      "lookback_period": 20.0,
+      "max_holding_period": 5.0,
+      "position_size_pct": 0.1,
+      "stop_loss_pct": 0.05
+    },
+    "metrics": {
+      "total_return": -0.00014868586805535575,
+      "win_rate": 0.25,
+      "max_drawdown": 0.00019543745020805908,
+      "sharpe_ratio": -0.296602473537462,
+      "profit_factor": 0.23921506396513298,
+      "total_trades": 8,
+      "avg_trade_pnl": -18.585733506919468
+    },
+    "score": -0.06096329712811826,
+    "timestamp": "2026-02-05T11:59:14.788134",
+    "test_duration": 0.053915,
+    "trade_count": 8
+  },
+  {
+    "strategy_id": "param_test_statistical_arbitrage_1770317954.573478",
+    "parameters": {
+      "entry_threshold": 0.5,
+      "exit_threshold": 0.1,
+      "lookback_period": 20.0,
+      "max_holding_period": 5.0,
+      "position_size_pct": 0.01,
+      "stop_loss_pct": 0.005
+    },
+    "metrics": {
+      "total_return": -0.00017876198426309894,
+      "win_rate": 0.125,
+      "max_drawdown": 0,
+      "sharpe_ratio": -0.28431797769646533,
+      "profit_factor": 0.41234170106872786,
+      "total_trades": 8,
+      "avg_trade_pnl": -22.34524803288737
+    },
+    "score": -0.06381596897426284,
+    "timestamp": "2026-02-05T11:59:14.627458",
+    "test_duration": 0.053952,
+    "trade_count": 8
+  },
+  {
+    "strategy_id": "param_test_statistical_arbitrage_1770317954.683793",
+    "parameters": {
+      "entry_threshold": 0.5,
+      "exit_threshold": 0.1,
+      "lookback_period": 20.0,
+      "max_holding_period": 5.0,
+      "position_size_pct": 0.1,
+      "stop_loss_pct": 0.005
+    },
+    "metrics": {
+      "total_return": -0.0003368787827182864,
+      "win_rate": 0.125,
+      "max_drawdown": 0,
+      "sharpe_ratio": -0.31293739601436715,
+      "profit_factor": 0.3976124534310552,
+      "total_trades": 8,
+      "avg_trade_pnl": -42.1098478397858
+    },
+    "score": -0.07179667482303065,
+    "timestamp": "2026-02-05T11:59:14.734180",
+    "test_duration": 0.050371,
+    "trade_count": 8
+  },
+  {
+    "strategy_id": "param_test_statistical_arbitrage_1770317956.612468",
+    "parameters": {
+      "entry_threshold": 3.0,
+      "exit_threshold": 1.0,
+      "lookback_period": 200.0,
+      "max_holding_period": 50.0,
+      "position_size_pct": 0.01,
+      "stop_loss_pct": 0.005
+    },
+    "metrics": {
+      "total_return": -0.0001615114114405534,
+      "win_rate": 0.125,
+      "max_drawdown": 0,
+      "sharpe_ratio": -0.30384609813161967,
+      "profit_factor": 0.3844523747824741,
+      "total_trades": 8,
+      "avg_trade_pnl": -20.188926430069174
+    },
+    "score": -0.07189981683238499,
+    "timestamp": "2026-02-05T11:59:16.683315",
+    "test_duration": 0.070827,
+    "trade_count": 8
+  },
+  {
+    "strategy_id": "param_test_statistical_arbitrage_1770317956.45414",
+    "parameters": {
+      "entry_threshold": 3.0,
+      "exit_threshold": 1.0,
+      "lookback_period": 200.0,
+      "max_holding_period": 5.0,
+      "position_size_pct": 0.1,
+      "stop_loss_pct": 0.005
+    },
+    "metrics": {
+      "total_return": -0.0002526883760067083,
+      "win_rate": 0.125,
+      "max_drawdown": 0,
+      "sharpe_ratio": -0.3341876807550235,
+      "profit_factor": 0.3601437614319781,
+      "total_trades": 8,
+      "avg_trade_pnl": -31.586047000838533
+    },
+    "score": -0.08164177844901,
+    "timestamp": "2026-02-05T11:59:16.535507",
+    "test_duration": 0.081346,
+    "trade_count": 8
+  },
+  {
+    "strategy_id": "param_test_statistical_arbitrage_1770317955.887209",
+    "parameters": {
+      "entry_threshold": 3.0,
+      "exit_threshold": 0.1,
+      "lookback_period": 200.0,
+      "max_holding_period": 50.0,
+      "position_size_pct": 0.1,
+      "stop_loss_pct": 0.005
+    },
+    "metrics": {
+      "total_return": -0.0008782449300055971,
+      "win_rate": 0.125,
+      "max_drawdown": 0.0012637392165623146,
+      "sharpe_ratio": -0.3639480992426122,
+      "profit_factor": 0.30504259225677743,
+      "total_trades": 8,
+      "avg_trade_pnl": -109.78061625069964
+    },
+    "score": -0.09592033056735128,
+    "timestamp": "2026-02-05T11:59:15.954894",
+    "test_duration": 0.067666,
+    "trade_count": 8
+  },
+  {
+    "strategy_id": "param_test_statistical_arbitrage_1770317955.179286",
+    "parameters": {
+      "entry_threshold": 0.5,
+      "exit_threshold": 0.1,
+      "lookback_period": 200.0,
+      "max_holding_period": 50.0,
+      "position_size_pct": 0.1,
+      "stop_loss_pct": 0.05
+    },
+    "metrics": {
+      "total_return": -0.0008244828243722954,
+      "win_rate": 0.25,
+      "max_drawdown": 0,
+      "sharpe_ratio": -0.397402694049931,
+      "profit_factor": 0.1198286587428074,
+      "total_trades": 8,
+      "avg_trade_pnl": -103.06035304653693
+    },
+    "score": -0.09925358484587679,
+    "timestamp": "2026-02-05T11:59:15.235414",
+    "test_duration": 0.056107,
+    "trade_count": 8
+  },
+  {
+    "strategy_id": "param_test_statistical_arbitrage_1770317956.153004",
+    "parameters": {
+      "entry_threshold": 3.0,
+      "exit_threshold": 1.0,
+      "lookback_period": 20.0,
+      "max_holding_period": 5.0,
+      "position_size_pct": 0.1,
+      "stop_loss_pct": 0.005
+    },
+    "metrics": {
+      "total_return": -0.0008392675861138801,
+      "win_rate": 0.125,
+      "max_drawdown": 0,
+      "sharpe_ratio": -0.48750732672844715,
+      "profit_factor": 0.22327442094876446,
+      "total_trades": 8,
+      "avg_trade_pnl": -104.908448264235
+    },
+    "score": -0.13301208247920893,
+    "timestamp": "2026-02-05T11:59:16.223216",
+    "test_duration": 0.070194,
+    "trade_count": 8
+  },
+  {
+    "strategy_id": "param_test_statistical_arbitrage_1770317955.770587",
+    "parameters": {
+      "entry_threshold": 3.0,
+      "exit_threshold": 0.1,
+      "lookback_period": 200.0,
+      "max_holding_period": 50.0,
+      "position_size_pct": 0.01,
+      "stop_loss_pct": 0.005
+    },
+    "metrics": {
+      "total_return": -0.00025739008217668286,
+      "win_rate": 0.125,
+      "max_drawdown": 0,
+      "sharpe_ratio": -0.4823826778574027,
+      "profit_factor": 0.17491616018681277,
+      "total_trades": 8,
+      "avg_trade_pnl": -32.17376027208536
+    },
+    "score": -0.13906632856811163,
+    "timestamp": "2026-02-05T11:59:15.829072",
+    "test_duration": 0.058462,
+    "trade_count": 8
+  },
+  {
+    "strategy_id": "param_test_statistical_arbitrage_1770317954.90244",
+    "parameters": {
+      "entry_threshold": 0.5,
+      "exit_threshold": 0.1,
+      "lookback_period": 200.0,
+      "max_holding_period": 5.0,
+      "position_size_pct": 0.1,
+      "stop_loss_pct": 0.005
+    },
+    "metrics": {
+      "total_return": -0.0008271410036649025,
+      "win_rate": 0.125,
+      "max_drawdown": 0,
+      "sharpe_ratio": -0.5751278926796738,
+      "profit_factor": 0.0652013813617673,
+      "total_trades": 8,
+      "avg_trade_pnl": -103.3926254581128
+    },
+    "score": -0.17424351363276913,
+    "timestamp": "2026-02-05T11:59:14.955669",
+    "test_duration": 0.053211,
+    "trade_count": 8
+  },
+  {
+    "strategy_id": "param_test_statistical_arbitrage_1770317956.090642",
+    "parameters": {
+      "entry_threshold": 3.0,
+      "exit_threshold": 1.0,
+      "lookback_period": 20.0,
+      "max_holding_period": 5.0,
+      "position_size_pct": 0.01,
+      "stop_loss_pct": 0.05
+    },
+    "metrics": {
+      "total_return": -0.0006446335611833895,
+      "win_rate": 0.0,
+      "max_drawdown": 0,
+      "sharpe_ratio": -0.6806358536540458,
+      "profit_factor": 0.0,
+      "total_trades": 8,
+      "avg_trade_pnl": -80.57919514792368
+    },
+    "score": -0.23632056079916416,
+    "timestamp": "2026-02-05T11:59:16.152974",
+    "test_duration": 0.06231,
+    "trade_count": 8
+  },
+  {
+    "strategy_id": "param_test_statistical_arbitrage_1770317955.699739",
+    "parameters": {
+      "entry_threshold": 3.0,
+      "exit_threshold": 0.1,
+      "lookback_period": 200.0,
+      "max_holding_period": 5.0,
+      "position_size_pct": 0.1,
+      "stop_loss_pct": 0.05
+    },
+    "metrics": {
+      "total_return": -0.00042433059651384635,
+      "win_rate": 0.0,
+      "max_drawdown": 0,
+      "sharpe_ratio": -0.7597805249312389,
+      "profit_factor": 0.0,
+      "total_trades": 8,
+      "avg_trade_pnl": -53.04132456423079
+    },
+    "score": -0.2520834041652019,
+    "timestamp": "2026-02-05T11:59:15.770538",
+    "test_duration": 0.07078,
+    "trade_count": 8
+  },
+  {
+    "strategy_id": "param_test_statistical_arbitrage_1770317955.372218",
+    "parameters": {
+      "entry_threshold": 3.0,
+      "exit_threshold": 0.1,
+      "lookback_period": 20.0,
+      "max_holding_period": 5.0,
+      "position_size_pct": 0.1,
+      "stop_loss_pct": 0.005
+    },
+    "metrics": {
+      "total_return": -0.0010745620899863743,
+      "win_rate": 0.0,
+      "max_drawdown": 0,
+      "sharpe_ratio": -0.8396073316195142,
+      "profit_factor": 0.0,
+      "total_trades": 8,
+      "avg_trade_pnl": -134.3202612482968
+    },
+    "score": -0.26824383495089876,
+    "timestamp": "2026-02-05T11:59:15.441579",
+    "test_duration": 0.069339,
+    "trade_count": 8
+  },
+  {
+    "strategy_id": "param_test_statistical_arbitrage_1770317954.844374",
+    "parameters": {
+      "entry_threshold": 0.5,
+      "exit_threshold": 0.1,
+      "lookback_period": 200.0,
+      "max_holding_period": 5.0,
+      "position_size_pct": 0.01,
+      "stop_loss_pct": 0.05
+    },
+    "metrics": {
+      "total_return": -0.00032476878659445333,
+      "win_rate": 0.0,
+      "max_drawdown": 0,
+      "sharpe_ratio": -0.9532861117568511,
+      "profit_factor": 0.0,
+      "total_trades": 8,
+      "avg_trade_pnl": -40.596098324306666
+    },
+    "score": -0.2907546529873486,
+    "timestamp": "2026-02-05T11:59:14.902411",
+    "test_duration": 0.058019,
+    "trade_count": 8
+  }
+]

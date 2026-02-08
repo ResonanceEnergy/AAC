@@ -121,6 +121,10 @@ class AuditLogger:
         if enable_file_logging:
             self._init_file_handler()
     
+    async def initialize(self):
+        """Async initialize method for compatibility"""
+        pass
+    
     def _init_database(self):
         """Initialize SQLite database for audit storage"""
         with self._get_db_connection() as conn:
