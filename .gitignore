@@ -64,6 +64,7 @@ logs/
 *.sqlite
 *.sqlite3
 data/*.db
+data/backups/
 CentralAccounting/data/*.db
 
 # ===========================================
