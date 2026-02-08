@@ -1,0 +1,362 @@
+[
+  {
+    "id": 1,
+    "category": "Executive Overview",
+    "question": "What is the current system-wide health score and how does it compare to our 99.9% uptime target?",
+    "priority": "Critical",
+    "data_source": "system_status.health_score",
+    "follow_up": "What are the top 3 factors contributing to any health score below 99%?"
+  },
+  {
+    "id": 2,
+    "category": "Executive Overview",
+    "question": "What is our current quantum advantage ratio and how has it trended over the last 30 days?",
+    "priority": "Critical",
+    "data_source": "system_status.quantum_advantage_ratio",
+    "follow_up": "Are we maintaining our competitive edge in quantum-enhanced arbitrage?"
+  },
+  {
+    "id": 3,
+    "category": "Executive Overview",
+    "question": "What is the total system capacity utilization across all departments?",
+    "priority": "High",
+    "data_source": "department_status.capacity_utilization",
+    "follow_up": "Which department is the current bottleneck and what are we doing to address it?"
+  },
+  {
+    "id": 4,
+    "category": "Executive Overview",
+    "question": "What is our current AI accuracy score and confidence level across all decision systems?",
+    "priority": "Critical",
+    "data_source": "ai_systems.accuracy_score",
+    "follow_up": "How does this compare to our 95% accuracy target for production deployment?"
+  },
+  {
+    "id": 5,
+    "category": "Executive Overview",
+    "question": "What is the end-to-end latency from signal detection to trade execution?",
+    "priority": "Critical",
+    "data_source": "performance_metrics.end_to_end_latency_us",
+    "follow_up": "Are we maintaining sub-millisecond execution as required for high-frequency arbitrage?"
+  },
+  {
+    "id": 11,
+    "category": "Financial Performance",
+    "question": "What is our total realized P&L for today, this week, and this month?",
+    "priority": "Critical",
+    "data_source": "financial_performance.realized_pnl",
+    "follow_up": "What is the breakdown by strategy type and department?"
+  },
+  {
+    "id": 12,
+    "category": "Financial Performance",
+    "question": "What is our current unrealized P&L and how volatile has it been in the last hour?",
+    "priority": "High",
+    "data_source": "financial_performance.unrealized_pnl",
+    "follow_up": "Are we within our risk limits for unrealized exposure?"
+  },
+  {
+    "id": 13,
+    "category": "Financial Performance",
+    "question": "What is our Sharpe ratio and maximum drawdown over different time periods?",
+    "priority": "High",
+    "data_source": "risk_metrics.sharpe_ratio, risk_metrics.max_drawdown",
+    "follow_up": "How do these metrics compare to our institutional targets?"
+  },
+  {
+    "id": 14,
+    "category": "Financial Performance",
+    "question": "What are our total trading costs including commissions, fees, and slippage?",
+    "priority": "High",
+    "data_source": "trading_costs.total_costs",
+    "follow_up": "What percentage of our gross P&L do these costs represent?"
+  },
+  {
+    "id": 15,
+    "category": "Financial Performance",
+    "question": "What is the capital utilization efficiency across all strategies?",
+    "priority": "Medium",
+    "data_source": "capital_allocation.utilization_efficiency",
+    "follow_up": "Are we optimizing our capital allocation or leaving money on the table?"
+  },
+  {
+    "id": 26,
+    "category": "Risk Management",
+    "question": "What is our current Value at Risk (VaR) at 95% and 99% confidence levels?",
+    "priority": "Critical",
+    "data_source": "risk_metrics.var_95, risk_metrics.var_99",
+    "follow_up": "How does this compare to our risk appetite and regulatory limits?"
+  },
+  {
+    "id": 27,
+    "category": "Risk Management",
+    "question": "What is the current correlation between our different strategy types?",
+    "priority": "High",
+    "data_source": "risk_metrics.strategy_correlations",
+    "follow_up": "Are we properly diversified or do we have concentrated risk exposures?"
+  },
+  {
+    "id": 28,
+    "category": "Risk Management",
+    "question": "How many circuit breakers have been triggered in the last 24 hours?",
+    "priority": "High",
+    "data_source": "circuit_breakers.triggered_count_24h",
+    "follow_up": "What were the reasons for these triggers and have they been resolved?"
+  },
+  {
+    "id": 29,
+    "category": "Risk Management",
+    "question": "What is our current liquidity position and funding availability?",
+    "priority": "Critical",
+    "data_source": "liquidity_metrics.available_funding",
+    "follow_up": "Do we have sufficient liquidity to handle a major market event?"
+  },
+  {
+    "id": 30,
+    "category": "Risk Management",
+    "question": "What is the stress test result for our portfolio under various market scenarios?",
+    "priority": "High",
+    "data_source": "stress_testing.portfolio_stress_results",
+    "follow_up": "Are we prepared for black swan events and market crashes?"
+  },
+  {
+    "id": 41,
+    "category": "Trading Operations",
+    "question": "What is our trade execution success rate and average fill time?",
+    "priority": "High",
+    "data_source": "trading_operations.fill_rate, trading_operations.avg_fill_time",
+    "follow_up": "Are we achieving our target of 98%+ fill rates?"
+  },
+  {
+    "id": 42,
+    "category": "Trading Operations",
+    "question": "How many arbitrage opportunities are we detecting per minute?",
+    "priority": "Medium",
+    "data_source": "opportunity_detection.rate_per_minute",
+    "follow_up": "Is this rate increasing or decreasing over time?"
+  },
+  {
+    "id": 43,
+    "category": "Trading Operations",
+    "question": "What is the geographic distribution of our trading activity?",
+    "priority": "Medium",
+    "data_source": "trading_operations.geographic_distribution",
+    "follow_up": "Are we properly diversified across global markets?"
+  },
+  {
+    "id": 44,
+    "category": "Trading Operations",
+    "question": "What is our market impact when executing large orders?",
+    "priority": "Medium",
+    "data_source": "trading_operations.market_impact_analysis",
+    "follow_up": "Are we minimizing market impact while maximizing execution quality?"
+  },
+  {
+    "id": 45,
+    "category": "Trading Operations",
+    "question": "How effective is our smart order routing across different venues?",
+    "priority": "High",
+    "data_source": "trading_operations.routing_efficiency",
+    "follow_up": "Are we getting best execution across all our trading venues?"
+  },
+  {
+    "id": 56,
+    "category": "Technology Infrastructure",
+    "question": "What is the current CPU, memory, and network utilization across our infrastructure?",
+    "priority": "Medium",
+    "data_source": "infrastructure_metrics.cpu_usage, infrastructure_metrics.memory_usage, infrastructure_metrics.network_io",
+    "follow_up": "Do we need to scale our infrastructure to handle increased load?"
+  },
+  {
+    "id": 57,
+    "category": "Technology Infrastructure",
+    "question": "What is the data latency from our various market data sources?",
+    "priority": "High",
+    "data_source": "data_pipeline.latency_by_source",
+    "follow_up": "Are all our data feeds performing within acceptable latency bounds?"
+  },
+  {
+    "id": 58,
+    "category": "Technology Infrastructure",
+    "question": "How reliable are our API connections to exchanges and data providers?",
+    "priority": "High",
+    "data_source": "api_connectivity.uptime_by_provider",
+    "follow_up": "Do we have sufficient redundancy and failover mechanisms?"
+  },
+  {
+    "id": 59,
+    "category": "Technology Infrastructure",
+    "question": "What is the performance of our database and caching layers?",
+    "priority": "Medium",
+    "data_source": "database_metrics.query_performance, cache_metrics.hit_rate",
+    "follow_up": "Are we experiencing any database bottlenecks or cache misses?"
+  },
+  {
+    "id": 60,
+    "category": "Technology Infrastructure",
+    "question": "How secure is our infrastructure against cyber threats?",
+    "priority": "Critical",
+    "data_source": "security_metrics.threat_detection_rate, security_metrics.incident_response_time",
+    "follow_up": "Are we maintaining our security posture in an evolving threat landscape?"
+  },
+  {
+    "id": 71,
+    "category": "AI & Machine Learning",
+    "question": "What is the accuracy and confidence level of our AI trading signals?",
+    "priority": "Critical",
+    "data_source": "ai_systems.signal_accuracy, ai_systems.signal_confidence",
+    "follow_up": "Are our AI models performing better than traditional strategies?"
+  },
+  {
+    "id": 72,
+    "category": "AI & Machine Learning",
+    "question": "How frequently are we updating our machine learning models?",
+    "priority": "High",
+    "data_source": "ai_systems.model_update_frequency",
+    "follow_up": "Are we keeping pace with market changes and new patterns?"
+  },
+  {
+    "id": 73,
+    "category": "AI & Machine Learning",
+    "question": "What is the false positive rate of our opportunity detection system?",
+    "priority": "High",
+    "data_source": "ai_systems.false_positive_rate",
+    "follow_up": "Are we wasting resources on low-quality opportunities?"
+  },
+  {
+    "id": 74,
+    "category": "AI & Machine Learning",
+    "question": "How diverse is our training data across different market conditions?",
+    "priority": "Medium",
+    "data_source": "ai_systems.training_data_diversity",
+    "follow_up": "Are our models robust across various market regimes?"
+  },
+  {
+    "id": 75,
+    "category": "AI & Machine Learning",
+    "question": "What is the computational cost of our AI inference operations?",
+    "priority": "Medium",
+    "data_source": "ai_systems.inference_cost",
+    "follow_up": "Are we optimizing our AI operations for cost efficiency?"
+  },
+  {
+    "id": 81,
+    "category": "Compliance & Governance",
+    "question": "What is our current doctrine compliance score across all 8 packs?",
+    "priority": "Critical",
+    "data_source": "doctrine_compliance.overall_score, doctrine_compliance.pack_scores",
+    "follow_up": "Which packs are below our 95% compliance target?"
+  },
+  {
+    "id": 82,
+    "category": "Compliance & Governance",
+    "question": "How many regulatory filings have we submitted this quarter?",
+    "priority": "High",
+    "data_source": "regulatory_compliance.filings_submitted",
+    "follow_up": "Are we meeting all our regulatory reporting obligations?"
+  },
+  {
+    "id": 83,
+    "category": "Compliance & Governance",
+    "question": "What is the status of our audit trail and record keeping?",
+    "priority": "High",
+    "data_source": "audit_trail.completeness, audit_trail.retention_compliance",
+    "follow_up": "Can we reconstruct any trade or decision from our audit logs?"
+  },
+  {
+    "id": 84,
+    "category": "Compliance & Governance",
+    "question": "How effective is our incident response and post-mortem process?",
+    "priority": "Medium",
+    "data_source": "incident_response.effectiveness_score, incident_response.post_mortem_completion_rate",
+    "follow_up": "Are we learning from incidents and improving our processes?"
+  },
+  {
+    "id": 85,
+    "category": "Compliance & Governance",
+    "question": "What is our third-party risk assessment for vendors and counterparties?",
+    "priority": "Medium",
+    "data_source": "third_party_risk.vendor_assessments, third_party_risk.counterparty_scores",
+    "follow_up": "Are we doing business with appropriately vetted partners?"
+  },
+  {
+    "id": 91,
+    "category": "Strategic Questions",
+    "question": "What new arbitrage opportunities have we identified this quarter?",
+    "priority": "High",
+    "data_source": "strategic_initiatives.new_opportunities_identified",
+    "follow_up": "How can we capitalize on these opportunities?"
+  },
+  {
+    "id": 92,
+    "category": "Strategic Questions",
+    "question": "What is our competitive position in the arbitrage space?",
+    "priority": "Critical",
+    "data_source": "competitive_analysis.market_position, competitive_analysis.advantage_metrics",
+    "follow_up": "Are we maintaining our technological edge?"
+  },
+  {
+    "id": 93,
+    "category": "Strategic Questions",
+    "question": "What is the ROI on our technology investments this year?",
+    "priority": "High",
+    "data_source": "strategic_initiatives.technology_roi",
+    "follow_up": "Which investments are delivering the highest returns?"
+  },
+  {
+    "id": 94,
+    "category": "Strategic Questions",
+    "question": "How scalable is our current architecture for future growth?",
+    "priority": "High",
+    "data_source": "architecture_assessment.scalability_metrics",
+    "follow_up": "What architectural changes do we need for 10x growth?"
+  },
+  {
+    "id": 95,
+    "category": "Strategic Questions",
+    "question": "What is our talent acquisition and retention success rate?",
+    "priority": "Medium",
+    "data_source": "human_capital.talent_metrics",
+    "follow_up": "Do we have the right team to execute our strategic vision?"
+  },
+  {
+    "id": 96,
+    "category": "Strategic Questions",
+    "question": "What emerging technologies should we be investing in?",
+    "priority": "High",
+    "data_source": "technology_scanning.emerging_trends",
+    "follow_up": "How can we stay ahead of the technological curve?"
+  },
+  {
+    "id": 97,
+    "category": "Strategic Questions",
+    "question": "What is our carbon footprint and sustainability impact?",
+    "priority": "Medium",
+    "data_source": "sustainability_metrics.carbon_footprint, sustainability_metrics.energy_efficiency",
+    "follow_up": "How can we reduce our environmental impact?"
+  },
+  {
+    "id": 98,
+    "category": "Strategic Questions",
+    "question": "What geopolitical risks are we monitoring and how exposed are we?",
+    "priority": "High",
+    "data_source": "geopolitical_risk.exposure_assessment, geopolitical_risk.monitoring_coverage",
+    "follow_up": "Do we have adequate hedging strategies for geopolitical events?"
+  },
+  {
+    "id": 99,
+    "category": "Strategic Questions",
+    "question": "What is our succession planning and leadership development status?",
+    "priority": "Medium",
+    "data_source": "leadership_development.succession_readiness, leadership_development.pipeline_strength",
+    "follow_up": "Are we prepared for leadership transitions?"
+  },
+  {
+    "id": 100,
+    "category": "Strategic Questions",
+    "question": "What is our long-term vision and are we on track to achieve it?",
+    "priority": "Critical",
+    "data_source": "strategic_planning.vision_alignment, strategic_planning.progress_metrics",
+    "follow_up": "What course corrections do we need to make?"
+  }
+]

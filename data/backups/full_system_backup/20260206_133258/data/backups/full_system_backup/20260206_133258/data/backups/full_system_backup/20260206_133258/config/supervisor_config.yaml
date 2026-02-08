@@ -1,0 +1,216 @@
+# ACC System Supervisor Configuration
+# Process management and orchestration settings
+
+supervisor:
+  # Global settings
+  loglevel: info
+  logfile: /var/log/acc/supervisor.log
+  logfile_maxbytes: 50MB
+  logfile_backups: 10
+  pidfile: /var/run/acc/supervisor.pid
+
+  # Server settings
+  serverurl: auto
+  username: admin
+  password: "{SHA}encrypted_password_here"
+
+# Program definitions for ACC system components
+programs:
+
+  # Doctrine Orchestrator
+  doctrine_orchestrator:
+    command: python -m aac.doctrine.doctrine_integration
+    directory: /opt/acc
+    user: acc
+    autostart: true
+    autorestart: true
+    startretries: 3
+    startsecs: 10
+    priority: 100
+    redirect_stderr: true
+    stdout_logfile: /var/log/acc/doctrine.log
+    stdout_logfile_maxbytes: 50MB
+    stdout_logfile_backups: 5
+    environment:
+      PYTHONPATH: "/opt/acc"
+      ACC_ENV: "production"
+      DOCTRINE_CHECK_INTERVAL: "30"
+
+  # Financial Analysis Engine
+  financial_engine:
+    command: python -c "from CentralAccounting.financial_analysis_engine import FinancialAnalysisEngine; import asyncio; engine = FinancialAnalysisEngine(); asyncio.run(engine.start())"
+    directory: /opt/acc
+    user: acc
+    autostart: true
+    autorestart: true
+    startretries: 3
+    startsecs: 15
+    priority: 90
+    redirect_stderr: true
+    stdout_logfile: /var/log/acc/financial.log
+    stdout_logfile_maxbytes: 50MB
+    stdout_logfile_backups: 5
+    environment:
+      PYTHONPATH: "/opt/acc"
+      ACC_ENV: "production"
+
+  # Crypto Intelligence Engine
+  crypto_engine:
+    command: python -c "from CryptoIntelligence.crypto_intelligence_engine import CryptoIntelligenceEngine; import asyncio; engine = CryptoIntelligenceEngine(); asyncio.run(engine.start())"
+    directory: /opt/acc
+    user: acc
+    autostart: true
+    autorestart: true
+    startretries: 3
+    startsecs: 15
+    priority: 85
+    redirect_stderr: true
+    stdout_logfile: /var/log/acc/crypto.log
+    stdout_logfile_maxbytes: 50MB
+    stdout_logfile_backups: 5
+    environment:
+      PYTHONPATH: "/opt/acc"
+      ACC_ENV: "production"
+
+  # Research Agents
+  research_agents:
+    command: python -c "from BigBrainIntelligence.agents import ResearchAgentManager; import asyncio; manager = ResearchAgentManager(); asyncio.run(manager.start_agents())"
+    directory: /opt/acc
+    user: acc
+    autostart: true
+    autorestart: true
+    startretries: 3
+    startsecs: 20
+    priority: 80
+    redirect_stderr: true
+    stdout_logfile: /var/log/acc/research.log
+    stdout_logfile_maxbytes: 50MB
+    stdout_logfile_backups: 5
+    environment:
+      PYTHONPATH: "/opt/acc"
+      ACC_ENV: "production"
+
+  # Shared Infrastructure Services
+  security_monitor:
+    command: python -c "from SharedInfrastructure.security_monitor import SecurityMonitor; import asyncio; monitor = SecurityMonitor(); asyncio.run(monitor.monitor_security_events())"
+    directory: /opt/acc
+    user: acc
+    autostart: true
+    autorestart: true
+    startretries: 3
+    startsecs: 10
+    priority: 95
+    redirect_stderr: true
+    stdout_logfile: /var/log/acc/security.log
+    stdout_logfile_maxbytes: 50MB
+    stdout_logfile_backups: 5
+    environment:
+      PYTHONPATH: "/opt/acc"
+      ACC_ENV: "production"
+
+  system_monitor:
+    command: python -c "from SharedInfrastructure.system_monitor import SystemMonitor; import asyncio; monitor = SystemMonitor(); asyncio.run(monitor.start_monitoring())"
+    directory: /opt/acc
+    user: acc
+    autostart: true
+    autorestart: true
+    startretries: 3
+    startsecs: 10
+    priority: 88
+    redirect_stderr: true
+    stdout_logfile: /var/log/acc/system_monitor.log
+    stdout_logfile_maxbytes: 50MB
+    stdout_logfile_backups: 5
+    environment:
+      PYTHONPATH: "/opt/acc"
+      ACC_ENV: "production"
+
+  metrics_collector:
+    command: python -c "from SharedInfrastructure.metrics_collector import MetricsCollector; import asyncio; collector = MetricsCollector(); asyncio.run(collector.start_collection())"
+    directory: /opt/acc
+    user: acc
+    autostart: true
+    autorestart: true
+    startretries: 3
+    startsecs: 10
+    priority: 87
+    redirect_stderr: true
+    stdout_logfile: /var/log/acc/metrics.log
+    stdout_logfile_maxbytes: 50MB
+    stdout_logfile_backups: 5
+    environment:
+      PYTHONPATH: "/opt/acc"
+      ACC_ENV: "production"
+
+  alert_manager:
+    command: python -c "from SharedInfrastructure.alert_manager import AlertManager; import asyncio; manager = AlertManager(); asyncio.run(manager.run_alert_loop())"
+    directory: /opt/acc
+    user: acc
+    autostart: true
+    autorestart: true
+    startretries: 3
+    startsecs: 10
+    priority: 86
+    redirect_stderr: true
+    stdout_logfile: /var/log/acc/alerts.log
+    stdout_logfile_maxbytes: 50MB
+    stdout_logfile_backups: 5
+    environment:
+      PYTHONPATH: "/opt/acc"
+      ACC_ENV: "production"
+
+# Group definitions for coordinated management
+groups:
+  core_services:
+    programs:
+      - doctrine_orchestrator
+      - security_monitor
+      - system_monitor
+    priority: 100
+
+  department_engines:
+    programs:
+      - financial_engine
+      - crypto_engine
+      - research_agents
+    priority: 90
+
+  infrastructure_services:
+    programs:
+      - metrics_collector
+      - alert_manager
+    priority: 80
+
+# Event listener for automatic recovery
+eventlisteners:
+  crash_recovery:
+    command: python /opt/acc/scripts/crash_recovery.py %(eventname)s %(headers)s
+    events: PROCESS_STATE
+    directory: /opt/acc
+    user: acc
+    autostart: true
+    autorestart: true
+    redirect_stderr: true
+    stdout_logfile: /var/log/acc/crash_recovery.log
+
+# RPC interface for management
+rpcinterface:
+  supervisor:
+    supervisor.rpcinterface:make_main_rpcinterface
+  system:
+    supervisor.rpcinterface:make_system_rpcinterface
+
+# Unix HTTP server for web interface and XML-RPC API
+unix_http_server:
+  file: /var/run/acc/supervisor.sock
+  chmod: 0700
+
+# Web server for management interface
+inet_http_server:
+  port: 127.0.0.1:9001
+  username: admin
+  password: "{SHA}encrypted_password_here"
+
+# Include additional configuration files
+include:
+  files: /opt/acc/config/supervisor.d/*.conf

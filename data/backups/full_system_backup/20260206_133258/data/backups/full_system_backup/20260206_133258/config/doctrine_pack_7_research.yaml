@@ -1,0 +1,138 @@
+doctrine_pack: 7
+name: "RESEARCH FACTORY + EXPERIMENTATION + STRATEGY RETIREMENT"
+owner: "BigBrainIntelligence"
+insight_count: 73
+description: "AI-driven research pipeline, systematic experimentation framework, and automated strategy lifecycle management"
+
+core_principles:
+  - "Research velocity drives competitive advantage"
+  - "Experiments must be rigorous and reproducible"
+  - "Strategy retirement is as important as creation"
+  - "AI accelerates but doesn't replace human insight"
+
+required_metrics:
+  - name: "research_pipeline_velocity"
+    definition: "Strategies reaching PILOT per quarter (>3 good)"
+    measurement: "Number of strategies that reach pilot phase per quarter"
+    thresholds:
+      good: ">3"
+      warning: "1-3"
+      critical: "<1"
+    frequency: "Quarterly"
+  - name: "strategy_survival_rate"
+    definition: "PILOT strategies active after 6 months (>50% good)"
+    measurement: "Percentage of pilot strategies still active after 6 months"
+    thresholds:
+      good: ">50%"
+      warning: "25-50%"
+      critical: "<25%"
+    frequency: "Monthly"
+  - name: "experiment_completion_rate"
+    definition: "Completed experiments / started (>70% good)"
+    measurement: "Percentage of started experiments that reach completion"
+    thresholds:
+      good: ">70%"
+      warning: "50-70%"
+      critical: "<50%"
+    frequency: "Weekly"
+  - name: "innovation_success_rate"
+    definition: "Successful innovations / total attempts (>20% good)"
+    measurement: "Percentage of research attempts that lead to successful innovations"
+    thresholds:
+      good: ">20%"
+      warning: "10-20%"
+      critical: "<10%"
+    frequency: "Quarterly"
+  - name: "research_backlog_size"
+    definition: "Queued research ideas (<50 good)"
+    measurement: "Number of research ideas waiting in the backlog"
+    thresholds:
+      good: "<50"
+      warning: "50-100"
+      critical: ">100"
+    frequency: "Daily"
+
+strategy_lifecycle:
+  spec:
+    description: "Strategy specification and hypothesis"
+    criteria: "Clear alpha hypothesis, testable assumptions"
+    duration_target: "<1 week"
+    success_criteria: "Peer review approval"
+  sim:
+    description: "Simulation and backtesting"
+    criteria: "Historical data validation, statistical significance"
+    duration_target: "<2 weeks"
+    success_criteria: "Sharpe > 1.0, max drawdown < 20%"
+  paper:
+    description: "Paper trading with live data"
+    criteria: "Real-time signal generation, order simulation"
+    duration_target: "<1 month"
+    success_criteria: "Consistent P&L, no simulation artifacts"
+  pilot:
+    description: "Live trading with position limits"
+    criteria: "Real capital allocation, risk limits"
+    duration_target: "<3 months"
+    success_criteria: "Positive risk-adjusted returns"
+  post_analysis:
+    description: "Comprehensive performance analysis"
+    criteria: "Attribution analysis, risk decomposition"
+    duration_target: "<1 month"
+    success_criteria: "Clear understanding of drivers"
+  promote_retire:
+    description: "Decision to scale or terminate"
+    criteria: "Performance vs benchmarks, operational burden"
+    duration_target: "<1 week"
+    success_criteria: "Clear go/no-go decision"
+
+retirement_criteria:
+  performance:
+    condition: "net_sharpe < 0.5 for 4 weeks"
+    grace_period: "2 weeks"
+    action: "Immediate retirement"
+  data_quality:
+    condition: "source_reliability < 95% for 2 weeks"
+    grace_period: "1 week"
+    action: "Retirement with data source review"
+  ops_burden:
+    condition: "incident_count > 3/week for 2 weeks"
+    grace_period: "1 week"
+    action: "Retirement with ops review"
+
+experimentation_framework:
+  - "A/B testing for strategy variants"
+  - "Multi-armed bandit optimization"
+  - "Bayesian optimization for parameters"
+  - "Causal inference for attribution"
+  - "Synthetic control groups"
+
+failure_modes:
+  - "Research pipeline bottlenecks"
+  - "Poor experiment design"
+  - "Premature promotion of strategies"
+  - "Failure to retire underperforming strategies"
+
+az_prime_hooks:
+  - trigger: "research_pipeline_velocity < 1"
+    state_transition: "NORMAL → CAUTION"
+    actions: ["A_CREATE_INCIDENT"]
+  - trigger: "strategy_survival_rate < 25%"
+    state_transition: "NORMAL → CAUTION"
+    actions: ["A_CREATE_INCIDENT", "A_FREEZE_STRATEGY"]
+  - trigger: "experiment_completion_rate < 50%"
+    state_transition: "NORMAL → CAUTION"
+    actions: ["A_CREATE_INCIDENT"]
+  - trigger: "research_backlog_size > 100"
+    state_transition: "NORMAL → CAUTION"
+    actions: ["A_PRIORITIZE_BACKLOG"]
+
+future_proofing_enhancements:
+  - "AI-driven hypothesis generation"
+  - "Quantum simulation for strategy testing"
+  - "Automated experiment design and analysis"
+  - "Cross-temporal strategy optimization"
+  - "Quantum advantage in research computation"
+
+integration_points:
+  - "BigBrainIntelligence/agents.py: Research agent orchestration"
+  - "BigBrainIntelligence/research_agent.py: Core research pipeline"
+  - "AAC_VSCode_DropIn/bakeoff_framework.py: Strategy evaluation framework"

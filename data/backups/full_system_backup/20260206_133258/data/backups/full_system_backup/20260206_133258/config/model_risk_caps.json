@@ -1,0 +1,217 @@
+{
+  "metadata": {
+    "version": "1.0",
+    "last_updated": "2026-02-04T10:30:00Z",
+    "description": "Model Risk Management Caps and Parameters for ACC System"
+  },
+  "risk_framework": {
+    "doctrine_compliance": {
+      "max_violations_per_hour": 5,
+      "max_violations_per_day": 50,
+      "auto_escalation_threshold": 10,
+      "critical_violation_timeout_minutes": 5
+    },
+    "operational_risk": {
+      "max_system_downtime_minutes": 15,
+      "max_component_failures_per_hour": 3,
+      "recovery_time_objective_minutes": 30,
+      "recovery_point_objective_minutes": 5
+    },
+    "market_risk": {
+      "max_portfolio_var_percent": 2.5,
+      "max_single_position_var_percent": 0.5,
+      "max_daily_pnl_deviation_percent": 5.0,
+      "stress_test_frequency_hours": 24
+    }
+  },
+  "department_caps": {
+    "CentralAccounting": {
+      "max_pnl_deviation_threshold": 1000000,
+      "reconciliation_tolerance_usd": 100,
+      "max_unreconciled_positions": 10,
+      "audit_frequency_hours": 4,
+      "compliance_check_frequency_minutes": 15
+    },
+    "CryptoIntelligence": {
+      "max_venue_downtime_minutes": 30,
+      "min_venue_uptime_percent": 99.5,
+      "max_failed_requests_per_minute": 50,
+      "counterparty_risk_limit_usd": 5000000,
+      "withdrawal_safety_threshold_usd": 10000
+    },
+    "BigBrainIntelligence": {
+      "max_research_queue_depth": 100,
+      "min_agent_uptime_percent": 95.0,
+      "max_analysis_timeout_minutes": 30,
+      "data_quality_threshold_percent": 98.0,
+      "false_positive_rate_max_percent": 2.0
+    },
+    "TradingExecution": {
+      "max_order_size_usd": 10000000,
+      "max_orders_per_minute": 1000,
+      "execution_latency_max_ms": 500,
+      "slippage_tolerance_percent": 0.1,
+      "cancel_rate_max_percent": 5.0
+    }
+  },
+  "system_limits": {
+    "performance": {
+      "max_cpu_usage_percent": 80,
+      "max_memory_usage_percent": 85,
+      "max_disk_usage_percent": 90,
+      "max_network_latency_ms": 100,
+      "min_available_threads": 50
+    },
+    "security": {
+      "max_failed_auth_attempts_per_hour": 10,
+      "max_suspicious_events_per_hour": 25,
+      "password_min_length": 12,
+      "session_timeout_minutes": 60,
+      "encryption_key_rotation_days": 90
+    },
+    "monitoring": {
+      "health_check_frequency_seconds": 30,
+      "metrics_retention_days": 30,
+      "alert_escalation_delay_minutes": 5,
+      "log_retention_days": 2555
+    }
+  },
+  "risk_tolerance_levels": {
+    "conservative": {
+      "description": "Conservative risk tolerance - prioritize capital preservation",
+      "multipliers": {
+        "var_limit": 0.5,
+        "pnl_deviation": 0.5,
+        "position_size": 0.3,
+        "leverage_max": 2.0
+      }
+    },
+    "moderate": {
+      "description": "Moderate risk tolerance - balanced risk/reward",
+      "multipliers": {
+        "var_limit": 0.75,
+        "pnl_deviation": 0.75,
+        "position_size": 0.6,
+        "leverage_max": 3.0
+      }
+    },
+    "aggressive": {
+      "description": "Aggressive risk tolerance - maximize returns",
+      "multipliers": {
+        "var_limit": 1.0,
+        "pnl_deviation": 1.0,
+        "position_size": 1.0,
+        "leverage_max": 5.0
+      }
+    }
+  },
+  "current_risk_profile": "moderate",
+  "circuit_breakers": {
+    "market_crash": {
+      "trigger": "spx_drop_5pct",
+      "action": "halt_all_trading",
+      "duration_minutes": 30,
+      "auto_reset": false
+    },
+    "system_overload": {
+      "trigger": "cpu_usage_95pct OR memory_usage_95pct",
+      "action": "throttle_operations",
+      "duration_minutes": 15,
+      "auto_reset": true
+    },
+    "security_breach": {
+      "trigger": "unauthorized_access_detected",
+      "action": "emergency_shutdown",
+      "duration_minutes": 0,
+      "auto_reset": false
+    },
+    "pnl_deviation": {
+      "trigger": "daily_pnl_deviation_10pct",
+      "action": "reduce_position_sizes",
+      "duration_minutes": 60,
+      "auto_reset": true
+    }
+  },
+  "compliance_requirements": {
+    "regulatory_reporting": {
+      "frequency": "daily",
+      "deadline": "08:00",
+      "jurisdictions": ["FINRA", "SEC", "CFTC"],
+      "data_retention_years": 7
+    },
+    "audit_trail": {
+      "log_all_trades": true,
+      "log_all_decisions": true,
+      "immutable_logs": true,
+      "tamper_detection": true
+    },
+    "business_continuity": {
+      "backup_frequency_hours": 6,
+      "disaster_recovery_time_hours": 4,
+      "data_center_redundancy": true,
+      "geographic_distribution": true
+    }
+  },
+  "model_validation": {
+    "backtesting": {
+      "required_period_days": 500,
+      "min_sharpe_ratio": 1.5,
+      "max_drawdown_percent": 10,
+      "validation_frequency_months": 3
+    },
+    "stress_testing": {
+      "scenarios_required": 10,
+      "worst_case_loss_percent": 15,
+      "recovery_assumption_days": 30,
+      "sensitivity_analysis_required": true
+    },
+    "performance_monitoring": {
+      "tracking_error_max_bps": 50,
+      "information_ratio_min": 0.5,
+      "alpha_attribution_required": true,
+      "risk_adjusted_return_min": 0.8
+    }
+  },
+  "escalation_matrix": {
+    "level_1": {
+      "threshold": "warning",
+      "notify": ["trading_desk"],
+      "response_time_minutes": 15,
+      "escalate_after_minutes": 30
+    },
+    "level_2": {
+      "threshold": "error",
+      "notify": ["trading_desk", "risk_management"],
+      "response_time_minutes": 5,
+      "escalate_after_minutes": 15
+    },
+    "level_3": {
+      "threshold": "critical",
+      "notify": ["trading_desk", "risk_management", "executives", "compliance"],
+      "response_time_minutes": 1,
+      "escalate_after_minutes": 5
+    },
+    "level_4": {
+      "threshold": "emergency",
+      "notify": ["all_personnel"],
+      "response_time_minutes": 0,
+      "escalate_after_minutes": 0
+    }
+  },
+  "override_procedures": {
+    "emergency_override": {
+      "authorized_roles": ["CEO", "CTO", "CRO"],
+      "dual_authorization_required": true,
+      "audit_required": true,
+      "max_duration_hours": 24,
+      "post_override_review_required": true
+    },
+    "maintenance_override": {
+      "authorized_roles": ["System Administrator", "DevOps Lead"],
+      "dual_authorization_required": false,
+      "audit_required": true,
+      "max_duration_hours": 8,
+      "post_override_review_required": false
+    }
+  }
+}

@@ -1,0 +1,463 @@
+# AAC Market Data Configuration
+# Configuration for 100+ worldwide market data feeds
+# Version: 1.0
+
+# ═══════════════════════════════════════════════════════════════════════════
+# GLOBAL MARKET DATA SETTINGS
+# ═══════════════════════════════════════════════════════════════════════════
+
+global:
+  # Data quality settings
+  data_quality:
+    min_quality_score: 0.7  # Minimum quality score to accept data
+    staleness_threshold_seconds: 30  # Data older than this is considered stale
+    max_latency_ms: 5000  # Maximum acceptable latency
+
+  # Redundancy settings
+  redundancy:
+    min_feeds_per_symbol: 2  # Minimum feeds per symbol for redundancy
+    failover_enabled: true
+    failover_timeout_seconds: 10
+
+  # Rate limiting
+  rate_limiting:
+    global_requests_per_second: 1000
+    per_connector_requests_per_second: 100
+
+  # Caching
+  caching:
+    enabled: true
+    ttl_seconds: 300  # 5 minutes
+    max_cache_size_mb: 1024
+
+# ═══════════════════════════════════════════════════════════════════════════
+# CONNECTOR CONFIGURATIONS
+# ═══════════════════════════════════════════════════════════════════════════
+
+connectors:
+
+  # PRIMARY EXCHANGE FEEDS (Direct Exchange Connections)
+  nyse:
+    enabled: true
+    type: exchange_direct
+    priority: 1  # Highest priority
+    credentials:
+      api_key: "${NYSE_API_KEY}"
+      api_secret: "${NYSE_API_SECRET}"
+    endpoints:
+      websocket: "wss://api.nyse.com/ws"
+      rest: "https://api.nyse.com/v1"
+    rate_limits:
+      requests_per_second: 50
+    symbols:
+      - equities: ["AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "NVDA", "META", "NFLX"]
+      - etfs: ["SPY", "QQQ", "IWM", "VTI", "VEA", "VWO"]
+
+  cme:
+    enabled: true
+    type: exchange_direct
+    priority: 1
+    credentials:
+      api_key: "${CME_API_KEY}"
+      api_secret: "${CME_API_SECRET}"
+    endpoints:
+      websocket: "wss://api.cmegroup.com/ws"
+      rest: "https://api.cmegroup.com/v1"
+    rate_limits:
+      requests_per_second: 100
+    symbols:
+      - futures: ["ES=F", "NQ=F", "RTY=F", "CL=F", "GC=F", "SI=F", "HG=F"]
+      - options: ["ESO=F", "NQO=F"]
+
+  nasdaq:
+    enabled: true
+    type: exchange_direct
+    priority: 1
+    credentials:
+      api_key: "${NASDAQ_API_KEY}"
+      api_secret: "${NASDAQ_API_SECRET}"
+    endpoints:
+      websocket: "wss://api.nasdaq.com/ws"
+      rest: "https://api.nasdaq.com/v1"
+    rate_limits:
+      requests_per_second: 50
+    symbols:
+      - equities: ["AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "NVDA", "META", "NFLX"]
+      - etfs: ["SPY", "QQQ", "IWM"]
+
+  # ALTERNATIVE DATA VENDORS (Redundancy Feeds)
+  bloomberg:
+    enabled: true
+    type: data_vendor
+    priority: 2
+    credentials:
+      api_key: "${BLOOMBERG_API_KEY}"
+      api_secret: "${BLOOMBERG_API_SECRET}"
+      terminal_id: "${BLOOMBERG_TERMINAL_ID}"
+    endpoints:
+      rest: "https://api.bloomberg.com/v1"
+      websocket: "wss://api.bloomberg.com/ws"
+    rate_limits:
+      requests_per_second: 20
+    subscriptions:
+      - realtime: true
+      - historical: true
+      - news: true
+
+  refinitiv:
+    enabled: true
+    type: data_vendor
+    priority: 2
+    credentials:
+      api_key: "${REFINITIV_API_KEY}"
+      api_secret: "${REFINITIV_API_SECRET}"
+      app_id: "${REFINITIV_APP_ID}"
+    endpoints:
+      rest: "https://api.refinitiv.com"
+      websocket: "wss://api.refinitiv.com/ws"
+    rate_limits:
+      requests_per_second: 30
+    subscriptions:
+      - realtime: true
+      - historical: true
+      - analytics: true
+
+  iqfeed:
+    enabled: true
+    type: data_vendor
+    priority: 2
+    credentials:
+      username: "${IQFEED_USERNAME}"
+      password: "${IQFEED_PASSWORD}"
+    endpoints:
+      websocket: "wss://iqfeed.iqfeed.net"
+      rest: "https://iqfeed.iqfeed.net"
+    rate_limits:
+      requests_per_second: 50
+    subscriptions:
+      - level1: true
+      - level2: true
+      - historical: true
+
+  # CRYPTO EXCHANGES
+  binance:
+    enabled: true
+    type: crypto_exchange
+    priority: 1
+    credentials:
+      api_key: "${BINANCE_API_KEY}"
+      api_secret: "${BINANCE_API_SECRET}"
+    endpoints:
+      websocket: "wss://stream.binance.com:9443/ws"
+      rest: "https://api.binance.com"
+    rate_limits:
+      requests_per_second: 10  # Binance rate limits are strict
+    symbols:
+      - spot: ["BTCUSDT", "ETHUSDT", "BNBUSDT", "ADAUSDT", "SOLUSDT"]
+      - futures: ["BTCUSDT", "ETHUSDT", "BNBUSDT"]
+
+  coinbase_pro:
+    enabled: true
+    type: crypto_exchange
+    priority: 1
+    credentials:
+      api_key: "${COINBASE_API_KEY}"
+      api_secret: "${COINBASE_API_SECRET}"
+      passphrase: "${COINBASE_PASSPHRASE}"
+    endpoints:
+      websocket: "wss://ws-feed.exchange.coinbase.com"
+      rest: "https://api.exchange.coinbase.com"
+    rate_limits:
+      requests_per_second: 10
+    symbols:
+      - spot: ["BTC-USD", "ETH-USD", "ADA-USD", "SOL-USD"]
+
+  kraken:
+    enabled: true
+    type: crypto_exchange
+    priority: 2
+    credentials:
+      api_key: "${KRAKEN_API_KEY}"
+      api_secret: "${KRAKEN_API_SECRET}"
+    endpoints:
+      websocket: "wss://ws.kraken.com"
+      rest: "https://api.kraken.com"
+    rate_limits:
+      requests_per_second: 15
+    symbols:
+      - spot: ["BTC/USD", "ETH/USD", "ADA/USD"]
+
+  bybit:
+    enabled: true
+    type: crypto_exchange
+    priority: 2
+    credentials:
+      api_key: "${BYBIT_API_KEY}"
+      api_secret: "${BYBIT_API_SECRET}"
+    endpoints:
+      websocket: "wss://stream.bybit.com/v5/public/spot"
+      rest: "https://api.bybit.com"
+    rate_limits:
+      requests_per_second: 50
+    symbols:
+      - spot: ["BTCUSDT", "ETHUSDT"]
+      - futures: ["BTCUSDT", "ETHUSDT"]
+
+  # GLOBAL DATA PROVIDERS
+  alpha_vantage:
+    enabled: true
+    type: data_vendor
+    priority: 3
+    credentials:
+      api_key: "${ALPHA_VANTAGE_API_KEY}"
+    endpoints:
+      rest: "https://www.alphavantage.co/query"
+    rate_limits:
+      requests_per_second: 5  # Alpha Vantage free tier limit
+    subscriptions:
+      - realtime: false  # Only historical/intraday
+      - historical: true
+
+  polygon:
+    enabled: true
+    type: data_vendor
+    priority: 2
+    credentials:
+      api_key: "${POLYGON_API_KEY}"
+    endpoints:
+      websocket: "wss://socket.polygon.io"
+      rest: "https://api.polygon.io"
+    rate_limits:
+      requests_per_second: 5
+    subscriptions:
+      - realtime: true
+      - historical: true
+      - aggregates: true
+
+  finnhub:
+    enabled: true
+    type: data_vendor
+    priority: 2
+    credentials:
+      api_key: "${FINNHUB_API_KEY}"
+    endpoints:
+      websocket: "wss://ws.finnhub.io"
+      rest: "https://finnhub.io/api/v1"
+    rate_limits:
+      requests_per_second: 30
+    subscriptions:
+      - realtime: true
+      - news: true
+
+  tiingo:
+    enabled: true
+    type: data_vendor
+    priority: 3
+    credentials:
+      api_key: "${TIINGO_API_KEY}"
+    endpoints:
+      rest: "https://api.tiingo.com"
+    rate_limits:
+      requests_per_second: 50
+    subscriptions:
+      - historical: true
+      - news: true
+
+  iex_cloud:
+    enabled: true
+    type: data_vendor
+    priority: 2
+    credentials:
+      api_key: "${IEX_CLOUD_API_KEY}"
+      api_secret: "${IEX_CLOUD_API_SECRET}"
+    endpoints:
+      websocket: "wss://ws.iex.cloud"
+      rest: "https://cloud.iexapis.com"
+    rate_limits:
+      requests_per_second: 50
+    subscriptions:
+      - realtime: true
+      - historical: true
+
+  # FOREX PROVIDERS
+  oanda:
+    enabled: true
+    type: forex_provider
+    priority: 1
+    credentials:
+      api_key: "${OANDA_API_KEY}"
+      account_id: "${OANDA_ACCOUNT_ID}"
+    endpoints:
+      rest: "https://api-fxpractice.oanda.com"  # Practice account
+      streaming: "https://stream-fxpractice.oanda.com"
+    rate_limits:
+      requests_per_second: 20
+    symbols:
+      - majors: ["EUR/USD", "GBP/USD", "USD/JPY", "USD/CHF", "AUD/USD", "USD/CAD", "NZD/USD"]
+      - crosses: ["EUR/GBP", "EUR/JPY", "GBP/JPY"]
+
+  fxcm:
+    enabled: true
+    type: forex_provider
+    priority: 2
+    credentials:
+      api_key: "${FXCM_API_KEY}"
+      api_secret: "${FXCM_API_SECRET}"
+    endpoints:
+      rest: "https://api.fxcm.com"
+      websocket: "wss://api.fxcm.com/socket.io"
+    rate_limits:
+      requests_per_second: 30
+    symbols:
+      - majors: ["EURUSD", "GBPUSD", "USDJPY", "USDCHF", "AUDUSD", "USDCAD", "NZDUSD"]
+
+  # COMMODITY FEEDS
+  quandl:
+    enabled: true
+    type: commodity_feed
+    priority: 2
+    credentials:
+      api_key: "${QUANDL_API_KEY}"
+    endpoints:
+      rest: "https://www.quandl.com/api/v3"
+    rate_limits:
+      requests_per_second: 300  # Quandl has generous limits
+    datasets:
+      - futures: ["CHRIS/CME_ES", "CHRIS/CME_NQ", "CHRIS/CME_CL"]
+      - commodities: ["LBMA/GOLD", "LBMA/SILVER"]
+
+  metal_prices:
+    enabled: true
+    type: commodity_feed
+    priority: 3
+    credentials:
+      api_key: "${METAL_PRICES_API_KEY}"
+    endpoints:
+      rest: "https://api.metalpriceapi.com/v1"
+    rate_limits:
+      requests_per_second: 10
+    symbols:
+      - metals: ["XAU", "XAG", "XPT", "XPD"]  # Gold, Silver, Platinum, Palladium
+
+  # NEWS AND SENTIMENT FEEDS
+  newsapi:
+    enabled: true
+    type: news_feed
+    priority: 3
+    credentials:
+      api_key: "${NEWSAPI_API_KEY}"
+    endpoints:
+      rest: "https://newsapi.org/v2"
+    rate_limits:
+      requests_per_second: 100  # NewsAPI free tier
+    categories:
+      - business: true
+      - finance: true
+      - technology: true
+
+  alpha_vantage_news:
+    enabled: true
+    type: news_feed
+    priority: 3
+    credentials:
+      api_key: "${ALPHA_VANTAGE_API_KEY}"
+    endpoints:
+      rest: "https://www.alphavantage.co/query"
+    rate_limits:
+      requests_per_second: 5
+    categories:
+      - market_news: true
+      - sentiment: true
+
+# ═══════════════════════════════════════════════════════════════════════════
+# SYMBOL MAPPINGS AND NORMALIZATION
+# ═══════════════════════════════════════════════════════════════════════════
+
+symbol_mappings:
+  # Standardize symbol formats across feeds
+  equities:
+    "AAPL": ["AAPL", "AAPL.US", "AAPL.NASDAQ"]
+    "MSFT": ["MSFT", "MSFT.US", "MSFT.NASDAQ"]
+    "SPY": ["SPY", "SPY.ARCA", "SPY.NYSE"]
+
+  futures:
+    "ES=F": ["ES", "ES=F", "ES1!", "CME_ES"]
+    "NQ=F": ["NQ", "NQ=F", "NQ1!", "CME_NQ"]
+    "CL=F": ["CL", "CL=F", "CL1!", "CME_CL"]
+
+  crypto:
+    "BTC/USDT": ["BTCUSDT", "BTC-USDT", "BTCUSDT.BINANCE", "BTC-USD.COINBASE"]
+    "ETH/USDT": ["ETHUSDT", "ETH-USDT", "ETHUSDT.BINANCE", "ETH-USD.COINBASE"]
+
+  forex:
+    "EUR/USD": ["EURUSD", "EUR/USD", "EURUSD.FXCM", "EUR_USD.OANDA"]
+    "GBP/USD": ["GBPUSD", "GBP/USD", "GBPUSD.FXCM", "GBP_USD.OANDA"]
+
+# ═══════════════════════════════════════════════════════════════════════════
+# NAV CALCULATION SETTINGS
+# ═══════════════════════════════════════════════════════════════════════════
+
+nav_calculation:
+  enabled: true
+  update_interval_seconds: 60  # Recalculate NAV every minute
+  holdings_sources:
+    - bloomberg
+    - refinitiv
+    - iqfeed
+  price_sources:
+    - nyse
+    - nasdaq
+    - bloomberg
+    - polygon
+  etfs:
+    - SPY
+    - QQQ
+    - IWM
+    - VTI
+    - VEA
+    - VWO
+
+# ═══════════════════════════════════════════════════════════════════════════
+# MONITORING AND ALERTS
+# ═══════════════════════════════════════════════════════════════════════════
+
+monitoring:
+  enabled: true
+  alerts:
+    data_staleness:
+      enabled: true
+      threshold_seconds: 30
+      notification_channels: ["email", "slack"]
+    feed_failures:
+      enabled: true
+      max_consecutive_failures: 5
+      notification_channels: ["email", "slack", "pagerduty"]
+    quality_degradation:
+      enabled: true
+      quality_threshold: 0.7
+      notification_channels: ["email", "slack"]
+
+  metrics:
+    collection_interval_seconds: 10
+    retention_days: 30
+    dashboards:
+      grafana_enabled: true
+      prometheus_enabled: true
+
+# ═══════════════════════════════════════════════════════════════════════════
+# BACKUP AND DISASTER RECOVERY
+# ═══════════════════════════════════════════════════════════════════════════
+
+backup:
+  enabled: true
+  data_retention_days: 365
+  backup_interval_hours: 6
+  locations:
+    - local: "/data/market_data_backup"
+    - cloud: "s3://aac-market-data-backup"
+
+disaster_recovery:
+  enabled: true
+  failover_regions: ["us-east-1", "us-west-2", "eu-west-1"]
+  rto_minutes: 15  # Recovery Time Objective
+  rpo_minutes: 5   # Recovery Point Objective

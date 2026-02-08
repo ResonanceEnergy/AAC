@@ -1,0 +1,216 @@
+doctrine_pack: 8
+name: "METRIC CANON + TRUTH ARBITRATION + RETENTION/PRIVACY"
+owner: "CentralAccounting"
+insight_count: 95
+description: "Comprehensive metric framework, authoritative data sources, and privacy-preserving data management for 2100 compliance"
+
+core_principles:
+  - "Metrics must be canonical and authoritative"
+  - "Truth arbitration prevents data conflicts"
+  - "Privacy is preserved through minimization"
+  - "Retention policies balance utility and compliance"
+
+required_metrics:
+  - name: "data_quality_score"
+    definition: "Composite accuracy/freshness/completeness (>0.95 good)"
+    measurement: "Weighted average of data quality dimensions"
+    thresholds:
+      good: ">0.95"
+      warning: "0.85-0.95"
+      critical: "<0.85"
+    frequency: "Hourly"
+  - name: "reconciliation_accuracy"
+    definition: "Clean reconciliations / total (>99% good)"
+    measurement: "Percentage of reconciliations that complete without discrepancies"
+    thresholds:
+      good: ">99%"
+      warning: "95-99%"
+      critical: "<95%"
+    frequency: "Daily"
+  - name: "metric_lineage_coverage"
+    definition: "Documented metrics / total (>90% good)"
+    measurement: "Percentage of metrics with complete lineage documentation"
+    thresholds:
+      good: ">90%"
+      warning: "80-90%"
+      critical: "<80%"
+    frequency: "Weekly"
+  - name: "privacy_compliance_score"
+    definition: "GDPR/CCPA compliance percentage (>99% good)"
+    measurement: "Percentage compliance with privacy regulations"
+    thresholds:
+      good: ">99%"
+      warning: "95-99%"
+      critical: "<95%"
+    frequency: "Monthly"
+  - name: "data_retention_accuracy"
+    definition: "Correct retention/deletion (>99.9% good)"
+    measurement: "Percentage of data correctly retained or deleted per policy"
+    thresholds:
+      good: ">99.9%"
+      warning: "99-99.9%"
+      critical: "<99%"
+    frequency: "Monthly"
+
+metric_categories:
+  performance:
+    metrics:
+      - reconciled_net_return
+      - profit_factor
+      - sharpe_ratio
+      - sortino_ratio
+      - calmar_ratio
+    authoritative_source: "CentralAccounting"
+    refresh_frequency: "real-time"
+  risk:
+    metrics:
+      - max_drawdown_pct
+      - var_95
+      - cvar_95
+      - tail_loss_p95
+      - stress_test_loss
+    authoritative_source: "CentralAccounting"
+    refresh_frequency: "daily"
+  execution:
+    metrics:
+      - fill_rate
+      - slippage_bps
+      - time_to_fill_p95
+      - market_impact_bps
+      - cancellation_rate
+    authoritative_source: "TradingExecution"
+    refresh_frequency: "real-time"
+  data:
+    metrics:
+      - freshness_p95
+      - schema_mismatch_count
+      - completeness_score
+      - accuracy_score
+      - duplication_rate
+    authoritative_source: "SharedInfrastructure"
+    refresh_frequency: "hourly"
+  ops:
+    metrics:
+      - incident_count
+      - mttd
+      - mttr
+      - uptime_percentage
+      - manual_intervention_count
+    authoritative_source: "SharedInfrastructure"
+    refresh_frequency: "daily"
+
+truth_arbitration:
+  pnl:
+    authoritative_source: "CentralAccounting"
+    backup_sources: ["TradingExecution", "BigBrainIntelligence"]
+    conflict_resolution: "Manual review required"
+  fills:
+    authoritative_source: "TradingExecution"
+    backup_sources: ["CryptoIntelligence", "CentralAccounting"]
+    conflict_resolution: "Venue statement arbitration"
+  signals:
+    authoritative_source: "BigBrainIntelligence"
+    backup_sources: ["CryptoIntelligence"]
+    conflict_resolution: "Signal replay validation"
+  venue_health:
+    authoritative_source: "CryptoIntelligence"
+    backup_sources: ["TradingExecution"]
+    conflict_resolution: "Multi-source consensus"
+
+data_retention_policies:
+  trading_data:
+    retention_period: "7 years"
+    justification: "Regulatory compliance"
+    encryption: "quantum-resistant"
+  personal_data:
+    retention_period: "minimum required"
+    justification: "Privacy minimization"
+    encryption: "zero-knowledge"
+  model_artifacts:
+    retention_period: "5 years"
+    justification: "Audit trail"
+    encryption: "quantum-resistant"
+  logs:
+    retention_period: "2 years"
+    justification: "Operational debugging"
+    encryption: "standard"
+
+privacy_protection:
+  - "Data minimization at collection"
+  - "Purpose limitation enforcement"
+  - "Consent management for personal data"
+  - "Right to erasure implementation"
+  - "Automated privacy impact assessment"
+
+failure_modes:
+  - "Metric calculation errors"
+  - "Data source conflicts"
+  - "Privacy compliance violations"
+  - "Retention policy breaches"
+
+az_prime_hooks:
+  - trigger: "data_quality_score < 0.85"
+    state_transition: "NORMAL → CAUTION"
+    actions: ["A_QUARANTINE_SOURCE"]
+  - trigger: "reconciliation_accuracy < 95%"
+    state_transition: "NORMAL → CAUTION"
+    actions: ["A_FORCE_RECON", "A_CREATE_INCIDENT"]
+  - trigger: "privacy_compliance_score < 99%"
+    state_transition: "NORMAL → CAUTION"
+    actions: ["A_CREATE_INCIDENT", "A_AUDIT_PRIVACY"]
+  - trigger: "metric_lineage_coverage < 80%"
+    state_transition: "NORMAL → CAUTION"
+    actions: ["A_CREATE_INCIDENT"]
+
+  - name: "partial_fill_model_effectiveness"
+    definition: "Partial fill prediction accuracy (>0.7 good)"
+    measurement: "Accuracy of partial fill models in predicting execution outcomes"
+    thresholds:
+      good: ">0.7"
+      warning: "0.5-0.7"
+      critical: "<0.5"
+    frequency: "Daily"
+  - name: "model_a_usage"
+    definition: "Usage count of Model A (>10 good)"
+    measurement: "Number of times Model A is used in trading decisions"
+    thresholds:
+      good: ">10"
+      warning: "5-10"
+      critical: "<5"
+    frequency: "Daily"
+  - name: "model_b_usage"
+    definition: "Usage count of Model B (>10 good)"
+    measurement: "Number of times Model B is used in trading decisions"
+    thresholds:
+      good: ">10"
+      warning: "5-10"
+      critical: "<5"
+    frequency: "Daily"
+  - name: "model_c_usage"
+    definition: "Usage count of Model C (>10 good)"
+    measurement: "Number of times Model C is used in trading decisions"
+    thresholds:
+      good: ">10"
+      warning: "5-10"
+      critical: "<5"
+    frequency: "Daily"
+  - name: "model_d_usage"
+    definition: "Usage count of Model D (>10 good)"
+    measurement: "Number of times Model D is used in trading decisions"
+    thresholds:
+      good: ">10"
+      warning: "5-10"
+      critical: "<5"
+    frequency: "Daily"
+
+future_proofing_enhancements:
+  - "Quantum-secure data integrity proofs"
+  - "AI-driven metric validation and anomaly detection"
+  - "Privacy-preserving computation techniques"
+  - "Cross-temporal data lineage tracking"
+  - "Automated compliance with future regulations"
+
+integration_points:
+  - "CentralAccounting/database.py: Metric calculation and storage"
+  - "SharedInfrastructure/audit_logger.py: Audit trail management"
+  - "SharedInfrastructure/secrets_manager.py: Secure data handling"

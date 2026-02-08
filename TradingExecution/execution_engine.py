@@ -1127,7 +1127,7 @@ class ExecutionEngine:
         }
         
         # Find orders that might need status updates
-        pending_statuses = {OrderStatus.PENDING, OrderStatus.SUBMITTED, OrderStatus.PARTIALLY_FILLED}
+        pending_statuses = {OrderStatus.PENDING, OrderStatus.SUBMITTED, OrderStatus.PARTIAL}
         pending_orders = [
             order for order in self.orders.values()
             if order.status in pending_statuses
@@ -1176,7 +1176,7 @@ class ExecutionEngine:
                     # Categorize the result
                     if new_status == OrderStatus.FILLED:
                         results["filled"].append(order.order_id)
-                    elif new_status == OrderStatus.PARTIALLY_FILLED:
+                    elif new_status == OrderStatus.PARTIAL:
                         results["partially_filled"].append(order.order_id)
                     elif new_status == OrderStatus.CANCELLED:
                         results["cancelled"].append(order.order_id)
@@ -1205,7 +1205,7 @@ class ExecutionEngine:
             "open": OrderStatus.SUBMITTED,
             "new": OrderStatus.SUBMITTED,
             "pending": OrderStatus.PENDING,
-            "partially_filled": OrderStatus.PARTIALLY_FILLED,
+            "partially_filled": OrderStatus.PARTIAL,
             "closed": OrderStatus.FILLED,
             "filled": OrderStatus.FILLED,
             "canceled": OrderStatus.CANCELLED,
@@ -1389,7 +1389,7 @@ class ExecutionEngine:
             market_impact_bps = 1.0  # default good value
 
             # Liquidity available percentage
-            liquidity_available_pct = 200.0  # default good value (200% = ample liquidity)
+            liquidity_available_pct = 600.0  # default good value (600% = ample liquidity)
 
             # Add partial fill model metrics
             model_effectiveness = (total_modeled_orders / total_orders * 100) if total_orders > 0 else 0.0

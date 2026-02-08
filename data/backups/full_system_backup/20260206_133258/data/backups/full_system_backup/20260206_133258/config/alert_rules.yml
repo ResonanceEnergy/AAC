@@ -1,0 +1,176 @@
+# Prometheus Alert Rules for ACC Trading System
+# ==============================================
+# These rules define conditions that trigger alerts for the trading system.
+
+groups:
+  # ===== Risk & Trading Alerts =====
+  - name: trading_risk
+    interval: 30s
+    rules:
+      # Alert when daily loss limit is approached
+      - alert: DailyLossWarning
+        expr: acc_daily_pnl_usd < -400
+        for: 1m
+        labels:
+          severity: warning
+          category: risk
+        annotations:
+          summary: "Daily P&L approaching loss limit"
+          description: "Daily P&L is {{ $value | printf \"%.2f\" }} USD, approaching -$500 limit"
+
+      # Alert when daily loss limit is exceeded
+      - alert: DailyLossExceeded
+        expr: acc_daily_pnl_usd < -500
+        for: 0s
+        labels:
+          severity: critical
+          category: risk
+        annotations:
+          summary: "Daily loss limit exceeded - trading halted"
+          description: "Daily P&L is {{ $value | printf \"%.2f\" }} USD, exceeds -$500 limit"
+
+      # Alert when too many orders are rejected
+      - alert: HighOrderRejectionRate
+        expr: |
+          (acc_orders_rejected / acc_orders_total) > 0.1
+          and acc_orders_total > 10
+        for: 5m
+        labels:
+          severity: warning
+          category: trading
+        annotations:
+          summary: "High order rejection rate detected"
+          description: "{{ $value | printf \"%.1f\" }}% of orders are being rejected"
+
+      # Alert when position exposure is high
+      - alert: HighExposure
+        expr: acc_total_exposure_usd > 8000
+        for: 2m
+        labels:
+          severity: warning
+          category: risk
+        annotations:
+          summary: "Total exposure approaching limit"
+          description: "Total exposure is {{ $value | printf \"%.2f\" }} USD"
+
+  # ===== Connectivity Alerts =====
+  - name: connectivity
+    interval: 30s
+    rules:
+      # Alert when WebSocket feed is disconnected
+      - alert: WebSocketDisconnected
+        expr: acc_websocket_connected == 0
+        for: 1m
+        labels:
+          severity: critical
+          category: connectivity
+        annotations:
+          summary: "WebSocket feed disconnected"
+          description: "{{ $labels.exchange }} WebSocket feed has been disconnected for over 1 minute"
+
+      # Alert when circuit breaker is open
+      - alert: CircuitBreakerOpen
+        expr: acc_circuit_breaker_state == 2
+        for: 30s
+        labels:
+          severity: critical
+          category: connectivity
+        annotations:
+          summary: "Circuit breaker is open"
+          description: "Circuit breaker '{{ $labels.name }}' is open - service unavailable"
+
+      # Alert when circuit breaker has high failures
+      - alert: CircuitBreakerHighFailures
+        expr: acc_circuit_breaker_failures > 3
+        for: 2m
+        labels:
+          severity: warning
+          category: connectivity
+        annotations:
+          summary: "Circuit breaker accumulating failures"
+          description: "Circuit breaker '{{ $labels.name }}' has {{ $value }} failures"
+
+      # Alert when ACC service is down
+      - alert: ACCServiceDown
+        expr: up{job="acc"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          category: connectivity
+        annotations:
+          summary: "ACC trading service is down"
+          description: "ACC service has been unreachable for over 1 minute"
+
+  # ===== System Resource Alerts =====
+  - name: system_resources
+    interval: 1m
+    rules:
+      # Alert on high CPU usage
+      - alert: HighCPUUsage
+        expr: acc_cpu_percent > 80
+        for: 5m
+        labels:
+          severity: warning
+          category: system
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is {{ $value | printf \"%.1f\" }}%"
+
+      # Alert on high memory usage
+      - alert: HighMemoryUsage
+        expr: acc_memory_percent > 85
+        for: 5m
+        labels:
+          severity: warning
+          category: system
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage is {{ $value | printf \"%.1f\" }}%"
+
+      # Alert on disk space
+      - alert: LowDiskSpace
+        expr: acc_disk_percent > 90
+        for: 5m
+        labels:
+          severity: critical
+          category: system
+        annotations:
+          summary: "Low disk space"
+          description: "Disk usage is {{ $value | printf \"%.1f\" }}%"
+
+  # ===== Trading Performance Alerts =====
+  - name: trading_performance
+    interval: 1m
+    rules:
+      # Alert when no orders are being processed
+      - alert: NoTradingActivity
+        expr: increase(acc_orders_total[15m]) == 0
+        for: 15m
+        labels:
+          severity: info
+          category: trading
+        annotations:
+          summary: "No trading activity detected"
+          description: "No orders have been processed in the last 15 minutes"
+
+      # Alert when no arbitrage opportunities are detected
+      - alert: NoArbOpportunities
+        expr: increase(acc_arb_opportunities_total[1h]) == 0
+        for: 1h
+        labels:
+          severity: info
+          category: trading
+        annotations:
+          summary: "No arbitrage opportunities detected"
+          description: "No arbitrage opportunities in the last hour"
+
+      # Alert on high order latency
+      - alert: HighOrderLatency
+        expr: acc_order_latency_avg_ms > 500
+        for: 5m
+        labels:
+          severity: warning
+          category: performance
+        annotations:
+          summary: "High order execution latency"
+          description: "Average order latency is {{ $value | printf \"%.0f\" }}ms"

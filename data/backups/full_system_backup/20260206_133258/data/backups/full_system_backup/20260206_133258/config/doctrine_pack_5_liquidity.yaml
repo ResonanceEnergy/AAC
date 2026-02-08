@@ -1,0 +1,110 @@
+doctrine_pack: 5
+name: "LIQUIDITY / MARKET IMPACT / PARTIAL FILL LOGIC"
+owner: "TradingExecution"
+insight_count: 63
+description: "Advanced liquidity modeling, market impact prediction, and partial fill optimization for optimal execution"
+
+core_principles:
+  - "Liquidity is dynamic; model it continuously"
+  - "Market impact must be predicted and minimized"
+  - "Partial fills are opportunities, not failures"
+  - "Execution quality drives strategy success"
+
+required_metrics:
+  - name: "fill_rate"
+    definition: "Filled qty / Ordered qty (>95% good)"
+    measurement: "Percentage of ordered quantity that gets filled"
+    thresholds:
+      good: ">95%"
+      warning: "90-95%"
+      critical: "<90%"
+    frequency: "Real-time"
+  - name: "time_to_fill_p95"
+    definition: "95th percentile fill time (<500ms good)"
+    measurement: "95th percentile time from order to fill completion"
+    thresholds:
+      good: "<500ms"
+      warning: "500ms-2s"
+      critical: ">2s"
+    frequency: "Real-time"
+  - name: "slippage_bps"
+    definition: "Price impact in basis points (<5 good)"
+    measurement: "Difference between expected and actual execution price in basis points"
+    thresholds:
+      good: "<5"
+      warning: "5-15"
+      critical: ">15"
+    frequency: "Per trade"
+  - name: "market_impact_bps"
+    definition: "Price change from entry to completion (<3 good)"
+    measurement: "Price movement during order execution in basis points"
+    thresholds:
+      good: "<3"
+      warning: "3-10"
+      critical: ">10"
+    frequency: "Per trade"
+  - name: "liquidity_score"
+    definition: "Available liquidity vs order size (0-100)"
+    measurement: "Score indicating available liquidity relative to order size"
+    thresholds:
+      good: ">70"
+      warning: "30-70"
+      critical: "<30"
+    frequency: "Pre-trade"
+
+partial_fill_models:
+  model_a_fill_fraction:
+    formula: "filled_qty = Q × F, F~Beta with no-fill probability"
+    use_case: "Simple orders with known fill probability"
+    parameters: ["alpha", "beta", "no_fill_prob"]
+  model_b_hazard_intensity:
+    formula: "P(fill by t) = 1 - exp(-∫λ(s)ds)"
+    use_case: "Time-dependent fill probability"
+    parameters: ["intensity_function", "time_horizon"]
+  model_c_queue_ahead:
+    formula: "Queue position → expected fill time (L2 data required)"
+    use_case: "Order book queue position modeling"
+    parameters: ["queue_position", "book_depth", "fill_rate"]
+  model_d_adverse_selection:
+    formula: "Expected_slippage = f(fill_speed, volatility, order_size)"
+    use_case: "Price impact from information asymmetry"
+    parameters: ["fill_speed", "volatility", "order_size_pct"]
+
+execution_strategies:
+  - "TWAP: Time-weighted average price"
+  - "VWAP: Volume-weighted average price"
+  - "POV: Percentage of volume"
+  - "Arrival: Arrival price optimization"
+  - "Adaptive: AI-driven dynamic adjustment"
+
+failure_modes:
+  - "Over-estimation of available liquidity"
+  - "Ignoring market impact in large orders"
+  - "Poor partial fill handling"
+  - "Static execution without adaptation"
+
+az_prime_hooks:
+  - trigger: "slippage_bps_p95 > 10"
+    state_transition: "NORMAL → CAUTION"
+    actions: ["A_THROTTLE_RISK"]
+  - trigger: "fill_rate < 80%"
+    state_transition: "NORMAL → CAUTION"
+    actions: ["A_CREATE_INCIDENT"]
+  - trigger: "market_impact_bps > 20"
+    state_transition: "CAUTION → SAFE_MODE"
+    actions: ["A_STOP_EXECUTION", "A_CREATE_INCIDENT"]
+  - trigger: "liquidity_score < 30"
+    state_transition: "NORMAL → CAUTION"
+    actions: ["A_REDUCE_ORDER_SIZE"]
+
+future_proofing_enhancements:
+  - "Quantum simulation of market microstructure"
+  - "AI-driven liquidity prediction across timeframes"
+  - "Cross-chain liquidity optimization"
+  - "Quantum-optimized order routing algorithms"
+  - "Predictive market impact modeling"
+
+integration_points:
+  - "TradingExecution/execution_engine.py: Core execution logic"
+  - "CryptoIntelligence/crypto_intelligence_engine.py: Venue liquidity monitoring"
+  - "BigBrainIntelligence/agents.py: Liquidity modeling agents"

@@ -1,0 +1,191 @@
+doctrine_pack: 3
+name: "TESTING / SIMULATION / REPLAY / CHAOS"
+owner: "SharedInfrastructure"
+insight_count: 68
+description: "Comprehensive testing framework with chaos engineering, simulation realism, and automated validation"
+
+core_principles:
+  - "Maintain raw-event retention for replay and postmortems"
+  - "Every strategy must have a defined failure signature"
+  - "The system should be robust to new asset classes without rewrites"
+  - "Test the recovery, not just the failure"
+  - "Arbitrage is a system, not a trade: sense → decide → act → reconcile"
+  - "Data 'truth' is a contract, not a given"
+  - "The most durable edge is measurement integrity"
+  - "The future belongs to systems that are adaptive, verified, and governable"
+
+simulation_realism_levels:
+  sim_deterministic_replay:
+    description: "Perfect replay of historical events"
+    use_case: "Backtesting and strategy validation"
+    data_requirements: "Complete tick-level market data"
+    validation_method: "Exact P&L match with live execution"
+    fee_model: "Conservative (+50% to account for quantum computing advantages)"
+    latency: "Injected jitter (50-500ms) + quantum communication delays"
+    partial_fills: "Model A/B (Fill Fraction + Hazard) + quantum execution uncertainty"
+    data: "Historical replay with quantum-enhanced data quality"
+    chaos_injection: "AI-generated realistic failure scenarios"
+  paper_live_data_simulation:
+    fee_model: "Realistic calibrated + quantum arbitrage opportunities"
+    latency: "Measured p95/p99 + quantum network predictions"
+    partial_fills: "Model B/C (Hazard + Queue) + cross-chain settlement delays"
+    data: "Live feed with quantum-secure validation"
+    chaos_injection: "Real-time AI-driven chaos scenarios"
+  pilot_real_money_safety:
+    fee_model: "Actual + quantum optimization benefits"
+    latency: "Real + predictive quantum routing"
+    partial_fills: "Actual with AI optimization"
+    data: "Live with quantum integrity verification"
+    chaos_injection: "Controlled AI-generated stress tests"
+
+required_metrics:
+  - name: "backtest_vs_live_correlation"
+    definition: "Correlation of simulated vs actual returns"
+    measurement: "Rolling 30-day correlation coefficient"
+    thresholds:
+      good: ">0.8"
+      warning: "0.6-0.8"
+      critical: "<0.6"
+    frequency: "Weekly"
+  - name: "chaos_test_pass_rate"
+    definition: "Percentage of chaos scenarios handled correctly"
+    measurement: "Passed tests / total tests"
+    thresholds:
+      good: ">95%"
+      warning: "90-95%"
+      critical: "<90%"
+    frequency: "Monthly"
+  - name: "regression_test_pass_rate"
+    definition: "Percentage of regression tests passing"
+    measurement: "Passed tests / total tests"
+    thresholds:
+      good: "100%"
+      warning: "<100%"
+      critical: "<95%"
+    frequency: "Per deploy"
+  - name: "replay_fidelity_score"
+    definition: "How closely replay matches live execution"
+    measurement: "1 - |replay_pnl - live_pnl| / live_pnl"
+    thresholds:
+      good: ">0.95"
+      warning: "0.90-0.95"
+      critical: "<0.90"
+    frequency: "Weekly"
+
+regression_test_suite:
+  unit_tests:
+    scope: "Individual functions and classes"
+    coverage_target: ">80%"
+    run_on: "Every commit"
+    ai_enhancement: "Auto-generated test cases for edge cases"
+  integration_tests:
+    scope: "Cross-module interactions"
+    coverage_target: ">70%"
+    run_on: "Every PR"
+    ai_enhancement: "AI-generated integration scenarios"
+  end_to_end_tests:
+    scope: "Full signal-to-fill pipeline"
+    coverage_target: "Critical paths 100%"
+    run_on: "Pre-deploy"
+    ai_enhancement: "AI-monitored execution paths"
+  performance_tests:
+    scope: "Latency and throughput benchmarks"
+    baseline: "Established from production metrics"
+    regression_threshold: "10% degradation = fail"
+    ai_enhancement: "Predictive performance modeling"
+
+ab_testing_framework:
+  traffic_split:
+    method: "Randomized by symbol or time bucket"
+    minimum_sample: "1000 decisions or 2 weeks"
+    significance_level: "p < 0.05"
+  safeguards:
+    - "Both variants subject to same risk limits"
+    - "Automatic stop if either variant breaches limits"
+    - "Human review before promoting winner"
+  metrics_tracked:
+    - "Net P&L, Sharpe ratio, fill rate, latency p95"
+    - "Quantum advantage metrics, cross-chain efficiency"
+
+data_replay_infrastructure:
+  storage:
+    format: "Parquet with timestamp index + quantum compression"
+    retention: "7 years raw, 1 year hot"
+    compression: "zstd + quantum data compression"
+  replay_engine:
+    deterministic: true
+    time_acceleration: "1x to 1000x"
+    injection_points: "Market data, order acknowledgments, fill reports"
+  use_cases:
+    - "Strategy backtesting with quantum simulation"
+    - "Incident postmortem with AI analysis"
+    - "Model calibration with quantum optimization"
+    - "Regression testing with AI-generated scenarios"
+
+chaos_scenarios:
+  - name: "Exchange Outage"
+    target: "TradingExecution, CryptoIntelligence"
+    test: "Kill primary venue connection for 5 minutes"
+    expected: "A_ROUTE_FAILOVER within 30s"
+  - name: "Data Feed Corruption"
+    target: "BigBrainIntelligence, TradingExecution"
+    test: "Inject malformed schema for 1 minute"
+    expected: "A_QUARANTINE_SOURCE within 10s"
+  - name: "Latency Spike"
+    target: "TradingExecution"
+    test: "Increase latency to 5s for 2 minutes"
+    expected: "A_THROTTLE_RISK trigger"
+  - name: "Settlement Delay"
+    target: "CentralAccounting"
+    test: "Delay reconciliation by 4 hours"
+    expected: "recon_backlog_alert fire"
+  - name: "Quantum Network Disruption"
+    target: "All departments"
+    test: "Simulate quantum channel failure"
+    expected: "Automatic failover to classical channels"
+
+failure_modes_mitigation:
+  - name: "Test Environment Drift"
+    trigger: "config_hash_mismatch || version_drift > 1"
+    mitigation: "Weekly sync of test/prod configs"
+    action: "A_CREATE_INCIDENT"
+  - name: "Flaky Test Syndrome"
+    trigger: "same_test_flap_count > 3 in 7 days"
+    mitigation: "Quarantine and fix or remove flaky tests"
+    action: "A_QUARANTINE_SOURCE"
+  - name: "Backtest Overfitting"
+    trigger: "backtest_sharpe > 3 × live_sharpe"
+    mitigation: "Walk-forward validation, out-of-sample testing"
+    action: "A_FREEZE_STRATEGY"
+  - name: "Replay Data Corruption"
+    trigger: "data_gap_detected || checksum_mismatch"
+    mitigation: "Data integrity checks before replay"
+    action: "A_QUARANTINE_SOURCE"
+
+az_prime_hooks:
+  - trigger: "test_coverage_pct < 70"
+    state_transition: "NORMAL → CAUTION"
+    action: "A_CREATE_INCIDENT"
+  - trigger: "regression_test_failures > 0"
+    state_transition: "NORMAL → CAUTION"
+    action: "A_STOP_EXECUTION"
+  - trigger: "chaos_test_failed"
+    state_transition: "ANY → SAFE_MODE"
+    actions: ["A_ENTER_SAFE_MODE", "A_CREATE_INCIDENT"]
+  - trigger: "backtest_vs_live_drift > 50%"
+    state_transition: "NORMAL → CAUTION"
+    action: "A_FREEZE_STRATEGY"
+
+future_proofing_enhancements:
+  - "Quantum Simulation: Full quantum circuit simulation for strategy testing"
+  - "AI Test Generation: Machine learning creates comprehensive test scenarios"
+  - "Multi-Universe Testing: Parallel simulation across different market conditions"
+  - "Predictive Chaos: AI anticipates and tests for future failure modes"
+  - "Quantum Replay: Ultra-fast replay using quantum computing advantages"
+
+integration_points:
+  - "BigBrainIntelligence/agents.py: Simulation and chaos injection agents"
+  - "tests/: Comprehensive test framework with AI enhancement"
+  - "shared/data_sources.py: Historical data replay capabilities"
+  - "orchestrator.py: Chaos coordination and safety state management"
+  - "shared/health_server.py: Test health monitoring and reporting"

@@ -1,0 +1,13 @@
+{
+  "backup_id": "critical_data_backup",
+  "timestamp": "2026-02-06T13:32:58.903390",
+  "source_paths": [
+    "data/trade_records",
+    "data/audit_blocks",
+    "config/trading_config.yaml",
+    "config/api_keys.yaml"
+  ],
+  "total_size_gb": 1.1296942830085754e-06,
+  "compression": true,
+  "encryption": true
+}

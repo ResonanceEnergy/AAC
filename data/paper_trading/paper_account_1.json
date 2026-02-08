@@ -1,0 +1,58 @@
+{
+  "account_id": "paper_account_1",
+  "balance": 999999.0,
+  "equity": 1000383.3309458067,
+  "margin_used": 16950.102371645644,
+  "margin_available": 983433.2285741611,
+  "total_pnl": 0.0,
+  "daily_pnl": 0.0,
+  "positions": {
+    "QQQ": {
+      "symbol": "QQQ",
+      "side": "long",
+      "quantity": 44,
+      "average_price": 376.5175324054308,
+      "current_price": 385.2295993555828,
+      "unrealized_pnl": 383.3309458066883,
+      "realized_pnl": 0.0,
+      "market_value": 16950.102371645644,
+      "created_at": "2026-02-05T12:10:13.730556",
+      "updated_at": "2026-02-05T12:10:13.730557"
+    }
+  },
+  "orders": {
+    "139612aa-3c2f-4ac6-9b2e-8cd8d7228e61": {
+      "order_id": "139612aa-3c2f-4ac6-9b2e-8cd8d7228e61",
+      "symbol": "QQQ",
+      "side": "buy",
+      "order_type": "market",
+      "quantity": 44,
+      "price": null,
+      "stop_price": null,
+      "limit_price": null,
+      "status": "filled",
+      "filled_quantity": 44,
+      "average_fill_price": 376.5175324054308,
+      "created_at": "2026-02-05T12:10:13.730521",
+      "updated_at": "2026-02-05T12:10:13.730552",
+      "strategy_id": null,
+      "metadata": {}
+    }
+  },
+  "trade_history": [
+    {
+      "trade_id": "cc7f8743-6184-43bd-9711-915353c131c2",
+      "order_id": "139612aa-3c2f-4ac6-9b2e-8cd8d7228e61",
+      "symbol": "QQQ",
+      "side": "buy",
+      "quantity": 44,
+      "price": 376.5175324054308,
+      "commission": 1.0,
+      "pnl": 0.0,
+      "timestamp": "2026-02-05T12:10:13.730546",
+      "strategy_id": null
+    }
+  ],
+  "created_at": "2026-02-05T12:10:13.729177",
+  "updated_at": "2026-02-05T12:10:13.729177"
+}

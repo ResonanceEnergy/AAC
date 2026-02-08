@@ -741,6 +741,20 @@ async def health_check() -> Dict:
     return service.get_health_endpoint()
 
 
+async def initialize_monitoring():
+    """Initialize the monitoring system"""
+    service = get_monitoring_service()
+    # Any initialization logic here
+    pass
+
+
+async def shutdown_monitoring():
+    """Shutdown the monitoring system"""
+    service = get_monitoring_service()
+    # Any shutdown logic here
+    pass
+
+
 # CLI for testing
 if __name__ == '__main__':
     async def test():

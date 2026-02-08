@@ -1,0 +1,18 @@
+{
+  "variant_a": {
+    "entry_threshold": 1.0,
+    "exit_threshold": 0.3,
+    "lookback_period": 50,
+    "max_holding_period": 20,
+    "position_size_pct": 0.05,
+    "stop_loss_pct": 0.02
+  },
+  "variant_b": {
+    "entry_threshold": 1.5,
+    "exit_threshold": 0.5,
+    "lookback_period": 100,
+    "max_holding_period": 30,
+    "position_size_pct": 0.03,
+    "stop_loss_pct": 0.015
+  }
+}

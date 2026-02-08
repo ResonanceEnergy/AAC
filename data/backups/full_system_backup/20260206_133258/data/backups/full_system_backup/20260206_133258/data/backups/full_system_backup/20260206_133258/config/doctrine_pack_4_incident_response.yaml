@@ -1,0 +1,139 @@
+doctrine_pack: 4
+name: "INCIDENT RESPONSE + ON-CALL + POSTMORTEMS"
+owner: "SharedInfrastructure"
+insight_count: 47
+description: "AI-driven incident prediction, automated response, and postmortem analysis for zero-downtime operations"
+
+core_principles:
+  - "Incidents are inevitable; response must be instantaneous"
+  - "AI prediction prevents incidents before they occur"
+  - "Postmortems drive continuous improvement"
+  - "On-call rotation ensures 24/7 coverage"
+
+required_metrics:
+  - name: "mttd_minutes"
+    definition: "Mean time to detect incidents"
+    measurement: "Average minutes from incident start to detection"
+    thresholds:
+      good: "<5"
+      warning: "5-15"
+      critical: ">15"
+    frequency: "Daily"
+  - name: "mttr_minutes"
+    definition: "Mean time to resolve incidents"
+    measurement: "Average minutes from detection to resolution"
+    thresholds:
+      good: "<30"
+      warning: "30-120"
+      critical: ">120"
+    frequency: "Daily"
+  - name: "incident_recurrence_rate"
+    definition: "Repeat incidents within 30 days"
+    measurement: "Percentage of incidents that recur within 30 days"
+    thresholds:
+      good: "<5%"
+      warning: "5-15%"
+      critical: ">15%"
+    frequency: "Weekly"
+  - name: "active_sev1_count"
+    definition: "Currently active SEV1 incidents"
+    measurement: "Count of active severity 1 incidents"
+    thresholds:
+      good: "0"
+      warning: "1"
+      critical: ">1"
+    frequency: "Real-time"
+  - name: "false_positive_rate"
+    definition: "AI prediction accuracy (>95% good)"
+    measurement: "Percentage of false positive AI predictions"
+    thresholds:
+      good: "<5%"
+      warning: "5-10%"
+      critical: ">10%"
+    frequency: "Weekly"
+
+severity_levels:
+  sev1:
+    description: "Real money loss or safety breach"
+    mttd_target: "<1 min (AI prediction enables <30s)"
+    mttr_target: "<5 min (Automated recovery)"
+    escalation: "Immediate AI-driven page to all on-call"
+    examples:
+      - "Unintended position opened"
+      - "API key compromised"
+      - "Reconciliation shows unexpected loss"
+  sev2:
+    description: "Degraded execution or data quality"
+    mttd_target: "<5 min"
+    mttr_target: "<30 min"
+    escalation: "AI-assisted page within 5 min"
+    examples:
+      - "Primary venue down with failover active"
+  sev3:
+    description: "Non-critical degradation"
+    mttd_target: "<15 min"
+    mttr_target: "<2 hours"
+    escalation: "AI-monitored Slack alerts"
+    examples:
+      - "Secondary venue down"
+
+runbook_library:
+  RB001_exchange_outage:
+    trigger: "Primary exchange unreachable >30s"
+    steps:
+      - "Verify outage via multiple sources"
+      - "Execute A_ROUTE_FAILOVER"
+      - "Notify team via AI-driven alerts"
+      - "Monitor backup venue performance"
+    owner: "TradingExecution"
+    expected_duration: "<2 min"
+  RB002_data_feed_stale:
+    trigger: "Data feed >5s stale"
+    steps:
+      - "Check provider health"
+      - "Execute A_QUARANTINE_SOURCE"
+      - "Switch to backup data source"
+      - "Verify signal integrity"
+    owner: "BigBrainIntelligence"
+    expected_duration: "<1 min"
+  RB003_reconciliation_mismatch:
+    trigger: "P&L mismatch >$100 or >1%"
+    steps:
+      - "Freeze affected strategies"
+      - "Pull detailed transaction records"
+      - "Compare with venue statements"
+      - "Identify and document discrepancy"
+    owner: "CentralAccounting"
+    expected_duration: "<5 min"
+
+failure_modes:
+  - "AI prediction false negatives"
+  - "Runbook execution failures"
+  - "Communication breakdowns"
+  - "Postmortem quality issues"
+
+az_prime_hooks:
+  - trigger: "active_sev1_count > 0"
+    state_transition: "NORMAL → CAUTION"
+    actions: ["A_THROTTLE_RISK", "A_PAGE_ONCALL"]
+  - trigger: "mttd > 10min for sev1"
+    state_transition: "ANY → CAUTION"
+    actions: ["A_CREATE_INCIDENT"]
+  - trigger: "mttr > 60min for sev1"
+    state_transition: "CAUTION → SAFE_MODE"
+    actions: ["A_ENTER_SAFE_MODE", "A_PAGE_ONCALL"]
+  - trigger: "incident_recurrence within 7 days"
+    state_transition: "NORMAL → CAUTION"
+    actions: ["A_CREATE_INCIDENT"]
+
+future_proofing_enhancements:
+  - "AI-driven incident prediction with quantum simulation"
+  - "Automated runbook generation and optimization"
+  - "Cross-temporal incident analysis"
+  - "Quantum-secure communication for on-call alerts"
+  - "AI postmortem analysis with root cause prediction"
+
+integration_points:
+  - "SharedInfrastructure/incident_manager.py: Incident tracking and response"
+  - "SharedInfrastructure/alert_manager.py: AI-driven alerting system"
+  - "orchestrator.py: AZ PRIME integration for automated responses"

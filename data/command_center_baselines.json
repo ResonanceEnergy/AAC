@@ -1,0 +1,59 @@
+{
+  "system_health": {
+    "cpu_usage": 73.19348385143464,
+    "memory_usage": 32.76909412921773,
+    "disk_usage": 71.92685055362875,
+    "network_latency": 27.977622518549715,
+    "active_connections": 98,
+    "error_rate": 0.007652820747144323
+  },
+  "financial_performance": {
+    "portfolio_value": 1000000.0,
+    "daily_pnl": 0.0,
+    "daily_pnl_pct": 0.0,
+    "total_positions": 0,
+    "risk_metrics": {
+      "max_drawdown_pct": 0.0,
+      "capital_utilization_pct": 0.0,
+      "margin_buffer_pct": 100.0
+    },
+    "positions": [],
+    "last_reconciliation": null
+  },
+  "risk_metrics": {
+    "max_drawdown_pct": 0.0,
+    "daily_loss_pct": 0.0,
+    "tail_loss_p99": 2.0,
+    "capital_utilization": 0.0,
+    "margin_buffer": 100.0,
+    "portfolio_heat": 0,
+    "stressed_var_99": 2.5,
+    "strategy_correlation_matrix": 0.3,
+    "data_quality_score": 0.99,
+    "metric_lineage_coverage": 99.0,
+    "reconciliation_accuracy": 99.8,
+    "truth_arbitration_latency": 1.0
+  },
+  "integration_status": {
+    "gln_active": true,
+    "gta_active": false,
+    "gln_departments": {
+      "TradingExecution": true,
+      "CryptoIntelligence": true,
+      "CentralAccounting": true,
+      "SharedInfrastructure": true,
+      "BigBrainIntelligence": true,
+      "NCC": true
+    },
+    "gta_departments": {
+      "TradingExecution": true,
+      "CryptoIntelligence": true,
+      "CentralAccounting": true,
+      "SharedInfrastructure": true,
+      "BigBrainIntelligence": true,
+      "NCC": true
+    },
+    "critical_hiring_needs": 0
+  },
+  "timestamp": "2026-02-06T12:43:39.727763"
+}
