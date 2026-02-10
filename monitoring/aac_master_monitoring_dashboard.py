@@ -64,9 +64,11 @@ except ImportError:
 # Dash imports are handled inside the class to avoid module-level import issues
 DASH_AVAILABLE = False
 
-# Add project root
+# Add project root and AAC package path
 PROJECT_ROOT = Path(__file__).resolve().parent
+AAC_ROOT = PROJECT_ROOT.parent / "AAC"
 sys.path.insert(0, str(PROJECT_ROOT))
+sys.path.insert(0, str(AAC_ROOT))
 
 # Core AAC imports
 from shared.config_loader import get_config
