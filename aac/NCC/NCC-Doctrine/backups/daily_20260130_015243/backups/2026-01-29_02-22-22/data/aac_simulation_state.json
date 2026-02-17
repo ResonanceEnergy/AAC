@@ -1,0 +1,26 @@
+{
+  "strategies_tested": 3000,
+  "sharpe_ratio": 0.0,
+  "best_strategy": {
+    "market": "recovery",
+    "return": 3.5975607494910067,
+    "cycle": 262,
+    "name": "High-Frequency Momentum"
+  },
+  "current_market": "bull",
+  "portfolio_value": 6.339587568957566E+141,
+  "max_drawdown": 0.0,
+  "win_rate": 0.0,
+  "market_conditions": [
+    "bull",
+    "bear",
+    "sideways",
+    "volatile",
+    "crash",
+    "recovery"
+  ],
+  "total_return": 6.339587568957567E+138,
+  "simulated_time": "2026-01-29T13:59:40.9860847Z",
+  "total_cycles": 3000,
+  "start_time": "2026-01-29T01:14:11.2069921-07:00"
+}
