@@ -1,0 +1,148 @@
+{
+  "Gaps": [
+    "Department BigBrainIntelligence missing Agents folder",
+    "Department BigBrainIntelligence missing Doctrine folder",
+    "Department BiotechCorporation has very few files (2) - underdevelopment",
+    "Department CybersecurityCommandCenter has very few files (1) - underdevelopment",
+    "Department GlobalTalentAcquisition has very few files (1) - underdevelopment",
+    "Department InnovationLabsDivision has very few files (1) - underdevelopment",
+    "Department InternationalOperationsDivision has very few files (1) - underdevelopment",
+    "Department QuantumComputingDivision has very few files (3) - underdevelopment",
+    "Department ResonanceEnergyCorp missing Agents folder",
+    "Department ResonanceEnergyCorp missing Doctrine folder",
+    "Department RoboticsAutomationDivision has very few files (1) - underdevelopment",
+    "Department SpaceOperationsDivision has very few files (1) - underdevelopment"
+  ],
+  "Recommendations": [
+    "Standardize department structure across all divisions",
+    "Eliminate redundant Doctrine/Handbook overlaps",
+    "Ensure all departments have Agents and Doctrine folders",
+    "Implement automated compliance checking for department standards",
+    "Create centralized agent deployment system"
+  ],
+  "Redundancies": [
+    "Department AIGovernanceCouncil has both Doctrine and Handbook folders - potential overlap",
+    "Department BiotechCorporation has both Doctrine and Handbook folders - potential overlap",
+    "Department CybersecurityCommandCenter has both Doctrine and Handbook folders - potential overlap",
+    "Department GlobalTalentAcquisition has both Doctrine and Handbook folders - potential overlap",
+    "Department InnovationLabsDivision has both Doctrine and Handbook folders - potential overlap",
+    "Department InternationalOperationsDivision has both Doctrine and Handbook folders - potential overlap",
+    "Department QuantumComputingDivision has both Doctrine and Handbook folders - potential overlap",
+    "Department RoboticsAutomationDivision has both Doctrine and Handbook folders - potential overlap",
+    "Department SpaceOperationsDivision has both Doctrine and Handbook folders - potential overlap"
+  ],
+  "TotalDepartments": 11,
+  "ScanDate": "2026-01-28T23:46:04.8410609-07:00",
+  "ScanResults": [
+    {
+      "Department": "AIGovernanceCouncil",
+      "HasHandbook": true,
+      "SubfolderCount": 6,
+      "LastModified": "2026-01-28T20:32:12.6188128-07:00",
+      "HasDoctrine": true,
+      "HasDivisions": true,
+      "HasAgents": true,
+      "FileCount": 10
+    },
+    {
+      "Department": "BigBrainIntelligence",
+      "HasHandbook": false,
+      "SubfolderCount": 5,
+      "LastModified": "2026-01-28T22:34:11.3621636-07:00",
+      "HasDoctrine": false,
+      "HasDivisions": true,
+      "HasAgents": false,
+      "FileCount": 34
+    },
+    {
+      "Department": "BiotechCorporation",
+      "HasHandbook": true,
+      "SubfolderCount": 4,
+      "LastModified": "2026-01-28T20:33:44.1651578-07:00",
+      "HasDoctrine": true,
+      "HasDivisions": true,
+      "HasAgents": true,
+      "FileCount": 2
+    },
+    {
+      "Department": "CybersecurityCommandCenter",
+      "HasHandbook": true,
+      "SubfolderCount": 4,
+      "LastModified": "2026-01-28T20:34:42.8958394-07:00",
+      "HasDoctrine": true,
+      "HasDivisions": true,
+      "HasAgents": true,
+      "FileCount": 1
+    },
+    {
+      "Department": "GlobalTalentAcquisition",
+      "HasHandbook": true,
+      "SubfolderCount": 4,
+      "LastModified": "2026-01-28T20:34:59.8440454-07:00",
+      "HasDoctrine": true,
+      "HasDivisions": true,
+      "HasAgents": true,
+      "FileCount": 1
+    },
+    {
+      "Department": "InnovationLabsDivision",
+      "HasHandbook": true,
+      "SubfolderCount": 4,
+      "LastModified": "2026-01-28T20:35:16.4817529-07:00",
+      "HasDoctrine": true,
+      "HasDivisions": true,
+      "HasAgents": true,
+      "FileCount": 1
+    },
+    {
+      "Department": "InternationalOperationsDivision",
+      "HasHandbook": true,
+      "SubfolderCount": 4,
+      "LastModified": "2026-01-28T20:36:42.1104865-07:00",
+      "HasDoctrine": true,
+      "HasDivisions": true,
+      "HasAgents": true,
+      "FileCount": 1
+    },
+    {
+      "Department": "QuantumComputingDivision",
+      "HasHandbook": true,
+      "SubfolderCount": 4,
+      "LastModified": "2026-01-28T20:36:57.2534189-07:00",
+      "HasDoctrine": true,
+      "HasDivisions": true,
+      "HasAgents": true,
+      "FileCount": 3
+    },
+    {
+      "Department": "ResonanceEnergyCorp",
+      "HasHandbook": false,
+      "SubfolderCount": 5,
+      "LastModified": "2026-01-28T20:38:49.0879452-07:00",
+      "HasDoctrine": false,
+      "HasDivisions": false,
+      "HasAgents": false,
+      "FileCount": 251
+    },
+    {
+      "Department": "RoboticsAutomationDivision",
+      "HasHandbook": true,
+      "SubfolderCount": 4,
+      "LastModified": "2026-01-28T20:37:11.6703166-07:00",
+      "HasDoctrine": true,
+      "HasDivisions": true,
+      "HasAgents": true,
+      "FileCount": 1
+    },
+    {
+      "Department": "SpaceOperationsDivision",
+      "HasHandbook": true,
+      "SubfolderCount": 4,
+      "LastModified": "2026-01-28T20:38:33.1036875-07:00",
+      "HasDoctrine": true,
+      "HasDivisions": true,
+      "HasAgents": true,
+      "FileCount": 1
+    }
+  ]
+}
