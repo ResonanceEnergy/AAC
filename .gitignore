@@ -98,6 +98,21 @@ npm-debug.log
 yarn-error.log
 .next/
 out/
+**/node_modules/
+aac/aac069/dist/
+aac/aac069/.cache/
+
+# ===========================================
+# BUILD ARTIFACTS
+# ===========================================
+build/
+dist/
+*.toc
+*.pyz
+*.pkg
+base_library.zip
+warn-*.txt
+xref-*.html
 
 # ===========================================
 # DOCKER
