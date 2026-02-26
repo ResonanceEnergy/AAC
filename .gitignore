@@ -68,6 +68,15 @@ data/backups/
 CentralAccounting/data/*.db
 
 # ===========================================
+# NCC DOCTRINE BACKUPS — operational data
+# Only aac/NCC/Doctrine/ (canonical) is tracked
+# ===========================================
+aac/NCC/NCC-Doctrine/backups/
+aac/NCC/Doctrine/backups/
+aac/NCC/Doctrine/data/
+aac/NCC/Doctrine/archives/
+
+# ===========================================
 # REPORTS & OUTPUTS
 # ===========================================
 reports/*.json
@@ -140,3 +149,8 @@ coverage.xml
 *.backup
 tmp/
 temp/
+# ===========================================
+# VERSION CONTROL LOCAL BACKUPS
+# These are local snapshots, not for git tracking
+# ===========================================
+version_control/backups/
