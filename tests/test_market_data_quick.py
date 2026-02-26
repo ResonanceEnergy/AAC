@@ -1,0 +1,54 @@
+#!/usr/bin/env python3
+"""
+Test Market Data Connectors
+===========================
+Quick test to verify market data connectors are working.
+"""
+
+import asyncio
+import sys
+from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parent
+sys.path.insert(0, str(PROJECT_ROOT))
+
+from shared.market_data_connector import market_data_manager, initialize_market_data_system
+
+async def test_market_data():
+    """Test market data fetching"""
+    print("🧪 Testing Market Data Connectors")
+    print("=" * 40)
+
+    # Initialize system
+    await initialize_market_data_system()
+
+    # Test symbols
+    test_symbols = ["SPY", "QQQ", "ES=F", "BTC/USDT"]
+
+    print(f"📊 Testing data fetch for symbols: {test_symbols}")
+
+    for symbol in test_symbols:
+        try:
+            # Get latest data
+            data = market_data_manager.get_latest_data(symbol)
+            if data:
+                print(f"✅ {symbol}: ${data.price:.2f} ({data.exchange}) - {data.source}")
+            else:
+                print(f"❌ {symbol}: No data available")
+
+            # Small delay between requests
+            await asyncio.sleep(1)
+
+        except Exception as e:
+            print(f"❌ {symbol}: Error - {e}")
+
+    # Get system status
+    status = market_data_manager.get_status()
+    print(f"\n📈 System Status: {len(status)} connectors")
+    for name, info in status.items():
+        print(f"  • {name}: {info['status']} (quality: {info['quality_score']:.2f})")
+
+    print("\n✅ Market data test complete!")
+
+if __name__ == "__main__":
+    asyncio.run(test_market_data())
