@@ -85,6 +85,9 @@ freeze:  ## Update requirements-lock.txt
 	$(PIP) freeze > requirements-lock.txt
 	@echo "Wrote requirements-lock.txt ($$(wc -l < requirements-lock.txt) packages)"
 
+health:  ## Run system health check
+	$(PY) scripts/health_check.py
+
 # ── Help ───────────────────────────────────────────────────────
 help:  ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \

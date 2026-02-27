@@ -4,7 +4,7 @@ build-backend = "setuptools.backends.legacy:build"
 
 [project]
 name = "aac"
-version = "2.0.0"
+version = "2.2.0"
 description = "Accelerated Arbitrage Corp — AI-driven multi-exchange trading system"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -115,7 +115,7 @@ exclude = [
 
 [tool.black]
 line-length = 100
-target-version = ["py312", "py313", "py314"]
+target-version = ["py39", "py310", "py311", "py312"]
 extend-exclude = '''
 /(
     \.venv
@@ -133,7 +133,7 @@ skip_glob = [".venv/*", "archive/*", "version_control/*", "aac/aac069/*"]
 
 [tool.ruff]
 line-length = 100
-target-version = "py312"
+target-version = "py39"
 exclude = [".venv", "archive", "version_control", "aac/aac069"]
 
 [tool.ruff.lint]
@@ -141,7 +141,7 @@ select = ["E", "F", "W", "I", "UP"]
 ignore = ["E501"]  # line-length handled by black
 
 [tool.mypy]
-python_version = "3.12"
+python_version = "3.9"
 ignore_missing_imports = true
 exclude = [".venv/", "archive/", "version_control/", "aac/aac069/"]
 
