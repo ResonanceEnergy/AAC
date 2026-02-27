@@ -157,6 +157,20 @@ temp/
 # ===========================================
 services/*/__pycache__/
 services/*/src/__pycache__/
+
+# ===========================================
+# AAC069 — Reddit Devvit app build output
+# ===========================================
+aac/aac069/dist/
+aac/aac069/node_modules/
+
+# ===========================================
+# COVERAGE REPORTS
+# ===========================================
+htmlcov/
+coverage.xml
+.coverage
+.coverage.*
 # ===========================================
 # VERSION CONTROL LOCAL BACKUPS
 # These are local snapshots, not for git tracking
@@ -188,18 +202,18 @@ NCC/
 # ===========================================
 # ROOT-LEVEL DIVISION STUBS — canonical location is src/aac/divisions/
 # ===========================================
-ComplianceArbitrageDivision/
-CorporateBankingDivision/
-HR_Division/
-InternationalInsuranceDivision/
-LudwigLawDivision/
-OptionsArbitrageDivision/
-PaperTradingDivision/
-PortfolioManagementDivision/
-QuantitativeArbitrageDivision/
-QuantitativeResearchDivision/
-RiskManagementDivision/
-StatisticalArbitrageDivision/
-StructuralArbitrageDivision/
-TechnologyArbitrageDivision/
-TechnologyInfrastructureDivision/
+/ComplianceArbitrageDivision/
+/CorporateBankingDivision/
+/HR_Division/
+/InternationalInsuranceDivision/
+/LudwigLawDivision/
+/OptionsArbitrageDivision/
+/PaperTradingDivision/
+/PortfolioManagementDivision/
+/QuantitativeArbitrageDivision/
+/QuantitativeResearchDivision/
+/RiskManagementDivision/
+/StatisticalArbitrageDivision/
+/StructuralArbitrageDivision/
+/TechnologyArbitrageDivision/
+/TechnologyInfrastructureDivision/

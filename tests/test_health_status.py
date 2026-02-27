@@ -1,3 +1,5 @@
+"""Tests for health-status reporting across Financial, Crypto, and Research engines."""
+
 import asyncio
 import pytest
 from CentralAccounting.financial_analysis_engine import get_financial_analysis_engine

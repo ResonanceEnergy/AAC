@@ -1,3 +1,5 @@
+"""Tests for AZ Prime state-machine transitions in the Doctrine orchestrator."""
+
 import asyncio
 from aac.doctrine.doctrine_integration import DoctrineOrchestrator
 

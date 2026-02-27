@@ -1,0 +1,38 @@
+[run]
+source =
+    shared
+    core
+    TradingExecution
+    strategies
+    CentralAccounting
+    BigBrainIntelligence
+    CryptoIntelligence
+    monitoring
+    models
+omit =
+    */tests/*
+    */__pycache__/*
+    */migrations/*
+    .venv/*
+    archive/*
+    build/*
+    aac/aac069/*
+    aac/NCC/*
+    docs/*
+    version_control/*
+
+[report]
+show_missing = true
+precision = 1
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    if __name__ == .__main__
+    raise NotImplementedError
+    pass
+    \.\.\.
+    if TYPE_CHECKING
+fail_under = 0
+
+[html]
+directory = htmlcov
