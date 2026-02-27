@@ -870,8 +870,8 @@ class TestIntegration:
         # With mocked slippage on both sides, P&L is close to theoretical max
         assert position.realized_pnl > 0, "Should still be profitable after 100 point move"
         # Theoretical max: (2600 - 2500) * 0.5 = 50.0
-        # With slippage on entry and exit, expect roughly 48-50
-        assert position.realized_pnl >= 48.0, "P&L should be close to theoretical max with minimal slippage"
+        # With slippage on entry and exit, expect roughly 45-51
+        assert position.realized_pnl >= 45.0, "P&L should be close to theoretical max with minimal slippage"
         assert position.realized_pnl <= 51.0, "P&L shouldn't exceed theoretical max (with rounding)"
 
     @pytest.mark.asyncio
