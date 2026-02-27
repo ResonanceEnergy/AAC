@@ -301,8 +301,9 @@ class TestExecutionEngine:
         assert not can_open
 
     @pytest.mark.asyncio
-    @pytest.mark.xfail(reason="Paper-trade engine uses random fill sim; PARTIAL state possible", strict=False)
-    async def test_execution_engine_paper_trading(self):
+    @patch("numpy.random.random", return_value=0.0)  # force full fill
+    @patch("random.uniform", return_value=1.0)  # 1 bps slippage
+    async def test_execution_engine_paper_trading(self, _mock_uniform, _mock_rng):
         from TradingExecution.execution_engine import ExecutionEngine, OrderSide
         
         engine = ExecutionEngine()
@@ -826,8 +827,9 @@ class TestIntegration:
                 assert signal.signal_id == finding.finding_id
 
     @pytest.mark.asyncio
-    @pytest.mark.xfail(reason="Paper-trade simulator uses random slippage; order may land in PARTIAL state", strict=False)
-    async def test_paper_trade_flow(self):
+    @patch("numpy.random.random", return_value=0.0)  # force full fill
+    @patch("random.uniform", return_value=1.0)  # 1 bps slippage (0.01%)
+    async def test_paper_trade_flow(self, _mock_uniform, _mock_rng):
         """Test complete paper trading flow with slippage simulation"""
         from TradingExecution.execution_engine import ExecutionEngine, OrderSide
         
@@ -846,10 +848,9 @@ class TestIntegration:
         assert position is not None
         
         # Entry price should include slippage for BUY = higher price.
-        # The simulation uses random slippage so we allow a tolerance range.
-        max_slippage = requested_price * 1.0020  # Allow up to 0.20% slippage
+        # With mocked 1 bps slippage: entry = 2500 * 1.0001 = 2500.25
         assert position.entry_price >= requested_price, "Entry price should have positive slippage for BUY"
-        assert position.entry_price <= max_slippage, "Entry price slippage shouldn't exceed 0.20%"
+        assert position.entry_price <= requested_price * 1.0010, "Entry price slippage should be minimal (1 bps)"
         
         # Update price
         await engine.update_positions({"ETH/USDT": 2600.0})
@@ -865,17 +866,17 @@ class TestIntegration:
         assert closed
         
         # Realized P&L will include both entry slippage (worse entry) and exit slippage (worse exit for SELL)
-        # The exact amount varies due to random slippage, but should be positive (price moved up 100 points)
-        # With max 0.15% slippage on both entry and exit, worst case P&L is still positive
+        # With mocked slippage on both sides, P&L is close to theoretical max
         assert position.realized_pnl > 0, "Should still be profitable after 100 point move"
         # Theoretical max: (2600 - 2500) * 0.5 = 50.0
-        # With slippage on both sides, expect roughly 45-50
-        assert position.realized_pnl >= 45.0, "P&L should be at least 45 after accounting for slippage"
+        # With slippage on entry and exit, expect roughly 48-50
+        assert position.realized_pnl >= 48.0, "P&L should be close to theoretical max with minimal slippage"
         assert position.realized_pnl <= 51.0, "P&L shouldn't exceed theoretical max (with rounding)"
 
     @pytest.mark.asyncio
-    @pytest.mark.xfail(reason="Paper-trade engine uses random fill sim; PARTIAL state possible", strict=False)
-    async def test_full_trading_flow_with_risk(self):
+    @patch("numpy.random.random", return_value=0.0)  # force full fill
+    @patch("random.uniform", return_value=1.0)  # 1 bps slippage
+    async def test_full_trading_flow_with_risk(self, _mock_uniform, _mock_rng):
         """Test complete flow: Signal -> Risk Check -> Order -> Position"""
         from TradingExecution.execution_engine import ExecutionEngine, OrderSide, Order, OrderType
         from TradingExecution.risk_manager import RiskManager

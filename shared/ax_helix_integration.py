@@ -98,5 +98,4 @@ class AXHelixAPI:
             "optimizations_executed": 0,
             "risk_assessments": 0,
             "stakeholder_coordinations": 0
-        }</content>
-<parameter name="filePath">c:\Users\gripa\OneDrive\Desktop\ACC\Accelerated-Arbitrage-Corp\shared\ax_helix_integration.py
+        }
