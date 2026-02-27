@@ -3,9 +3,12 @@
 Test ECB (European Central Bank) API for AAC arbitrage system
 """
 
+import pytest
 import requests
 import json
 
+@pytest.mark.slow
+@pytest.mark.timeout(30)
 def test_ecb_api():
     """Test ECB API connectivity and explore available datasets"""
 

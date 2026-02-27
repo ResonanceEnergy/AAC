@@ -487,24 +487,39 @@ class AuditLogger:
     # Backward compatibility method
     async def log_event(
         self,
-        category: str,
-        action: str,
+        category = None,
+        action: str = "",
         details: Optional[Dict] = None,
         status: str = "success",
         severity: AuditSeverity = AuditSeverity.INFO,
         user: str = "system",
+        resource: Optional[str] = None,
+        event_type: Optional[str] = None,
     ) -> AuditEvent:
-        """Backward compatibility method for simple logging"""
-        # Convert string category to enum if possible
-        try:
-            category_enum = AuditCategory(category.upper())
-        except ValueError:
+        """Backward compatibility method for simple logging.
+
+        Accepts category as either a string or AuditCategory enum.
+        ``resource`` and ``event_type`` are accepted as aliases for
+        forward-compatibility with callers in bridge_orchestrator, etc.
+        """
+        # Determine action — callers may use event_type instead of action
+        resolved_action = action or event_type or "unknown"
+
+        # Convert category to enum
+        if isinstance(category, AuditCategory):
+            category_enum = category
+        elif isinstance(category, str):
+            try:
+                category_enum = AuditCategory(category.upper())
+            except ValueError:
+                category_enum = AuditCategory.SYSTEM
+        else:
             category_enum = AuditCategory.SYSTEM
-        
+
         return await self._log_full_event(
             category=category_enum,
-            action=action,
-            resource=category,
+            action=resolved_action,
+            resource=resource or (category if isinstance(category, str) else category_enum.value),
             status=status,
             severity=severity,
             user=user,

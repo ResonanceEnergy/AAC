@@ -1,8 +1,11 @@
 import asyncio
+import pytest
 from CentralAccounting.financial_analysis_engine import get_financial_analysis_engine
 from CryptoIntelligence.crypto_intelligence_engine import get_crypto_intelligence_engine
 from BigBrainIntelligence.agents import get_research_agent_manager
 
+@pytest.mark.slow
+@pytest.mark.timeout(30)
 async def test_health():
     print('Testing health status methods...')
 
