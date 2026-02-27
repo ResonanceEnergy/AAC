@@ -235,8 +235,8 @@ class AACArbitrageBettingScraper:
         self.export_to_csv(posts, opportunities)
 
         # Summary
-        print("
-📊 Daily Scrape Summary:"        print(f"   Posts scraped: {len(posts)}")
+        print("\n📊 Daily Scrape Summary:")
+        print(f"   Posts scraped: {len(posts)}")
         print(f"   Arbitrage opportunities found: {len(opportunities)}")
         print(f"   Average post score: {sum(p.score for p in posts) / len(posts):.1f}")
         print(f"   Total comments: {sum(p.num_comments for p in posts)}")
@@ -251,5 +251,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()</content>
-<parameter name="filePath">c:\Users\gripa\OneDrive\Desktop\ACC\Accelerated-Arbitrage-Corp\aac_arbitragebetting_scraper.py
+    main()

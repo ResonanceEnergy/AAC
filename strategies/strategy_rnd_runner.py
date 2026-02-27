@@ -41,8 +41,8 @@ async def run_quick_rnd(strategy_type: str = "statistical_arbitrage", output_dir
     rnd_dashboard.generate_experiment_report(experiment_name, output_dir)
     rnd_dashboard.create_visualization_dashboard(experiment_name, output_dir)
 
-    print("
-✅ Quick R&D test completed!"    print(f"Strategy: {strategy_type}")
+    print("\n✅ Quick R&D test completed!")
+    print(f"Strategy: {strategy_type}")
     print(f"Best Score: {results['comparative_analysis']['best_performers'][strategy_type]['best_score']:.4f}")
 
     return results
@@ -72,14 +72,14 @@ async def run_comprehensive_rnd(output_dir: str = "reports/rnd"):
     rnd_dashboard.generate_experiment_report(experiment_name, output_dir)
     rnd_dashboard.create_visualization_dashboard(experiment_name, output_dir)
 
-    print("
-✅ Comprehensive R&D completed!"    print(f"Strategies tested: {len(strategy_types)}")
+    print("\n✅ Comprehensive R&D completed!")
+    print(f"Strategies tested: {len(strategy_types)}")
     print(f"Methods tested: {len(methods)}")
     print(f"Total experiments: {len(strategy_types) * len(methods)}")
 
     # Print top performers
-    print("
-🎯 Top Performing Strategies:"    for strategy, data in results['comparative_analysis']['best_performers'].items():
+    print("\n🎯 Top Performing Strategies:")
+    for strategy, data in results['comparative_analysis']['best_performers'].items():
         print(f"  {strategy}: {data['best_score']:.4f} ({data['best_method']})")
 
     return results
@@ -112,8 +112,8 @@ async def run_ab_test(strategy_type: str, param_file: str, output_dir: str = "re
     with open(output_file, 'w') as f:
         json.dump(results, f, indent=2, default=str)
 
-    print("
-✅ A/B test completed!"    print(f"Strategy: {strategy_type}")
+    print("\n✅ A/B test completed!")
+    print(f"Strategy: {strategy_type}")
     print(f"Variant A mean: {results['variant_a']['mean_score']:.4f}")
     print(f"Variant B mean: {results['variant_b']['mean_score']:.4f}")
     print(f"Winner: {results['statistical_test']['winner']}")
@@ -160,14 +160,14 @@ async def run_parameter_sensitivity(strategy_type: str, output_dir: str = "repor
     with open(report_path, 'w') as f:
         f.write('\n'.join(report))
 
-    print("
-✅ Sensitivity analysis completed!"    print(f"Strategy: {strategy_type}")
+    print("\n✅ Sensitivity analysis completed!")
+    print(f"Strategy: {strategy_type}")
     print(f"Parameters analyzed: {len(sensitivity)}")
     print(f"Report saved to: {report_path}")
 
     # Print top insights
-    print("
-🎯 Key Insights:"    sorted_sensitivity = sorted(sensitivity.items(),
+    print("\n🎯 Key Insights:")
+    sorted_sensitivity = sorted(sensitivity.items(),
                                key=lambda x: abs(float(x[1].split()[-1].strip(')'))) if 'correlation' in x[1] else 0,
                                reverse=True)
     for param, analysis in sorted_sensitivity[:3]:
@@ -204,8 +204,8 @@ async def run_custom_experiment(config_file: str, output_dir: str = "reports/rnd
     rnd_dashboard.generate_experiment_report(experiment_name, output_dir)
     rnd_dashboard.create_visualization_dashboard(experiment_name, output_dir)
 
-    print("
-✅ Custom experiment completed!"    print(f"Experiment: {experiment_name}")
+    print("\n✅ Custom experiment completed!")
+    print(f"Experiment: {experiment_name}")
     print(f"Configuration: {config_file}")
 
     return results

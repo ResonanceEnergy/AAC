@@ -1,5 +1,5 @@
 """
-Tenor‑matchedIvRvStrategy
+Tenor-matchedIvRvStrategy
 =========================
 
 Align RV horizon to option tenor; sidestep common IV–RV pitfalls.
@@ -19,9 +19,9 @@ from shared.audit_logger import AuditLogger
 logger = logging.getLogger(__name__)
 
 
-class Tenor‑matchedIvRvStrategy(BaseArbitrageStrategy):
+class TenorMatchedIvRvStrategy(BaseArbitrageStrategy):
     """
-    Tenor‑Matched IV–RV
+    Tenor-Matched IV–RV
 
     Align RV horizon to option tenor; sidestep common IV–RV pitfalls.
     """
@@ -51,7 +51,7 @@ class Tenor‑matchedIvRvStrategy(BaseArbitrageStrategy):
                     metadata = {
                         "signal_value": signal_value,
                         "threshold": self.threshold,
-                        "strategy_name": "Tenor‑Matched IV–RV",
+                        "strategy_name": "Tenor-Matched IV–RV",
                         "category": "CORRELATION"
                     }
 

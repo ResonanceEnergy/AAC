@@ -1,5 +1,5 @@
 """
-VrpTerm‑slopeTimingStrategy
+VrpTerm-slopeTimingStrategy
 ===========================
 
 Lean shorter maturities when the variance risk premium slope steepens in stress.
@@ -19,9 +19,9 @@ from shared.audit_logger import AuditLogger
 logger = logging.getLogger(__name__)
 
 
-class VrpTerm‑slopeTimingStrategy(BaseArbitrageStrategy):
+class VrpTermSlopeTimingStrategy(BaseArbitrageStrategy):
     """
-    VRP Term‑Slope Timing
+    VRP Term-Slope Timing
 
     Lean shorter maturities when the variance risk premium slope steepens in stress.
     """
@@ -51,7 +51,7 @@ class VrpTerm‑slopeTimingStrategy(BaseArbitrageStrategy):
                     metadata = {
                         "signal_value": signal_value,
                         "threshold": self.threshold,
-                        "strategy_name": "VRP Term‑Slope Timing",
+                        "strategy_name": "VRP Term-Slope Timing",
                         "category": "VOLATILITY_ARBITRAGE"
                     }
 

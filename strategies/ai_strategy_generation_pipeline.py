@@ -413,8 +413,8 @@ async def run_ai_strategy_pipeline():
     # Run pipeline
     results = await generator.run_ai_pipeline(df)
 
-    print("
-📊 AI Pipeline Results:"    print(f"   Strategies Generated: {results['total_generated']}")
+    print("\n📊 AI Pipeline Results:")
+    print(f"   Strategies Generated: {results['total_generated']}")
     print(f"   Strategies Validated: {results['validated']}")
     print(f"   Strategies Deployed: {results['deployed']}")
     print(".1%")

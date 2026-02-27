@@ -1,8 +1,8 @@
 """
-Option‑tradingEtfRolloverSignalStrategy
+Option-tradingEtfRolloverSignalStrategy
 =======================================
 
-Front‑run/absorb systematic call‑writing ETF rolls that shape IV surface.
+Front-run/absorb systematic call-writing ETF rolls that shape IV surface.
 """
 
 import asyncio
@@ -19,11 +19,11 @@ from shared.audit_logger import AuditLogger
 logger = logging.getLogger(__name__)
 
 
-class Option‑tradingEtfRolloverSignalStrategy(BaseArbitrageStrategy):
+class OptionTradingEtfRolloverSignalStrategy(BaseArbitrageStrategy):
     """
-    Option‑Trading ETF Rollover Signal
+    Option-Trading ETF Rollover Signal
 
-    Front‑run/absorb systematic call‑writing ETF rolls that shape IV surface.
+    Front-run/absorb systematic call-writing ETF rolls that shape IV surface.
     """
 
     def __init__(self, config: StrategyConfig, communication: CommunicationFramework, audit_logger: AuditLogger):
@@ -51,7 +51,7 @@ class Option‑tradingEtfRolloverSignalStrategy(BaseArbitrageStrategy):
                     metadata = {
                         "signal_value": signal_value,
                         "threshold": self.threshold,
-                        "strategy_name": "Option‑Trading ETF Rollover Signal",
+                        "strategy_name": "Option-Trading ETF Rollover Signal",
                         "category": "ETF_ARBITRAGE"
                     }
 

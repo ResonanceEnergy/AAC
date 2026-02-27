@@ -19,7 +19,7 @@ from shared.audit_logger import AuditLogger
 logger = logging.getLogger(__name__)
 
 
-class FomcCycle&PreAnnouncementDriftStrategy(BaseArbitrageStrategy):
+class FomcCycleAndPreAnnouncementDriftStrategy(BaseArbitrageStrategy):
     """
     FOMC Cycle & Pre-Announcement Drift
 

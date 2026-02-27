@@ -1,5 +1,5 @@
 """
-Cross‑assetVrpBasketStrategy
+Cross-assetVrpBasketStrategy
 ============================
 
 Diversify variance selling into commodities/FX/bonds where VRP is significant.
@@ -19,9 +19,9 @@ from shared.audit_logger import AuditLogger
 logger = logging.getLogger(__name__)
 
 
-class Cross‑assetVrpBasketStrategy(BaseArbitrageStrategy):
+class CrossAssetVrpBasketStrategy(BaseArbitrageStrategy):
     """
-    Cross‑Asset VRP Basket
+    Cross-Asset VRP Basket
 
     Diversify variance selling into commodities/FX/bonds where VRP is significant.
     """
@@ -51,7 +51,7 @@ class Cross‑assetVrpBasketStrategy(BaseArbitrageStrategy):
                     metadata = {
                         "signal_value": signal_value,
                         "threshold": self.threshold,
-                        "strategy_name": "Cross‑Asset VRP Basket",
+                        "strategy_name": "Cross-Asset VRP Basket",
                         "category": "VOLATILITY_ARBITRAGE"
                     }
 

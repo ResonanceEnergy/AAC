@@ -19,7 +19,7 @@ from shared.audit_logger import AuditLogger
 logger = logging.getLogger(__name__)
 
 
-class FlowPressureContrarian(etfFunds)Strategy(BaseArbitrageStrategy):
+class FlowPressureContrarianEtfFundsStrategy(BaseArbitrageStrategy):
     """
     Flow-Pressure Contrarian (ETF/Funds)
 

@@ -641,14 +641,14 @@ async def run_production_deployment():
     # Run deployment pipeline
     results = await deployment_manager.run_full_deployment_pipeline('staging')
 
-    print("
-📊 Deployment Results:"    print(f"   Environment: {results['environment']}")
+    print("\n📊 Deployment Results:")
+    print(f"   Environment: {results['environment']}")
     print(f"   Success: {results['success']}")
     print(".2f")
     print(f"   Rollback Performed: {results.get('rollback_performed', False)}")
 
-    print("
-📋 Phase Results:"    for phase, result in results['phases'].items():
+    print("\n📋 Phase Results:")
+    for phase, result in results['phases'].items():
         status = "✅" if result.get('passed', False) else "❌"
         print(f"   {phase}: {status}")
 

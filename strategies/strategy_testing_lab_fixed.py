@@ -635,5 +635,4 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())</content>
-<parameter name="filePath">c:\Users\gripa\OneDrive\Desktop\ACC\Accelerated-Arbitrage-Corp\strategy_testing_lab.py
+    asyncio.run(main())

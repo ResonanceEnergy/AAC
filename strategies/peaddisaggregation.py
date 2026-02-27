@@ -2,7 +2,7 @@
 PeadDisaggregationStrategy
 ==========================
 
-Within‑firm signal construction to avoid aggregation bias in post‑earnings drift.
+Within-firm signal construction to avoid aggregation bias in post-earnings drift.
 """
 
 import asyncio
@@ -23,7 +23,7 @@ class PeadDisaggregationStrategy(BaseArbitrageStrategy):
     """
     PEAD Disaggregation
 
-    Within‑firm signal construction to avoid aggregation bias in post‑earnings drift.
+    Within-firm signal construction to avoid aggregation bias in post-earnings drift.
     """
 
     def __init__(self, config: StrategyConfig, communication: CommunicationFramework, audit_logger: AuditLogger):

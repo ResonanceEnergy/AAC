@@ -1,8 +1,8 @@
 """
-Concentration‑awareDispersionStrategy
+Concentration-awareDispersionStrategy
 =====================================
 
-Deploy dispersion when mega‑cap concentration risk is elevated.
+Deploy dispersion when mega-cap concentration risk is elevated.
 """
 
 import asyncio
@@ -19,11 +19,11 @@ from shared.audit_logger import AuditLogger
 logger = logging.getLogger(__name__)
 
 
-class Concentration‑awareDispersionStrategy(BaseArbitrageStrategy):
+class ConcentrationAwareDispersionStrategy(BaseArbitrageStrategy):
     """
-    Concentration‑Aware Dispersion
+    Concentration-Aware Dispersion
 
-    Deploy dispersion when mega‑cap concentration risk is elevated.
+    Deploy dispersion when mega-cap concentration risk is elevated.
     """
 
     def __init__(self, config: StrategyConfig, communication: CommunicationFramework, audit_logger: AuditLogger):
@@ -51,7 +51,7 @@ class Concentration‑awareDispersionStrategy(BaseArbitrageStrategy):
                     metadata = {
                         "signal_value": signal_value,
                         "threshold": self.threshold,
-                        "strategy_name": "Concentration‑Aware Dispersion",
+                        "strategy_name": "Concentration-Aware Dispersion",
                         "category": "VOLATILITY_ARBITRAGE"
                     }
 
