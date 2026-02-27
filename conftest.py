@@ -52,6 +52,36 @@ def paper_trading_env(monkeypatch_session=None):
     # teardown: nothing needed
 
 
+@pytest.fixture
+def mock_market_data():
+    """Provide a dictionary of mock market prices for testing."""
+    return {
+        "BTC/USDT": 45000.0,
+        "ETH/USDT": 2500.0,
+        "SOL/USDT": 120.0,
+        "ADA/USDT": 0.55,
+        "DOGE/USDT": 0.085,
+    }
+
+
+@pytest.fixture
+def paper_engine():
+    """Create a fresh ExecutionEngine in paper-trading (dry_run=False) mode."""
+    try:
+        from TradingExecution.execution_engine import ExecutionEngine
+        engine = ExecutionEngine()
+        engine.dry_run = False
+        return engine
+    except ImportError:
+        pytest.skip("TradingExecution not available")
+
+
+@pytest.fixture
+def tmp_db(tmp_path):
+    """Provide a temporary SQLite database path for testing."""
+    return tmp_path / "test.db"
+
+
 def pytest_configure(config):
     """Register custom markers so tests don't warn about unknown marks."""
     config.addinivalue_line("markers", "live: mark test as requiring live API credentials")

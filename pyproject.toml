@@ -4,7 +4,7 @@ build-backend = "setuptools.backends.legacy:build"
 
 [project]
 name = "aac"
-version = "2.2.0"
+version = "2.3.0"
 description = "Accelerated Arbitrage Corp — AI-driven multi-exchange trading system"
 readme = "README.md"
 requires-python = ">=3.9"

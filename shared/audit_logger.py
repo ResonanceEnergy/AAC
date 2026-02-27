@@ -5,6 +5,8 @@ Audit Logger
 Comprehensive audit logging for API calls, security events, and compliance tracking.
 """
 
+from __future__ import annotations
+
 import asyncio
 import json
 import logging
@@ -12,6 +14,7 @@ import hashlib
 import os
 from datetime import datetime
 from pathlib import Path
+from collections.abc import Generator
 from typing import Dict, List, Optional, Any, Union
 from dataclasses import dataclass, field, asdict
 from enum import Enum
@@ -121,11 +124,11 @@ class AuditLogger:
         if enable_file_logging:
             self._init_file_handler()
     
-    async def initialize(self):
+    async def initialize(self) -> None:
         """Async initialize method for compatibility"""
         pass
     
-    def _init_database(self):
+    def _init_database(self) -> None:
         """Initialize SQLite database for audit storage"""
         with self._get_db_connection() as conn:
             conn.execute("""
@@ -156,7 +159,7 @@ class AuditLogger:
             conn.execute("CREATE INDEX IF NOT EXISTS idx_status ON audit_events(status)")
             conn.commit()
     
-    def _init_file_handler(self):
+    def _init_file_handler(self) -> None:
         """Initialize file handler for audit logs"""
         from logging.handlers import RotatingFileHandler
         
@@ -172,7 +175,7 @@ class AuditLogger:
         self.logger.addHandler(self._file_handler)
         self.logger.setLevel(logging.DEBUG)
     
-    def close(self):
+    def close(self) -> None:
         """Close all resources - important for cleanup on Windows"""
         if hasattr(self, '_file_handler') and self._file_handler:
             self._file_handler.close()
@@ -180,7 +183,7 @@ class AuditLogger:
             self._file_handler = None
     
     @contextmanager
-    def _get_db_connection(self):
+    def _get_db_connection(self) -> Generator[sqlite3.Connection, None, None]:
         """Get a database connection with context manager"""
         conn = sqlite3.connect(str(self.db_path))
         try:
@@ -297,7 +300,7 @@ class AuditLogger:
             
             return event
     
-    def _write_to_file(self, event: AuditEvent):
+    def _write_to_file(self, event: AuditEvent) -> None:
         """Write event to log file"""
         log_message = f"{event.category.value} | {event.action} | {event.resource} | {event.status}"
         if event.exchange:
@@ -331,7 +334,7 @@ class AuditLogger:
         level = getattr(logging, event.severity.value.upper(), logging.INFO)
         self.logger.log(level, log_message)
     
-    def _write_to_database(self, event: AuditEvent):
+    def _write_to_database(self, event: AuditEvent) -> None:
         """Write event to SQLite database"""
         try:
             with self._get_db_connection() as conn:
@@ -487,7 +490,7 @@ class AuditLogger:
     # Backward compatibility method
     async def log_event(
         self,
-        category = None,
+        category: AuditCategory | str | None = None,
         action: str = "",
         details: Optional[Dict] = None,
         status: str = "success",
