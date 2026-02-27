@@ -10,8 +10,10 @@
 .env.*.local
 *.pem
 *.key
+*.enc
 secrets/
 credentials/
+config/crypto/
 
 # ===========================================
 # PYTHON
@@ -154,3 +156,8 @@ temp/
 # These are local snapshots, not for git tracking
 # ===========================================
 version_control/backups/
+
+# ===========================================
+# ARCHIVE — old tests / deprecated code
+# ===========================================
+archive/

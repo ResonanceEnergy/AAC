@@ -5,6 +5,7 @@ AAC 2100 Orchestrator - Complete System Reconstruction
 Quantum-enhanced orchestrator with full insight integration.
 Implements: sense → decide → act → reconcile cycle
 """
+from __future__ import annotations  # defer annotation evaluation — fixes forward-reference NameErrors
 
 import asyncio
 import logging
