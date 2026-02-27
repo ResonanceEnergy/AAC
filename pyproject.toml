@@ -55,6 +55,12 @@ ml = [
     "gymnasium>=0.29.0",
 ]
 
+# Visualization
+viz = [
+    "matplotlib>=3.7.0",
+    "seaborn>=0.13.0",
+]
+
 # Dev tools
 dev = [
     "pytest>=7.4.0",
@@ -155,3 +161,7 @@ markers = [
     "paper: paper-trading mode",
     "exchange: requires exchange API",
 ]
+
+[tool.bandit]
+exclude_dirs = [".venv", "archive", "tests", "docs", "build"]
+skips = ["B101", "B311"]  # B101=assert, B311=random (not crypto-grade)
