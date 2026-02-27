@@ -1,8 +1,8 @@
 """
-OvernightJumpFade(stock‑specific)Strategy
+OvernightJumpFade(stock-specific)Strategy
 =========================================
 
-Systematically fade prior‑night jump portfolios with short‑term horizons.
+Systematically fade prior-night jump portfolios with short-term horizons.
 """
 
 import asyncio
@@ -19,11 +19,11 @@ from shared.audit_logger import AuditLogger
 logger = logging.getLogger(__name__)
 
 
-class OvernightJumpFade(stock‑specific)Strategy(BaseArbitrageStrategy):
+class OvernightJumpFadeStockSpecificStrategy(BaseArbitrageStrategy):
     """
-    Overnight Jump Fade (Stock‑Specific)
+    Overnight Jump Fade (Stock-Specific)
 
-    Systematically fade prior‑night jump portfolios with short‑term horizons.
+    Systematically fade prior-night jump portfolios with short-term horizons.
     """
 
     def __init__(self, config: StrategyConfig, communication: CommunicationFramework, audit_logger: AuditLogger):
@@ -51,7 +51,7 @@ class OvernightJumpFade(stock‑specific)Strategy(BaseArbitrageStrategy):
                     metadata = {
                         "signal_value": signal_value,
                         "threshold": self.threshold,
-                        "strategy_name": "Overnight Jump Fade (Stock‑Specific)",
+                        "strategy_name": "Overnight Jump Fade (Stock-Specific)",
                         "category": "SEASONALITY"
                     }
 

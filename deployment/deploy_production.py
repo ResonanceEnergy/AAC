@@ -394,8 +394,8 @@ async def main():
         return
 
     # Validation phase
-    print("
-📋 Phase 1: Validation"    print("-" * 30)
+    print("\n📋 Phase 1: Validation")
+    print("-" * 30)
 
     validations = [
         ('Environment', deployer.validate_environment()),
@@ -427,8 +427,8 @@ async def main():
         return
 
     # Deployment phase
-    print("
-🚀 Phase 2: Deployment"    print("-" * 30)
+    print("\n🚀 Phase 2: Deployment")
+    print("-" * 30)
 
     if args.mode == 'live':
         print("⚠️  LIVE MODE: This will execute real trades!")

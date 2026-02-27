@@ -1,5 +1,5 @@
 """
-Bubble‑watchFlowContrarian(etfs)Strategy
+Bubble-watchFlowContrarian(etfs)Strategy
 ========================================
 
 Short/underweight names where self-inflated flows flag impending unwind.
@@ -19,9 +19,9 @@ from shared.audit_logger import AuditLogger
 logger = logging.getLogger(__name__)
 
 
-class Bubble‑watchFlowContrarian(etfs)Strategy(BaseArbitrageStrategy):
+class BubbleWatchFlowContrarianEtfsStrategy(BaseArbitrageStrategy):
     """
-    Bubble‑Watch Flow Contrarian (ETFs)
+    Bubble-Watch Flow Contrarian (ETFs)
 
     Short/underweight names where self-inflated flows flag impending unwind.
     """
@@ -51,7 +51,7 @@ class Bubble‑watchFlowContrarian(etfs)Strategy(BaseArbitrageStrategy):
                     metadata = {
                         "signal_value": signal_value,
                         "threshold": self.threshold,
-                        "strategy_name": "Bubble‑Watch Flow Contrarian (ETFs)",
+                        "strategy_name": "Bubble-Watch Flow Contrarian (ETFs)",
                         "category": "ETF_ARBITRAGE"
                     }
 

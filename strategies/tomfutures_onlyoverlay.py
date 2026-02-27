@@ -1,5 +1,5 @@
 """
-TomFutures‑onlyOverlayStrategy
+TomFutures-onlyOverlayStrategy
 ==============================
 
 Exploit TOM via S&P futures; strong persistence documented in futures.
@@ -19,9 +19,9 @@ from shared.audit_logger import AuditLogger
 logger = logging.getLogger(__name__)
 
 
-class TomFutures‑onlyOverlayStrategy(BaseArbitrageStrategy):
+class TomFuturesOnlyOverlayStrategy(BaseArbitrageStrategy):
     """
-    TOM Futures‑Only Overlay
+    TOM Futures-Only Overlay
 
     Exploit TOM via S&P futures; strong persistence documented in futures.
     """
@@ -51,7 +51,7 @@ class TomFutures‑onlyOverlayStrategy(BaseArbitrageStrategy):
                     metadata = {
                         "signal_value": signal_value,
                         "threshold": self.threshold,
-                        "strategy_name": "TOM Futures‑Only Overlay",
+                        "strategy_name": "TOM Futures-Only Overlay",
                         "category": "CORRELATION"
                     }
 

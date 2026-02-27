@@ -19,7 +19,7 @@ from shared.audit_logger import AuditLogger
 logger = logging.getLogger(__name__)
 
 
-class IndexReconstitution&ClosingAuctionLiquidityStrategy(BaseArbitrageStrategy):
+class IndexReconstitutionAndClosingAuctionLiquidityStrategy(BaseArbitrageStrategy):
     """
     Index Reconstitution & Closing-Auction Liquidity
 
