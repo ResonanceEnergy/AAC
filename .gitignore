@@ -166,6 +166,40 @@ version_control/backups/
 # ===========================================
 # ARCHIVE — old tests / deprecated code
 # ===========================================
-archive/*.db-shm
+archive/
+
+# ===========================================
+# SQLITE TEMP FILES
+# ===========================================
+*.db-shm
 *.db-wal
 *.db-journal
+
+# ===========================================
+# DATA BACKUPS — operational, not for git
+# ===========================================
+data/backups/
+
+# ===========================================
+# ROOT-LEVEL NCC (stale) — canonical is aac/NCC/
+# ===========================================
+NCC/
+
+# ===========================================
+# ROOT-LEVEL DIVISION STUBS — canonical location is src/aac/divisions/
+# ===========================================
+ComplianceArbitrageDivision/
+CorporateBankingDivision/
+HR_Division/
+InternationalInsuranceDivision/
+LudwigLawDivision/
+OptionsArbitrageDivision/
+PaperTradingDivision/
+PortfolioManagementDivision/
+QuantitativeArbitrageDivision/
+QuantitativeResearchDivision/
+RiskManagementDivision/
+StatisticalArbitrageDivision/
+StructuralArbitrageDivision/
+TechnologyArbitrageDivision/
+TechnologyInfrastructureDivision/

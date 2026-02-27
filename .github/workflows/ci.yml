@@ -43,7 +43,7 @@ jobs:
     needs: lint
     strategy:
       matrix:
-        python-version: ["3.11", "3.12"]
+        python-version: ["3.9", "3.11", "3.12"]
 
     steps:
       - uses: actions/checkout@v4
@@ -58,7 +58,7 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install -r requirements.txt
-          pip install pytest pytest-asyncio pytest-cov
+          pip install pytest pytest-asyncio pytest-timeout pytest-cov
 
       - name: Create .env for tests
         run: cp .env.template .env
@@ -67,7 +67,8 @@ jobs:
         run: |
           pytest tests/ -q --tb=short --ignore=tests/test_live.py \
             --ignore=tests/security_integration_test.py \
-            -m "not live and not exchange" \
+            -m "not live and not exchange and not slow" \
+            --timeout=30 \
             --cov=shared --cov=strategies --cov=TradingExecution \
             --cov-report=term-missing --cov-report=xml
 

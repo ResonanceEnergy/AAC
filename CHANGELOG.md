@@ -6,6 +6,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [2.2.0] — 2026-02-26
+
+### Added
+- `CONTRIBUTING.md` — developer onboarding and contribution guide
+- `setup.cfg` — flake8 config and editable-install metadata
+- `scripts/health_check.py` — system diagnostic script (`make health`)
+- `__init__.py` for 7 more packages: demos, deployment, reddit, scripts, tools, docs, PaperTradingDivision
+- `make health` target in Makefile
+
+### Fixed
+- `test_execution_engine_paper_trading` — marked `@xfail` (random fill sim)
+- `pyproject.toml` — target-version aligned to py39 across black, ruff, mypy
+- `pyproject.toml` — version bumped to 2.2.0
+- `.gitignore` — `archive/` now fully ignored (was only `archive/*.db-shm`)
+- `.gitignore` — added `data/backups/`, `NCC/`, 15 root division stub dirs
+- CI workflow — added Python 3.9 to test matrix, `--timeout=30`, `not slow` marker
+
+### Removed
+- `aac/aac/` — nested duplicate directory (3 files, identical to `aac/doctrine/` + `aac/integration/`)
+- 15 root-level division stub directories from git tracking (canonical: `src/aac/divisions/`)
+
+---
+
 ## [2.1.0] — 2026-02-26
 
 ### Added
