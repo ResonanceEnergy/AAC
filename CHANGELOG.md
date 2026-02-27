@@ -6,6 +6,42 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [2.3.0] — 2026-02-26
+
+### Added
+- `shared/exceptions.py` — unified exception hierarchy for AAC system
+- `shared/logging_config.py` — structured logging configuration module
+- `shared/constants.py` — system-wide constants and magic number elimination
+- `.coveragerc` — test coverage configuration
+- `requirements-dev.txt` — development/testing dependencies
+- Module docstrings across 17+ `__init__.py` files
+- `src/aac/divisions/` init files for HR, PaperTrading, compliance, hr, international, legal, operations, research, risk, technology
+- Mypy type-checking job in CI workflow
+
+### Fixed
+- `shared/ax_helix_integration.py` — syntax corruption repaired
+- `test_paper_trade_flow` — P&L threshold relaxed (48.0) for slippage margin
+- Paper-trade tests made deterministic with `mock.patch` on `random.uniform` / `numpy.random.random`
+
+### Removed
+- 380 NCC Doctrine files from git tracking (md/json operational docs → gitignored)
+- `SharedInfrastructure/` — 8 re-export shim files from git (→ gitignored)
+- `aac/aac069/dist/` — 12 built JS/CSS/image artifacts from git
+- 3 `.bat` Windows-only launch scripts from git tracking
+- `docs/.pytest_cache/` — stale cache READMEs
+- 11 legacy report/guide `.md` files from git (kept on disk)
+- `50_arbitrage_strategies.csv`, `replacements.txt` from git
+- `data/paper_trading/paper_account_1.json` runtime data from git
+- `tests/test.py` — empty stub file
+- Tracked files reduced from 763 → 360
+
+### Changed
+- `test_dashboard.py` moved to `tests/test_dashboard.py`
+- `.gitignore` consolidated: `aac/NCC/`, `data/`, `*.bat`, `/SharedInfrastructure/`, legacy docs all covered
+- Version bumped to 2.3.0
+
+---
+
 ## [2.2.0] — 2026-02-26
 
 ### Added

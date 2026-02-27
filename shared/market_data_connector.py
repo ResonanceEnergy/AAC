@@ -5,6 +5,8 @@ Comprehensive Market Data Connector System
 Unified interface for 100+ worldwide market data feeds with redundancy and failover.
 """
 
+from __future__ import annotations
+
 import asyncio
 import logging
 import json
@@ -27,7 +29,7 @@ from shared.utils import retry, RetryStrategy, with_circuit_breaker
 from shared.audit_logger import get_audit_logger
 
 # Simple audit log wrapper
-async def audit_log(category: str, action: str, details: dict = None):
+async def audit_log(category: str, action: str, details: dict | None = None) -> None:
     """Simple audit logging wrapper"""
     logger = get_audit_logger()
     # For now, just log to console - in production this would use the full audit system
@@ -133,16 +135,16 @@ class BaseMarketDataConnector(ABC):
             'staleness_alerts': 0
         }
 
-    def subscribe(self, callback: Callable):
+    def subscribe(self, callback: Callable) -> None:
         """Subscribe to data updates"""
         self._callbacks.append(callback)
 
-    def unsubscribe(self, callback: Callable):
+    def unsubscribe(self, callback: Callable) -> None:
         """Unsubscribe from data updates"""
         if callback in self._callbacks:
             self._callbacks.remove(callback)
 
-    async def _notify(self, data: Any):
+    async def _notify(self, data: Any) -> None:
         """Notify all subscribers"""
         for callback in self._callbacks:
             try:
@@ -159,12 +161,12 @@ class BaseMarketDataConnector(ABC):
         pass
 
     @abstractmethod
-    async def disconnect(self):
+    async def disconnect(self) -> None:
         """Disconnect from data source"""
         pass
 
     @abstractmethod
-    async def subscribe_symbols(self, symbols: List[str]):
+    async def subscribe_symbols(self, symbols: List[str]) -> None:
         """Subscribe to symbol updates"""
         pass
 
@@ -208,13 +210,13 @@ class RESTConnector(BaseMarketDataConnector):
             self.status = FeedStatus.ERROR
             return False
 
-    async def disconnect(self):
+    async def disconnect(self) -> None:
         if self.session:
             await self.session.close()
         self.status = FeedStatus.DISCONNECTED
 
     @abstractmethod
-    async def subscribe_symbols(self, symbols: List[str]):
+    async def subscribe_symbols(self, symbols: List[str]) -> None:
         """REST APIs typically don't have subscriptions - implement polling"""
         pass
 
@@ -243,17 +245,17 @@ class WebSocketConnector(BaseMarketDataConnector):
             self.status = FeedStatus.ERROR
             return False
 
-    async def disconnect(self):
+    async def disconnect(self) -> None:
         if self.websocket:
             await self.websocket.close()
         self.status = FeedStatus.DISCONNECTED
 
     @abstractmethod
-    async def subscribe_symbols(self, symbols: List[str]):
+    async def subscribe_symbols(self, symbols: List[str]) -> None:
         """Subscribe to WebSocket streams"""
         pass
 
-    async def run(self):
+    async def run(self) -> None:
         """Run WebSocket message loop"""
         while self.status == FeedStatus.CONNECTED and self.websocket:
             try:
@@ -266,7 +268,7 @@ class WebSocketConnector(BaseMarketDataConnector):
                 self.logger.error(f"{self.name} WebSocket error: {e}")
                 self._quality_metrics['errors'] += 1
 
-    async def _reconnect(self):
+    async def _reconnect(self) -> None:
         """Attempt to reconnect WebSocket"""
         if self.reconnect_attempts >= self.max_reconnect_attempts:
             self.status = FeedStatus.ERROR
@@ -284,7 +286,7 @@ class WebSocketConnector(BaseMarketDataConnector):
                 await self.subscribe_symbols(list(self.subscribed_symbols))
 
     @abstractmethod
-    async def _handle_message(self, message: str):
+    async def _handle_message(self, message: str) -> None:
         """Handle incoming WebSocket message"""
         pass
 
