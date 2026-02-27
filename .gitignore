@@ -65,9 +65,25 @@ logs/
 *.db
 *.sqlite
 *.sqlite3
-data/*.db
-data/backups/
+data/
 CentralAccounting/data/*.db
+
+# ===========================================
+# LEGACY REPORTS & DOCS — kept on disk, not in git
+# ===========================================
+AAC_CONSOLIDATION_FINAL_REPORT.md
+AAC_CONSOLIDATION_REPORT.md
+AAC_SYSTEM_VALIDATION_REPORT.md
+AAC_USER_GUIDE_AND_AUDIT_REPORT.md
+AUTOMATION_README.md
+AWS_SETUP_README.md
+DESKTOP_ICON_README.md
+FILESYSTEM_OPTIMIZATION_PLAN.md
+MIGRATION_GUIDE.md
+PERFORMANCE_OPTIMIZATION_REPORT.md
+VERSION_CONTROL_README.md
+50_arbitrage_strategies.csv
+replacements.txt
 
 # ===========================================
 # NCC DOCTRINE — operational docs, not source code
@@ -184,11 +200,6 @@ archive/
 *.db-shm
 *.db-wal
 *.db-journal
-
-# ===========================================
-# DATA BACKUPS — operational, not for git
-# ===========================================
-data/backups/
 
 # ===========================================
 # ROOT-LEVEL NCC (stale) — canonical is aac/NCC/
