@@ -70,13 +70,9 @@ data/backups/
 CentralAccounting/data/*.db
 
 # ===========================================
-# NCC DOCTRINE BACKUPS — operational data
-# Only aac/NCC/Doctrine/ (canonical) is tracked
+# NCC DOCTRINE — operational docs, not source code
 # ===========================================
-aac/NCC/NCC-Doctrine/backups/
-aac/NCC/Doctrine/backups/
-aac/NCC/Doctrine/data/
-aac/NCC/Doctrine/archives/
+aac/NCC/
 
 # ===========================================
 # REPORTS & OUTPUTS
@@ -217,3 +213,4 @@ NCC/
 /StructuralArbitrageDivision/
 /TechnologyArbitrageDivision/
 /TechnologyInfrastructureDivision/
+/SharedInfrastructure/
