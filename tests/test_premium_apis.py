@@ -9,6 +9,8 @@ import asyncio
 import sys
 from pathlib import Path
 
+import pytest
+
 PROJECT_ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
@@ -20,6 +22,8 @@ from shared.market_data_connector import (
     IntrinioConnector
 )
 
+@pytest.mark.slow
+@pytest.mark.timeout(30)
 async def test_premium_apis():
     """Test premium API connectors"""
     print("🧪 Testing Premium Market Data APIs")

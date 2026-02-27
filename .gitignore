@@ -151,6 +151,12 @@ coverage.xml
 *.backup
 tmp/
 temp/
+
+# ===========================================
+# SERVICES — microservices build artifacts
+# ===========================================
+services/*/__pycache__/
+services/*/src/__pycache__/
 # ===========================================
 # VERSION CONTROL LOCAL BACKUPS
 # These are local snapshots, not for git tracking
@@ -160,4 +166,6 @@ version_control/backups/
 # ===========================================
 # ARCHIVE — old tests / deprecated code
 # ===========================================
-archive/
+archive/*.db-shm
+*.db-wal
+*.db-journal

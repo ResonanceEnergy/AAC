@@ -7,7 +7,7 @@ name = "aac"
 version = "2.0.0"
 description = "Accelerated Arbitrage Corp — AI-driven multi-exchange trading system"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.9"
 license = { text = "Proprietary" }
 authors = [
     { name = "Resonance Energy Corp", email = "ops@resonanceenergy.corp" },
