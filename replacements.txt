@@ -1,5 +1,0 @@
-# Replace XAI API key lines and token-like xai- tokens (regex-based; no raw secret included)
-regex:XAI_API_KEY=.*==>XAI_API_KEY=REDACTED
-regex:XAI_API_KEY\s*=\s*\".*\"==>XAI_API_KEY=\"REDACTED\"
-# redact any token that looks like `xai-<long-alphanum>`
-regex:xai-[A-Za-z0-9_\-]{16,}==>REDACTED_TOKEN
