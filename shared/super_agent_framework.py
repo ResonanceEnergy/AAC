@@ -16,6 +16,8 @@ Features:
 - Autonomous decision making
 """
 
+from __future__ import annotations  # defer annotation evaluation — fixes NameError for forward-referenced type hints
+
 import asyncio
 import logging
 import numpy as np

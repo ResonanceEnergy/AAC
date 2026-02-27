@@ -4,7 +4,13 @@ Quick Integration Test
 """
 
 import asyncio
-from agent_based_trading_integration import AACAgentIntegration
+try:
+    from agents.agent_based_trading_integration import AACAgentIntegration
+except ModuleNotFoundError:
+    try:
+        from agent_based_trading_integration import AACAgentIntegration
+    except ModuleNotFoundError:
+        AACAgentIntegration = None  # type: ignore
 
 async def test_integration():
     print("Testing AAC Agent Integration...")

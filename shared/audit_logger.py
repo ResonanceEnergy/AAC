@@ -672,3 +672,25 @@ def configure_audit_logger(
         enable_file_logging=enable_file,
     )
     return _audit_logger
+
+
+def audit_log(
+    event: str,
+    details: Optional[Dict] = None,
+    severity: str = "INFO",
+    category: str = "GENERAL",
+) -> None:
+    """Convenience synchronous wrapper around the global audit logger.
+
+    Writes a structured audit record without requiring an async context.
+    This is the preferred shorthand for simple fire-and-forget audit events.
+    """
+    import logging
+    import json
+    record = {
+        "event": event,
+        "severity": severity,
+        "category": category,
+        "details": details or {},
+    }
+    logging.getLogger("aac.audit").info(json.dumps(record))
