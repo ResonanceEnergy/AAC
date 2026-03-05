@@ -1,5 +1,5 @@
 """
-VarianceRiskPremium(crossAsset)Strategy
+VarianceRiskPremiumCrossAssetStrategy
 =======================================
 
 Systematically sell variance where IV > RV across assets and tenors.

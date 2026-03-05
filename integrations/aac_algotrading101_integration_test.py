@@ -18,7 +18,7 @@ from typing import Dict, List
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from aac_algotrading101_hub import AACAlgoTrading101Hub, create_arbitrage_strategy
-from aac_timestamp_converter import AACTimestampConverter
+from tools.aac_timestamp_converter import AACTimestampConverter
 
 class AACAlgoTrading101IntegrationTest:
     """

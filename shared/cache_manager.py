@@ -113,7 +113,7 @@ class RedisCache:
     
     def __init__(
         self,
-        url: str = "redis://localhost:6379",
+        url: str = os.getenv('REDIS_URL', 'redis://localhost:6379'),
         prefix: str = "acc:",
         default_ttl: int = 300,  # 5 minutes
     ):

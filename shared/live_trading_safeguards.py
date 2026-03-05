@@ -5,14 +5,129 @@ Live Trading Safeguards
 Comprehensive risk management and safety controls for live trading.
 """
 
+import ast
 import asyncio
 import logging
 import json
+import operator
 import time
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any, Callable, Tuple
 from dataclasses import dataclass, field
 from enum import Enum
+
+
+# ── Safe expression evaluator (replaces eval) ──────────────────────────
+
+_SAFE_COMPARE_OPS = {
+    ast.Lt: operator.lt, ast.LtE: operator.le,
+    ast.Gt: operator.gt, ast.GtE: operator.ge,
+    ast.Eq: operator.eq, ast.NotEq: operator.ne,
+}
+_SAFE_BIN_OPS = {
+    ast.Add: operator.add, ast.Sub: operator.sub,
+    ast.Mult: operator.mul, ast.Div: operator.truediv,
+}
+
+
+def _safe_eval_node(node: ast.AST, metrics: Dict[str, Any]) -> Any:
+    """Recursively evaluate an AST node against a metrics dict.
+
+    Allowed constructs:
+      - Numeric/string/bool constants
+      - Comparisons (< <= > >= == !=)
+      - Boolean operators (and, or, not)
+      - Arithmetic (+, -, *, /)
+      - ``metrics.get(key, default)``
+      - ``metrics[key]``
+      - The name ``metrics`` itself
+    Everything else raises ``ValueError``.
+    """
+    if isinstance(node, ast.Expression):
+        return _safe_eval_node(node.body, metrics)
+
+    if isinstance(node, ast.Constant):
+        return node.value
+
+    if isinstance(node, ast.Name):
+        if node.id == "metrics":
+            return metrics
+        raise ValueError(f"Unsafe name: {node.id}")
+
+    if isinstance(node, ast.Compare):
+        left = _safe_eval_node(node.left, metrics)
+        for op, comparator in zip(node.ops, node.comparators):
+            right = _safe_eval_node(comparator, metrics)
+            op_func = _SAFE_COMPARE_OPS.get(type(op))
+            if op_func is None:
+                raise ValueError(f"Unsupported comparison: {type(op).__name__}")
+            if not op_func(left, right):
+                return False
+            left = right
+        return True
+
+    if isinstance(node, ast.BoolOp):
+        values = [_safe_eval_node(v, metrics) for v in node.values]
+        return all(values) if isinstance(node.op, ast.And) else any(values)
+
+    if isinstance(node, ast.UnaryOp) and isinstance(node.op, ast.Not):
+        return not _safe_eval_node(node.operand, metrics)
+
+    if isinstance(node, ast.BinOp):
+        op_func = _SAFE_BIN_OPS.get(type(node.op))
+        if op_func is None:
+            raise ValueError(f"Unsupported binary op: {type(node.op).__name__}")
+        return op_func(
+            _safe_eval_node(node.left, metrics),
+            _safe_eval_node(node.right, metrics),
+        )
+
+    if isinstance(node, ast.Call):
+        # Allow ONLY  metrics.get(key)  /  metrics.get(key, default)
+        if (
+            isinstance(node.func, ast.Attribute)
+            and node.func.attr == "get"
+            and isinstance(node.func.value, ast.Name)
+            and node.func.value.id == "metrics"
+            and not node.keywords
+        ):
+            args = [_safe_eval_node(a, metrics) for a in node.args]
+            return metrics.get(*args)
+        raise ValueError(f"Unsafe function call: {ast.dump(node)}")
+
+    if isinstance(node, ast.Subscript):
+        value = _safe_eval_node(node.value, metrics)
+        key = _safe_eval_node(node.slice, metrics)
+        return value[key]
+
+    raise ValueError(f"Unsafe AST node: {type(node).__name__}")
+
+
+def _build_safe_condition(condition_code: str) -> Callable[[Dict[str, Any]], bool]:
+    """Compile a condition string into a safe callable.
+
+    The condition_code is parsed once by :func:`ast.parse` and the resulting
+    AST is walked each time the returned callable is invoked.  No ``eval()``
+    or ``exec()`` is ever used.
+    """
+    tree = ast.parse(condition_code.strip(), mode="eval")
+    # Reject any node types we don't support (catches imports, exec, etc.)
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.Import, ast.ImportFrom, ast.Attribute)):
+            # Allow Attribute only if it's  metrics.get
+            if isinstance(node, ast.Attribute):
+                if (
+                    node.attr == "get"
+                    and isinstance(getattr(node, 'value', None), ast.Name)
+                    and node.value.id == "metrics"
+                ):
+                    continue
+            raise ValueError(f"Forbidden construct in condition: {ast.dump(node)}")
+
+    def _evaluator(metrics: Dict[str, Any]) -> bool:
+        return bool(_safe_eval_node(tree, metrics))
+
+    return _evaluator
 from pathlib import Path
 import sys
 import threading
@@ -255,11 +370,10 @@ class LiveTradingSafeguards:
     def _add_custom_rule(self, rule_config: Dict[str, Any]):
         """Add a custom safety rule"""
         try:
-            # Create condition function from string
+            # Create condition function from string — uses safe AST evaluator (no eval/exec)
             condition_code = rule_config.get("condition_code", "")
             if condition_code:
-                # This is a simplified implementation - in production you'd want proper sandboxing
-                condition_func = eval(f"lambda metrics: {condition_code}")
+                condition_func = _build_safe_condition(condition_code)
             else:
                 condition_func = lambda metrics: False
 

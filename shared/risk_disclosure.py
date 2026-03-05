@@ -567,6 +567,9 @@ I, {client_id}, hereby acknowledge that:
 
         return True
 
+# Module-level instance for import
+risk_disclosure_framework = RiskDisclosureFramework()
+
 if __name__ == "__main__":
     async def main():
         risk_disclosure_framework = RiskDisclosureFramework()

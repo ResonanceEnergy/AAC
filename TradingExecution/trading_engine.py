@@ -228,6 +228,13 @@ class TradingEngine:
         Returns:
             Order object if successful, None otherwise
         """
+        if not symbol or not isinstance(symbol, str):
+            raise ValueError(f"Invalid symbol: {symbol}")
+        if quantity <= 0:
+            raise ValueError(f"Invalid quantity: {quantity}")
+        if price is not None and price <= 0:
+            raise ValueError(f"Invalid price: {price}")
+
         # Validate inputs
         validation = validate_order(
             symbol=symbol,

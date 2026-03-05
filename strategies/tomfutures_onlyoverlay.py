@@ -1,5 +1,5 @@
 """
-TomFutures-onlyOverlayStrategy
+TomFuturesOnlyOverlayStrategy
 ==============================
 
 Exploit TOM via S&P futures; strong persistence documented in futures.

@@ -1,5 +1,5 @@
 """
-Cross-assetVrpBasketStrategy
+CrossAssetVrpBasketStrategy
 ============================
 
 Diversify variance selling into commodities/FX/bonds where VRP is significant.

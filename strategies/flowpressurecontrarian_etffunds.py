@@ -1,5 +1,5 @@
 """
-FlowPressureContrarian(etfFunds)Strategy
+FlowPressureContrarianEtfFundsStrategy
 ========================================
 
 Short names with self-inflated returns from flow-chasing; expect reversion.

@@ -77,20 +77,25 @@ class PredictiveMaintenanceEngine:
 
         try:
             for component, config in self.monitored_components.items():
-                # Simulate AI prediction (placeholder)
-                failure_probability = np.random.random()
+                # Heuristic prediction based on component thresholds
+                # Uses configured failure_probability as baseline risk
+                base_risk = config["failure_probability"]
+                # Apply time-decay factor — longer uptime increases risk
+                uptime_hours = (datetime.now() - config.get('last_restart', datetime.now())).total_seconds() / 3600 if isinstance(config.get('last_restart'), datetime) else 1.0
+                failure_probability = min(base_risk * (1 + uptime_hours / 100), 1.0)
 
-                if failure_probability < config["failure_probability"] * 2:  # Increased threshold for demo
+                if failure_probability > config["failure_probability"]:
+                    hours_to_failure = max(1.0, 24.0 * (1 - failure_probability))
                     prediction = {
                         "component": component,
-                        "probability": failure_probability,
-                        "predicted_failure_time": datetime.now() + timedelta(hours=np.random.uniform(1, 24)),
-                        "confidence": np.random.uniform(0.7, 0.95),
+                        "probability": round(failure_probability, 4),
+                        "predicted_failure_time": datetime.now() + timedelta(hours=hours_to_failure),
+                        "confidence": round(min(0.5 + failure_probability * 0.4, 0.95), 3),
                         "recommended_action": self._get_recommended_action(component, failure_probability),
                         "metadata": {
                             "prediction_timestamp": datetime.now().isoformat(),
-                            "model_version": "v1.0",
-                            "features_used": ["latency", "error_rate", "throughput", "resource_usage"],
+                            "model_version": "v1.1-heuristic",
+                            "features_used": ["uptime", "base_risk", "threshold"],
                         }
                     }
                     predictions.append(prediction)

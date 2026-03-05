@@ -734,6 +734,22 @@ def get_monitoring_manager() -> MonitoringService:
     return get_monitoring_service()
 
 
+def get_health_checker() -> 'HealthChecker':
+    """Get the singleton HealthChecker instance from the monitoring service"""
+    service = get_monitoring_service()
+    if service.health_checker is None:
+        raise NotImplementedError("Health checker not configured")
+    return service.health_checker
+
+
+def get_alert_manager() -> 'AlertManager':
+    """Get the singleton AlertManager instance from the monitoring service"""
+    service = get_monitoring_service()
+    if service.alert_manager is None:
+        raise NotImplementedError("Alert manager not configured")
+    return service.alert_manager
+
+
 async def health_check() -> Dict:
     """Quick health check endpoint"""
     service = get_monitoring_service()

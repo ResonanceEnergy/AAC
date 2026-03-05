@@ -1,5 +1,5 @@
 """
-FomcCycle&PreAnnouncementDriftStrategy
+FomcCycleAndPreAnnouncementDriftStrategy
 ======================================
 
 Harvest pre-FOMC equity premium with regime filter and tight risk.

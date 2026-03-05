@@ -303,8 +303,8 @@ class MarketDataAggregator:
                             try:
                                 funding_rate = await exchange.fetch_funding_rate(symbol)
                                 self._update_market_data(symbol, 'funding', funding_rate)
-                            except:
-                                pass
+                            except Exception as e:
+                                logger.debug(f"Supplementary data error: {e}")
 
                 # Get open interest where available
                 if hasattr(exchange, 'fetch_open_interest'):
@@ -312,8 +312,8 @@ class MarketDataAggregator:
                         try:
                             oi = await exchange.fetch_open_interest(symbol)
                             self._update_market_data(symbol, 'open_interest', oi)
-                        except:
-                            pass
+                        except Exception as e:
+                            logger.debug(f"Supplementary data error: {e}")
 
             except Exception as e:
                 logger.debug(f"Error collecting supplementary data from {exchange_name}: {e}")

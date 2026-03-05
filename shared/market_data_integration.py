@@ -179,11 +179,15 @@ class MarketDataIntegration:
                     # Generate arbitrage signals
                     signals = await strategy._generate_signals(context)
                     for signal in signals:
+                        qty = signal.get('quantity', 0)
+                        if qty <= 0:
+                            self.logger.warning(f"Skipping signal with invalid quantity: {qty}")
+                            continue
                         arbitrage_signal = ArbitrageSignal(
                             strategy_id=strategy_id,
                             symbol=symbol,
                             signal_type=signal.get('type', 'unknown'),
-                            quantity=signal.get('quantity', 0),
+                            quantity=qty,
                             price=signal.get('price', context.current_price.price or 0),
                             confidence=signal.get('confidence', 0.5),
                             timestamp=datetime.now(),
@@ -265,7 +269,7 @@ class MarketDataIntegration:
         """Get pending arbitrage signals"""
         return self.pending_signals.copy()
 
-    def clear_signals(self, signal_ids: List[str] = None):
+    def clear_signals(self, signal_ids: Optional[List[str]] = None) -> None:
         """Clear pending signals"""
         if signal_ids:
             self.pending_signals = [s for s in self.pending_signals if s.strategy_id not in signal_ids]

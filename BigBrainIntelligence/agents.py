@@ -628,6 +628,7 @@ class BridgeAnalyzerAgent(BaseResearchAgent):
 
     async def _analyze_bridge(self, bridge: Dict) -> Dict:
         """Analyze bridge for opportunities"""
+        self.logger.warning("Analysis returned empty result")
         return {}
 
 
@@ -826,6 +827,7 @@ class LiquidityTrackerAgent(BaseResearchAgent):
 
     async def _analyze_liquidity(self) -> Dict[str, Dict]:
         """Analyze liquidity across venues"""
+        self.logger.warning("Analysis returned empty result")
         return {}
 
 

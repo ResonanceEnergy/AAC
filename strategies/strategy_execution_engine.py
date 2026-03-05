@@ -61,7 +61,7 @@ from shared.config_loader import get_config
 from shared.audit_logger import get_audit_logger
 from shared.strategy_loader import get_strategy_loader, StrategyConfig, StrategyCategory
 from shared.market_data_feeds import get_market_data_feed
-from order_generation_system import get_order_generator, ValidatedOrder, OrderValidationResult
+from trading.order_generation_system import get_order_generator, ValidatedOrder, OrderValidationResult
 
 
 class StrategySignal(Enum):
@@ -80,7 +80,7 @@ class StrategyExecutionMode(Enum):
 
 
 @dataclass
-class StrategySignal:
+class StrategyTradeSignal:
     """Strategy-generated trading signal"""
     strategy_id: int
     strategy_name: str
@@ -102,7 +102,7 @@ class ExecutableStrategy:
     algorithm: Callable
     parameters: Dict[str, Any] = field(default_factory=dict)
     is_active: bool = True
-    last_signal: Optional[StrategySignal] = None
+    last_signal: Optional[StrategyTradeSignal] = None
     performance_metrics: Dict[str, Any] = field(default_factory=dict)
 
 
@@ -132,6 +132,10 @@ class StrategyExecutionEngine:
 
         # Performance tracking
         self.performance_tracker = StrategyPerformanceTracker()
+
+        # Configurable intervals (seconds)
+        self.poll_interval: float = 1.0
+        self.signal_check_interval: float = 5.0
 
         self.logger = logging.getLogger(__name__)
 
@@ -285,13 +289,13 @@ class StrategyExecutionEngine:
                 # Update performance metrics
                 await self.performance_tracker.update_metrics(self.executable_strategies)
 
-                await asyncio.sleep(1)  # Check every second
+                await asyncio.sleep(self.poll_interval)  # Check every second
 
             except asyncio.CancelledError:
                 break
             except Exception as e:
                 self.logger.error(f"Error in strategy monitoring: {e}")
-                await asyncio.sleep(5)
+                await asyncio.sleep(self.signal_check_interval)
 
     async def _process_signals(self):
         """Process trading signals and generate orders"""
@@ -324,9 +328,12 @@ class StrategyExecutionEngine:
             except Exception as e:
                 self.logger.error(f"Error processing signal: {e}")
 
-    async def _signal_to_order(self, signal: StrategySignal) -> Optional[Order]:
+    async def _signal_to_order(self, signal: StrategyTradeSignal) -> Optional[Order]:
         """Convert strategy signal to trading order"""
         try:
+            if signal.quantity <= 0:
+                raise ValueError("Signal quantity must be positive")
+
             order_type = OrderType.MARKET
             if signal.price:
                 order_type = OrderType.LIMIT
@@ -365,8 +372,7 @@ class StrategyExecutionEngine:
                     signal_type = StrategySignal.SELL if quantity > 0 else StrategySignal.BUY
                     close_quantity = abs(quantity)
 
-                    close_signal = StrategySignal(
-                        strategy_id=999,
+                    close_signal = StrategyTradeSignal(strategy_id=999,
                         strategy_name="Position Closure",
                         symbol=symbol,
                         signal=signal_type,
@@ -387,12 +393,14 @@ class StrategyExecutionEngine:
 
     async def _simulate_order_execution(self, order: Order):
         """Simulate order execution for testing"""
-        # Implementation for simulation mode
-        pass
+        self.logger.info(f"Simulating execution: {order}")
+        # Mark as filled with simulated fill price
+        fill_price = getattr(order, 'price', 100.0) * random.uniform(0.999, 1.001)
+        self.logger.info(f"Simulated fill at {fill_price:.4f}")
 
     # ===== STRATEGY ALGORITHMS =====
 
-    async def _etf_nav_arbitrage_algorithm(self) -> Optional[StrategySignal]:
+    async def _etf_nav_arbitrage_algorithm(self) -> Optional[StrategyTradeSignal]:
         """ETF NAV dislocation arbitrage algorithm"""
         try:
             # Get ETF and underlying prices
@@ -405,14 +413,13 @@ class StrategyExecutionEngine:
 
             # Simple NAV arbitrage logic (placeholder)
             # In real implementation, this would calculate fair value vs market price
-            nav_premium = random.uniform(-0.02, 0.02)  # Simulated premium/discount
+            nav_premium = random.uniform(-0.02, 0.02)  # SIMULATED PLACEHOLDER: replace with real NAV calculation
 
             if abs(nav_premium) > 0.005:  # 0.5% threshold
                 signal_type = StrategySignal.BUY if nav_premium < -0.005 else StrategySignal.SELL
                 confidence = min(abs(nav_premium) * 100, 0.8)
 
-                return StrategySignal(
-                    strategy_id=1,  # ETF-NAV Dislocation
+                return StrategyTradeSignal(strategy_id=1,  # ETF-NAV Dislocation
                     strategy_name="ETF-NAV Dislocation Harvesting",
                     symbol=symbol,
                     signal=signal_type,
@@ -427,7 +434,7 @@ class StrategyExecutionEngine:
             self.logger.error(f"Error in ETF NAV arbitrage: {e}")
             return None
 
-    async def _closing_auction_arbitrage_algorithm(self) -> Optional[StrategySignal]:
+    async def _closing_auction_arbitrage_algorithm(self) -> Optional[StrategyTradeSignal]:
         """Closing auction imbalance arbitrage algorithm"""
         try:
             # Monitor order book imbalance near market close
@@ -441,8 +448,7 @@ class StrategyExecutionEngine:
                 signal_type = StrategySignal.BUY if imbalance_ratio > 0.1 else StrategySignal.SELL
                 confidence = min(abs(imbalance_ratio) * 5, 0.9)
 
-                return StrategySignal(
-                    strategy_id=2,  # Index Reconstitution & Closing-Auction
+                return StrategyTradeSignal(strategy_id=2,  # Index Reconstitution & Closing-Auction
                     strategy_name="Closing-Auction Imbalance Micro-Alpha",
                     symbol=symbol,
                     signal=signal_type,
@@ -457,7 +463,7 @@ class StrategyExecutionEngine:
             self.logger.error(f"Error in closing auction arbitrage: {e}")
             return None
 
-    async def _variance_risk_premium_arbitrage_algorithm(self) -> Optional[StrategySignal]:
+    async def _variance_risk_premium_arbitrage_algorithm(self) -> Optional[StrategyTradeSignal]:
         """Variance Risk Premium arbitrage algorithm"""
         try:
             # VRP strategy: Sell variance when IV > RV
@@ -470,8 +476,7 @@ class StrategyExecutionEngine:
             if iv_rv_spread > 0.05:  # IV > RV, sell variance
                 confidence = min(iv_rv_spread * 10, 0.85)
 
-                return StrategySignal(
-                    strategy_id=6,  # Variance Risk Premium
+                return StrategyTradeSignal(strategy_id=6,  # Variance Risk Premium
                     strategy_name="Variance Risk Premium (Cross-Asset)",
                     symbol=f"{symbol}_VAR",  # Variance contract
                     signal=StrategySignal.SELL,
@@ -486,7 +491,7 @@ class StrategyExecutionEngine:
             self.logger.error(f"Error in VRP arbitrage: {e}")
             return None
 
-    async def _overnight_seasonality_arbitrage_algorithm(self) -> Optional[StrategySignal]:
+    async def _overnight_seasonality_arbitrage_algorithm(self) -> Optional[StrategyTradeSignal]:
         """Overnight seasonality arbitrage algorithm"""
         try:
             # Go long overnight, neutral intraday
@@ -503,8 +508,7 @@ class StrategyExecutionEngine:
                 expected_return = random.uniform(-0.01, 0.02)
 
                 if expected_return > 0.005:
-                    return StrategySignal(
-                        strategy_id=4,  # Overnight vs. Intraday Split
+                    return StrategyTradeSignal(strategy_id=4,  # Overnight vs. Intraday Split
                         strategy_name="Overnight vs. Intraday Split (News-Guided)",
                         symbol=symbol,
                         signal=StrategySignal.BUY,
@@ -513,8 +517,7 @@ class StrategyExecutionEngine:
                         metadata={"expected_return": expected_return, "period": "overnight"}
                     )
                 elif expected_return < -0.005:
-                    return StrategySignal(
-                        strategy_id=4,
+                    return StrategyTradeSignal(strategy_id=4,
                         strategy_name="Overnight vs. Intraday Split (News-Guided)",
                         symbol=symbol,
                         signal=StrategySignal.SELL,
@@ -529,7 +532,7 @@ class StrategyExecutionEngine:
             self.logger.error(f"Error in overnight seasonality arbitrage: {e}")
             return None
 
-    async def _turn_of_month_arbitrage_algorithm(self) -> Optional[StrategySignal]:
+    async def _turn_of_month_arbitrage_algorithm(self) -> Optional[StrategyTradeSignal]:
         """Turn of month arbitrage algorithm"""
         try:
             symbols = ["SPY", "QQQ"]
@@ -540,8 +543,7 @@ class StrategyExecutionEngine:
 
             # TOM effect: Last trading day to +3 days
             if 0 <= days_from_month_end <= 3:
-                return StrategySignal(
-                    strategy_id=10,  # Turn-of-the-Month Overlay
+                return StrategyTradeSignal(strategy_id=10,  # Turn-of-the-Month Overlay
                     strategy_name="Turn-of-the-Month Overlay",
                     symbol=symbol,
                     signal=StrategySignal.BUY,
@@ -556,7 +558,7 @@ class StrategyExecutionEngine:
             self.logger.error(f"Error in TOM arbitrage: {e}")
             return None
 
-    async def _earnings_arbitrage_algorithm(self) -> Optional[StrategySignal]:
+    async def _earnings_arbitrage_algorithm(self) -> Optional[StrategyTradeSignal]:
         """Earnings arbitrage algorithm"""
         try:
             # Monitor earnings IV crush
@@ -570,8 +572,7 @@ class StrategyExecutionEngine:
                 iv_crush_potential = random.uniform(0.1, 0.5)
 
                 if iv_crush_potential > 0.2:
-                    return StrategySignal(
-                        strategy_id=13,  # Earnings IV Run-Up / Crush
+                    return StrategyTradeSignal(strategy_id=13,  # Earnings IV Run-Up / Crush
                         strategy_name="Earnings IV Run-Up / Crush",
                         symbol=f"{symbol}_VAR",
                         signal=StrategySignal.SELL,
@@ -586,7 +587,7 @@ class StrategyExecutionEngine:
             self.logger.error(f"Error in earnings arbitrage: {e}")
             return None
 
-    async def _fomc_arbitrage_algorithm(self) -> Optional[StrategySignal]:
+    async def _fomc_arbitrage_algorithm(self) -> Optional[StrategyTradeSignal]:
         """FOMC arbitrage algorithm"""
         try:
             # FOMC cycle and pre-announcement drift
@@ -602,8 +603,7 @@ class StrategyExecutionEngine:
                 if uncertainty_level > 0.3:
                     # Short VIX into FOMC announcement
                     if "VIX" in symbol:
-                        return StrategySignal(
-                            strategy_id=5,  # FOMC Cycle & Pre-Announcement Drift
+                        return StrategyTradeSignal(strategy_id=5,  # FOMC Cycle & Pre-Announcement Drift
                             strategy_name="Pre-FOMC VIX/Equity Pair",
                             symbol=symbol,
                             signal=StrategySignal.SELL,
@@ -612,8 +612,7 @@ class StrategyExecutionEngine:
                             metadata={"days_to_fomc": days_to_fomc, "uncertainty": uncertainty_level}
                         )
                     else:  # Long equities
-                        return StrategySignal(
-                            strategy_id=5,
+                        return StrategyTradeSignal(strategy_id=5,
                             strategy_name="FOMC Cycle & Pre-Announcement Drift",
                             symbol=symbol,
                             signal=StrategySignal.BUY,
@@ -629,27 +628,27 @@ class StrategyExecutionEngine:
             return None
 
     # Generic fallback algorithms for other strategy types
-    async def _generic_etf_arbitrage_algorithm(self) -> Optional[StrategySignal]:
+    async def _generic_etf_arbitrage_algorithm(self) -> Optional[StrategyTradeSignal]:
         """Generic ETF arbitrage algorithm"""
         return await self._etf_nav_arbitrage_algorithm()
 
-    async def _generic_index_arbitrage_algorithm(self) -> Optional[StrategySignal]:
+    async def _generic_index_arbitrage_algorithm(self) -> Optional[StrategyTradeSignal]:
         """Generic index arbitrage algorithm"""
         return await self._closing_auction_arbitrage_algorithm()
 
-    async def _generic_volatility_arbitrage_algorithm(self) -> Optional[StrategySignal]:
+    async def _generic_volatility_arbitrage_algorithm(self) -> Optional[StrategyTradeSignal]:
         """Generic volatility arbitrage algorithm"""
         return await self._variance_risk_premium_arbitrage_algorithm()
 
-    async def _generic_event_arbitrage_algorithm(self) -> Optional[StrategySignal]:
+    async def _generic_event_arbitrage_algorithm(self) -> Optional[StrategyTradeSignal]:
         """Generic event-driven arbitrage algorithm"""
         return await self._earnings_arbitrage_algorithm()
 
-    async def _generic_seasonal_arbitrage_algorithm(self) -> Optional[StrategySignal]:
+    async def _generic_seasonal_arbitrage_algorithm(self) -> Optional[StrategyTradeSignal]:
         """Generic seasonal arbitrage algorithm"""
         return await self._overnight_seasonality_arbitrage_algorithm()
 
-    async def _flow_based_arbitrage_algorithm(self) -> Optional[StrategySignal]:
+    async def _flow_based_arbitrage_algorithm(self) -> Optional[StrategyTradeSignal]:
         """Flow-based arbitrage algorithm"""
         try:
             symbols = ["SPY", "QQQ"]
@@ -662,8 +661,7 @@ class StrategyExecutionEngine:
                 signal_type = StrategySignal.BUY if flow_pressure < -0.08 else StrategySignal.SELL
                 confidence = min(abs(flow_pressure) * 8, 0.8)
 
-                return StrategySignal(
-                    strategy_id=16,  # Flow-Pressure Contrarian
+                return StrategyTradeSignal(strategy_id=16,  # Flow-Pressure Contrarian
                     strategy_name="Flow-Pressure Contrarian (ETF/Funds)",
                     symbol=symbol,
                     signal=signal_type,
@@ -678,7 +676,7 @@ class StrategyExecutionEngine:
             self.logger.error(f"Error in flow-based arbitrage: {e}")
             return None
 
-    async def _market_making_arbitrage_algorithm(self) -> Optional[StrategySignal]:
+    async def _market_making_arbitrage_algorithm(self) -> Optional[StrategyTradeSignal]:
         """Market making arbitrage algorithm"""
         try:
             symbols = ["AAPL", "MSFT"]
@@ -692,8 +690,7 @@ class StrategyExecutionEngine:
                 signal_type = StrategySignal.BUY if order_imbalance > 0.1 else StrategySignal.SELL
                 confidence = min(abs(order_imbalance) * 5, 0.75)
 
-                return StrategySignal(
-                    strategy_id=23,  # Auction-Aware MM with RL
+                return StrategyTradeSignal(strategy_id=23,  # Auction-Aware MM with RL
                     strategy_name="Auction-Aware MM with RL",
                     symbol=symbol,
                     signal=signal_type,
@@ -708,7 +705,7 @@ class StrategyExecutionEngine:
             self.logger.error(f"Error in market making arbitrage: {e}")
             return None
 
-    async def _correlation_arbitrage_algorithm(self) -> Optional[StrategySignal]:
+    async def _correlation_arbitrage_algorithm(self) -> Optional[StrategyTradeSignal]:
         """Correlation arbitrage algorithm"""
         try:
             # Trade correlation skews
@@ -726,8 +723,7 @@ class StrategyExecutionEngine:
                 signal_type = StrategySignal.BUY if corr_skew > 0.15 else StrategySignal.SELL
                 confidence = min(abs(corr_skew) * 4, 0.85)
 
-                return StrategySignal(
-                    strategy_id=8,  # Active Dispersion
+                return StrategyTradeSignal(strategy_id=8,  # Active Dispersion
                     strategy_name="Active Dispersion (Correlation Risk Premium)",
                     symbol=f"{symbol}_DISP",  # Dispersion contract
                     signal=signal_type,
@@ -742,7 +738,7 @@ class StrategyExecutionEngine:
             self.logger.error(f"Error in correlation arbitrage: {e}")
             return None
 
-    async def _default_arbitrage_algorithm(self) -> Optional[StrategySignal]:
+    async def _default_arbitrage_algorithm(self) -> Optional[StrategyTradeSignal]:
         """Default arbitrage algorithm for unmapped strategies"""
         # Simple momentum-based signal as fallback
         try:
@@ -756,8 +752,7 @@ class StrategyExecutionEngine:
                 signal_type = StrategySignal.BUY if momentum > 0.008 else StrategySignal.SELL
                 confidence = min(abs(momentum) * 50, 0.7)
 
-                return StrategySignal(
-                    strategy_id=999,  # Default
+                return StrategyTradeSignal(strategy_id=999,  # Default
                     strategy_name="Default Momentum Strategy",
                     symbol=symbol,
                     signal=signal_type,
@@ -896,8 +891,7 @@ async def main():
             print("🧪 Testing Strategy Execution Engine...")
 
             # Create test signal
-            test_signal = StrategySignal(
-                strategy_id=1,
+            test_signal = StrategyTradeSignal(strategy_id=1,
                 strategy_name="Test ETF Strategy",
                 symbol="SPY",
                 signal="buy",

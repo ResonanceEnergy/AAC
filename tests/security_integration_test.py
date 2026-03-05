@@ -6,6 +6,7 @@ Comprehensive testing of all security components for production readiness.
 """
 
 import asyncio
+import os
 import sys
 from pathlib import Path
 
@@ -53,7 +54,7 @@ async def test_encryption_system():
     assert decrypted == test_data, "Encryption/decryption should be reversible"
 
     # Test password hashing
-    password = "secure_password_123!"
+    password = os.environ.get('TEST_PASSWORD', 'test_password_fixture_value!')
     hashed = advanced_encryption.hash_password(password)
     verified = advanced_encryption.verify_password(password, hashed)
     assert verified, "Password verification should succeed"

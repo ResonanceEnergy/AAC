@@ -427,10 +427,15 @@ class QuantumExecutionEngine:
         # In real implementation, use quantum algorithms for optimization
         # Simplified plan
         plan = {}
+        trade_qty = min(1000, opportunity.entry_signals.get('suggested_quantity', 1000))
+        target_price = opportunity.entry_signals.get("target_price", 0.0)
+        if target_price <= 0:
+            logger.warning(f"Invalid target_price {target_price} for {opportunity.opportunity_id}, skipping")
+            return plan
         for exchange in opportunity.exchanges:
             plan[exchange] = {
-                "quantity": 1000,
-                "price": opportunity.entry_signals.get("target_price", 100.0),
+                "quantity": trade_qty,
+                "price": target_price,
                 "time_horizon": opportunity.time_horizon.total_seconds()
             }
         return plan
@@ -438,9 +443,9 @@ class QuantumExecutionEngine:
     async def _execute_on_venue(self, venue: str, plan: Dict[str, Any]) -> bool:
         """Execute on specific venue"""
         # In real implementation, this would connect to exchange APIs
-        # Simplified success simulation
+        logger.info(f"Executing on {venue}: {plan}")
         await asyncio.sleep(0.001)  # Quantum-fast execution
-        return True
+        return True  # paper-mode only — always succeeds
 
 class QuantumRiskManager:
     """
@@ -449,7 +454,8 @@ class QuantumRiskManager:
     """
 
     def __init__(self):
-        pass
+        self.logger = logging.getLogger(type(self).__name__)
+        self.logger.info("QuantumRiskManager initialized")
 
     async def approve_opportunity(self, opportunity: ArbitrageOpportunity) -> bool:
         """Approve opportunity based on quantum risk assessment"""

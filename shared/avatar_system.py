@@ -7,7 +7,6 @@ Real-time avatar animation system synchronized with text-to-speech.
 Provides visual mouth movements and facial expressions for AZ responses.
 """
 
-import cv2
 import numpy as np
 import threading
 import time
@@ -16,8 +15,21 @@ from typing import Optional, Tuple, List
 from pathlib import Path
 import base64
 import io
-from PIL import Image
-import streamlit as st
+
+try:
+    import cv2
+except ImportError:
+    cv2 = None  # type: ignore[assignment]
+
+try:
+    from PIL import Image
+except ImportError:
+    Image = None  # type: ignore[assignment]
+
+try:
+    import streamlit as st
+except ImportError:
+    st = None  # type: ignore[assignment]
 
 class AACAvatarSystem:
     """

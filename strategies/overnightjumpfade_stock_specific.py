@@ -1,5 +1,5 @@
 """
-OvernightJumpFade(stock-specific)Strategy
+OvernightJumpFadeStockSpecificStrategy
 =========================================
 
 Systematically fade prior-night jump portfolios with short-term horizons.

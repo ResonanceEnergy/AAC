@@ -1,5 +1,5 @@
 """
-Tenor-matchedIvRvStrategy
+TenorMatchedIvRvStrategy
 =========================
 
 Align RV horizon to option tenor; sidestep common IV–RV pitfalls.
