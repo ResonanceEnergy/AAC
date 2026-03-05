@@ -6,6 +6,7 @@ Interactive Command Center with Real-Time Dashboard, Avatar Interactions, and Ex
 """
 
 import asyncio
+import logging
 import time
 import threading
 from datetime import datetime, timedelta
@@ -17,6 +18,8 @@ import os
 import platform
 import random
 
+logger = logging.getLogger(__name__)
+
 # Try to import curses, fallback to text-based interface if not available
 try:
     import curses
@@ -26,11 +29,10 @@ except ImportError:
     print("Warning: curses module not available. Using text-based interface.")
 
 # Add project root
-PROJECT_ROOT = Path(__file__).resolve().parent
-sys.path.insert(0, str(PROJECT_ROOT))
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
-from command_center import get_command_center, AACCommandCenter
-from avatar_system import get_avatar, initialize_avatars
+from core.command_center import get_command_center, AACCommandCenter
+from shared.avatar_system import get_avatar_manager
 from shared.config_loader import get_config
 
 class CommandCenterInterface:
@@ -61,10 +63,10 @@ class CommandCenterInterface:
         self.command_center = await get_command_center()
 
         # Initialize avatars
-        await initialize_avatars()
+        _mgr = get_avatar_manager()
         self.avatars = {
-            "supreme": await get_avatar("supreme"),
-            "helix": await get_avatar("helix")
+            "supreme": _mgr.get_avatar("supreme"),
+            "helix": _mgr.get_avatar("helix")
         }
 
         # Start background tasks
@@ -373,8 +375,8 @@ class CommandCenterInterface:
                 elif self.current_view == "executive" and cmd in ['a', 'o', 'r', 'p']:
                     await self._handle_executive_command(cmd)
 
-                # Clear screen for next iteration
-                os.system('cls' if os.name == 'nt' else 'clear')
+                # Clear screen for next iteration (ANSI escape — no shell injection risk)
+                print("\033[2J\033[H", end="", flush=True)
 
             except Exception as e:
                 print(f"Interface error: {e}")
@@ -573,11 +575,18 @@ class CommandCenterInterface:
                     await asyncio.sleep(1)
                 elif cmd == '7':
                     print("\n🎯 Starting Agent Contest...")
-                    # TODO: Implement agent contest start
+                    logger.info("Agent contest feature not yet available")
+                    print("\u2139\ufe0f  Agent contest feature not yet available.")
                     await asyncio.sleep(1)
                 elif cmd == '8':
-                    print("\n🛑 EMERGENCY STOP - All operations halted!")
-                    # TODO: Implement emergency stop
+                    print("\n\U0001f6d1 EMERGENCY STOP - All operations halted!")
+                    try:
+                        self.running = False
+                        if self.command_center:
+                            await self.command_center.shutdown_command_center()
+                        logger.warning("Emergency stop executed via command center interface")
+                    except Exception as e:
+                        logger.error(f"Emergency stop error: {e}")
                     await asyncio.sleep(2)
                 else:
                     print("❌ Invalid command. Please select 0-8.")
@@ -857,7 +866,8 @@ class CommandCenterInterface:
             mode = status.get("mode", "unknown").replace("_", " ").title()
 
             return f"{operational} | Mode: {mode}"
-        except:
+        except Exception as e:
+            logging.getLogger(__name__).debug(f"Status summary error: {e}")
             return "Status: Unknown"
 
     async def _shutdown(self):

@@ -181,7 +181,10 @@ class BaseMarketDataConnector(ABC):
             return 0.0
 
         error_rate = self._quality_metrics['errors'] / self._quality_metrics['messages_received']
-        avg_latency = sum(self._quality_metrics['latency_ms'][-100:]) / len(self._quality_metrics['latency_ms'][-100:]) if self._quality_metrics['latency_ms'] else 1000
+        latency_list = self._quality_metrics['latency_ms'][-100:]
+        if not latency_list:
+            return 0.0
+        avg_latency = sum(latency_list) / len(latency_list)
 
         # Quality score: lower error rate and latency = higher score
         error_score = max(0, 1 - error_rate * 10)  # Penalize high error rates
@@ -197,10 +200,12 @@ class RESTConnector(BaseMarketDataConnector):
         super().__init__(name, source_type)
         self.base_url = base_url
         self.session: Optional[aiohttp.ClientSession] = None
-        self.rate_limit_delay = 1.0
+        self.rate_limit_delay = float(os.environ.get('API_RATE_LIMIT_DELAY', '1.0'))
 
     async def connect(self) -> bool:
         try:
+            if self.session and not self.session.closed:
+                await self.session.close()
             self.session = aiohttp.ClientSession()
             self.status = FeedStatus.CONNECTED
             self.logger.info(f"Connected to {self.name} REST API")
@@ -214,6 +219,7 @@ class RESTConnector(BaseMarketDataConnector):
         if self.session:
             await self.session.close()
         self.status = FeedStatus.DISCONNECTED
+        self.logger.info(f"Disconnected from {self.name}")
 
     @abstractmethod
     async def subscribe_symbols(self, symbols: List[str]) -> None:
@@ -227,14 +233,17 @@ class WebSocketConnector(BaseMarketDataConnector):
     def __init__(self, name: str, source_type: DataSourceType, ws_url: str):
         super().__init__(name, source_type)
         self.ws_url = ws_url
-        self.websocket: Optional[websockets.WebSocketServerProtocol] = None
+        self.websocket: Optional[websockets.WebSocketClientProtocol] = None
         self.subscribed_symbols: Set[str] = set()
         self.reconnect_attempts = 0
         self.max_reconnect_attempts = 10
+        self.reconnect_delay = float(os.environ.get('WS_RECONNECT_DELAY', '5.0'))
 
     async def connect(self) -> bool:
         try:
             self.status = FeedStatus.CONNECTING
+            if self.websocket and not self.websocket.closed:
+                await self.websocket.close()
             self.websocket = await websockets.connect(self.ws_url)
             self.status = FeedStatus.CONNECTED
             self.reconnect_attempts = 0
@@ -277,7 +286,7 @@ class WebSocketConnector(BaseMarketDataConnector):
         self.reconnect_attempts += 1
         self.status = FeedStatus.RECONNECTING
 
-        delay = min(2 ** self.reconnect_attempts, 60)  # Exponential backoff
+        delay = min(self.reconnect_delay * (2 ** self.reconnect_attempts), 60)  # Exponential backoff
         await asyncio.sleep(delay)
 
         if await self.connect():
@@ -308,6 +317,8 @@ class NYSEConnector(WebSocketConnector):
     async def connect(self) -> bool:
         """Connect using REST API polling since WebSocket may not be available"""
         try:
+            if self.session and not self.session.closed:
+                return True  # Already connected
             self.status = FeedStatus.CONNECTING
             if self.use_fallback:
                 self.logger.info("Using Yahoo Finance fallback for NYSE data (no API key)")
@@ -1497,13 +1508,25 @@ class NAVCalculator:
             premium_discount=premium_discount,
             holdings=holdings,
             total_assets=total_value,
-            shares_outstanding=1000000,  # Placeholder
+            shares_outstanding=self._get_shares_outstanding(etf_symbol),  # Dynamic lookup
             timestamp=datetime.now(),
             source="calculated"
         )
 
         self.nav_cache[etf_symbol] = nav_data
         return nav_data
+
+    def _get_shares_outstanding(self, etf_symbol: str) -> int:
+        """Get shares outstanding for an ETF. Returns default if not available."""
+        # Known ETF shares outstanding (approximate, in millions)
+        known_shares = {
+            'SPY': 917_000_000,
+            'QQQ': 420_000_000,
+            'IWM': 280_000_000,
+            'DIA': 80_000_000,
+            'VTI': 1_200_000_000,
+        }
+        return known_shares.get(etf_symbol, 1_000_000)
 
     async def _get_market_price(self, symbol: str) -> Optional[float]:
         """Get current market price for symbol"""

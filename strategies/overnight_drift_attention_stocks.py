@@ -99,8 +99,13 @@ class OvernightDriftAttentionStocksStrategy(BaseArbitrageStrategy):
 
     async def _handle_sentiment_data(self, data: Dict[str, Any]):
         """Handle incoming social sentiment data."""
-        # Update attention scores based on sentiment
-        pass
+        symbol = data.get('symbol')
+        sentiment_score = data.get('sentiment_score', 0)
+        if symbol and symbol in self.attention_scores:
+            # Blend sentiment with existing attention score (30% weight)
+            self.attention_scores[symbol] = (
+                self.attention_scores.get(symbol, 0) * 0.7 + sentiment_score * 0.3
+            )
 
     async def _handle_market_data(self, data: Dict[str, Any]):
         """Handle incoming market data."""

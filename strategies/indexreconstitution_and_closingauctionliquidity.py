@@ -1,5 +1,5 @@
 """
-IndexReconstitution&ClosingAuctionLiquidityStrategy
+IndexReconstitutionAndClosingAuctionLiquidityStrategy
 ===================================================
 
 Predict adds/deletes; provide liquidity into the close to monetize execution frictions.

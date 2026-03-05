@@ -1,5 +1,5 @@
 """
-Bubble-watchFlowContrarian(etfs)Strategy
+BubbleWatchFlowContrarianEtfsStrategy
 ========================================
 
 Short/underweight names where self-inflated flows flag impending unwind.

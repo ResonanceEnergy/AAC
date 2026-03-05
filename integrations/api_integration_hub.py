@@ -131,7 +131,8 @@ class APIClient:
                     if response.status == 200:
                         try:
                             data = await response.json()
-                        except:
+                        except (json.JSONDecodeError, ValueError) as e:
+                            self.logger.warning(f"JSON parse error: {e}")
                             data = await response.text()
 
                         # Audit successful API call

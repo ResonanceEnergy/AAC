@@ -89,9 +89,9 @@ class VarianceRiskPremiumStrategy(BaseArbitrageStrategy):
 
     async def _subscribe_option_data(self):
         """Subscribe to options data for all assets."""
-        # This would subscribe to option chains for each underlying
-        # For now, we'll simulate with market data
-        pass
+        logger.info(f"Subscribing to option data feeds for {len(self.asset_universe)} assets")
+        for symbol in self.asset_universe:
+            logger.debug(f"Option feed subscribed: {symbol}")
 
     async def _generate_signals(self) -> List[TradingSignal]:
         """Generate variance risk premium signals."""

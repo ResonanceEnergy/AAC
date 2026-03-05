@@ -265,7 +265,12 @@ class WorldwideArbitrageStrategy:
         # 3. Monitor execution
         # 4. Handle transaction costs and fees
 
-        return True  # Placeholder success
+        # Log the trade attempt — actual execution requires exchange integration
+        logger.info(f"Arbitrage trade logged for {opportunity.symbol} "
+                    f"| Spread: {opportunity.spread_pct:.2%} "
+                    f"| Buy: {opportunity.buy_exchange} @ ${opportunity.buy_price:.4f} "
+                    f"| Sell: {opportunity.sell_exchange} @ ${opportunity.sell_price:.4f}")
+        return True  # Success — trade logged (paper mode)
 
     async def run_strategy(self):
         """Main strategy execution loop"""

@@ -1,5 +1,5 @@
 """
-FlowPressure&RealEconomyFeedback(creditEquity)Strategy
+FlowPressureAndRealEconomyFeedbackCreditEquityStrategy
 ======================================================
 
 Exploit liquidity-driven selling that raises financing costs; contrarian entries.

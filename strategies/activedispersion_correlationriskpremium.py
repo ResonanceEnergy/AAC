@@ -1,5 +1,5 @@
 """
-ActiveDispersion(correlationRiskPremium)Strategy
+ActiveDispersionCorrelationRiskPremiumStrategy
 ================================================
 
 Long single-name vol vs short index vol only when IC >> RC; de-risk on compression.

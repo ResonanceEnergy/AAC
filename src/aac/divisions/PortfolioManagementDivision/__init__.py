@@ -1,6 +1,6 @@
 # Portfolio Management Division - AAC Integration
 # Advanced portfolio optimization and asset allocation
-# Date: 2026-02-04 | Authority: AZ PRIME Command
+# Date: 2026-02-04 | Authority: BARREN WUFFET Command
 
 from shared.super_agent_framework import SuperAgent
 from shared.communication import CommunicationFramework
@@ -160,7 +160,7 @@ async def get_portfolio_management_division():
     """Factory function for Portfolio Management Division"""
     division = {
         'name': 'Portfolio Management Division',
-        'authority': 'AZ PRIME',
+        'authority': 'BARREN WUFFET',
         'agents': [
             PortfolioOptimizationAgent(),
             RiskParityAgent(),

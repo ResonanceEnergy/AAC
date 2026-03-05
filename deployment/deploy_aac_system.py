@@ -22,16 +22,16 @@ from datetime import datetime
 import json
 
 # Add project root to path
-project_root = Path(__file__).parent
+project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 from shared.communication import CommunicationFramework
 from shared.audit_logger import AuditLogger
 from shared.data_sources import DataAggregator
-from market_data_aggregator import get_market_data_aggregator, MarketDataAggregator
-from strategy_integration_system import get_strategy_integration_system, StrategyIntegrationSystem
-from orchestrator import AAC2100Orchestrator
-from command_center import AACCommandCenter
+from integrations.market_data_aggregator import get_market_data_aggregator, MarketDataAggregator
+from strategies.strategy_integration_system import get_strategy_integration_system, StrategyIntegrationSystem
+from core.orchestrator import AAC2100Orchestrator
+from core.command_center import AACCommandCenter
 
 # Configure logging
 logging.basicConfig(

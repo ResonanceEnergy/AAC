@@ -60,8 +60,12 @@ class ProductionDeploymentSystem:
 
         # Load production configuration
         config_path = PROJECT_ROOT / "config" / "production_market_data.yaml"
-        with open(config_path, 'r') as f:
-            self.prod_config = yaml.safe_load(f)
+        if config_path.exists():
+            with open(config_path, 'r') as f:
+                self.prod_config = yaml.safe_load(f) or {}
+        else:
+            self.logger.warning(f"Production config not found at {config_path}, using defaults")
+            self.prod_config = {'exchanges': [], 'risk_limits': {}, 'deployment': {}}
 
         # Deployment phases
         self.deployment_phases = self._initialize_phases()

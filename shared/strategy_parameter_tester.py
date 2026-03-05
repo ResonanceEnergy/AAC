@@ -35,6 +35,8 @@ from shared.config_loader import get_config, get_project_path
 from shared.audit_logger import get_audit_logger
 from shared.paper_trading import paper_trading_engine, initialize_paper_trading
 
+logger = logging.getLogger(__name__)
+
 
 @dataclass
 class ParameterRange:
@@ -565,7 +567,8 @@ class StrategyParameterTester:
                     sensitivity[param] = f"{strength} {direction} correlation ({correlation:.2f})"
                 else:
                     sensitivity[param] = "weak correlation"
-            except:
+            except Exception as e:
+                logger.error(f"Sensitivity analysis failed: {e}")
                 sensitivity[param] = "analysis failed"
 
         return sensitivity

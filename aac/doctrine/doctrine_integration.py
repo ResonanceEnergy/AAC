@@ -30,7 +30,7 @@ from aac.doctrine.doctrine_engine import (
     DoctrineApplicationService,
     Department,
     ComplianceState,
-    AZPrimeState,
+    BarrenWuffetState,
     ActionType,
     DoctrineViolation,
     DOCTRINE_PACKS,
@@ -259,7 +259,7 @@ class SharedInfraDoctrineAdapter:
         """Collect Pack 2 & 4 metrics from SharedInfra."""
         try:
             # Import here to avoid circular imports
-            from SharedInfrastructure.incident_manager import get_incident_manager
+            from shared.incident_manager import get_incident_manager
             
             manager = await get_incident_manager()
             return await manager.get_doctrine_metrics()
@@ -315,7 +315,7 @@ class DoctrineOrchestrator:
     - Collect metrics from all departments
     - Run compliance checks against all 8 doctrine packs
     - Execute automated actions when violations occur
-    - Manage AZ Prime state transitions
+    - Manage BARREN WUFFET state transitions
     - Coordinate cross-department responses
     """
     
@@ -334,7 +334,7 @@ class DoctrineOrchestrator:
         }
         
         # State
-        self.current_state = AZPrimeState.NORMAL
+        self.current_state = BarrenWuffetState.NORMAL
         self.last_check_time: Optional[datetime] = None
         self.check_interval = timedelta(seconds=30)
         self.running = False
@@ -421,16 +421,16 @@ class DoctrineOrchestrator:
         report = await self.doctrine_service.run_compliance_check(metrics)
         
         # Update state
-        self.current_state = report.az_prime_state
+        self.current_state = report.barren_wuffet_state
         self.last_check_time = datetime.now()
         
         # Log results
-        logger.info(f"Compliance: {report.compliance_score}% | State: {report.az_prime_state.value} | Violations: {report.violations}")
+        logger.info(f"Compliance: {report.compliance_score}% | State: {report.barren_wuffet_state.value} | Violations: {report.violations}")
         
         return {
             "timestamp": datetime.now().isoformat(),
             "compliance_score": report.compliance_score,
-            "az_prime_state": report.az_prime_state.value,
+            "barren_wuffet_state": report.barren_wuffet_state.value,
             "compliant": report.compliant,
             "warnings": report.warnings,
             "violations": report.violations,
@@ -476,7 +476,7 @@ class DoctrineOrchestrator:
     def get_system_status(self) -> Dict[str, Any]:
         """Get overall system doctrine status."""
         return {
-            "az_prime_state": self.current_state.value,
+            "barren_wuffet_state": self.current_state.value,
             "last_check": self.last_check_time.isoformat() if self.last_check_time else None,
             "check_interval_seconds": self.check_interval.total_seconds(),
             "monitoring_active": self.running,
@@ -517,7 +517,7 @@ class DoctrineIntegration:
             status = self.orchestrator.get_system_status()
             return {
                 "status": "healthy" if status.get("monitoring_active", False) else "inactive",
-                "az_prime_state": status.get("az_prime_state", "unknown"),
+                "barren_wuffet_state": status.get("barren_wuffet_state", "unknown"),
                 "monitoring_active": status.get("monitoring_active", False),
                 "departments_connected": len(status.get("departments", {})),
                 "last_check": status.get("last_check")
@@ -580,7 +580,7 @@ async def main():
 
     print(f"\n[MONITOR] INTEGRATION RESULTS")
     print(f"   Timestamp: {result['timestamp']}")
-    print(f"   AZ Prime State: {result['az_prime_state']}")
+    print(f"   BARREN WUFFET State: {result['barren_wuffet_state']}")
     print(f"   Compliance Score: {result['compliance_score']}%")
     print(f"   Metrics Checked: {result['metrics_checked']}")
     print(f"   ✅ Compliant: {result['compliant']}")

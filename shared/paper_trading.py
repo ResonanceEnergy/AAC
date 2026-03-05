@@ -24,6 +24,8 @@ from shared.config_loader import get_config, get_project_path
 from shared.audit_logger import get_audit_logger
 from shared.market_data_integration import market_data_integration
 
+logger = logging.getLogger(__name__)
+
 
 class OrderType(Enum):
     """Paper trading order types"""
@@ -158,8 +160,8 @@ class PaperTradingEngine:
                             if isinstance(value, str) and 'T' in value:
                                 try:
                                     obj[key] = datetime.fromisoformat(value)
-                                except:
-                                    pass
+                                except Exception as e:
+                                    logger.warning(f"Paper trading init issue: {e}")
                             elif isinstance(value, (dict, list)):
                                 convert_datetimes(value)
                     elif isinstance(obj, list):

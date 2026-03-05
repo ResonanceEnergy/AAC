@@ -24,7 +24,7 @@ from typing import Dict, List, Any, Set
 from datetime import datetime
 
 # Import our mapping system
-from strategy_agent_master_mapping import get_strategy_agent_mapper, validate_all_assignments
+from strategies.strategy_agent_master_mapping import get_strategy_agent_mapper, validate_all_assignments
 
 class AACAgentConsolidation:
     """

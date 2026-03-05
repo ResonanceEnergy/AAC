@@ -5,7 +5,10 @@ AAC 2100 Missing Components Audit
 
 from shared.config_loader import get_config
 import os
+import logging
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 def audit_missing_components():
     config = get_config()
@@ -19,7 +22,8 @@ def audit_missing_components():
     try:
         paper_trading = config.trading.paper_trading if hasattr(config, 'trading') and hasattr(config.trading, 'paper_trading') else True
         dry_run = config.trading.dry_run if hasattr(config, 'trading') and hasattr(config.trading, 'dry_run') else False
-    except:
+    except (AttributeError, TypeError) as e:
+        logger.warning(f"Config access issue: {e}")
         paper_trading = True
         dry_run = False
     print(f'  Paper Trading: {paper_trading}')
@@ -46,7 +50,8 @@ def audit_missing_components():
     print('🗄️ DATABASE:')
     try:
         db_path = config.database.path if hasattr(config, 'database') and hasattr(config.database, 'path') else 'data/accounting.db'
-    except:
+    except (AttributeError, TypeError) as e:
+        logger.warning(f"Config access issue: {e}")
         db_path = 'data/accounting.db'
     print(f'  Path: {db_path}')
     print('  ✅ SQLite configured (consider PostgreSQL for production)')
@@ -56,7 +61,8 @@ def audit_missing_components():
     print('📡 EXTERNAL MONITORING:')
     try:
         prometheus_port = config.monitoring.prometheus_port if hasattr(config, 'monitoring') and hasattr(config.monitoring, 'prometheus_port') else None
-    except:
+    except (AttributeError, TypeError) as e:
+        logger.warning(f"Config access issue: {e}")
         prometheus_port = None
     print(f'  Prometheus: {"[CROSS] NOT CONFIGURED" if not prometheus_port else "✅ CONFIGURED"}')
     print('  Grafana: [CROSS] NOT CONFIGURED (config exists but not integrated)')
@@ -69,7 +75,8 @@ def audit_missing_components():
     try:
         telegram_enabled = config.notifications.telegram_enabled()
         slack_enabled = config.notifications.slack_enabled()
-    except:
+    except (AttributeError, TypeError) as e:
+        logger.warning(f"Config access issue: {e}")
         # Fallback check
         telegram_enabled = bool(os.getenv('TELEGRAM_BOT_TOKEN') and os.getenv('TELEGRAM_CHAT_ID'))
         slack_enabled = bool(os.getenv('SLACK_WEBHOOK_URL'))

@@ -1,10 +1,21 @@
-# Accelerated Arbitrage Corp (AAC) — NCC Trading System
+# Accelerated Arbitrage Corp (AAC) — BARREN WUFFET Trading System
 
 [![CI](https://github.com/ResonanceEnergy/AAC/actions/workflows/ci.yml/badge.svg)](https://github.com/ResonanceEnergy/AAC/actions/workflows/ci.yml)
-[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/)
+[![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/)
 [![License: Proprietary](https://img.shields.io/badge/license-proprietary-red.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/version-2.7.0-green.svg)](CHANGELOG.md)
 
-Enterprise-grade algorithmic trading platform with 69 arbitrage strategies, ML/AI signal generation, multi-exchange execution, and full audit trail.
+**BARREN WUFFET** (codename: AZ SUPREME) — Enterprise-grade AI-powered algorithmic trading platform with 50+ arbitrage strategies, 93 OpenClaw skills, ML/AI signal generation, multi-exchange execution, Telegram bot integration, and full audit trail.
+
+> *"Every byte of information is an edge. Store it. Search it. Trade on it."* — BARREN WUFFET
+
+### Key Features
+- **35 OpenClaw Skills** — Market intelligence, trading, crypto/DeFi, banking, wealth building, advanced analysis
+- **Telegram Bot** — `@barrenwuffet069bot` with NL intent detection and 7-department routing
+- **Doctrine Engine** — 4-state machine (NORMAL → CAUTION → SAFE_MODE → HALT)
+- **7 Departments** — Executive, BigBrainIntelligence, TradingExecution, CryptoIntelligence, CentralAccounting, SharedInfrastructure, Jonny Bravo Division
+- **Scam Detection** — FrankenClaw patterns, token legitimacy checks
+- **Deep Dive Research** — 1000+ lines of curated OpenClaw intelligence in doctrine memory
 
 ---
 
@@ -14,7 +25,7 @@ Enterprise-grade algorithmic trading platform with 69 arbitrage strategies, ML/A
 # 1. Clone & enter repo
 git clone https://github.com/ResonanceEnergy/AAC.git && cd AAC
 
-# 2. Create virtual environment (Python 3.11+)
+# 2. Create virtual environment (Python 3.9+)
 python -m venv .venv
 source .venv/bin/activate          # macOS / Linux
 # .venv\Scripts\activate           # Windows
@@ -72,7 +83,7 @@ AAC/
 
 ---
 
-## Strategy Library (69 strategies)
+## Strategy Library (50+ strategies)
 
 Strategy categories under `src/aac/strategies/`:
 
@@ -171,4 +182,21 @@ mypy src/aac/
 
 ---
 
-*AAC is a proprietary system. Unauthorized use or distribution is prohibited.*
+## Risk Disclosure
+
+> **IMPORTANT**: This software is for educational and research purposes.
+> Trading cryptocurrencies, equities, options, and prediction markets involves
+> substantial risk of loss and is not suitable for every investor.
+>
+> - Past performance does not guarantee future results.
+> - Paper trading results may not reflect real market conditions.
+> - Never trade with funds you cannot afford to lose.
+> - AI-generated signals are not financial advice.
+> - Conduct your own due diligence before making any investment decisions.
+>
+> The authors and contributors accept no liability for financial losses
+> incurred through the use of this software.
+
+---
+
+*AAC / BARREN WUFFET is a proprietary system. Unauthorized use or distribution is prohibited.*

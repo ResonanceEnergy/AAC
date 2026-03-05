@@ -1,5 +1,5 @@
 """
-OvernightVs.IntradaySplit(newsGuided)Strategy
+OvernightVsIntradaySplitNewsGuidedStrategy
 =============================================
 
 Go long overnight, neutral intraday with NLP topic filters to pick names.

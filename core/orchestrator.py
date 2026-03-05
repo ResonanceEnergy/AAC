@@ -21,8 +21,7 @@ from collections import deque
 import numpy as np
 import sys
 
-PROJECT_ROOT = Path(__file__).resolve().parent
-sys.path.insert(0, str(PROJECT_ROOT))
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 from shared.config_loader import get_config, get_project_path
 from shared.data_sources import DataAggregator, MarketTick
@@ -812,7 +811,7 @@ class AAC2100Orchestrator:
         
         # Stop strategy execution engine
         if self.strategy_execution_engine:
-            await self.strategy_execution_engine.stop_execution()
+            await self.strategy_execution_engine.shutdown()
             self.logger.info("Strategy execution engine stopped")
         
         # Stop health server
@@ -1004,6 +1003,8 @@ class AAC2100Orchestrator:
             direction=direction,
             strength=finding.confidence,
             confidence=finding.confidence,
+            quantum_advantage=0.0,
+            cross_temporal_score=0.0,
             expires_at=finding.expires_at,
             metadata=finding.data,
         )
@@ -1203,7 +1204,7 @@ class AAC2100Orchestrator:
         """
         try:
             # Try to get balance from database first
-            balances = self.db.get_account_balances(account_id=1)
+            balances = self.db.get_balances(account_id=1)
             if balances:
                 total = sum(
                     b.get('free_balance', 0) + b.get('locked_balance', 0)
@@ -1244,7 +1245,7 @@ class AAC2100Orchestrator:
         
         # Start strategy execution engine
         if self.strategy_execution_engine:
-            await self.strategy_execution_engine.start_execution()
+            await self.strategy_execution_engine.initialize()
             self.logger.info("Strategy execution engine started - real arbitrage algorithms active")
         
         # Initial position reconciliation on startup
@@ -1677,41 +1678,49 @@ class AAC2100Orchestrator:
 
 
 # CLI
-if __name__ == "__main__":
+async def _orchestrator_main():
+    """Module-level async entry point for orchestrator."""
     import argparse
-    
+
     parser = argparse.ArgumentParser(description="AAC 2100 Quantum-Enhanced Orchestrator")
     parser.add_argument("--dry-run", action="store_true", help="Dry run mode")
     parser.add_argument("--status", action="store_true", help="Show status only")
+    parser.add_argument("--paper", action="store_true", help="Paper trading mode")
     parser.add_argument("--disable-quantum", action="store_true", help="Disable quantum features")
     parser.add_argument("--disable-ai", action="store_true", help="Disable AI autonomy")
     parser.add_argument("--disable-temporal", action="store_true", help="Disable cross-temporal operations")
     args = parser.parse_args()
-    
-    async def main():
-        orchestrator = AAC2100Orchestrator(
-            enable_quantum=not args.disable_quantum,
-            enable_ai_autonomy=not args.disable_ai,
-            enable_cross_temporal=not args.disable_temporal,
-        )
-        
-        if args.status:
-            await orchestrator.initialize()
-            status = orchestrator.get_status()
-            print(json.dumps(status, indent=2, default=str))
-            await orchestrator.shutdown()
-        else:
-            print("=== AAC 2100 Quantum-Enhanced Orchestrator Starting ===")
-            print("Quantum Advantage: ENABLED" if not args.disable_quantum else "DISABLED")
-            print("AI Autonomy: ENABLED" if not args.disable_ai else "DISABLED")
-            print("Cross-Temporal Ops: ENABLED" if not args.disable_temporal else "DISABLED")
-            print("Press Ctrl+C to stop")
-            await orchestrator.run()
-    
+
+    orchestrator = AAC2100Orchestrator(
+        enable_quantum=not args.disable_quantum,
+        enable_ai_autonomy=not args.disable_ai,
+        enable_cross_temporal=not args.disable_temporal,
+    )
+
+    if args.status:
+        await orchestrator.initialize()
+        status = orchestrator.get_status()
+        print(json.dumps(status, indent=2, default=str))
+        await orchestrator.shutdown()
+    else:
+        print("=== AAC 2100 Quantum-Enhanced Orchestrator Starting ===")
+        print("Quantum Advantage: ENABLED" if not args.disable_quantum else "DISABLED")
+        print("AI Autonomy: ENABLED" if not args.disable_ai else "DISABLED")
+        print("Cross-Temporal Ops: ENABLED" if not args.disable_temporal else "DISABLED")
+        print("Press Ctrl+C to stop")
+        await orchestrator.run()
+
+
+def main():
+    """Sync entry point for console_scripts / setuptools."""
     try:
-        asyncio.run(main())
+        asyncio.run(_orchestrator_main())
     except KeyboardInterrupt:
         print("\nAAC 2100 Shutdown requested...")
+
+
+if __name__ == "__main__":
+    main()
 
 # Backward compatibility aliases
 Signal = QuantumSignal

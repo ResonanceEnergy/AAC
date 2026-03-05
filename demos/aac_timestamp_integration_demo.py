@@ -5,7 +5,7 @@ This example demonstrates how to integrate the AAC timestamp converter
 into arbitrage operations for proper timing and signal management.
 """
 
-from aac_timestamp_converter import (
+from tools.aac_timestamp_converter import (
     AACTimestampConverter,
     AACArbitrageTiming,
     epoch_to_human,

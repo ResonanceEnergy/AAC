@@ -18,16 +18,16 @@ import unittest
 from typing import Dict, List, Any
 
 # Add project root to path
-project_root = Path(__file__).parent
+project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 from shared.communication import CommunicationFramework
 from shared.audit_logger import AuditLogger
 from shared.data_sources import DataAggregator
 from shared.strategy_framework import StrategyConfig
-from market_data_aggregator import MarketDataAggregator, get_market_data_aggregator
-from strategy_integration_system import get_strategy_integration_system
-from strategy_implementation_factory import get_strategy_factory
+from integrations.market_data_aggregator import MarketDataAggregator, get_market_data_aggregator
+from strategies.strategy_integration_system import get_strategy_integration_system
+from strategies.strategy_implementation_factory import get_strategy_factory
 
 # Configure test logging
 logging.basicConfig(

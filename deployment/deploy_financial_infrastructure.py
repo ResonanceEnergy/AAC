@@ -28,7 +28,7 @@ from datetime import datetime
 from pathlib import Path
 
 # Add project root to path
-project_root = Path(__file__).parent
+project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 from shared.financial_infrastructure_integration import (
@@ -37,7 +37,10 @@ from shared.financial_infrastructure_integration import (
 from shared.internal_money_monitor import get_money_monitor
 from shared.ax_helix_integration import get_ax_helix_api, get_controller_agent
 from shared.config_loader import get_config
-from tests.test_financial_infrastructure import run_financial_infrastructure_tests
+try:
+    from tests.test_financial_infrastructure import run_financial_infrastructure_tests
+except ImportError:
+    run_financial_infrastructure_tests = None
 
 # Configure logging
 logging.basicConfig(

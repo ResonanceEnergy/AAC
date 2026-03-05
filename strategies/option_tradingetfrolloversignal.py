@@ -1,5 +1,5 @@
 """
-Option-tradingEtfRolloverSignalStrategy
+OptionTradingEtfRolloverSignalStrategy
 =======================================
 
 Front-run/absorb systematic call-writing ETF rolls that shape IV surface.

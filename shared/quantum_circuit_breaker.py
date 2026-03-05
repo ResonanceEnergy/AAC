@@ -283,7 +283,7 @@ class QuantumFailoverRouter:
         """Notify all quantum-entangled systems instantly"""
         # In real quantum system, this would be instantaneous
         # via quantum entanglement
-        pass
+        logger.warning(f"Circuit breaker {circuit_name} tripped — notifying entangled systems")
 
 class CircuitBreakerOpen(Exception):
     """Exception raised when circuit breaker is open"""

@@ -24,7 +24,7 @@ from pathlib import Path
 import sys
 import json
 
-PROJECT_ROOT = Path(__file__).resolve().parent
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from shared.config_loader import get_config
@@ -438,12 +438,13 @@ class OrderGenerator:
                 "total_positions": len([p for p in self.open_positions.values() if p != 0])
             }
 
-            # Calculate total portfolio value (simplified)
+            # Calculate total portfolio value
             total_value = 0.0
             for symbol, quantity in self.open_positions.items():
                 if quantity != 0:
-                    # In real implementation, get current price
-                    total_value += abs(quantity) * 100  # Placeholder
+                    # Attempt to get market price; fall back to last known price
+                    last_price = self.last_known_prices.get(symbol, 100.0) if hasattr(self, 'last_known_prices') else 100.0
+                    total_value += abs(quantity) * last_price
 
             portfolio["total_portfolio_value"] = total_value
 

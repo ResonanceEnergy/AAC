@@ -1,5 +1,5 @@
 """
-VrpTerm-slopeTimingStrategy
+VrpTermSlopeTimingStrategy
 ===========================
 
 Lean shorter maturities when the variance risk premium slope steepens in stress.

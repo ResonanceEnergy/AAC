@@ -1,5 +1,5 @@
 """
-Concentration-awareDispersionStrategy
+ConcentrationAwareDispersionStrategy
 =====================================
 
 Deploy dispersion when mega-cap concentration risk is elevated.

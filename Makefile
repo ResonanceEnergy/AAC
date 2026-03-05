@@ -1,5 +1,11 @@
 # ═══════════════════════════════════════════════════════════════
-# AAC — Accelerated Arbitrage Corp  •  Makefile
+# AAC — Accelerated Arbitrage Corp (BARREN WUFFET)  •  Makefile
+# ═══════════════════════════════════════════════════════════════
+# Works on Linux/macOS. Windows users:
+#   python setup_machine.py   # One-time setup (QUSAR or QFORGE)
+#   python launch.py test     # Run tests
+#   python launch.py full     # Full system
+#   python launch.py dashboard# Dashboard
 # ═══════════════════════════════════════════════════════════════
 SHELL := /bin/bash
 VENV  := .venv
@@ -37,7 +43,9 @@ test-all:  ## Run ALL tests including live
 
 test-cov:  ## Run tests with coverage report
 	$(PYTEST) tests/ -q -m "not live and not exchange and not slow" --timeout=15 \
-		--cov=shared --cov=core --cov=strategies --cov-report=html --cov-report=term
+		--cov=shared --cov=core --cov=strategies --cov=integrations --cov=aac \
+		--cov=TradingExecution --cov=CryptoIntelligence --cov=BigBrainIntelligence \
+		--cov-report=html --cov-report=term
 
 # ── Code Quality ───────────────────────────────────────────────
 lint:  ## Lint with black + isort + flake8

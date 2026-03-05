@@ -3,8 +3,8 @@
 import asyncio
 from aac.doctrine.doctrine_integration import DoctrineOrchestrator
 
-async def test_az_prime_transitions():
-    print('Testing AZ Prime State Machine transitions...')
+async def test_barren_wuffet_transitions():
+    print('Testing BARREN WUFFET State Machine transitions...')
 
     orchestrator = DoctrineOrchestrator()
     await orchestrator.initialize()
@@ -23,7 +23,7 @@ async def test_az_prime_transitions():
 
     print('Testing CAUTION state trigger...')
     result = await orchestrator.run_compliance_check()
-    print(f'Compliance: {result["compliance_score"]}% | State: {result["az_prime_state"]}')
+    print(f'Compliance: {result["compliance_score"]}% | State: {result["barren_wuffet_state"]}')
 
 if __name__ == "__main__":
-    asyncio.run(test_az_prime_transitions())
+    asyncio.run(test_barren_wuffet_transitions())

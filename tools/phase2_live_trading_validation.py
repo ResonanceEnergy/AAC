@@ -21,12 +21,12 @@ from pathlib import Path
 import sys
 import os
 
-PROJECT_ROOT = Path(__file__).resolve().parent
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from shared.config_loader import get_config
 from shared.audit_logger import get_audit_logger, AuditCategory, AuditSeverity
-from live_trading_infrastructure import (
+from trading.live_trading_infrastructure import (
     LiveTradingInfrastructure,
     Exchange,
     EmergencyAction,

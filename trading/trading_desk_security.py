@@ -88,6 +88,7 @@ class TradingDeskSecurity:
 
     def __init__(self, audit_logger=None):
         self.audit_logger = audit_logger
+        self.logger = logging.getLogger(__name__)
         self.sessions: Dict[str, UserSession] = {}
         self.active_users: Set[str] = set()
         self.security_events: List[SecurityEvent] = []
@@ -103,6 +104,9 @@ class TradingDeskSecurity:
         self.daily_trade_count = 0
         self.daily_pnl = 0.0
         self.circuit_breaker_active = False
+
+        # Configurable intervals
+        self.config: Dict[str, Any] = {}
 
         # Emergency protocols
         self.emergency_shutdown = False
@@ -416,7 +420,7 @@ class TradingDeskSecurity:
     async def _monitor_session(self, session_id: str):
         """Monitor session for security violations"""
         while True:
-            await asyncio.sleep(300)  # Check every 5 minutes
+            await asyncio.sleep(self.config.get('security_check_interval', 300))  # Check every 5 minutes
 
             session = self.sessions.get(session_id)
             if not session or not session.is_active:
@@ -525,8 +529,18 @@ class TradingDeskSecurity:
 
     def _check_security_violations(self):
         """Check for security violations"""
-        # Implementation for continuous security monitoring
-        pass
+        self.logger.info("Running security violation check")
+        for session_id, session in list(self.sessions.items()):
+            if not session.is_active:
+                continue
+            # Check for session timeout violations
+            if hasattr(session, 'last_activity'):
+                idle_time = (datetime.now() - session.last_activity).total_seconds()
+                if idle_time > 3600:  # 1 hour idle timeout
+                    self.logger.warning(f"Session {session_id} idle for {idle_time:.0f}s — potential violation")
+            # Check for excessive failed attempts
+            if hasattr(session, 'failed_attempts') and session.failed_attempts > 5:
+                self.logger.warning(f"Session {session_id} has {session.failed_attempts} failed attempts")
 
 
 # Global security instance

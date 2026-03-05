@@ -98,8 +98,7 @@ class SuperResearchAgent(BaseResearchAgent):
 
     async def _perform_traditional_scan(self) -> List[ResearchFinding]:
         """Perform traditional research scan (to be overridden by subclasses)"""
-        # This should be implemented by subclasses
-        return []
+        raise NotImplementedError("Subclasses must implement _perform_traditional_scan")
 
     async def _perform_super_analysis(self) -> List[ResearchFinding]:
         """Perform super-enhanced analysis"""
@@ -146,32 +145,35 @@ class SuperResearchAgent(BaseResearchAgent):
 
     async def _get_market_context(self) -> Dict[str, Any]:
         """Get current market context"""
-        # Placeholder - should be implemented with actual market data
+        logger.warning("Using placeholder data — connect market data feed")
+        # Placeholder defaults — connect actual market data feed
         return {
-            "price": 50000,
-            "volume": 1000000,
-            "volatility": 0.02,
-            "trend": "bullish"
+            "price": 50000,          # placeholder default
+            "volume": 1000000,       # placeholder default
+            "volatility": 0.02,      # placeholder default
+            "trend": "bullish"       # placeholder default
         }
 
     async def _get_technical_data(self) -> Dict[str, Any]:
         """Get technical analysis data"""
-        # Placeholder - should be implemented with actual technical indicators
+        logger.warning("Using placeholder data — connect market data feed")
+        # Placeholder defaults — connect actual technical indicator feed
         return {
-            "rsi": 65,
-            "macd": 0.5,
-            "moving_averages": {"sma_20": 49500, "sma_50": 48500},
-            "support_resistance": {"support": 48000, "resistance": 52000}
+            "rsi": 65,                                                    # placeholder default
+            "macd": 0.5,                                                  # placeholder default
+            "moving_averages": {"sma_20": 49500, "sma_50": 48500},        # placeholder default
+            "support_resistance": {"support": 48000, "resistance": 52000} # placeholder default
         }
 
     async def _get_sentiment_data(self) -> Dict[str, Any]:
         """Get sentiment analysis data"""
-        # Placeholder - should be implemented with actual sentiment data
+        logger.warning("Using placeholder data — connect market data feed")
+        # Placeholder defaults — connect actual sentiment data feed
         return {
-            "overall_sentiment": 0.7,
-            "social_media_score": 0.75,
-            "news_sentiment": 0.65,
-            "fear_greed_index": 65
+            "overall_sentiment": 0.7,   # placeholder default
+            "social_media_score": 0.75,  # placeholder default
+            "news_sentiment": 0.65,      # placeholder default
+            "fear_greed_index": 65        # placeholder default
         }
 
     async def _convert_super_insights_to_findings(self, super_result: Dict[str, Any]) -> List[ResearchFinding]:
@@ -826,6 +828,9 @@ class SuperAccessArbitrageAgent(SuperResearchAgent):
 
         original_agent = get_agent('access_arbitrage')
         if original_agent:
+            if not hasattr(original_agent, 'scan'):
+                logger.warning(f"Agent {self.agent_id} has no scan method")
+                return []
             return await original_agent.scan()
         return []
 
@@ -846,6 +851,7 @@ class SuperAccessArbitrageAgent(SuperResearchAgent):
     async def _get_access_disparities(self) -> List[Dict[str, Any]]:
         """Get access disparity analysis"""
         disparities = []
+        logger.warning("Using random placeholder data for access disparities")
         for i in range(np.random.randint(5, 15)):
             disparities.append({
                 "data_type": np.random.choice(["price", "order_book", "news", "social", "on_chain"]),

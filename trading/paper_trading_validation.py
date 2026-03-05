@@ -23,7 +23,7 @@ import json
 import time
 
 # Add project root to path
-PROJECT_ROOT = Path(__file__).resolve().parent
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 # Configure logging
@@ -470,7 +470,7 @@ class PaperTradingValidationEngine:
         self.validation_results['paper_trading_execution'] = trade_results
         logger.info(f"Paper trading execution complete: {total_trades} total trades executed")
 
-    async def _create_paper_order(self, signal, strategy_name):
+    async def _create_paper_order(self, signal: Dict[str, Any], strategy_name: str) -> Optional[Dict[str, Any]]:
         """Create a paper trading order from signal"""
         # Use first validation account
         account_id = self.validation_accounts[0]
@@ -634,25 +634,30 @@ class PaperTradingValidationEngine:
         if hasattr(self, 'market_data'):
             try:
                 await self.market_data.close()
-            except:
-                pass
+            except Exception as e:
+                logger.debug(f"Cleanup: {e}")
 
         # Clean up paper trading accounts
         if hasattr(self, 'account_manager'):
             try:
                 for account_id in getattr(self, 'validation_accounts', []):
                     await self.account_manager.close_account(account_id)
-            except:
-                pass
+            except Exception as e:
+                logger.debug(f"Cleanup: {e}")
 
         logger.info("Cleanup completed")
 
 
-async def main():
-    """Main validation execution"""
+async def _async_main():
+    """Async entry point (internal)"""
     engine = PaperTradingValidationEngine()
     await engine.run_validation()
 
 
+def main():
+    """Sync entry point for console_scripts / setuptools."""
+    asyncio.run(_async_main())
+
+
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()

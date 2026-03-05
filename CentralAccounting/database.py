@@ -289,8 +289,8 @@ class ConnectionPool:
             self.logger.warning("Pool connection was stale, creating new one")
             try:
                 conn.close()
-            except:
-                pass
+            except (sqlite3.Error, Exception) as e:
+                self.logger.debug(f"Error closing stale connection: {e}")
             conn = self._create_connection()
         
         self._local.connection = conn
@@ -314,8 +314,12 @@ class ConnectionPool:
             self._local.connection = None
         try:
             self._pool.put_nowait(conn)
-        except:
-            pass  # Pool full, close the connection
+        except Exception:
+            # Pool full — close the surplus connection to prevent leak
+            try:
+                conn.close()
+            except Exception:
+                pass
     
     @contextmanager
     def connection(self) -> Generator[sqlite3.Connection, None, None]:
@@ -409,10 +413,12 @@ class AccountingDatabase:
         """
         Execute a query asynchronously (wraps sync execution).
         For use with async execution engine.
+        
+        Note: We call the sync method directly on the event loop thread
+        rather than using run_in_executor, because SQLite connections
+        cannot safely cross thread boundaries.
         """
-        import asyncio
-        loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(None, self._execute_sync, query, params)
+        return self._execute_sync(query, params)
 
     def _execute_sync(self, query: str, params: Optional[tuple] = None):
         """Synchronous query execution"""
@@ -430,9 +436,7 @@ class AccountingDatabase:
         Fetch all results asynchronously.
         Returns list of dicts.
         """
-        import asyncio
-        loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(None, self._fetch_all_sync, query, params)
+        return self._fetch_all_sync(query, params)
 
     def _fetch_all_sync(self, query: str, params: Optional[tuple] = None) -> List[Dict]:
         """Synchronous fetch all"""
@@ -450,9 +454,7 @@ class AccountingDatabase:
         Fetch one result asynchronously.
         Returns dict or None.
         """
-        import asyncio
-        loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(None, self._fetch_one_sync, query, params)
+        return self._fetch_one_sync(query, params)
 
     def _fetch_one_sync(self, query: str, params: Optional[tuple] = None) -> Optional[Dict]:
         """Synchronous fetch one"""
@@ -717,6 +719,12 @@ class AccountingDatabase:
         take_profit: Optional[float] = None,
     ):
         """Update position with current market data"""
+        # Allowlist of columns that may be updated — defence-in-depth against
+        # future refactors accidentally introducing dynamic column names.
+        _ALLOWED_COLUMNS = frozenset({
+            'current_price', 'unrealized_pnl', 'stop_loss', 'take_profit',
+        })
+
         conn = self.connect()
         cursor = conn.cursor()
         
@@ -737,6 +745,12 @@ class AccountingDatabase:
             params.append(take_profit)
         
         if updates:
+            # Verify every column token is on the allowlist
+            for fragment in updates:
+                col_name = fragment.split(" = ?")[0].strip()
+                if col_name not in _ALLOWED_COLUMNS:
+                    raise ValueError(f"Column '{col_name}' not in position update allowlist")
+
             params.append(position_id)
             cursor.execute(
                 f"UPDATE positions SET {', '.join(updates)} WHERE position_id = ?",

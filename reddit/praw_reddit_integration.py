@@ -22,12 +22,15 @@ For detailed API endpoint documentation, see: reddit_api_documentation.py
 import praw
 import re
 import asyncio
+import logging
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass
 from collections import Counter
 import os
 from dotenv import load_dotenv
+
+logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
@@ -140,7 +143,8 @@ class PRAWRedditClient:
             return False
         try:
             return self.reddit.user.me() is not None
-        except:
+        except Exception as e:
+            logger.warning(f"Reddit auth failed: {e}")
             return False
 
     def get_hot_posts(self, limit: Optional[int] = None) -> List[RedditPost]:
