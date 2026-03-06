@@ -224,7 +224,7 @@ class AdvancedArbitrageEngine:
                                     'source': 'cboe'
                                 }
         except Exception as e:
-            pass
+            logger.debug(f"CBOE data fetch failed: {e}")
         return None
 
     def analyze_cross_source_arbitrage(self, multi_source_data: Dict[str, Dict[str, Any]]) -> List[ArbitrageOpportunity]:

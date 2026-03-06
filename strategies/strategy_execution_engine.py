@@ -26,7 +26,7 @@ import sys
 import math
 import random
 
-PROJECT_ROOT = Path(__file__).resolve().parent
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 # Import execution engine components (with fallbacks)
@@ -266,11 +266,65 @@ class StrategyExecutionEngine:
         self.logger.info("Strategy execution stopped")
 
     async def _activate_strategies(self):
-        """Activate all valid strategies"""
-        for strategy_id, strategy in self.executable_strategies.items():
-            if strategy.config.is_valid:
-                self.active_strategies.append(strategy_id)
-                strategy.is_active = True
+        """Activate strategies after filtering through strategic doctrine overlay.
+
+        Sun Tzu: "He who knows when to fight and when not to fight will win."
+        Strategies are filtered based on current terrain, force ratio, and
+        power dynamics before activation.
+        """
+        try:
+            from aac.doctrine.strategic_doctrine import get_strategic_doctrine_engine
+            strategic_engine = get_strategic_doctrine_engine()
+
+            # Build strategy list for doctrine filtering
+            strategy_dicts = []
+            for strategy_id, strategy in self.executable_strategies.items():
+                if strategy.config.is_valid:
+                    strategy_dicts.append({
+                        "id": strategy_id,
+                        "name": strategy.config.name,
+                        "category": strategy.config.category.value if hasattr(strategy.config.category, 'value') else str(strategy.config.category),
+                        "confidence": getattr(strategy.config, 'confidence', 0.5),
+                    })
+
+            # Generate a strategic assessment with default market conditions
+            terrain = strategic_engine.assess_terrain(
+                volatility=0.15, liquidity=0.7, trend=0.3,
+                sr_proximity=0.5, session_quality=0.7,
+            )
+            force = strategic_engine.assess_force(
+                available_capital_ratio=0.6, position_diversity=0.5,
+                measured_alpha=0.5, execution_speed_advantage=0.6,
+                opposing_flow_intensity=0.4, regime_favorability=0.6,
+            )
+            power = strategic_engine.assess_power(
+                order_flow_visibility=0.2, exchange_reputation=0.85,
+                alpha_uniqueness=0.5, execution_predictability=0.3,
+                capital_focus=0.6,
+            )
+            directive = strategic_engine.generate_directive(terrain, force, power)
+
+            # Filter strategies through doctrine
+            filtered = strategic_engine.filter_strategies(directive, strategy_dicts)
+            filtered_ids = {s["id"] for s in filtered}
+
+            for strategy_id, strategy in self.executable_strategies.items():
+                if strategy.config.is_valid and strategy_id in filtered_ids:
+                    self.active_strategies.append(strategy_id)
+                    strategy.is_active = True
+
+            self.logger.info(
+                f"Strategic doctrine activated {len(self.active_strategies)} of "
+                f"{len(strategy_dicts)} valid strategies "
+                f"(posture={directive.overall_posture.value}, "
+                f"terrain={terrain.terrain.value})"
+            )
+        except Exception as e:
+            self.logger.warning(f"Strategic doctrine unavailable, activating all valid: {e}")
+            for strategy_id, strategy in self.executable_strategies.items():
+                if strategy.config.is_valid:
+                    self.active_strategies.append(strategy_id)
+                    strategy.is_active = True
 
         self.logger.info(f"Activated {len(self.active_strategies)} strategies")
 
@@ -299,10 +353,34 @@ class StrategyExecutionEngine:
                 await asyncio.sleep(self.signal_check_interval)
 
     async def _process_signals(self):
-        """Process trading signals and generate orders"""
+        """Process trading signals with strategic doctrine overlay.
+
+        Law 29: "Plan all the way to the end" — every signal is processed
+        with full lifecycle awareness from strategic doctrine.
+        """
         while True:
             try:
                 signal = await self.signal_queue.get()
+
+                # Apply strategic execution style overlay
+                try:
+                    from aac.doctrine.strategic_doctrine import get_strategic_doctrine_engine
+                    strategic_engine = get_strategic_doctrine_engine()
+
+                    if strategic_engine.directive_history:
+                        directive = strategic_engine.directive_history[-1]
+                        exec_style = strategic_engine.get_execution_style(directive)
+                        risk_overlay = strategic_engine.get_risk_overlay(directive)
+
+                        # Apply position size modifier from doctrine
+                        signal.quantity *= risk_overlay.get("max_position_size_multiplier", 1.0)
+
+                        # Attach strategic metadata to signal
+                        signal.metadata["strategic_posture"] = directive.overall_posture.value
+                        signal.metadata["terrain"] = directive.terrain.terrain.value
+                        signal.metadata["execution_style"] = exec_style
+                except Exception:
+                    pass  # Strategic overlay is advisory, never blocks execution
 
                 # Generate validated order from signal
                 validated_order = await self.order_generator.generate_order_from_signal(signal)

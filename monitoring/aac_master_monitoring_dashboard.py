@@ -65,10 +65,8 @@ except ImportError:
 DASH_AVAILABLE = False
 
 # Add project root and AAC package path
-PROJECT_ROOT = Path(__file__).resolve().parent
-AAC_ROOT = PROJECT_ROOT.parent / "AAC"
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
-sys.path.insert(0, str(AAC_ROOT))
 
 # Core AAC imports
 from shared.config_loader import get_config
@@ -94,7 +92,7 @@ except ImportError:
 
 # Strategy testing (optional)
 try:
-    from strategies.strategy_testing_lab import strategy_testing_lab, initialize_strategy_testing_lab
+    from strategies.strategy_testing_lab_fixed import strategy_testing_lab, initialize_strategy_testing_lab
     STRATEGY_TESTING_AVAILABLE = True
 except ImportError:
     STRATEGY_TESTING_AVAILABLE = False

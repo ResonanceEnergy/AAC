@@ -108,7 +108,7 @@ class BaseDataSource(ABC):
 # ============================================
 
 class CoinGeckoClient(BaseDataSource):
-    """CoinGecko API client for price data (supports Free and Pro tiers)"""
+    """CoinGecko API client for price data (supports Free, Demo, and Pro tiers)"""
 
     FREE_URL = "https://api.coingecko.com/api/v3"
     PRO_URL = "https://pro-api.coingecko.com/api/v3"
@@ -119,20 +119,25 @@ class CoinGeckoClient(BaseDataSource):
         self._api_key = self.config.coingecko_key
         self._is_pro = bool(self._api_key)
         self.BASE_URL = self.PRO_URL if self._is_pro else self.FREE_URL
-        # Pro: 500 req/min, Free: ~10-30 req/min
+        # Pro: 500 req/min, Free: ~10 req/min
         self._rate_limit_delay = 0.15 if self._is_pro else 1.5
 
     def _get_headers(self) -> Dict[str, str]:
-        """Get auth headers for Pro API"""
+        """Get auth headers — Pro API uses x-cg-pro-api-key"""
         if self._is_pro:
             return {'x-cg-pro-api-key': self._api_key}
         return {}
 
+    @property
+    def tier_name(self) -> str:
+        return "Pro" if self._is_pro else "Free"
+
     async def connect(self):
-        self.session = aiohttp.ClientSession(headers=self._get_headers())
+        # Use ThreadedResolver to avoid aiodns/pycares DNS failures on some systems
+        connector = aiohttp.TCPConnector(resolver=aiohttp.resolver.ThreadedResolver())
+        self.session = aiohttp.ClientSession(connector=connector, headers=self._get_headers())
         self.is_connected = True
-        tier = "Pro" if self._is_pro else "Free"
-        self.logger.info(f"CoinGecko client connected ({tier} tier)")
+        self.logger.info(f"CoinGecko client connected ({self.tier_name} tier)")
 
     async def disconnect(self):
         if self.session:

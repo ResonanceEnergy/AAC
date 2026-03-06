@@ -33,12 +33,17 @@ from sklearn.metrics import accuracy_score, mean_squared_error, classification_r
 from sklearn.pipeline import Pipeline
 from sklearn.feature_selection import SelectKBest, f_regression, f_classif
 import xgboost as xgb
-import lightgbm as lgb
+try:
+    import lightgbm as lgb
+    LIGHTGBM_AVAILABLE = True
+except ImportError:
+    lgb = None
+    LIGHTGBM_AVAILABLE = False
 from scipy import stats
 import warnings
 warnings.filterwarnings('ignore')
 
-PROJECT_ROOT = Path(__file__).resolve().parent
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from shared.config_loader import get_config, get_project_path

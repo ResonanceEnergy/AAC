@@ -30,6 +30,7 @@ from pathlib import Path
 import os
 import platform
 import random
+import uuid
 
 # Add project root
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -1008,7 +1009,7 @@ class AACCommandCenter:
         for anomaly in anomalies:
             # Create alert
             alert = {
-                "id": f"alert_{int(time.time())}_{random.randint(1000, 9999)}",
+                "id": f"alert_{uuid.uuid4().hex[:12]}",
                 "type": anomaly["type"],
                 "severity": anomaly["severity"],
                 "metric": anomaly["metric"],

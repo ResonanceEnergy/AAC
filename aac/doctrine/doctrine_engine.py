@@ -79,6 +79,11 @@ class ActionType(Enum):
     A_LOCK_KEYS = "A_LOCK_KEYS"
     A_QUARANTINE_SOURCE = "A_QUARANTINE_SOURCE"
     A_FORCE_RECON = "A_FORCE_RECON"
+    # Strategic Doctrine actions (Art of War + 48 Laws)
+    A_TACTICAL_RETREAT = "A_TACTICAL_RETREAT"
+    A_CONCENTRATE_FORCE = "A_CONCENTRATE_FORCE"
+    A_CONCEAL_POSITION = "A_CONCEAL_POSITION"
+    A_EXPLOIT_WEAKNESS = "A_EXPLOIT_WEAKNESS"
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -455,6 +460,76 @@ DOCTRINE_PACKS = {
             ("metric_lineage_coverage < 70%", BarrenWuffetState.CAUTION, ActionType.A_CREATE_INCIDENT),
         ]
     },
+    9: {
+        "name": "Strategic Warfare — Art of War (Sun Tzu)",
+        "owner": Department.TRADING_EXECUTION,
+        "key_metrics": [
+            "terrain_favorability", "force_ratio",
+            "strategic_confidence", "posture_alignment"
+        ],
+        "required_metrics": [
+            {
+                "metric": "terrain_favorability",
+                "thresholds": {"good": ">0.6", "warning": "0.4-0.6", "critical": "<0.4"}
+            },
+            {
+                "metric": "force_ratio",
+                "thresholds": {"good": ">1.0", "warning": "0.5-1.0", "critical": "<0.5"}
+            },
+            {
+                "metric": "strategic_confidence",
+                "thresholds": {"good": ">0.7", "warning": "0.5-0.7", "critical": "<0.5"}
+            },
+            {
+                "metric": "posture_alignment",
+                "thresholds": {"good": ">0.7", "warning": "0.5-0.7", "critical": "<0.5"}
+            }
+        ],
+        "failure_modes": [
+            "terrain_misread", "force_overestimation",
+            "timing_failure", "strategic_overextension"
+        ],
+        "barren_wuffet_triggers": [
+            ("force_ratio < 0.3", BarrenWuffetState.CAUTION, ActionType.A_TACTICAL_RETREAT),
+            ("terrain_favorability < 0.2", BarrenWuffetState.CAUTION, ActionType.A_THROTTLE_RISK),
+            ("strategic_confidence < 0.3", BarrenWuffetState.SAFE_MODE, ActionType.A_TACTICAL_RETREAT),
+        ]
+    },
+    10: {
+        "name": "Power Dynamics — 48 Laws of Power (Greene)",
+        "owner": Department.TRADING_EXECUTION,
+        "key_metrics": [
+            "market_stealth_score", "exchange_reputation",
+            "alpha_uniqueness", "execution_unpredictability"
+        ],
+        "required_metrics": [
+            {
+                "metric": "market_stealth_score",
+                "thresholds": {"good": ">0.7", "warning": "0.4-0.7", "critical": "<0.4"}
+            },
+            {
+                "metric": "exchange_reputation",
+                "thresholds": {"good": ">0.8", "warning": "0.6-0.8", "critical": "<0.6"}
+            },
+            {
+                "metric": "alpha_uniqueness",
+                "thresholds": {"good": ">0.6", "warning": "0.4-0.6", "critical": "<0.4"}
+            },
+            {
+                "metric": "execution_unpredictability",
+                "thresholds": {"good": ">0.6", "warning": "0.4-0.6", "critical": "<0.4"}
+            }
+        ],
+        "failure_modes": [
+            "footprint_exposure", "reputation_degradation",
+            "alpha_decay", "pattern_detection_by_adversaries"
+        ],
+        "barren_wuffet_triggers": [
+            ("market_stealth_score < 0.3", BarrenWuffetState.CAUTION, ActionType.A_CONCEAL_POSITION),
+            ("exchange_reputation < 0.5", BarrenWuffetState.CAUTION, ActionType.A_CREATE_INCIDENT),
+            ("alpha_uniqueness < 0.3", BarrenWuffetState.CAUTION, ActionType.A_FREEZE_STRATEGY),
+        ]
+    },
 }
 
 
@@ -638,6 +713,8 @@ class DoctrineEngine:
             6: ActionType.A_ROUTE_FAILOVER,
             7: ActionType.A_FREEZE_STRATEGY,
             8: ActionType.A_FORCE_RECON,
+            9: ActionType.A_TACTICAL_RETREAT,
+            10: ActionType.A_CONCEAL_POSITION,
         }
         return default_actions.get(pack_id, ActionType.A_CREATE_INCIDENT)
     
@@ -923,6 +1000,22 @@ class DoctrineApplicationService:
             logger.warning(f"[RECON] Forcing reconciliation: {ctx}")
             return True
         
+        def tactical_retreat(ctx):
+            logger.warning(f"[STRATEGIC] Tactical retreat — reducing exposure: {ctx}")
+            return True
+        
+        def concentrate_force(ctx):
+            logger.info(f"[STRATEGIC] Concentrating capital on top setups: {ctx}")
+            return True
+        
+        def conceal_position(ctx):
+            logger.warning(f"[STRATEGIC] Concealing positions — switching to iceberg orders: {ctx}")
+            return True
+        
+        def exploit_weakness(ctx):
+            logger.info(f"[STRATEGIC] Exploiting detected market weakness: {ctx}")
+            return True
+        
         self.engine.register_action_handler(ActionType.A_CREATE_INCIDENT, create_incident)
         self.engine.register_action_handler(ActionType.A_PAGE_ONCALL, page_oncall)
         self.engine.register_action_handler(ActionType.A_THROTTLE_RISK, throttle_risk)
@@ -933,6 +1026,10 @@ class DoctrineApplicationService:
         self.engine.register_action_handler(ActionType.A_LOCK_KEYS, lock_keys)
         self.engine.register_action_handler(ActionType.A_QUARANTINE_SOURCE, quarantine_source)
         self.engine.register_action_handler(ActionType.A_FORCE_RECON, force_recon)
+        self.engine.register_action_handler(ActionType.A_TACTICAL_RETREAT, tactical_retreat)
+        self.engine.register_action_handler(ActionType.A_CONCENTRATE_FORCE, concentrate_force)
+        self.engine.register_action_handler(ActionType.A_CONCEAL_POSITION, conceal_position)
+        self.engine.register_action_handler(ActionType.A_EXPLOIT_WEAKNESS, exploit_weakness)
     
     async def run_compliance_check(self, sample_metrics: Optional[Dict[str, Any]] = None) -> DoctrineComplianceReport:
         """Run a full compliance check across all departments."""
@@ -1025,6 +1122,18 @@ class DoctrineApplicationService:
             "metric_lineage_coverage": 92.0,  # Fixed: was 85.0, now > 90 for good
             "reconciliation_accuracy": 99.2,
             "truth_arbitration_latency": 800,
+            
+            # Pack 9: Strategic Warfare (Art of War)
+            "terrain_favorability": 0.7,
+            "force_ratio": 1.2,
+            "strategic_confidence": 0.75,
+            "posture_alignment": 0.8,
+            
+            # Pack 10: Power Dynamics (48 Laws)
+            "market_stealth_score": 0.8,
+            "exchange_reputation": 0.9,
+            "alpha_uniqueness": 0.65,
+            "execution_unpredictability": 0.7,
         }
     
     def print_doctrine_summary(self) -> None:
