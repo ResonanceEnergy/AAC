@@ -304,6 +304,80 @@ class SharedInfraDoctrineAdapter:
 
 
 # ═══════════════════════════════════════════════════════════════════════════
+# STRATEGIC DOCTRINE ADAPTER (Art of War + 48 Laws)
+# ═══════════════════════════════════════════════════════════════════════════
+
+class StrategicDoctrineAdapter:
+    """
+    Integrates StrategicDoctrineEngine with Packs 9 (Art of War) & 10 (48 Laws).
+
+    Sun Tzu: "The supreme art of war is to subdue the enemy without fighting."
+    Greene: "The best deceptions seem to give the other person a choice."
+    """
+
+    def __init__(self):
+        self.department = Department.TRADING_EXECUTION
+        self.is_retreating = False
+        self.is_concealed = False
+        self.concentrated = False
+        self._engine = None
+
+    def _get_engine(self):
+        if self._engine is None:
+            from aac.doctrine.strategic_doctrine import get_strategic_doctrine_engine
+            self._engine = get_strategic_doctrine_engine()
+        return self._engine
+
+    async def get_metrics(self) -> Dict[str, float]:
+        """Collect Packs 9 & 10 metrics from StrategicDoctrineEngine."""
+        try:
+            return self._get_engine().get_doctrine_metrics()
+        except Exception as e:
+            logger.error(f"Failed to get Strategic Doctrine metrics: {e}")
+            return {
+                "terrain_favorability": 0.6,
+                "force_ratio": 1.0,
+                "strategic_confidence": 0.6,
+                "posture_alignment": 0.7,
+                "market_stealth_score": 0.7,
+                "exchange_reputation": 0.8,
+                "alpha_uniqueness": 0.5,
+                "execution_unpredictability": 0.6,
+            }
+
+    async def execute_action(self, action: ActionType, context: Dict) -> bool:
+        """Execute strategic doctrine actions."""
+        if action == ActionType.A_TACTICAL_RETREAT:
+            logger.warning(
+                "[STRATEGIC] Tactical retreat — Sun Tzu: "
+                "'If fewer, retreat; if outmatched, avoid'"
+            )
+            self.is_retreating = True
+            return True
+        elif action == ActionType.A_CONCENTRATE_FORCE:
+            logger.info(
+                "[STRATEGIC] Concentrating force — Law 23: "
+                "'Concentrate your forces'"
+            )
+            self.concentrated = True
+            return True
+        elif action == ActionType.A_CONCEAL_POSITION:
+            logger.warning(
+                "[STRATEGIC] Concealing positions — Law 3: "
+                "'Conceal your intentions'"
+            )
+            self.is_concealed = True
+            return True
+        elif action == ActionType.A_EXPLOIT_WEAKNESS:
+            logger.info(
+                "[STRATEGIC] Exploiting weakness — Sun Tzu: "
+                "'Attack where he is unprepared'"
+            )
+            return True
+        return False
+
+
+# ═══════════════════════════════════════════════════════════════════════════
 # INTEGRATED DOCTRINE ORCHESTRATOR
 # ═══════════════════════════════════════════════════════════════════════════
 
@@ -313,10 +387,11 @@ class DoctrineOrchestrator:
     
     Responsibilities:
     - Collect metrics from all departments
-    - Run compliance checks against all 8 doctrine packs
+    - Run compliance checks against all 10 doctrine packs
     - Execute automated actions when violations occur
     - Manage BARREN WUFFET state transitions
     - Coordinate cross-department responses
+    - Apply strategic warfare (Art of War) and power dynamics (48 Laws) overlays
     """
     
     def __init__(self):
@@ -332,6 +407,9 @@ class DoctrineOrchestrator:
             Department.CRYPTO_INTELLIGENCE: CryptoIntelligenceDoctrineAdapter(),
             Department.SHARED_INFRASTRUCTURE: SharedInfraDoctrineAdapter(),
         }
+        
+        # Strategic doctrine adapter (Art of War + 48 Laws — Packs 9 & 10)
+        self.strategic_adapter = StrategicDoctrineAdapter()
         
         # State
         self.current_state = BarrenWuffetState.NORMAL
@@ -377,6 +455,11 @@ class DoctrineOrchestrator:
                 ActionType.A_CREATE_INCIDENT: [Department.SHARED_INFRASTRUCTURE],
                 ActionType.A_QUARANTINE_SOURCE: [Department.BIGBRAIN_INTELLIGENCE],
                 ActionType.A_FORCE_RECON: [Department.CENTRAL_ACCOUNTING],
+                # Strategic doctrine actions route to strategic adapter
+                ActionType.A_TACTICAL_RETREAT: [Department.TRADING_EXECUTION],
+                ActionType.A_CONCENTRATE_FORCE: [Department.TRADING_EXECUTION],
+                ActionType.A_CONCEAL_POSITION: [Department.TRADING_EXECUTION],
+                ActionType.A_EXPLOIT_WEAKNESS: [Department.TRADING_EXECUTION],
             }
             
             target_depts = action_routing.get(action, [Department.SHARED_INFRASTRUCTURE])
@@ -386,6 +469,17 @@ class DoctrineOrchestrator:
                 if adapter:
                     result = await adapter.execute_action(action, context)
                     success = success and result
+            
+            # Route strategic actions to the strategic adapter as well
+            strategic_actions = {
+                ActionType.A_TACTICAL_RETREAT,
+                ActionType.A_CONCENTRATE_FORCE,
+                ActionType.A_CONCEAL_POSITION,
+                ActionType.A_EXPLOIT_WEAKNESS,
+            }
+            if action in strategic_actions:
+                result = await self.strategic_adapter.execute_action(action, context)
+                success = success and result
             
             return success
         
@@ -397,7 +491,7 @@ class DoctrineOrchestrator:
             )
     
     async def collect_all_metrics(self) -> Dict[str, float]:
-        """Collect metrics from all department adapters."""
+        """Collect metrics from all department adapters and strategic doctrine."""
         all_metrics = {}
         
         for dept, adapter in self.adapters.items():
@@ -407,6 +501,14 @@ class DoctrineOrchestrator:
                 logger.debug(f"Collected {len(dept_metrics)} metrics from {dept.value}")
             except Exception as e:
                 logger.error(f"Failed to collect metrics from {dept.value}: {e}")
+        
+        # Collect strategic doctrine metrics (Packs 9 & 10)
+        try:
+            strategic_metrics = await self.strategic_adapter.get_metrics()
+            all_metrics.update(strategic_metrics)
+            logger.debug(f"Collected {len(strategic_metrics)} strategic doctrine metrics")
+        except Exception as e:
+            logger.error(f"Failed to collect strategic doctrine metrics: {e}")
         
         return all_metrics
     

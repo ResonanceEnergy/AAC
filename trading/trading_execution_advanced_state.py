@@ -635,7 +635,7 @@ class QuantumExecutionEngine:
         return {}
 
     async def cancel_all_orders(self):
-        pass
+        logger.warning("cancel_all_orders called on stub ExecutionEngine — no orders cancelled")
 
     async def switch_to_backup_region(self, region: str):
         pass
@@ -670,11 +670,15 @@ class QuantumFillOptimizer:
         pass
 
 class AdaptiveCircuitBreaker:
+    def __init__(self):
+        self._tripped = False
+
     async def check_status(self) -> Dict:
-        return {'tripped': False}
+        return {'tripped': self._tripped}
 
     async def trip(self):
-        pass
+        self._tripped = True
+        logger.critical("CIRCUIT BREAKER TRIPPED — all trading halted")
 
 class ExecutionMetricsCollector:
     async def collect_real_time_metrics(self) -> ExecutionMetrics:
