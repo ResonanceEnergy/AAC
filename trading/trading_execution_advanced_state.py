@@ -538,7 +538,7 @@ class TradingExecutionState:
     async def _send_to_central_accounting(self, data: Dict):
         """Forward execution results to CentralAccounting."""
         try:
-            from CentralAccounting.database import DatabaseManager
+            from CentralAccounting.database import AccountingDatabase
             logger.info(f"Sending execution data to CentralAccounting: {len(data)} fields")
         except ImportError:
             logger.warning("CentralAccounting not available — execution data not forwarded")

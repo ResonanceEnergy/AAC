@@ -13,6 +13,8 @@ from typing import Dict, List, Optional, Any, Tuple
 from enum import Enum
 from pathlib import Path
 import json
+
+logger = logging.getLogger(__name__)
 import sys
 import numpy as np
 from scipy import stats
@@ -233,6 +235,30 @@ class ExecutionEngine:
             elif exchange == "kraken":
                 from TradingExecution.exchange_connectors.kraken_connector import KrakenConnector
                 self._connectors[exchange] = KrakenConnector()
+            elif exchange == "ibkr":
+                from TradingExecution.exchange_connectors.ibkr_connector import IBKRConnector
+                self._connectors[exchange] = IBKRConnector()
+            elif exchange == "ndax":
+                from TradingExecution.exchange_connectors.ndax_connector import NDAXConnector
+                self._connectors[exchange] = NDAXConnector(
+                    api_key=getattr(self.config, 'ndax', None) and self.config.ndax.api_key or '',
+                    api_secret=getattr(self.config, 'ndax', None) and self.config.ndax.api_secret or '',
+                    user_id=getattr(self.config, 'ndax_user_id', ''),
+                    account_id=getattr(self.config, 'ndax_account_id', ''),
+                )
+            elif exchange == "moomoo":
+                from TradingExecution.exchange_connectors.moomoo_connector import MoomooConnector
+                self._connectors[exchange] = MoomooConnector(
+                    paper=getattr(self.config, 'moomoo_paper', True),
+                )
+            elif exchange == "noxi_rise":
+                from TradingExecution.exchange_connectors.noxi_rise_connector import NoxiRiseConnector
+                self._connectors[exchange] = NoxiRiseConnector(
+                    mt5_path=getattr(self.config, 'mt5_path', ''),
+                    login=getattr(self.config, 'mt5_login', 0),
+                    password=getattr(self.config, 'mt5_password', ''),
+                    server=getattr(self.config, 'mt5_server', 'NoxiRise-Live'),
+                )
             else:
                 raise ValueError(f"Unknown exchange: {exchange}")
         

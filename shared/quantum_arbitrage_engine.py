@@ -455,6 +455,7 @@ class QuantumRiskManager:
 
     def __init__(self):
         self.logger = logging.getLogger(type(self).__name__)
+        self.max_risk = 0.5
         self.logger.info("QuantumRiskManager initialized")
 
     async def approve_opportunity(self, opportunity: ArbitrageOpportunity) -> bool:
@@ -465,7 +466,7 @@ class QuantumRiskManager:
         # Quantum confidence reduces perceived risk
         adjusted_risk = risk_score * (1 - opportunity.quantum_confidence * 0.3)
 
-        return adjusted_risk <= max_risk
+        return adjusted_risk <= self.max_risk
 
 
 # Global arbitrage engine instance
