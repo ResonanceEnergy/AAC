@@ -121,11 +121,11 @@ except ImportError:
 
 # Database manager (optional)
 try:
-    from CentralAccounting.database import DatabaseManager
+    from CentralAccounting.database import AccountingDatabase
     DATABASE_AVAILABLE = True
 except ImportError:
     DATABASE_AVAILABLE = False
-    DatabaseManager = None
+    AccountingDatabase = None
 
 
 class DisplayMode:
@@ -359,18 +359,18 @@ class AACMasterMonitoringDashboard:
         """Check database health"""
         try:
             if not DATABASE_AVAILABLE:
-                return {'status': 'unavailable', 'error': 'DatabaseManager not imported'}
-            db = DatabaseManager()
+                return {'status': 'unavailable', 'error': 'AccountingDatabase not imported'}
+            db = AccountingDatabase()
             try:
-                connected = await db.health_check()
+                conn = db.connect()
+                connected = conn is not None
                 return {
                     'status': 'healthy' if connected else 'critical',
-                    'connection_pool_size': getattr(db, 'pool_size', 1),
-                    'active_connections': getattr(db, 'active_connections', 1)
+                    'connection_pool_size': 1,
+                    'active_connections': 1 if connected else 0
                 }
             finally:
-                if hasattr(db, 'close'):
-                    db.close()
+                db.close()
         except Exception as e:
             self.logger.error(f"Database health check failed: {e}")
             return {'status': 'critical', 'error': str(e)}
@@ -1343,6 +1343,14 @@ class AACDashDashboard:
         if not DASH_AVAILABLE:
             print("Dash not available, cannot create dashboard")
             return None
+
+        import dash
+        from dash import html, dcc
+        from dash.dependencies import Output, Input, State
+        import dash_bootstrap_components as dbc
+        import pandas as pd
+        import plotly.graph_objects as go
+        from plotly.subplots import make_subplots
 
         app = dash.Dash(__name__, external_stylesheets=[dbc.themes.DARKLY])
 

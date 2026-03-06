@@ -42,7 +42,7 @@ REGISTRY = [
         "env_var": "IBKR_ACCOUNT",
         "name": "Interactive Brokers (IBKR)",
         "website": "https://www.interactivebrokers.com",
-        "signup": "https://www.interactivebrokers.com/en/trading/free-trial.php",
+        "signup": "https://portal.interactivebrokers.com/en/trading/ib-api.php",
         "category": "Exchange/Broker",
         "cost": "Free account, commission per trade",
         "notes": "US stocks, ETFs, futures, options, forex. Requires IB Gateway/TWS running locally.",
@@ -415,7 +415,7 @@ def print_registry(show_missing_only: bool = False, output_json: bool = False):
     for api in REGISTRY:
         status = check_env_var(api["env_var"])
         entry = {**api, "status": status}
-        if show_missing_only and status != "❌ MISSING":
+        if show_missing_only and status not in ("❌ MISSING", "❌ NOT SET"):
             continue
         entries.append(entry)
 

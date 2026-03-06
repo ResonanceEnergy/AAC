@@ -252,13 +252,18 @@ class ContinuousMonitoringService:
     async def _check_database_health(self) -> Dict[str, Any]:
         """Check database connectivity and performance"""
         try:
-            from CentralAccounting.database import DatabaseManager
-            db = DatabaseManager()
-            health = await db.health_check()
+            import time as _t
+            from CentralAccounting.database import AccountingDatabase
+            db = AccountingDatabase()
+            start = _t.monotonic()
+            conn = db.connect()
+            connected = conn is not None
+            response_time = round((_t.monotonic() - start) * 1000, 1)
+            db.close()
             return {
-                'status': 'healthy' if health.get('connected') else 'critical',
-                'response_time_ms': health.get('response_time', 0),
-                'active_connections': health.get('active_connections', 0)
+                'status': 'healthy' if connected else 'critical',
+                'response_time_ms': response_time,
+                'active_connections': 1
             }
         except Exception as e:
             self.logger.error(f"Database health check failed: {e}")

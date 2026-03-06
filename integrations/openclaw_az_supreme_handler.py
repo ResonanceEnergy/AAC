@@ -669,8 +669,8 @@ class AZSupremeOpenClawHandler:
         # Only send alert if risk threshold exceeded
         risk_ok = True  # Default safe — checked by monitoring subsystem
         try:
-            from shared.production_monitoring import get_production_monitoring
-            monitor = get_production_monitoring()
+            from shared.production_monitoring import production_monitoring_system
+            monitor = production_monitoring_system
             if monitor:
                 alerts = [a for a in monitor.active_alerts.values() if a.severity.value in ('high', 'critical') and not a.resolved]
                 risk_ok = len(alerts) == 0
