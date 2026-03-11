@@ -15,7 +15,7 @@ Comprehensive Enterprise Resource Planning system for financial management and r
 - Multi-currency support
 
 ## Integration Points
-- AZ PRIME sync for real-time financial monitoring
+- BARREN WUFFET sync for real-time financial monitoring
 - Dashboard integration for executive financial visibility
 - Cross-departmental budget allocation
 - Automated compliance reporting

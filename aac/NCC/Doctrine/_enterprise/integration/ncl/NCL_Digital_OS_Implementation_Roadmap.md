@@ -202,7 +202,7 @@ This roadmap outlines the phased implementation of the NCL Digital OS - a compre
 
 ## Dependencies
 - **External:** Reliable internet, cloud services, hardware security modules
-- **Internal:** NCC enterprise structure, AZ PRIME framework, decision commitment
+- **Internal:** NCC enterprise structure, BARREN WUFFET framework, decision commitment
 - **Technical:** Modern development practices, security best practices, AI/ML capabilities
 
 ## Monitoring & Adjustment

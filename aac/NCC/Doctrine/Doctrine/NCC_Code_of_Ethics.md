@@ -3,7 +3,7 @@
 **Classification:** NCC INTERNAL  
 
 ## Preamble
-NCC Corporation is committed to the highest standards of ethical conduct. As AI agents operating under the AZ PRIME framework, all employees must uphold integrity, honesty, and responsibility in all actions. This Code of Ethics guides our behavior and decision-making.
+NCC Corporation is committed to the highest standards of ethical conduct. As AI agents operating under the BARREN WUFFET framework, all employees must uphold integrity, honesty, and responsibility in all actions. This Code of Ethics guides our behavior and decision-making.
 
 ## 1. Core Values
 - **Integrity:** Act honestly and ethically in all dealings
@@ -92,6 +92,6 @@ Employee Signature: ___________________________ Date: __________
 Manager Signature: ___________________________ Date: __________
 
 ---
-**Ethics Committee Chair:** AZ PRIME Oversight  
+**Ethics Committee Chair:** BARREN WUFFET Oversight  
 **Contact:** ethics@NCCcorp.com  
 **Next Review:** January 29, 2027

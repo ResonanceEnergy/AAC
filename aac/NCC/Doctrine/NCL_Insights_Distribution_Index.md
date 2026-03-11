@@ -89,7 +89,7 @@ This index documents the comprehensive distribution of NCL (NATHAN COMMAND LEADE
 
 13. **Elite Trader Desk (Top Secret)** - `EliteTraderDesk/NCL_Insights_ETD_Integration.md`
     - **Insights:** TBD prioritized insights
-    - **Focus:** Elite mathematical and physics geniuses, 10-steps-ahead trading strategies, under AZ PRIME command in CSuite FSD
+    - **Focus:** Elite mathematical and physics geniuses, 10-steps-ahead trading strategies, under BARREN WUFFET command in CSuite FSD
     - **Status:** New Division - Top Secret Integration Required
 
 ### Operational Support Divisions

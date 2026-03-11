@@ -1,6 +1,6 @@
 # Technology Infrastructure Division - AAC Integration
 # Enterprise technology infrastructure and systems management
-# Date: 2026-02-04 | Authority: AZ PRIME Command
+# Date: 2026-02-04 | Authority: BARREN WUFFET Command
 
 from shared.super_agent_framework import SuperAgent
 from shared.communication import CommunicationFramework
@@ -272,7 +272,7 @@ async def get_technology_infrastructure_division():
     """Factory function for Technology Infrastructure Division"""
     division = {
         'name': 'Technology Infrastructure Division',
-        'authority': 'AZ PRIME',
+        'authority': 'BARREN WUFFET',
         'agents': [
             InfrastructureMonitoringAgent(),
             NetworkSecurityAgent(),

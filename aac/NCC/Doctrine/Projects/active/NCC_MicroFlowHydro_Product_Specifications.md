@@ -5,7 +5,7 @@
 **Date:** January 28, 2026  
 **Classification:** NCC PROPRIETARY  
 **Director:** Dr. Marcus "Hydro" Reynolds  
-**Authority:** AZ PRIME Autonomous Intelligence  
+**Authority:** BARREN WUFFET Autonomous Intelligence  
 
 ---
 

@@ -2,7 +2,7 @@
 
 ## Visual Layout
 - [ ] All widgets and panels are visible and not overlapping
-- [ ] AZ PRIME avatar is always visible and animates
+- [ ] BARREN WUFFET avatar is always visible and animates
 - [ ] Buttons are clearly labeled and interactive
 - [ ] Background is dynamic and visible
 
@@ -13,7 +13,7 @@
 
 ## Interactivity
 - [ ] Buttons (Refresh, Add Widget, Settings, AZ Emoji) work as expected
-- [ ] AZ PRIME emoji/animation triggers on events
+- [ ] BARREN WUFFET emoji/animation triggers on events
 - [ ] No console errors in browser
 
 ## Responsiveness

@@ -1,6 +1,6 @@
 # Compliance Arbitrage Division - AAC Integration
 # Specialized compliance and regulatory arbitrage operations
-# Date: 2026-02-04 | Authority: AZ PRIME Command
+# Date: 2026-02-04 | Authority: BARREN WUFFET Command
 
 from shared.super_agent_framework import SuperAgent
 from shared.communication import CommunicationFramework
@@ -111,7 +111,7 @@ async def get_compliance_arbitrage_division():
     """Factory function for Compliance Arbitrage Division"""
     division = {
         'name': 'Compliance Arbitrage Division',
-        'authority': 'AZ PRIME',
+        'authority': 'BARREN WUFFET',
         'agents': [
             ComplianceArbitrageAgent(),
             RegulatoryOptimizationAgent()

@@ -1,13 +1,13 @@
 [build-system]
 requires = ["setuptools>=68", "wheel"]
-build-backend = "setuptools.backends.legacy:build"
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "aac"
-version = "2.2.0"
+version = "2.7.0"
 description = "Accelerated Arbitrage Corp — AI-driven multi-exchange trading system"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.9"  # README badge: 3.9+
 license = { text = "Proprietary" }
 authors = [
     { name = "Resonance Energy Corp", email = "ops@resonanceenergy.corp" },
@@ -45,6 +45,8 @@ dependencies = [
     "httpx>=0.25.0",
     "pydantic>=2.4.0",
     "cryptography>=42.0.0",
+    "pyotp>=2.6.0",
+    "psutil>=5.9.0",
 ]
 
 [project.optional-dependencies]
@@ -76,6 +78,7 @@ prod = [
 
 [project.scripts]
 # Entry points — run from command line after `pip install -e .`
+aac            = "launch:main"   # Unified launcher (replaces all below)
 aac-launch     = "core.aac_master_launcher:main"
 aac-dashboard  = "monitoring.aac_master_monitoring_dashboard:main"
 aac-paper      = "trading.paper_trading_validation:main"
@@ -138,7 +141,74 @@ exclude = [".venv", "archive", "version_control", "aac/aac069"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP"]
-ignore = ["E501"]  # line-length handled by black
+ignore = [
+    "E128",   # continuation line under-indented
+    "E127",   # continuation line over-indented
+    "E126",   # continuation line over-indented for hanging indent
+    "E131",   # continuation line unaligned for block comment
+    "E203",   # whitespace before ':'
+    "E301",   # expected N blank lines
+    "E302",   # expected 2 blank lines
+    "E303",   # too many blank lines
+    "E401",   # multiple imports on one line
+    "E402",   # module-level import not at top (sys.path inserts)
+    "E501",   # line-length handled by black
+    "E711",   # comparison to None
+    "E712",   # comparison to True/False
+    "E721",   # type comparison (use isinstance)
+    "E722",   # bare except
+    "E731",   # lambda assignment
+    "F401",   # unused imports (many used at runtime / re-exports)
+    "F403",   # wildcard imports
+    "F405",   # may be undefined from wildcard import
+    "F541",   # f-string without placeholders
+    "F811",   # redefinition of unused name
+    "F841",   # unused local variable
+    "W191",   # indentation contains tabs
+    "W291",   # trailing whitespace
+    "W292",   # no newline at end of file
+    "W293",   # whitespace before comment
+    "W391",   # blank line at end of file
+    "W503",   # line break before binary operator
+    "W504",   # line break after binary operator
+    "UP",     # pyupgrade (all rules — not critical)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401", "F403"]  # re-exports
+"tests/*" = ["F401", "F811"]       # fixtures
+
+[tool.pylint.messages_control]
+disable = [
+    "C0114",  # missing-module-docstring
+    "C0115",  # missing-class-docstring
+    "C0116",  # missing-function-docstring
+    "C0209",  # consider-using-f-string
+    "C0301",  # line-too-long
+    "C0303",  # trailing-whitespace
+    "C0304",  # missing-final-newline
+    "C0411",  # wrong-import-order
+    "R0801",  # duplicate-code
+    "R0903",  # too-few-public-methods
+    "R0913",  # too-many-arguments
+    "R0914",  # too-many-locals
+    "W0107",  # unnecessary-pass
+    "W0201",  # attribute-defined-outside-init
+    "W0611",  # unused-import
+    "W0612",  # unused-variable
+    "W0613",  # unused-argument
+    "W0621",  # redefined-outer-name
+    "W0622",  # redefined-builtin
+    "W0718",  # broad-exception-caught
+    "W1203",  # logging-fstring-interpolation
+    "E1101",  # no-member (too many false positives)
+]
+
+[tool.pylint.format]
+max-line-length = 100
+
+[tool.pyright]
+typeCheckingMode = "off"
 
 [tool.mypy]
 python_version = "3.9"

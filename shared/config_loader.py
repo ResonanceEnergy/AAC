@@ -109,14 +109,43 @@ def get_env_float(key: str, default: float = 0.0) -> float:
 @dataclass
 class ExchangeConfig:
     """Configuration for a single exchange"""
-    api_key: str = ''
-    api_secret: str = ''
-    passphrase: str = ''  # For Coinbase
+    api_key: str = field(default='', repr=False)
+    api_secret: str = field(default='', repr=False)
+    passphrase: str = field(default='', repr=False)  # For Coinbase
     testnet: bool = True
     enabled: bool = False
     
     def is_configured(self) -> bool:
         return bool(self.api_key and self.api_secret)
+
+
+@dataclass
+class IBKRConfig:
+    """Configuration for Interactive Brokers (socket-based, no API keys)"""
+    host: str = '127.0.0.1'
+    port: int = 7497
+    client_id: int = 1
+    account: str = ''
+    paper: bool = True
+    enabled: bool = False
+
+    def is_configured(self) -> bool:
+        return bool(self.account)
+
+
+@dataclass
+class MoomooConfig:
+    """Configuration for Moomoo/Futu (gateway-based, similar to IBKR)"""
+    host: str = '127.0.0.1'
+    port: int = 11111
+    trade_env: str = 'SIMULATE'  # SIMULATE or REAL
+    market: str = 'US'           # US, HK, CN, SG, AU, JP, CA
+    security_firm: str = 'FUTUINC'
+    trade_password: str = field(default='', repr=False)
+    enabled: bool = False
+
+    def is_configured(self) -> bool:
+        return self.enabled
 
 
 @dataclass
@@ -137,15 +166,15 @@ class DatabaseConfig:
 @dataclass
 class NotificationConfig:
     """Notification services configuration"""
-    telegram_token: str = ''
+    telegram_token: str = field(default='', repr=False)
     telegram_chat_id: str = ''
-    slack_webhook: str = ''
+    slack_webhook: str = field(default='', repr=False)
     slack_channel: str = '#trading-alerts'
-    discord_webhook: str = ''
+    discord_webhook: str = field(default='', repr=False)
     smtp_host: str = ''
     smtp_port: int = 587
     smtp_user: str = ''
-    smtp_password: str = ''
+    smtp_password: str = field(default='', repr=False)
     email_to: str = ''
     
     def telegram_enabled(self) -> bool:
@@ -171,6 +200,28 @@ class RiskConfig:
 @dataclass 
 class Config:
     """Main configuration container"""
+
+    # Fields whose values must never appear in logs, repr, or str output.
+    _SENSITIVE_FIELDS: frozenset = field(
+        default_factory=lambda: frozenset({
+            'eth_private_key', 'api_key', 'api_secret', 'passphrase',
+            'bigbrain_token', 'ncc_token', 'dashboard_secret',
+            'coingecko_key', 'coinmarketcap_key', 'alphavantage_key',
+            'news_api_key', 'twitter_bearer', 'reddit_client_secret',
+            'kyc_provider_key', 'telegram_token', 'slack_webhook',
+            'discord_webhook', 'smtp_password',
+            'polygon_key', 'finnhub_key', 'twelve_data_key',
+            'iex_cloud_key', 'intrinio_key', 'eodhd_key', 'fred_key',
+            'etherscan_key', 'tradestie_key', 'wallstreetodds_key',
+            'openai_key', 'anthropic_key', 'google_ai_key', 'xai_key',
+            'polymarket_private_key',
+            'moomoo_trade_password',
+            'ndax_api_key', 'ndax_api_secret',
+        }),
+
+        repr=False,
+    )
+
     # Environment
     environment: str = 'development'
     debug: bool = True
@@ -181,20 +232,24 @@ class Config:
     binance: ExchangeConfig = field(default_factory=ExchangeConfig)
     coinbase: ExchangeConfig = field(default_factory=ExchangeConfig)
     kraken: ExchangeConfig = field(default_factory=ExchangeConfig)
+    ibkr: IBKRConfig = field(default_factory=IBKRConfig)
+    moomoo: MoomooConfig = field(default_factory=MoomooConfig)
+    ndax: ExchangeConfig = field(default_factory=ExchangeConfig)
     
     # Web3
-    eth_private_key: str = ''
+    eth_private_key: str = field(default='', repr=False)
     eth_rpc_url: str = ''
     polygon_rpc_url: str = ''
     arbitrum_rpc_url: str = ''
     
     # Services
+    # DEV-ONLY defaults — overridden by from_env() in production
     bigbrain_url: str = 'http://localhost:8001/api/v1'
-    bigbrain_token: str = ''
+    bigbrain_token: str = field(default='', repr=False)
     crypto_intel_url: str = 'http://localhost:8002/api/v1'
     accounting_url: str = 'http://localhost:8003/api/v1'
     ncc_endpoint: str = 'http://localhost:8000/api/v1'
-    ncc_token: str = ''
+    ncc_token: str = field(default='', repr=False)
     
     # Database
     database: DatabaseConfig = field(default_factory=DatabaseConfig)
@@ -206,27 +261,52 @@ class Config:
     risk: RiskConfig = field(default_factory=RiskConfig)
     
     # External APIs
-    coingecko_key: str = ''
-    coinmarketcap_key: str = ''
-    alphavantage_key: str = ''
-    news_api_key: str = ''
-    twitter_bearer: str = ''
+    coingecko_key: str = field(default='', repr=False)
+    coinmarketcap_key: str = field(default='', repr=False)
+    alphavantage_key: str = field(default='', repr=False)
+    news_api_key: str = field(default='', repr=False)
+    twitter_bearer: str = field(default='', repr=False)
     reddit_client_id: str = ''
-    reddit_client_secret: str = ''
+    reddit_client_secret: str = field(default='', repr=False)
     reddit_user_agent: str = 'AAC-Trading-Bot/1.0'
-    kyc_provider_key: str = ''
+    kyc_provider_key: str = field(default='', repr=False)
     kyc_provider_url: str = ''
     
+    # Market Data APIs
+    polygon_key: str = field(default='', repr=False)
+    finnhub_key: str = field(default='', repr=False)
+    twelve_data_key: str = field(default='', repr=False)
+    iex_cloud_key: str = field(default='', repr=False)
+    intrinio_key: str = field(default='', repr=False)
+    intrinio_username: str = ''
+    eodhd_key: str = field(default='', repr=False)
+    fred_key: str = field(default='', repr=False)
+    etherscan_key: str = field(default='', repr=False)
+    tradestie_key: str = field(default='', repr=False)
+    wallstreetodds_key: str = field(default='', repr=False)
+    
+    # AI/LLM APIs
+    openai_key: str = field(default='', repr=False)
+    anthropic_key: str = field(default='', repr=False)
+    google_ai_key: str = field(default='', repr=False)
+    xai_key: str = field(default='', repr=False)
+    
+    # Polymarket (prediction markets)
+    polymarket_private_key: str = field(default='', repr=False)
+    polymarket_funder: str = ''
+    polymarket_chain_id: int = 137  # Polygon
+    
     # Dashboard
+    # DEV-ONLY defaults — overridden by from_env() in production
     dashboard_url: str = 'http://localhost:3000'
-    dashboard_secret: str = ''
+    dashboard_secret: str = field(default='', repr=False)
     
     @classmethod
     def from_env(cls) -> 'Config':
         """Load configuration from environment variables"""
         load_env_file()
         
-        return cls(
+        config = cls(
             # Environment
             environment=get_env('ENVIRONMENT', 'development'),
             debug=get_env_bool('DEBUG', True),
@@ -255,9 +335,38 @@ class Config:
                 enabled=bool(get_env('KRAKEN_API_KEY')),
             ),
             
+            # Interactive Brokers
+            ibkr=IBKRConfig(
+                host=get_env('IBKR_HOST', '127.0.0.1'),
+                port=get_env_int('IBKR_PORT', 7497),
+                client_id=get_env_int('IBKR_CLIENT_ID', 1),
+                account=get_env('IBKR_ACCOUNT', ''),
+                paper=get_env_bool('IBKR_PAPER', True),
+                enabled=bool(get_env('IBKR_ACCOUNT')),
+            ),
+            
+            # Moomoo/Futu
+            moomoo=MoomooConfig(
+                host=get_env('MOOMOO_HOST', '127.0.0.1'),
+                port=get_env_int('MOOMOO_PORT', 11111),
+                trade_env=get_env('MOOMOO_TRADE_ENV', 'SIMULATE'),
+                market=get_env('MOOMOO_MARKET', 'US'),
+                security_firm=get_env('MOOMOO_SECURITY_FIRM', 'FUTUINC'),
+                trade_password=get_env('MOOMOO_TRADE_PASSWORD'),
+                enabled=get_env_bool('MOOMOO_ENABLED', False),
+            ),
+            
+            # NDAX (Canadian crypto exchange)
+            ndax=ExchangeConfig(
+                api_key=get_env('NDAX_API_KEY'),
+                api_secret=get_env('NDAX_API_SECRET'),
+                testnet=get_env_bool('NDAX_TESTNET', True),
+                enabled=bool(get_env('NDAX_API_KEY')),
+            ),
+            
             # Web3
             eth_private_key=get_env('ETH_PRIVATE_KEY'),
-            eth_rpc_url=get_env('ETH_RPC_URL', 'https://mainnet.infura.io/v3/YOUR_PROJECT_ID'),
+            eth_rpc_url=get_env('ETH_RPC_URL', ''),
             polygon_rpc_url=get_env('POLYGON_RPC_URL', 'https://polygon-rpc.com'),
             arbitrum_rpc_url=get_env('ARBITRUM_RPC_URL', 'https://arb1.arbitrum.io/rpc'),
             
@@ -310,10 +419,44 @@ class Config:
             kyc_provider_key=get_env('KYC_PROVIDER_API_KEY'),
             kyc_provider_url=get_env('KYC_PROVIDER_URL'),
             
+            # Market Data APIs
+            polygon_key=get_env('POLYGON_API_KEY'),
+            finnhub_key=get_env('FINNHUB_API_KEY'),
+            twelve_data_key=get_env('TWELVE_DATA_API_KEY'),
+            iex_cloud_key=get_env('IEX_CLOUD_API_KEY'),
+            intrinio_key=get_env('INTRINIO_API_KEY'),
+            intrinio_username=get_env('INTRINIO_USERNAME'),
+            eodhd_key=get_env('EODHD_API_KEY'),
+            fred_key=get_env('FRED_API_KEY'),
+            etherscan_key=get_env('ETHERSCAN_API_KEY'),
+            tradestie_key=get_env('TRADESTIE_API_KEY'),
+            wallstreetodds_key=get_env('WALLSTREETODDS_API_KEY'),
+            
+            # AI/LLM APIs
+            openai_key=get_env('OPENAI_API_KEY'),
+            anthropic_key=get_env('ANTHROPIC_API_KEY'),
+            google_ai_key=get_env('GOOGLE_AI_API_KEY'),
+            xai_key=get_env('XAI_API_KEY'),
+            
+            # Polymarket
+            polymarket_private_key=get_env('POLYMARKET_PRIVATE_KEY'),
+            polymarket_funder=get_env('POLYMARKET_FUNDER_ADDRESS'),
+            polymarket_chain_id=int(get_env('POLYMARKET_CHAIN_ID', '137')),
+            
             # Dashboard
             dashboard_url=get_env('DASHBOARD_URL', 'http://localhost:3000'),
             dashboard_secret=get_env('DASHBOARD_SECRET_KEY'),
         )
+
+        # Post-load validation for risk config
+        if config.risk.max_position_size_usd <= 0:
+            logger.warning(f"Invalid max_position_size_usd: {config.risk.max_position_size_usd}, using default 10000.0")
+            config.risk.max_position_size_usd = 10000.0
+        if config.risk.max_daily_loss_usd <= 0:
+            logger.warning(f"Invalid max_daily_loss_usd: {config.risk.max_daily_loss_usd}, using default 1000.0")
+            config.risk.max_daily_loss_usd = 1000.0
+
+        return config
     
     def get_enabled_exchanges(self) -> Dict[str, ExchangeConfig]:
         """Return dict of exchanges that have API keys configured"""
@@ -324,6 +467,12 @@ class Config:
             exchanges['coinbase'] = self.coinbase
         if self.kraken.is_configured():
             exchanges['kraken'] = self.kraken
+        if self.ibkr.is_configured():
+            exchanges['ibkr'] = self.ibkr
+        if self.moomoo.is_configured():
+            exchanges['moomoo'] = self.moomoo
+        if self.ndax.is_configured():
+            exchanges['ndax'] = self.ndax
         return exchanges
     
     def validate(self) -> Dict[str, Any]:

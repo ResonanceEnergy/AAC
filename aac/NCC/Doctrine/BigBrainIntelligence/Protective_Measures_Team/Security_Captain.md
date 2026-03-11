@@ -6,7 +6,7 @@
 - **Expertise:** Threat evaluation, protective measures implementation, security command
 - **Key Responsibilities:** Conduct threat evaluation, implement protective measures per NCC doctrine hierarchy
 - **Insights:** "Security is a mindset, not just a department."
-- **Integration:** Commands Security 10 Division, reports to AZ PRIME, coordinates with Big Brain Intelligence
+- **Integration:** Commands Security 10 Division, reports to BARREN WUFFET, coordinates with Big Brain Intelligence
 
 ## Contact
 - **Dashboard Access:** NCC Security Command Network

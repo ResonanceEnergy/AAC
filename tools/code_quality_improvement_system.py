@@ -572,12 +572,12 @@ class Test{Path(file_name).stem.title()}(unittest.TestCase):
     def test_initialization(self):
         """Test basic initialization"""
         # TODO: Implement test
-        self.assertTrue(True)  # Placeholder
+        self.skipTest("Not yet implemented")
 
     def test_main_functionality(self):
         """Test main functionality"""
         # TODO: Implement test
-        self.assertTrue(True)  # Placeholder
+        self.skipTest("Not yet implemented")
 
 
 if __name__ == '__main__':

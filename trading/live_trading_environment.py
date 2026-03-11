@@ -21,7 +21,7 @@ import threading
 import psutil
 import os
 
-PROJECT_ROOT = Path(__file__).resolve().parent
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from shared.config_loader import get_config, get_project_path
@@ -30,10 +30,10 @@ from shared.live_trading_safeguards import live_trading_safeguards
 from shared.production_deployment import production_deployment_system
 from shared.production_monitoring import initialize_production_monitoring
 from shared.compliance_review import initialize_compliance_review, compliance_review_system
-from strategy_execution_engine import get_strategy_execution_engine, StrategyExecutionMode
+from strategies.strategy_execution_engine import get_strategy_execution_engine, StrategyExecutionMode
 from shared.market_data_feeds import get_market_data_feed
-from order_generation_system import get_order_generator
-from ml_model_training_pipeline import get_ml_training_pipeline
+from trading.order_generation_system import get_order_generator
+from models.ml_model_training_pipeline import get_ml_training_pipeline
 from shared.ai_strategy_generator import initialize_ai_strategy_generation
 
 

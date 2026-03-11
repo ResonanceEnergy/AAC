@@ -22,7 +22,7 @@ from typing import Dict, Any, Optional
 import logging
 
 # Add project root to path
-PROJECT_ROOT = Path(__file__).resolve().parent
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from shared.config_loader import get_config, Config
@@ -300,7 +300,7 @@ class ProductionSetup:
         print("✅ Production safeguards configured")
         return True
 
-    def update_env_var(self, key: str, value: str):
+    def update_env_var(self, key: str, value: str) -> None:
         """Update environment variable in .env file"""
         if not self.env_file.exists():
             # Create .env file if it doesn't exist

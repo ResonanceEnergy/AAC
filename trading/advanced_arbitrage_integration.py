@@ -23,6 +23,9 @@ from dataclasses import dataclass
 from dotenv import load_dotenv
 import pandas as pd
 import numpy as np
+import logging
+
+arb_logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
@@ -111,7 +114,7 @@ class AdvancedArbitrageEngine:
                                 'source': 'polygon'
                             }
         except Exception as e:
-            pass
+            arb_logger.warning(f"Polygon data collection failed for {symbol}: {e}")
         return None
 
     async def _collect_finnhub_data(self, symbol: str) -> Optional[Dict[str, Any]]:
@@ -138,7 +141,7 @@ class AdvancedArbitrageEngine:
                                 'source': 'finnhub'
                             }
         except Exception as e:
-            pass
+            arb_logger.warning(f"Finnhub data collection failed for {symbol}: {e}")
         return None
 
     async def _collect_fred_data(self, symbol: str) -> Optional[Dict[str, Any]]:
@@ -161,7 +164,7 @@ class AdvancedArbitrageEngine:
                 url = f"https://api.stlouisfed.org/fred/series/observations"
                 params = {
                     'series_id': series_id,
-                    'api_key': 'demo',  # Using demo key for testing
+                    'api_key': os.getenv('FRED_API_KEY', 'demo'),
                     'file_type': 'json',
                     'limit': 1,
                     'sort_order': 'desc'
@@ -178,7 +181,7 @@ class AdvancedArbitrageEngine:
                                 'source': 'fred'
                             }
         except Exception as e:
-            pass
+            arb_logger.warning(f"FRED data collection failed for {symbol}: {e}")
         return None
 
     async def _collect_oecd_data(self, symbol: str) -> Optional[Dict[str, Any]]:
@@ -199,7 +202,7 @@ class AdvancedArbitrageEngine:
                                 'source': 'oecd'
                             }
         except Exception as e:
-            pass
+            arb_logger.warning(f"OECD data collection failed for {symbol}: {e}")
         return None
 
     async def _collect_cboe_data(self, symbol: str) -> Optional[Dict[str, Any]]:

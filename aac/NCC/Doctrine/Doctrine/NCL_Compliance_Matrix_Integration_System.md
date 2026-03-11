@@ -30,7 +30,7 @@ Performance Analytics → NCL Optimization → Enhanced Insights → Repeat
 **Key Features:**
 - Accelerated insight deployment (daily vs. weekly)
 - Priority resource allocation
-- Direct AZ PRIME oversight
+- Direct BARREN WUFFET oversight
 - Emergency compliance protocols
 
 ### Class BETA: Moderate Compliance Boost (High Priority)
@@ -70,7 +70,7 @@ Performance Analytics → NCL Optimization → Enhanced Insights → Repeat
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ NCC ENTERPRISE COMPLIANCE MATRIX - NCL INTEGRATION STATUS                   │
 ├─────────────────┬─────────┬──────────────┬─────────────┬────────────┬─────────┤
-│ Department      │ Sec10   │ AZ PRIME     │ NNO         │ Comm        │ Overall │
+│ Department      │ Sec10   │ BARREN WUFFET     │ NNO         │ Comm        │ Overall │
 ├─────────────────┼─────────┼──────────────┼─────────────┼────────────┼─────────┤
 │ Elite Divisions │ 100% Ω  │ 100% Ω       │ 100% Ω      │ 95% Ω       │ 98% Ω   │
 │ CommandCenter   │ 95% Γ   │ 90% Γ        │ 95% Γ       │ 90% Γ       │ 93% Γ   │

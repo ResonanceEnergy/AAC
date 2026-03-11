@@ -38,7 +38,7 @@ import threading
 import psutil
 import os
 
-PROJECT_ROOT = Path(__file__).resolve().parent
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from shared.config_loader import get_config
@@ -46,8 +46,8 @@ from shared.audit_logger import get_audit_logger, AuditCategory, AuditSeverity
 from shared.live_trading_safeguards import live_trading_safeguards
 from shared.quantum_circuit_breaker import QuantumCircuitBreaker, CircuitState
 from shared.websocket_feeds import BinanceWebSocketFeed
-from binance_trading_engine import BinanceTradingEngine, TradingConfig
-from binance_arbitrage_integration import BinanceConfig
+from trading.binance_trading_engine import BinanceTradingEngine, TradingConfig
+from trading.binance_arbitrage_integration import BinanceConfig
 
 
 class Exchange(Enum):
@@ -427,9 +427,20 @@ class LiveTradingInfrastructure:
         if Exchange.BINANCE in self.exchanges:
             self.websocket_feeds[Exchange.BINANCE] = BinanceWebSocketFeed()
 
-        # TODO: Implement Coinbase and Kraken WebSocket feeds
-        # self.websocket_feeds[Exchange.COINBASE] = CoinbaseWebSocketFeed()
-        # self.websocket_feeds[Exchange.KRAKEN] = KrakenWebSocketFeed()
+        # Coinbase and Kraken feeds — instantiate when exchange is enabled
+        if Exchange.COINBASE in self.exchanges:
+            try:
+                from trading.coinbase_ws_feed import CoinbaseWebSocketFeed
+                self.websocket_feeds[Exchange.COINBASE] = CoinbaseWebSocketFeed()
+            except ImportError:
+                logger.warning("CoinbaseWebSocketFeed not available — skipping")
+
+        if Exchange.KRAKEN in self.exchanges:
+            try:
+                from trading.kraken_ws_feed import KrakenWebSocketFeed
+                self.websocket_feeds[Exchange.KRAKEN] = KrakenWebSocketFeed()
+            except ImportError:
+                logger.warning("KrakenWebSocketFeed not available — skipping")
 
     async def start(self):
         """Start the live trading infrastructure"""
@@ -682,11 +693,6 @@ class LiveTradingInfrastructure:
     async def _validate_order(self, exchange: Exchange, symbol: str, side: str,
                             quantity: Decimal, price: Optional[Decimal]):
         """Pre-trade order validation"""
-        # Check position limits
-        # Check risk limits
-        # Check market data availability
-        # Check exchange-specific requirements
-
         # Basic validation
         if quantity <= 0:
             raise Exception("Invalid quantity")
@@ -694,8 +700,21 @@ class LiveTradingInfrastructure:
         if price and price <= 0:
             raise Exception("Invalid price")
 
-        # Check if symbol is available on exchange
-        # This would need exchange-specific validation
+        # Position limit check
+        max_position = Decimal(str(self.config.get('max_position_size', 1000000)))
+        if quantity > max_position:
+            raise Exception(f"Quantity {quantity} exceeds position limit {max_position}")
+
+        # Risk limit check — max single order value
+        if price:
+            order_value = quantity * price
+            max_order_value = Decimal(str(self.config.get('max_order_value', 500000)))
+            if order_value > max_order_value:
+                raise Exception(f"Order value ${order_value} exceeds max ${max_order_value}")
+
+        # Exchange availability check
+        if exchange not in self.exchanges:
+            raise Exception(f"Exchange {exchange.value} not configured")
 
     async def cancel_order(self, exchange: Exchange, order_id: str) -> bool:
         """Cancel an order"""

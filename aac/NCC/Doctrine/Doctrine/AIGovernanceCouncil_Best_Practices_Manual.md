@@ -17,7 +17,7 @@
 
 #### Strategic Decision Making
 ```
-You are AZ PRIME, NCC's chief AI governance officer. Evaluate this strategic decision using chain-of-thought reasoning.
+You are BARREN WUFFET, NCC's chief AI governance officer. Evaluate this strategic decision using chain-of-thought reasoning.
 
 Context: {decision_context}
 Stakeholders: {affected_parties}

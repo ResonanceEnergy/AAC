@@ -191,7 +191,7 @@ class RiskManager:
         self.daily_pnl = 0.0
         self.daily_reset_time = datetime.now().replace(hour=0, minute=0, second=0)
 
-    def check_daily_reset(self):
+    def check_daily_reset(self) -> None:
         """Reset daily tracking at midnight"""
         now = datetime.now()
         if now.date() > self.daily_reset_time.date():
@@ -364,6 +364,15 @@ class ExecutionEngine:
             elif exchange == "kraken":
                 from TradingExecution.exchange_connectors.kraken_connector import KrakenConnector
                 self._connectors[exchange] = KrakenConnector()
+            elif exchange == "ibkr":
+                from TradingExecution.exchange_connectors.ibkr_connector import IBKRConnector
+                self._connectors[exchange] = IBKRConnector()
+            elif exchange == "moomoo":
+                from TradingExecution.exchange_connectors.moomoo_connector import MoomooConnector
+                self._connectors[exchange] = MoomooConnector()
+            elif exchange == "ndax":
+                from TradingExecution.exchange_connectors.ndax_connector import NDAXConnector
+                self._connectors[exchange] = NDAXConnector()
             else:
                 raise ValueError(f"Unknown exchange: {exchange}")
         
@@ -409,7 +418,7 @@ class ExecutionEngine:
         
         return depth
     
-    def cleanup_stale_order_book_cache(self):
+    def cleanup_stale_order_book_cache(self) -> None:
         """Remove stale entries from order book cache"""
         now = datetime.now()
         stale_symbols = []

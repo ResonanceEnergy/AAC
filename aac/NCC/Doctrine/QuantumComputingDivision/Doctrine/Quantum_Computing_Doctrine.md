@@ -160,6 +160,6 @@ To develop and deploy quantum computing technologies that provide NCC with compu
 
 The Quantum Computing Division represents NCC's commitment to maintaining technological supremacy through the 21st century and beyond. By establishing quantum advantage across all operations, NCC will lead in the quantum revolution, creating unprecedented opportunities for innovation and growth.
 
-**Approved By:** AZ PRIME Executive Council  
+**Approved By:** BARREN WUFFET Executive Council  
 **Effective Date:** January 28, 2026  
 **Review Cycle:** Annual

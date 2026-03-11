@@ -1,5 +1,5 @@
 """
-FlowPressure&RealEconomyFeedback(creditEquity)Strategy
+FlowPressureAndRealEconomyFeedbackCreditEquityStrategy
 ======================================================
 
 Exploit liquidity-driven selling that raises financing costs; contrarian entries.
@@ -19,7 +19,7 @@ from shared.audit_logger import AuditLogger
 logger = logging.getLogger(__name__)
 
 
-class FlowPressure&RealEconomyFeedback(creditEquity)Strategy(BaseArbitrageStrategy):
+class FlowPressureAndRealEconomyFeedbackCreditEquityStrategy(BaseArbitrageStrategy):
     """
     Flow Pressure & Real-Economy Feedback (Credit-Equity)
 

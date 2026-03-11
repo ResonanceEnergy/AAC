@@ -1,6 +1,6 @@
 # Quantitative Research Division - AAC Integration
 # Advanced quantitative research and alpha generation
-# Date: 2026-02-04 | Authority: AZ PRIME Command
+# Date: 2026-02-04 | Authority: BARREN WUFFET Command
 
 from shared.super_agent_framework import SuperAgent
 from shared.communication import CommunicationFramework
@@ -212,7 +212,7 @@ async def get_quantitative_research_division():
     """Factory function for Quantitative Research Division"""
     division = {
         'name': 'Quantitative Research Division',
-        'authority': 'AZ PRIME',
+        'authority': 'BARREN WUFFET',
         'agents': [
             AlphaGenerationAgent(),
             FactorResearchAgent(),

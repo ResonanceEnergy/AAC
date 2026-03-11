@@ -31,7 +31,7 @@ STRATEGIC OBJECTIVES (Supreme Commander Vision)
 - Annual recalibration based on technological and market changes
 
 ## Mission Metrics (Level 2)
-**Frequency:** Quarterly Review | **Owner:** AZ PRIME Framework | **Purpose:** Break down annual objectives into executable missions
+**Frequency:** Quarterly Review | **Owner:** BARREN WUFFET Framework | **Purpose:** Break down annual objectives into executable missions
 
 ### Health & Human Performance (HHP)
 - **Physical Health Index**: Composite of fitness, nutrition, sleep, and medical markers (Target: 95/100)

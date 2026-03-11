@@ -1,7 +1,7 @@
 # INTEGRATED INSURANCE CORP (IIC)
 # Deep Dive Research Framework: 1,000 Insights
 # Date: January 29, 2026
-# Authority: AZ PRIME Command | Research: BigBrain Intelligence
+# Authority: BARREN WUFFET Command | Research: BigBrain Intelligence
 
 ## EXECUTIVE SUMMARY
 Integrated Insurance Corp (IIC) will conduct comprehensive research into international insurance markets, analyzing 1,000+ insights from global insurance firms to build the most efficient, innovation-driven insurance company in the world.

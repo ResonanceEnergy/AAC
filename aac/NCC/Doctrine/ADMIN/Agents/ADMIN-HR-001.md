@@ -5,7 +5,7 @@
 **Specialization:** HR Strategy & Evolution
 **Performance Rating:** 99.2%
 **Security Clearance:** TOP SECRET
-**Reports To:** AZ PRIME
+**Reports To:** BARREN WUFFET
 
 ## Core Responsibilities
 - Oversee all HR operations across NCC

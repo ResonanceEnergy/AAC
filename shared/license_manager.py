@@ -104,11 +104,17 @@ class LicenseManager:
         self.alerts: List[LicenseAlert] = []
         self.license_store_path = PROJECT_ROOT / "config" / "licenses.json"
 
-        # Load existing licenses
-        asyncio.create_task(self._load_licenses())
+        # Load existing licenses (deferred to avoid requiring a running event loop at import time)
+        try:
+            asyncio.create_task(self._load_licenses())
+        except RuntimeError:
+            pass  # No event loop; licenses will be loaded on first use
 
         # Start monitoring tasks
-        asyncio.create_task(self._start_monitoring())
+        try:
+            asyncio.create_task(self._start_monitoring())
+        except RuntimeError:
+            pass  # No event loop; monitoring will start when loop is available
 
     async def _load_licenses(self):
         """Load licenses from storage"""

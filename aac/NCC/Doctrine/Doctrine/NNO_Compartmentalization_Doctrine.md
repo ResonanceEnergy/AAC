@@ -31,7 +31,7 @@ The NNO (Need-to-Know Only) Compartmentalization Doctrine establishes the fundam
 ### Access Control Matrix
 | Compartment | Clearance Required | Approval Authority | Review Cycle |
 |-------------|-------------------|-------------------|--------------|
-| Strategic Vision | CEO + C-Suite | AZ PRIME | Annual |
+| Strategic Vision | CEO + C-Suite | BARREN WUFFET | Annual |
 | Financial Intelligence | CFO + Audit Committee | CEO | Quarterly |
 | Technology Innovation | CTO + R&D Leads | CEO | Monthly |
 | Operational Security | CSO + Security Council | CEO | Weekly |
@@ -132,7 +132,7 @@ The NNO (Need-to-Know Only) Compartmentalization Doctrine establishes the fundam
 
 The NNO Compartmentalization Doctrine ensures NCC's information security scales with our global ambitions. By implementing strict need-to-know principles, we protect our competitive advantages, maintain operational integrity, and build trust with stakeholders worldwide. This doctrine is the foundation of our 2100 giga corp vision.
 
-**Approved By:** AZ PRIME  
+**Approved By:** BARREN WUFFET  
 **Effective Date:** Immediate  
 **Review Cycle:** Annual
 

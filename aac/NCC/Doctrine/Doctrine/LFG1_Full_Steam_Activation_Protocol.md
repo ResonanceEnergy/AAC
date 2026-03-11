@@ -232,7 +232,7 @@ All NCC Corporations and Divisions are hereby activated to FULL STEAM operation.
 
 ## 🚀 EXECUTION AUTHORITY
 
-**AZ PRIME OVERSIGHT**: All corporations under direct AZ PRIME command
+**BARREN WUFFET OVERSIGHT**: All corporations under direct BARREN WUFFET command
 **LFG! PROTOCOL**: Maximum efficiency and production mandatory
 **FULL STEAM STATUS**: ENGAGED AND LOCKED
 **NO EXCEPTIONS**: All systems operate at full capacity

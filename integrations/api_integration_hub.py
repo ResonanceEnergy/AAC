@@ -131,7 +131,8 @@ class APIClient:
                     if response.status == 200:
                         try:
                             data = await response.json()
-                        except:
+                        except (json.JSONDecodeError, ValueError) as e:
+                            self.logger.warning(f"JSON parse error: {e}")
                             data = await response.text()
 
                         # Audit successful API call
@@ -596,6 +597,466 @@ class KYCProviderClient(APIClient):
         return await self._make_request("GET", url)
 
 
+class FREDClient(APIClient):
+    """Federal Reserve Economic Data (FRED) API client"""
+
+    def __init__(self, config):
+        endpoint = APIEndpoint(
+            name="fred",
+            base_url="https://api.stlouisfed.org/fred",
+            auth_type="none",  # API key passed as query param
+            rate_limit=120
+        )
+        super().__init__(endpoint)
+        self.api_key = config.fred_key
+
+    async def get_series(self, series_id: str, limit: int = 100) -> APIResponse:
+        """Get observations for a FRED series (e.g. GDP, CPI, FEDFUNDS)"""
+        url = f"{self.endpoint.base_url}/series/observations"
+        params = {
+            "series_id": series_id,
+            "api_key": self.api_key,
+            "file_type": "json",
+            "sort_order": "desc",
+            "limit": limit
+        }
+        return await self._make_request("GET", url, params=params)
+
+    async def search_series(self, query: str, limit: int = 20) -> APIResponse:
+        """Search FRED for economic data series"""
+        url = f"{self.endpoint.base_url}/series/search"
+        params = {
+            "search_text": query,
+            "api_key": self.api_key,
+            "file_type": "json",
+            "limit": limit
+        }
+        return await self._make_request("GET", url, params=params)
+
+    async def get_interest_rates(self) -> APIResponse:
+        """Get key interest rates (Fed Funds, 10Y Treasury, 30Y Mortgage)"""
+        rates = {}
+        series_ids = {
+            "fed_funds_rate": "FEDFUNDS",
+            "treasury_10y": "DGS10",
+            "treasury_2y": "DGS2",
+            "mortgage_30y": "MORTGAGE30US",
+            "prime_rate": "DPRIME"
+        }
+        for name, series_id in series_ids.items():
+            result = await self.get_series(series_id, limit=1)
+            if result.success and result.data:
+                obs = result.data.get("observations", [])
+                if obs:
+                    rates[name] = {
+                        "value": obs[0].get("value"),
+                        "date": obs[0].get("date")
+                    }
+        return APIResponse(success=bool(rates), data=rates)
+
+    async def get_economic_indicators(self) -> APIResponse:
+        """Get key economic indicators (GDP, CPI, unemployment)"""
+        indicators = {}
+        series_ids = {
+            "gdp_growth": "A191RL1Q225SBEA",
+            "cpi": "CPIAUCSL",
+            "unemployment": "UNRATE",
+            "consumer_sentiment": "UMCSENT",
+            "industrial_production": "INDPRO"
+        }
+        for name, series_id in series_ids.items():
+            result = await self.get_series(series_id, limit=1)
+            if result.success and result.data:
+                obs = result.data.get("observations", [])
+                if obs:
+                    indicators[name] = {
+                        "value": obs[0].get("value"),
+                        "date": obs[0].get("date")
+                    }
+        return APIResponse(success=bool(indicators), data=indicators)
+
+
+class PolygonClient(APIClient):
+    """Polygon.io API client for market data"""
+
+    def __init__(self, config):
+        endpoint = APIEndpoint(
+            name="polygon",
+            base_url="https://api.polygon.io",
+            auth_type="none",  # API key passed as query param
+            rate_limit=5  # Free tier: 5/min
+        )
+        super().__init__(endpoint)
+        self.api_key = config.polygon_key
+
+    async def get_ticker_snapshot(self, symbol: str) -> APIResponse:
+        """Get real-time snapshot for a ticker"""
+        url = f"{self.endpoint.base_url}/v2/snapshot/locale/us/markets/stocks/tickers/{symbol}"
+        params = {"apiKey": self.api_key}
+        return await self._make_request("GET", url, params=params)
+
+    async def get_aggregates(self, symbol: str, multiplier: int = 1,
+                             timespan: str = "day", from_date: str = "",
+                             to_date: str = "") -> APIResponse:
+        """Get aggregate bars (OHLCV) for a symbol"""
+        url = f"{self.endpoint.base_url}/v2/aggs/ticker/{symbol}/range/{multiplier}/{timespan}/{from_date}/{to_date}"
+        params = {"apiKey": self.api_key, "adjusted": "true", "sort": "asc"}
+        return await self._make_request("GET", url, params=params)
+
+    async def get_previous_close(self, symbol: str) -> APIResponse:
+        """Get previous day's close for a symbol"""
+        url = f"{self.endpoint.base_url}/v2/aggs/ticker/{symbol}/prev"
+        params = {"apiKey": self.api_key}
+        return await self._make_request("GET", url, params=params)
+
+    async def get_crypto_snapshot(self, symbol: str = "X:BTCUSD") -> APIResponse:
+        """Get crypto ticker snapshot"""
+        url = f"{self.endpoint.base_url}/v2/snapshot/locale/global/markets/crypto/tickers/{symbol}"
+        params = {"apiKey": self.api_key}
+        return await self._make_request("GET", url, params=params)
+
+
+class FinnhubClient(APIClient):
+    """Finnhub API client for stock data and news"""
+
+    def __init__(self, config):
+        endpoint = APIEndpoint(
+            name="finnhub",
+            base_url="https://finnhub.io/api/v1",
+            auth_type="none",
+            rate_limit=60  # Free: 60/min
+        )
+        super().__init__(endpoint)
+        self.api_key = config.finnhub_key
+
+    async def get_quote(self, symbol: str) -> APIResponse:
+        """Get real-time quote"""
+        url = f"{self.endpoint.base_url}/quote"
+        params = {"symbol": symbol, "token": self.api_key}
+        return await self._make_request("GET", url, params=params)
+
+    async def get_company_news(self, symbol: str, from_date: str = "",
+                                to_date: str = "") -> APIResponse:
+        """Get company-specific news"""
+        url = f"{self.endpoint.base_url}/company-news"
+        params = {"symbol": symbol, "from": from_date, "to": to_date, "token": self.api_key}
+        return await self._make_request("GET", url, params=params)
+
+    async def get_earnings_calendar(self, from_date: str = "",
+                                     to_date: str = "") -> APIResponse:
+        """Get earnings calendar"""
+        url = f"{self.endpoint.base_url}/calendar/earnings"
+        params = {"from": from_date, "to": to_date, "token": self.api_key}
+        return await self._make_request("GET", url, params=params)
+
+    async def get_market_news(self, category: str = "general") -> APIResponse:
+        """Get general market news"""
+        url = f"{self.endpoint.base_url}/news"
+        params = {"category": category, "token": self.api_key}
+        return await self._make_request("GET", url, params=params)
+
+    async def get_insider_transactions(self, symbol: str) -> APIResponse:
+        """Get insider transactions"""
+        url = f"{self.endpoint.base_url}/stock/insider-transactions"
+        params = {"symbol": symbol, "token": self.api_key}
+        return await self._make_request("GET", url, params=params)
+
+
+class EODHDHubClient(APIClient):
+    """EODHD API client for global market data"""
+
+    def __init__(self, config):
+        endpoint = APIEndpoint(
+            name="eodhd",
+            base_url="https://eodhd.com/api",
+            auth_type="none",
+            rate_limit=100
+        )
+        super().__init__(endpoint)
+        self.api_key = config.eodhd_key
+
+    async def get_eod_data(self, symbol: str, from_date: str = "",
+                           to_date: str = "") -> APIResponse:
+        """Get end-of-day historical data"""
+        url = f"{self.endpoint.base_url}/eod/{symbol}"
+        params = {"api_token": self.api_key, "fmt": "json"}
+        if from_date:
+            params["from"] = from_date
+        if to_date:
+            params["to"] = to_date
+        return await self._make_request("GET", url, params=params)
+
+    async def get_real_time(self, symbol: str) -> APIResponse:
+        """Get real-time price"""
+        url = f"{self.endpoint.base_url}/real-time/{symbol}"
+        params = {"api_token": self.api_key, "fmt": "json"}
+        return await self._make_request("GET", url, params=params)
+
+    async def get_fundamentals(self, symbol: str) -> APIResponse:
+        """Get fundamental data for a stock"""
+        url = f"{self.endpoint.base_url}/fundamentals/{symbol}"
+        params = {"api_token": self.api_key}
+        return await self._make_request("GET", url, params=params)
+
+
+class TradeStieSentimentClient(APIClient):
+    """TradeStie Reddit Sentiment API client"""
+
+    def __init__(self, config):
+        endpoint = APIEndpoint(
+            name="tradestie_sentiment",
+            base_url="https://tradestie.com/api/v1/apps/reddit",
+            auth_type="none",
+            rate_limit=20  # 20/min
+        )
+        super().__init__(endpoint)
+
+    async def get_wsb_sentiment(self) -> APIResponse:
+        """Get WallStreetBets top discussed tickers with sentiment"""
+        url = self.endpoint.base_url
+        return await self._make_request("GET", url)
+
+    async def get_ticker_sentiment(self, ticker: str) -> APIResponse:
+        """Get sentiment for a specific ticker"""
+        result = await self.get_wsb_sentiment()
+        if result.success and result.data:
+            for item in result.data:
+                if item.get("ticker", "").upper() == ticker.upper():
+                    return APIResponse(success=True, data=item)
+        return APIResponse(success=False, error=f"Ticker {ticker} not in WSB top discussed")
+
+
+class EtherscanClient(APIClient):
+    """Etherscan API client for blockchain data"""
+
+    def __init__(self, config):
+        endpoint = APIEndpoint(
+            name="etherscan",
+            base_url="https://api.etherscan.io/api",
+            auth_type="none",
+            rate_limit=5  # Free: 5/sec
+        )
+        super().__init__(endpoint)
+        self.api_key = config.etherscan_key
+
+    async def get_eth_price(self) -> APIResponse:
+        """Get current ETH price"""
+        url = self.endpoint.base_url
+        params = {"module": "stats", "action": "ethprice", "apikey": self.api_key}
+        return await self._make_request("GET", url, params=params)
+
+    async def get_gas_oracle(self) -> APIResponse:
+        """Get gas price oracle"""
+        url = self.endpoint.base_url
+        params = {"module": "gastracker", "action": "gasoracle", "apikey": self.api_key}
+        return await self._make_request("GET", url, params=params)
+
+    async def get_balance(self, address: str) -> APIResponse:
+        """Get ETH balance for an address"""
+        url = self.endpoint.base_url
+        params = {
+            "module": "account", "action": "balance",
+            "address": address, "tag": "latest", "apikey": self.api_key
+        }
+        return await self._make_request("GET", url, params=params)
+
+    async def get_token_balance(self, address: str, contract: str) -> APIResponse:
+        """Get ERC-20 token balance"""
+        url = self.endpoint.base_url
+        params = {
+            "module": "account", "action": "tokenbalance",
+            "contractaddress": contract, "address": address,
+            "tag": "latest", "apikey": self.api_key
+        }
+        return await self._make_request("GET", url, params=params)
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# POLYMARKET — Prediction Market APIs (Gamma + Data + CLOB)
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+class PolymarketGammaClient(APIClient):
+    """Polymarket Gamma API — markets, events, tags, search (public, no auth)"""
+
+    def __init__(self, config=None):
+        endpoint = APIEndpoint(
+            name="polymarket_gamma",
+            base_url="https://gamma-api.polymarket.com",
+            auth_type="none",
+            rate_limit=60
+        )
+        super().__init__(endpoint)
+
+    async def get_events(self, active: bool = True, closed: bool = False,
+                         limit: int = 100, offset: int = 0,
+                         order: str = "volume_24hr",
+                         ascending: bool = False) -> APIResponse:
+        """Get prediction market events (containers of markets)"""
+        url = f"{self.endpoint.base_url}/events"
+        params = {
+            "active": str(active).lower(),
+            "closed": str(closed).lower(),
+            "limit": limit,
+            "offset": offset,
+            "order": order,
+            "ascending": str(ascending).lower()
+        }
+        return await self._make_request("GET", url, params=params)
+
+    async def get_event_by_slug(self, slug: str) -> APIResponse:
+        """Get a specific event by its URL slug"""
+        url = f"{self.endpoint.base_url}/events/slug/{slug}"
+        return await self._make_request("GET", url)
+
+    async def get_markets(self, active: bool = True, closed: bool = False,
+                          limit: int = 100, offset: int = 0) -> APIResponse:
+        """Get individual prediction markets"""
+        url = f"{self.endpoint.base_url}/markets"
+        params = {
+            "active": str(active).lower(),
+            "closed": str(closed).lower(),
+            "limit": limit,
+            "offset": offset
+        }
+        return await self._make_request("GET", url, params=params)
+
+    async def get_market_by_slug(self, slug: str) -> APIResponse:
+        """Get a specific market by slug"""
+        url = f"{self.endpoint.base_url}/markets/slug/{slug}"
+        return await self._make_request("GET", url)
+
+    async def get_market_by_id(self, condition_id: str) -> APIResponse:
+        """Get a specific market by condition ID"""
+        url = f"{self.endpoint.base_url}/markets/{condition_id}"
+        return await self._make_request("GET", url)
+
+    async def get_tags(self) -> APIResponse:
+        """Get all available market tags/categories"""
+        url = f"{self.endpoint.base_url}/tags"
+        return await self._make_request("GET", url)
+
+    async def get_events_by_tag(self, tag_id: int, active: bool = True,
+                                limit: int = 50) -> APIResponse:
+        """Get events filtered by tag (e.g., crypto, politics, sports)"""
+        url = f"{self.endpoint.base_url}/events"
+        params = {
+            "tag_id": tag_id,
+            "active": str(active).lower(),
+            "closed": "false",
+            "limit": limit
+        }
+        return await self._make_request("GET", url, params=params)
+
+    async def search_markets(self, query: str, limit: int = 20) -> APIResponse:
+        """Search markets by keyword"""
+        url = f"{self.endpoint.base_url}/markets"
+        params = {"slug": query, "limit": limit}
+        return await self._make_request("GET", url, params=params)
+
+
+class PolymarketDataClient(APIClient):
+    """Polymarket Data API — positions, trades, activity, leaderboards (public)"""
+
+    def __init__(self, config=None):
+        endpoint = APIEndpoint(
+            name="polymarket_data",
+            base_url="https://data-api.polymarket.com",
+            auth_type="none",
+            rate_limit=60
+        )
+        super().__init__(endpoint)
+
+    async def get_market_trades(self, condition_id: str, limit: int = 100) -> APIResponse:
+        """Get recent trades for a market"""
+        url = f"{self.endpoint.base_url}/trades"
+        params = {"market": condition_id, "limit": limit}
+        return await self._make_request("GET", url, params=params)
+
+    async def get_market_timeseries(self, condition_id: str,
+                                     fidelity: int = 60) -> APIResponse:
+        """Get price timeseries for a market (fidelity in minutes)"""
+        url = f"{self.endpoint.base_url}/timeseries"
+        params = {"market": condition_id, "fidelity": fidelity}
+        return await self._make_request("GET", url, params=params)
+
+    async def get_global_activity(self, limit: int = 50) -> APIResponse:
+        """Get global platform activity"""
+        url = f"{self.endpoint.base_url}/activity"
+        params = {"limit": limit}
+        return await self._make_request("GET", url, params=params)
+
+    async def get_leaderboard(self, limit: int = 50) -> APIResponse:
+        """Get platform leaderboard"""
+        url = f"{self.endpoint.base_url}/leaderboard"
+        params = {"limit": limit}
+        return await self._make_request("GET", url, params=params)
+
+
+class PolymarketCLOBClient(APIClient):
+    """Polymarket CLOB API — orderbook, pricing, midpoints (public read endpoints)
+
+    Trading endpoints (order placement/cancellation) require py-clob-client
+    SDK with wallet auth.  This client covers read-only CLOB data.
+    """
+
+    def __init__(self, config=None):
+        endpoint = APIEndpoint(
+            name="polymarket_clob",
+            base_url="https://clob.polymarket.com",
+            auth_type="none",
+            rate_limit=60
+        )
+        super().__init__(endpoint)
+
+    async def get_midpoint(self, token_id: str) -> APIResponse:
+        """Get midpoint price for a token"""
+        url = f"{self.endpoint.base_url}/midpoint"
+        params = {"token_id": token_id}
+        return await self._make_request("GET", url, params=params)
+
+    async def get_price(self, token_id: str, side: str = "BUY") -> APIResponse:
+        """Get best price (BUY or SELL) for a token"""
+        url = f"{self.endpoint.base_url}/price"
+        params = {"token_id": token_id, "side": side}
+        return await self._make_request("GET", url, params=params)
+
+    async def get_spread(self, token_id: str) -> APIResponse:
+        """Get bid-ask spread for a token"""
+        url = f"{self.endpoint.base_url}/spread"
+        params = {"token_id": token_id}
+        return await self._make_request("GET", url, params=params)
+
+    async def get_order_book(self, token_id: str) -> APIResponse:
+        """Get full order book for a token"""
+        url = f"{self.endpoint.base_url}/book"
+        params = {"token_id": token_id}
+        return await self._make_request("GET", url, params=params)
+
+    async def get_simplified_markets(self) -> APIResponse:
+        """Get simplified market list from CLOB"""
+        url = f"{self.endpoint.base_url}/simplified-markets"
+        return await self._make_request("GET", url)
+
+    async def get_last_trade_price(self, token_id: str) -> APIResponse:
+        """Get last trade price for a token"""
+        url = f"{self.endpoint.base_url}/last-trade-price"
+        params = {"token_id": token_id}
+        return await self._make_request("GET", url, params=params)
+
+    async def get_prices_history(self, token_id: str,
+                                  interval: str = "1d",
+                                  fidelity: int = 60) -> APIResponse:
+        """Get historical price data for a token"""
+        url = f"{self.endpoint.base_url}/prices-history"
+        params = {
+            "market": token_id,
+            "interval": interval,
+            "fidelity": fidelity
+        }
+        return await self._make_request("GET", url, params=params)
+
+
 class APIIntegrationHub:
     """Central hub for all API integrations"""
 
@@ -641,6 +1102,34 @@ class APIIntegrationHub:
         # KYC Provider
         if self.config.kyc_provider_key:
             self.clients["kyc_provider"] = KYCProviderClient(self.config)
+
+        # FRED Economic Data
+        if self.config.fred_key:
+            self.clients["fred"] = FREDClient(self.config)
+
+        # Polygon.io
+        if self.config.polygon_key:
+            self.clients["polygon"] = PolygonClient(self.config)
+
+        # Finnhub
+        if self.config.finnhub_key:
+            self.clients["finnhub"] = FinnhubClient(self.config)
+
+        # EODHD
+        if self.config.eodhd_key:
+            self.clients["eodhd"] = EODHDHubClient(self.config)
+
+        # TradeStie Reddit Sentiment
+        self.clients["tradestie_sentiment"] = TradeStieSentimentClient(self.config)
+
+        # Etherscan
+        if self.config.etherscan_key:
+            self.clients["etherscan"] = EtherscanClient(self.config)
+
+        # Polymarket (all public, no key required)
+        self.clients["polymarket_gamma"] = PolymarketGammaClient(self.config)
+        self.clients["polymarket_data"] = PolymarketDataClient(self.config)
+        self.clients["polymarket_clob"] = PolymarketCLOBClient(self.config)
 
         self.logger.info(f"Initialized {len(self.clients)} API clients")
 
@@ -696,6 +1185,46 @@ class APIIntegrationHub:
             kyc_client = self.clients["kyc_provider"]
             # Note: KYC testing would require actual user data, so we skip functional test
             results["kyc_provider"] = APIResponse(success=True, data={"status": "configured"})
+
+        # Test FRED
+        if "fred" in self.clients:
+            fred_client = self.clients["fred"]
+            results["fred"] = await fred_client.get_series("FEDFUNDS", limit=1)
+
+        # Test Polygon
+        if "polygon" in self.clients:
+            polygon_client = self.clients["polygon"]
+            results["polygon"] = await polygon_client.get_previous_close("AAPL")
+
+        # Test Finnhub
+        if "finnhub" in self.clients:
+            finnhub_client = self.clients["finnhub"]
+            results["finnhub"] = await finnhub_client.get_quote("AAPL")
+
+        # Test EODHD
+        if "eodhd" in self.clients:
+            eodhd_client = self.clients["eodhd"]
+            results["eodhd"] = await eodhd_client.get_real_time("AAPL.US")
+
+        # Test TradeStie Sentiment
+        if "tradestie_sentiment" in self.clients:
+            ts_client = self.clients["tradestie_sentiment"]
+            results["tradestie_sentiment"] = await ts_client.get_wsb_sentiment()
+
+        # Test Etherscan
+        if "etherscan" in self.clients:
+            eth_client_scan = self.clients["etherscan"]
+            results["etherscan"] = await eth_client_scan.get_eth_price()
+
+        # Test Polymarket Gamma
+        if "polymarket_gamma" in self.clients:
+            pm_gamma = self.clients["polymarket_gamma"]
+            results["polymarket_gamma"] = await pm_gamma.get_events(limit=1)
+
+        # Test Polymarket CLOB
+        if "polymarket_clob" in self.clients:
+            pm_clob = self.clients["polymarket_clob"]
+            results["polymarket_clob"] = await pm_clob.get_simplified_markets()
 
         return results
 

@@ -473,7 +473,7 @@ class CrossDepartmentIntegrationEngine:
     - Connect to all department adapters
     - Route events between departments
     - Aggregate metrics for unified view
-    - Coordinate AZ PRIME safety actions
+    - Coordinate BARREN WUFFET safety actions
     """
     
     def __init__(self, config_path: Optional[Path] = None):
@@ -654,11 +654,11 @@ class CrossDepartmentIntegrationEngine:
         }
         
     # ═══════════════════════════════════════════════════════════════════════
-    # AZ PRIME SAFETY ACTIONS
+    # BARREN WUFFET SAFETY ACTIONS
     # ═══════════════════════════════════════════════════════════════════════
     
     async def execute_safety_action(self, action: str, params: Dict[str, Any] = None) -> bool:
-        """Execute an AZ PRIME safety action."""
+        """Execute an BARREN WUFFET safety action."""
         params = params or {}
         
         logger.warning(f"EXECUTING SAFETY ACTION: {action}")

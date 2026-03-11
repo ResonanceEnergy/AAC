@@ -483,8 +483,8 @@ class ReconstitutionMonitor:
 
     def _calculate_position_size(self, symbol: str) -> float:
         """Calculate position size for liquidity provision."""
-        # Get average daily volume (simplified)
-        avg_volume = 1000000  # Placeholder - would come from data
+        # Get average daily volume from market data (default to conservative estimate)
+        avg_volume = self.market_data.get(symbol, {}).get('avg_volume', 500000) if hasattr(self, 'market_data') else 500000
 
         # Position size as percentage of expected reconstitution volume
         position_size = avg_volume * (self.max_position_size_pct / 100)

@@ -229,7 +229,7 @@ This document provides the customized NCL (NATHAN COMMAND LEADERSHIP) Digital OS
 ## DEPENDENCIES & INTEGRATIONS
 
 ### Internal Dependencies
-- **AZ PRIME:** Strategic intelligence requirements and oversight
+- **BARREN WUFFET:** Strategic intelligence requirements and oversight
 - **Cybersecurity Command Center:** Intelligence security coordination
 - **Command Center:** Intelligence integration into command rhythm
 - **All Departments:** Intelligence support and data provision

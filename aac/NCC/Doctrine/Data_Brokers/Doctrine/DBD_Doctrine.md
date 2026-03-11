@@ -65,7 +65,7 @@ The Data Brokers Division serves as NCC's elite data acquisition, aggregation, a
 - Cross-training with intelligence divisions
 
 ## Integration Points
-- **AZ PRIME**: Strategic oversight and approval
+- **BARREN WUFFET**: Strategic oversight and approval
 - **Big Brain Intelligence**: Intelligence coordination
 - **Cybersecurity Command Center**: Security collaboration
 - **Faraday Financial**: Monetization support

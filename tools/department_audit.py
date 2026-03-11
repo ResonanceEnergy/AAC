@@ -3,7 +3,7 @@
 AAC 2100 Department Audit Script
 """
 
-from orchestrator import AAC2100Orchestrator
+from core.orchestrator import AAC2100Orchestrator
 import asyncio
 
 async def comprehensive_department_audit():

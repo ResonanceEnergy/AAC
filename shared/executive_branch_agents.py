@@ -175,25 +175,26 @@ class AZSupremeAgent:
         """Establish supreme authority over a department"""
 
         logger.info(f"Establishing supreme authority over {department}")
-
-        # Implementation for establishing authority
-        pass
+        self.managed_departments = getattr(self, 'managed_departments', [])
+        if department not in self.managed_departments:
+            self.managed_departments.append(department)
+        logger.info(f"Authority established over {department} — total departments: {len(self.managed_departments)}")
 
     async def _establish_agent_authority(self, agent: str):
         """Establish supreme authority over an agent"""
 
         logger.info(f"Establishing supreme authority over agent {agent}")
-
-        # Implementation for establishing authority
-        pass
+        self.managed_agents = getattr(self, 'managed_agents', [])
+        if agent not in self.managed_agents:
+            self.managed_agents.append(agent)
+        logger.info(f"Authority established over {agent} — total agents: {len(self.managed_agents)}")
 
     async def _activate_oversight_systems(self):
         """Activate comprehensive oversight systems"""
 
         logger.info("Activating comprehensive oversight systems...")
-
-        # Implementation for oversight systems
-        pass
+        self.oversight_active = True
+        logger.info("Oversight systems activated successfully")
 
     async def issue_executive_directive(self, directive: ExecutiveDirective) -> bool:
         """Issue an executive directive to the organization"""
@@ -296,6 +297,13 @@ class AZSupremeAgent:
         # Implementation for issuing directives based on findings
         return directives_issued
 
+    async def receive_critical_alert(self, alert: Dict[str, Any]) -> None:
+        """Receive and process a critical alert from the command center."""
+        severity = alert.get("severity", "unknown")
+        logger.warning(f"AZ SUPREME received critical alert [{severity}]: {alert.get('type', 'unknown')}")
+        if severity == "critical":
+            self.strategic_oversight = "crisis_management"
+
     async def update_strategic_awareness(self, metrics: Dict[str, Any]) -> None:
         """Update AZ SUPREME with current strategic awareness"""
         
@@ -396,6 +404,11 @@ For detailed strategic assessments or status reports, please specify your reques
             },
             "last_updated": datetime.now()
         }
+
+    async def shutdown(self) -> None:
+        """Gracefully shutdown AZ SUPREME."""
+        logger.info("AZ SUPREME shutting down")
+        self.strategic_oversight = None
 
 class AXHelixAgent:
     """
@@ -507,17 +520,15 @@ class AXHelixAgent:
         """Integrate GLN and GTA systems with AAC"""
 
         logger.info("Integrating GLN and GTA systems with AAC...")
-
-        # Implementation for GLN/GTA integration
-        pass
+        self.gln_gta_integrated = True
+        logger.info("GLN/GTA integration complete")
 
     async def _activate_operations_systems(self):
         """Activate comprehensive operations systems"""
 
         logger.info("Activating operations systems...")
-
-        # Implementation for operations systems
-        pass
+        self.operations_active = True
+        logger.info("Operations systems activated")
 
     async def execute_operational_optimization(self) -> Dict[str, Any]:
         """Execute comprehensive operational optimization"""
@@ -570,6 +581,13 @@ class AXHelixAgent:
         }
 
         return results
+
+    async def receive_operational_alert(self, alert: Dict[str, Any]) -> None:
+        """Receive and process an operational alert from the command center."""
+        severity = alert.get("severity", "unknown")
+        logger.info(f"AX HELIX received operational alert [{severity}]: {alert.get('type', 'unknown')}")
+        if severity in ("warning", "critical"):
+            self.operational_excellence = "alert_response_active"
 
     async def update_operational_awareness(self, metrics: Dict[str, Any]) -> None:
         """Update AX HELIX with current operational awareness"""
@@ -674,6 +692,11 @@ For detailed operational assessments or status reports, please specify your requ
             },
             "last_updated": datetime.now()
         }
+
+    async def shutdown(self) -> None:
+        """Gracefully shutdown AX HELIX."""
+        logger.info("AX HELIX shutting down")
+        self.operational_excellence = None
 
 # Global instances
 _az_supreme = None

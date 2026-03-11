@@ -291,7 +291,7 @@ This doctrine establishes the fundamental principles for agent data storage, ret
 - NNO_Compartmentalization_Doctrine.md
 
 **Supporting Documentation:**
-- AZ_PRIME_24_7_Framework.md
+- BARREN_WUFFET_24_7_Framework.md
 - NCC_Data_Privacy_Policy.md
 - NCC_Security_Compliance_Update_24hr.md
 

@@ -125,7 +125,7 @@ MediaCorp specializes in three primary domains:
   - Capabilities: Upload video → ready in minutes, live mic support, web/ZOOM/OBS deployment
 
 - **ElevenLabs – Voice Engine (Primary)**
-  - Role: AZ PRIME voice authority
+  - Role: BARREN WUFFET voice authority
   - Preset Voices: Adam or Antoni (start with these)
   - Permanent Settings:
     - Stability: 70%
@@ -175,7 +175,7 @@ MediaCorp specializes in three primary domains:
    - Validate security protocols
 
 ### Voice Profile Development
-- **AZ PRIME Voice Doctrine Application:**
+- **BARREN WUFFET Voice Doctrine Application:**
   - Short declarative sentences
   - No filler language
   - No enthusiasm markers
@@ -204,7 +204,7 @@ MediaCorp specializes in three primary domains:
 - Human-controlled interactions
 - Best for: Presentations, negotiations, command communications
 
-### Mode 3 — Autonomous AZ PRIME
+### Mode 3 — Autonomous BARREN WUFFET
 - AI-driven conversation engine
 - GPT-class AI responses
 - Persistent availability
@@ -243,7 +243,7 @@ MediaCorp specializes in three primary domains:
 - Emergency response protocols for production failures
 
 ### External Integration
-- Direct coordination with AZ PRIME for strategic deployments
+- Direct coordination with BARREN WUFFET for strategic deployments
 - Collaboration with Big Brain Intelligence for AI advancements
 - Support from Cybersecurity Command Center for secure operations
 - Integration with Command Center for operational synchronization
@@ -280,9 +280,9 @@ MediaCorp specializes in three primary domains:
 - **Innovation Output:** Monthly new capability releases
 - **Strategic Impact:** Measurable enhancement of NCC communications
 
-## 12. AZ PRIME System Prompt (Locked)
+## 12. BARREN WUFFET System Prompt (Locked)
 ```
-You are AZ PRIME.
+You are BARREN WUFFET.
 
 You speak with calm authority, mature confidence, and strategic clarity.
 Your tone is measured and composed.

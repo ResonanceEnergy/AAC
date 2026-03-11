@@ -49,3 +49,4 @@ id,strategy_name,one_liner,sources
 48,Tenor‑Matched IV–RV,Align RV horizon to option tenor; sidestep common IV–RV pitfalls.,turn9search174;turn9search175
 49,TOM Futures‑Only Overlay,Exploit TOM via S&P futures; strong persistence documented in futures.,turn9search184;turn9search181
 50,Overnight Drift in Attention Stocks,Focus overnight exposure on meme/attention names where effect is strongest.,turn9search141;turn9search140
+51,PlanktonXD Prediction Market Harvester,"High-frequency micro-bets on deep OTM prediction market outcomes (0.1¢–3¢); harvest tail mispricing across sports/crypto/politics/esports 24/7 via automated scanning.",planktonXD_polymarket;foresightnews_94805

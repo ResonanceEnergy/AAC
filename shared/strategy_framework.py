@@ -9,7 +9,7 @@ Converts strategy configurations into real-time trading algorithms.
 import asyncio
 import logging
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Dict, List, Any, Optional, Tuple
 from enum import Enum
@@ -70,6 +70,7 @@ class StrategyConfig:
     execution_requirements: List[str]
     risk_envelope: Dict[str, Any]
     cross_department_dependencies: Dict[str, List[str]]
+    symbols: List[str] = field(default_factory=list)
 
 
 class BaseArbitrageStrategy(ABC):

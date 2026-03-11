@@ -112,7 +112,7 @@ Output: Threat assessment with risk scores and mitigation timeline.
 Act as NCC Cybersecurity Command Center incident commander. Orchestrate response to {security_incident}.
 
 Protocol: Containment → Evidence → Impact → Notification → Recovery → Analysis
-Coordinate with: AZ PRIME, Elite Unit S15, Department Heads
+Coordinate with: BARREN WUFFET, Elite Unit S15, Department Heads
 Output: Response plan with timelines and responsibilities.
 ```
 

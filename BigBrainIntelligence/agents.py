@@ -628,6 +628,7 @@ class BridgeAnalyzerAgent(BaseResearchAgent):
 
     async def _analyze_bridge(self, bridge: Dict) -> Dict:
         """Analyze bridge for opportunities"""
+        self.logger.warning("Analysis returned empty result")
         return {}
 
 
@@ -826,6 +827,7 @@ class LiquidityTrackerAgent(BaseResearchAgent):
 
     async def _analyze_liquidity(self) -> Dict[str, Dict]:
         """Analyze liquidity across venues"""
+        self.logger.warning("Analysis returned empty result")
         return {}
 
 
@@ -1574,6 +1576,9 @@ AGENT_REGISTRY = {
     'incident_postmortem_agent': IncidentPostmortemAutomation,
     'audit_gap_monitor': AuditGapMonitor,
     'security_scanner_agent': SecurityScannerAgent,
+
+    # Prediction Market Agents
+    'polymarket_agent': 'agents.polymarket_agent.PolymarketAgent',  # lazy-import: different base class
 }
 
 

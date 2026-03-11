@@ -1,5 +1,5 @@
 """
-ActiveDispersion(correlationRiskPremium)Strategy
+ActiveDispersionCorrelationRiskPremiumStrategy
 ================================================
 
 Long single-name vol vs short index vol only when IC >> RC; de-risk on compression.
@@ -19,7 +19,7 @@ from shared.audit_logger import AuditLogger
 logger = logging.getLogger(__name__)
 
 
-class ActiveDispersion(correlationRiskPremium)Strategy(BaseArbitrageStrategy):
+class ActiveDispersionCorrelationRiskPremiumStrategy(BaseArbitrageStrategy):
     """
     Active Dispersion (Correlation Risk Premium)
 

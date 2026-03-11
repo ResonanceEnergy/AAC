@@ -256,18 +256,30 @@ class AACAlgoTrading101Hub:
 
     def _query_gemini(self, query: str) -> Optional[str]:
         """Query Google Gemini for finance analysis"""
-        gemini_api_key = os.getenv('GEMINI_API_KEY')
+        gemini_api_key = os.getenv('GEMINI_API_KEY') or os.getenv('GOOGLE_AI_KEY')
         if not gemini_api_key:
             print("❌ Gemini API key not configured")
             return None
 
         try:
-            # This would integrate with Gemini API
-            # Implementation follows AlgoTrading101 Gemini guide
             finance_prompt = f"Analyze the following financial query with market expertise: {query}"
-
-            # Placeholder for actual Gemini API call
-            return f"Gemini Analysis: {finance_prompt[:100]}..."
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={gemini_api_key}"
+            payload = {
+                "contents": [{"parts": [{"text": finance_prompt}]}],
+                "generationConfig": {
+                    "temperature": 0.7,
+                    "maxOutputTokens": 2048
+                }
+            }
+            resp = requests.post(url, json=payload, timeout=30)
+            resp.raise_for_status()
+            data = resp.json()
+            candidates = data.get("candidates", [])
+            if candidates:
+                parts = candidates[0].get("content", {}).get("parts", [])
+                if parts:
+                    return parts[0].get("text", "")
+            return None
 
         except Exception as e:
             print(f"❌ Gemini API error: {e}")

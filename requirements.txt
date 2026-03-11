@@ -24,12 +24,17 @@ web3>=6.0.0
 scikit-learn>=1.3.0
 scipy>=1.11.0
 xgboost>=2.0.0
-torch>=2.1.0
-transformers>=4.35.0
+# torch>=2.1.0            # Large download — install separately: pip install torch
+# transformers>=4.35.0    # Large download — install separately: pip install transformers
 
 # ===== Web Scraping =====
 selenium>=4.15.0
 webdriver-manager>=4.0.0
+
+# ===== Security =====
+cryptography>=42.0.0
+pyotp>=2.6.0
+psutil>=5.9.0
 
 # ===== Monitoring & Logging =====
 structlog>=23.0.0
@@ -73,3 +78,22 @@ fastapi>=0.104.0
 uvicorn[standard]>=0.24.0
 httpx>=0.25.0
 pydantic>=2.4.0
+
+# ===== Visualization (used by strategies & dashboards) =====
+matplotlib>=3.8.0
+seaborn>=0.13.0
+
+# ===== WebSocket =====
+websockets>=12.0
+
+# ===== Auth / JWT =====
+PyJWT>=2.8.0
+
+# ===== Secure Credential Storage =====
+keyring>=24.0.0
+
+# ===== Timeout support for tests =====
+pytest-timeout>=2.2.0
+
+# ===== Linting (ruff) =====
+ruff>=0.1.0

@@ -58,7 +58,7 @@ Big Brain Intelligence (BBIC) serves as NCC's premier intelligence and data anal
 - Cross-training with other divisions
 
 ## Integration Points
-- **AZ PRIME**: Direct oversight and strategic guidance
+- **BARREN WUFFET**: Direct oversight and strategic guidance
 - **Cybersecurity Command Center**: Threat intelligence sharing
 - **Elite Trader Desk**: Market intelligence support
 - **All NCC Divisions**: Intelligence support and analysis

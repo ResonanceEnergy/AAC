@@ -1,5 +1,5 @@
 """
-IndexReconstitution&ClosingAuctionLiquidityStrategy
+IndexReconstitutionAndClosingAuctionLiquidityStrategy
 ===================================================
 
 Predict adds/deletes; provide liquidity into the close to monetize execution frictions.
@@ -19,7 +19,7 @@ from shared.audit_logger import AuditLogger
 logger = logging.getLogger(__name__)
 
 
-class IndexReconstitution&ClosingAuctionLiquidityStrategy(BaseArbitrageStrategy):
+class IndexReconstitutionAndClosingAuctionLiquidityStrategy(BaseArbitrageStrategy):
     """
     Index Reconstitution & Closing-Auction Liquidity
 

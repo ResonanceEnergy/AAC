@@ -229,7 +229,7 @@ This document provides the customized NCL (NATHAN COMMAND LEADERSHIP) Digital OS
 ## DEPENDENCIES & INTEGRATIONS
 
 ### Internal Dependencies
-- **AZ PRIME:** Supreme strategic oversight and crisis decision authority
+- **BARREN WUFFET:** Supreme strategic oversight and crisis decision authority
 - **Command Center:** Strategic coordination with operational command rhythm
 - **Big Brain Intelligence:** Strategic intelligence and predictive analysis
 - **CSuite:** Executive strategic decision support and crisis management

@@ -87,8 +87,11 @@ class APIKeyManager:
         self.fernet = Fernet(self.encryption_key)
         self.key_store_path = PROJECT_ROOT / "config" / "api_keys.enc"
 
-        # Load existing keys
-        asyncio.create_task(self._load_keys())
+        # Load existing keys (deferred to avoid requiring a running event loop at import time)
+        try:
+            asyncio.create_task(self._load_keys())
+        except RuntimeError:
+            pass  # No event loop; keys will be loaded on first use
 
     def _get_or_create_encryption_key(self) -> bytes:
         """Get or create encryption key for API keys"""
