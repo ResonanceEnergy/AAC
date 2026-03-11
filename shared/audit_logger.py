@@ -611,16 +611,19 @@ class AuditLogger:
         
         try:
             with self._get_db_connection() as conn:
+                # Build WHERE clause with parameterized placeholders
+                where_clause = "WHERE 1=1" + time_filter
+
                 # Total events
                 total = conn.execute(
-                    f"SELECT COUNT(*) FROM audit_events WHERE 1=1 {time_filter}",
+                    "SELECT COUNT(*) FROM audit_events " + where_clause,
                     params
                 ).fetchone()[0]
                 
                 # By category
                 by_category = {}
                 cursor = conn.execute(
-                    f"SELECT category, COUNT(*) FROM audit_events WHERE 1=1 {time_filter} GROUP BY category",
+                    "SELECT category, COUNT(*) FROM audit_events " + where_clause + " GROUP BY category",
                     params
                 )
                 for row in cursor:
@@ -629,7 +632,7 @@ class AuditLogger:
                 # By status
                 by_status = {}
                 cursor = conn.execute(
-                    f"SELECT status, COUNT(*) FROM audit_events WHERE 1=1 {time_filter} GROUP BY status",
+                    "SELECT status, COUNT(*) FROM audit_events " + where_clause + " GROUP BY status",
                     params
                 )
                 for row in cursor:
@@ -638,7 +641,8 @@ class AuditLogger:
                 # By exchange
                 by_exchange = {}
                 cursor = conn.execute(
-                    f"SELECT exchange, COUNT(*) FROM audit_events WHERE exchange IS NOT NULL {time_filter} GROUP BY exchange",
+                    "SELECT exchange, COUNT(*) FROM audit_events WHERE exchange IS NOT NULL"
+                    + time_filter + " GROUP BY exchange",
                     params
                 )
                 for row in cursor:
@@ -646,7 +650,8 @@ class AuditLogger:
                 
                 # Average duration
                 avg_duration = conn.execute(
-                    f"SELECT AVG(duration_ms) FROM audit_events WHERE duration_ms IS NOT NULL {time_filter}",
+                    "SELECT AVG(duration_ms) FROM audit_events WHERE duration_ms IS NOT NULL"
+                    + time_filter,
                     params
                 ).fetchone()[0]
                 

@@ -285,7 +285,7 @@ class ETFNAVDIslocationStrategy(BaseArbitrageStrategy):
                 if 'timestamp' in data and isinstance(data['timestamp'], str):
                     try:
                         data['timestamp'] = datetime.fromisoformat(data['timestamp'])
-                    except:
+                    except (ValueError, TypeError) as e:
                         data['timestamp'] = datetime.now()
                 self.nav_cache[symbol] = data
         elif data_type == 'futures_price':
@@ -604,7 +604,7 @@ class ETFNAVDIslocationStrategy(BaseArbitrageStrategy):
                 if 'timestamp' in data and isinstance(data['timestamp'], str):
                     try:
                         data['timestamp'] = datetime.fromisoformat(data['timestamp'])
-                    except:
+                    except (ValueError, TypeError) as e:
                         data['timestamp'] = datetime.now()
                 self.nav_cache[symbol] = data
         elif data_type == 'futures_price':
@@ -622,58 +622,6 @@ class NAVCalculator:
         # Simplified holdings data - in production would be from ETF provider APIs
         self.holdings_data = {
             
-            'SPY': {
-                'AAPL': 0.12, 'MSFT': 0.11, 'AMZN': 0.06, 'GOOGL': 0.04, 'META': 0.03,
-                'TSLA': 0.02, 'NVDA': 0.04, 'JPM': 0.02, 'JNJ': 0.02, 'V': 0.02
-            },
-            'QQQ': {
-                'AAPL': 0.12, 'MSFT': 0.11, 'AMZN': 0.11, 'GOOGL': 0.08, 'META': 0.05,
-                'TSLA': 0.05, 'NVDA': 0.08, 'ADBE': 0.03, 'CRM': 0.03, 'NFLX': 0.02
-            },
-            'IWM': {
-                'JPM': 0.03, 'JNJ': 0.02, 'V': 0.02, 'PG': 0.02, 'UNH': 0.02,
-                'HD': 0.02, 'MA': 0.02, 'PFE': 0.02, 'KO': 0.02, 'DIS': 0.02
-            }
-        }
-
-    async def calculate_nav(self, etf_symbol: str, market_data: Dict[str, Dict]) -> float:
-        """Calculate real-time NAV for an ETF"""
-        holdings = self.holdings_data.get(etf_symbol, {})
-
-        if not holdings:
-            return 0.0
-
-        total_value = 0.0
-        total_weight = 0.0
-
-        for symbol, weight in holdings.items():
-            price_data = market_data.get(symbol, {})
-            price = price_data.get('price', 0)
-
-            if price > 0:
-                total_value += price * weight
-                total_weight += weight
-
-        if total_weight == 0:
-            return 0.0
-
-        # NAV is the value of holdings divided by total weight
-        nav = total_value / total_weight
-
-        # Apply expense ratio adjustment (simplified)
-        expense_ratio = self.etf_universe.get(etf_symbol, {}).get('expense_ratio', 0)
-        nav = nav * (1 - expense_ratio / 252)  # Daily adjustment
-
-        return nav
-
-class NAVCalculator:
-    """Real-time NAV calculator for ETFs"""
-
-    def __init__(self, etf_universe: Dict[str, Dict]):
-        self.etf_universe = etf_universe
-
-        # Simplified holdings data - in production would be from ETF provider APIs
-        self.holdings_data = {
             'SPY': {
                 'AAPL': 0.12, 'MSFT': 0.11, 'AMZN': 0.06, 'GOOGL': 0.04, 'META': 0.03,
                 'TSLA': 0.02, 'NVDA': 0.04, 'JPM': 0.02, 'JNJ': 0.02, 'V': 0.02

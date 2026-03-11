@@ -25,21 +25,13 @@ from plotly.subplots import make_subplots
 import dash
 from dash import html, dcc, Input, Output, State
 import dash_bootstrap_components as dbc
+import os
 
-PROJECT_ROOT = Path(__file__).resolve().parent
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from strategy_testing_lab import strategy_testing_lab, initialize_strategy_testing_lab
-from strategy_analysis_engine import strategy_analysis_engine, initialize_strategy_analysis
-
-
-@dataclass
-class DeepDiveResult:
-    """Results from deep dive analysis"""
-    strategy_id: str
-    risk_level: str
-    findings: Dict[str, Any]
-    recommendations: List[str]
+from strategies.strategy_testing_lab_fixed import strategy_testing_lab, initialize_strategy_testing_lab
+from strategies.strategy_analysis_engine import strategy_analysis_engine, initialize_strategy_analysis
 
 
 class MetricType(Enum):
@@ -632,7 +624,7 @@ class StrategyMetricsDashboard:
             html.Ul(rec_items)
         ])
 
-    async def run_dashboard(self, host: str = "127.0.0.1", port: int = 8050):
+    async def run_dashboard(self, host: str = os.environ.get('DASHBOARD_HOST', '127.0.0.1'), port: int = int(os.environ.get('DASHBOARD_PORT', '8050'))):
         """Run the dashboard server"""
         if not self.dashboard_app:
             await self.initialize()
@@ -650,8 +642,9 @@ class StrategyMetricsDashboard:
 
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         report_path = output_path / f"metrics_report_{timestamp}.md"
+        tmp_path = str(report_path) + '.tmp'
 
-        with open(report_path, 'w') as f:
+        with open(tmp_path, 'w') as f:
             f.write("# Strategy Metrics Deep Dive Report\n\n")
             f.write(f"**Generated:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
 
@@ -690,6 +683,8 @@ class StrategyMetricsDashboard:
                 except Exception as e:
                     f.write(f"Error analyzing {strategy_id}: {e}\n\n")
 
+        os.replace(tmp_path, str(report_path))
+
         self.logger.info(f"Metrics report generated: {report_path}")
         return str(report_path)
 
@@ -722,7 +717,10 @@ class StrategyMetricsDashboard:
 
     async def _perform_deep_dive(self, strategy_id: str) -> Dict[str, Any]:
         """Perform deep dive analysis for a strategy"""
-        from strategy_analysis_engine import StrategyAnalysisEngine, AnalysisType
+        try:
+            from strategies.strategy_analysis_engine import StrategyAnalysisEngine, AnalysisType
+        except ImportError:
+            from strategy_analysis_engine import StrategyAnalysisEngine, AnalysisType
 
         analysis_engine = StrategyAnalysisEngine()
         await analysis_engine.initialize()
@@ -768,8 +766,8 @@ async def main():
     parser.add_argument('command', choices=['dashboard', 'report', 'analyze'],
                        help='Command to execute')
     parser.add_argument('--strategy-ids', nargs='+', help='Strategy IDs to analyze')
-    parser.add_argument('--host', default='127.0.0.1', help='Dashboard host')
-    parser.add_argument('--port', type=int, default=8050, help='Dashboard port')
+    parser.add_argument('--host', default=os.environ.get('DASHBOARD_HOST', '127.0.0.1'), help='Dashboard host')
+    parser.add_argument('--port', type=int, default=int(os.environ.get('DASHBOARD_PORT', '8050')), help='Dashboard port')
     parser.add_argument('--output-dir', default='reports/metrics', help='Output directory')
 
     args = parser.parse_args()

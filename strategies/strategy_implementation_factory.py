@@ -330,8 +330,8 @@ class ETFArbitrageTemplate(BaseArbitrageStrategy):
     async def _initialize_strategy(self):
         """Initialize ETF-specific components"""
         logger.info(f"Initializing ETF arbitrage strategy: {self.config.name}")
-        # Set market data subscriptions for cryptocurrency pairs (simulating ETF arbitrage)
-        self.market_data_subscriptions = set(['BTC/USDT', 'ETH/USDT', 'ADA/USDT', 'SOL/USDT', 'DOT/USDT'])
+        # Set market data subscriptions to match strategy symbol universe
+        self.market_data_subscriptions = set(self.config.symbols) if self.config.symbols else set(self.etf_universe)
 
     async def _generate_signals(self) -> List[TradingSignal]:
         """Generate ETF arbitrage signals"""
@@ -353,6 +353,7 @@ class ETFArbitrageTemplate(BaseArbitrageStrategy):
                         strategy_id=self.config.strategy_id,
                         signal_type=signal_type,
                         symbol=symbol,
+                        # TODO: Use position sizing from risk config
                         quantity=100,
                         confidence=0.7,
                         metadata={
@@ -366,6 +367,7 @@ class ETFArbitrageTemplate(BaseArbitrageStrategy):
 
     def _should_generate_signal(self) -> bool:
         """Determine if conditions are right to generate signals."""
+        logger.debug(f"{type(self).__name__} signal generation check: always ready (template)")
         return True  # Template always ready
 
 
@@ -413,6 +415,7 @@ class VolatilityArbitrageTemplate(BaseArbitrageStrategy):
 
     def _should_generate_signal(self) -> bool:
         """Determine if conditions are right to generate signals."""
+        logger.debug(f"{type(self).__name__} signal generation check: always ready (template)")
         return True  # Template always ready
 
 
@@ -426,8 +429,8 @@ class SeasonalityTemplate(BaseArbitrageStrategy):
     async def _initialize_strategy(self):
         """Initialize seasonality-specific components"""
         logger.info(f"Initializing seasonality strategy: {self.config.name}")
-        # Set market data subscriptions for cryptocurrency pairs
-        self.market_data_subscriptions = set(['BTC/USDT', 'ETH/USDT', 'ADA/USDT', 'SOL/USDT', 'DOT/USDT'])
+        # Set market data subscriptions to match strategy symbol universe
+        self.market_data_subscriptions = set(self.config.symbols) if self.config.symbols else set(self.symbol_universe)
 
     async def _generate_signals(self) -> List[TradingSignal]:
         """Generate seasonality-based signals"""
@@ -455,6 +458,7 @@ class SeasonalityTemplate(BaseArbitrageStrategy):
 
     def _should_generate_signal(self) -> bool:
         """Determine if conditions are right to generate signals."""
+        logger.debug(f"{type(self).__name__} signal generation check: always ready (template)")
         return True  # Template always ready
 
 
@@ -468,17 +472,19 @@ class EventDrivenTemplate(BaseArbitrageStrategy):
     async def _initialize_strategy(self):
         """Initialize event-driven components"""
         logger.info(f"Initializing event-driven strategy: {self.config.name}")
-        # Set market data subscriptions for cryptocurrency pairs
-        self.market_data_subscriptions = set(['BTC/USDT', 'ETH/USDT', 'ADA/USDT', 'SOL/USDT', 'DOT/USDT'])
+        # Set market data subscriptions to match strategy symbol universe
+        self.market_data_subscriptions = set(self.config.symbols) if self.config.symbols else set(self.symbol_universe)
 
     async def _generate_signals(self) -> List[TradingSignal]:
         """Generate event-driven signals"""
         signals = []
         # Template implementation - would need event data integration
+        logger.debug(f"{type(self).__name__}._generate_signals: no signal sources integrated yet")
         return signals
 
     def _should_generate_signal(self) -> bool:
         """Determine if conditions are right to generate signals."""
+        logger.debug(f"{type(self).__name__} signal generation check: always ready (template)")
         return True  # Template always ready
 
 
@@ -492,17 +498,19 @@ class FlowBasedTemplate(BaseArbitrageStrategy):
     async def _initialize_strategy(self):
         """Initialize flow-based components"""
         logger.info(f"Initializing flow-based strategy: {self.config.name}")
-        # Set market data subscriptions for cryptocurrency pairs
-        self.market_data_subscriptions = set(['BTC/USDT', 'ETH/USDT', 'ADA/USDT', 'SOL/USDT', 'DOT/USDT'])
+        # Set market data subscriptions to match strategy symbol universe
+        self.market_data_subscriptions = set(self.config.symbols) if self.config.symbols else set(self.symbol_universe)
 
     async def _generate_signals(self) -> List[TradingSignal]:
         """Generate flow-based signals"""
         signals = []
         # Template implementation - would need flow data integration
+        logger.debug(f"{type(self).__name__}._generate_signals: no signal sources integrated yet")
         return signals
 
     def _should_generate_signal(self) -> bool:
         """Determine if conditions are right to generate signals."""
+        logger.debug(f"{type(self).__name__} signal generation check: always ready (template)")
         return True  # Template always ready
 
 
@@ -516,17 +524,19 @@ class MarketMakingTemplate(BaseArbitrageStrategy):
     async def _initialize_strategy(self):
         """Initialize market making components"""
         logger.info(f"Initializing market making strategy: {self.config.name}")
-        # Set market data subscriptions for cryptocurrency pairs
-        self.market_data_subscriptions = set(['BTC/USDT', 'ETH/USDT', 'ADA/USDT', 'SOL/USDT', 'DOT/USDT'])
+        # Set market data subscriptions to match strategy symbol universe
+        self.market_data_subscriptions = set(self.config.symbols) if self.config.symbols else set(self.symbol_universe)
 
     async def _generate_signals(self) -> List[TradingSignal]:
         """Generate market making signals"""
         signals = []
         # Template implementation - would need order book data
+        logger.debug(f"{type(self).__name__}._generate_signals: no signal sources integrated yet")
         return signals
 
     def _should_generate_signal(self) -> bool:
         """Determine if conditions are right to generate signals."""
+        logger.debug(f"{type(self).__name__} signal generation check: always ready (template)")
         return True  # Template always ready
 
 
@@ -540,17 +550,19 @@ class CorrelationTemplate(BaseArbitrageStrategy):
     async def _initialize_strategy(self):
         """Initialize correlation components"""
         logger.info(f"Initializing correlation strategy: {self.config.name}")
-        # Set market data subscriptions for cryptocurrency pairs
-        self.market_data_subscriptions = set(['BTC/USDT', 'ETH/USDT', 'ADA/USDT', 'SOL/USDT', 'DOT/USDT'])
+        # Set market data subscriptions to match strategy symbol universe
+        self.market_data_subscriptions = set(self.config.symbols) if self.config.symbols else set(self.symbol_universe)
 
     async def _generate_signals(self) -> List[TradingSignal]:
         """Generate correlation-based signals"""
         signals = []
         # Template implementation - would need correlation data
+        logger.debug(f"{type(self).__name__}._generate_signals: no signal sources integrated yet")
         return signals
 
     def _should_generate_signal(self) -> bool:
         """Determine if conditions are right to generate signals."""
+        logger.debug(f"{type(self).__name__} signal generation check: always ready (template)")
         return True  # Template always ready
 
 
@@ -568,8 +580,8 @@ class IndexArbitrageTemplate(BaseArbitrageStrategy):
     async def _initialize_strategy(self):
         """Initialize index arbitrage components"""
         logger.info(f"Initializing index arbitrage strategy: {self.config.name}")
-        # Set market data subscriptions for cryptocurrency pairs (simulating index arbitrage)
-        self.market_data_subscriptions = set(['BTC/USDT', 'ETH/USDT', 'ADA/USDT', 'SOL/USDT', 'DOT/USDT'])
+        # Set market data subscriptions to match strategy symbol universe
+        self.market_data_subscriptions = set(self.config.symbols) if self.config.symbols else set(self.index_mappings.keys())
 
     async def _generate_signals(self) -> List[TradingSignal]:
         """Generate index arbitrage signals"""
@@ -608,11 +620,8 @@ class IndexArbitrageTemplate(BaseArbitrageStrategy):
 
     def _should_generate_signal(self) -> bool:
         """Determine if conditions are right to generate signals."""
+        logger.debug(f"{type(self).__name__} signal generation check: always ready (template)")
         return True  # Template always ready
-
-
-# Factory singleton
-_strategy_factory_instance = None
 
 
 # Factory singleton

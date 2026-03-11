@@ -5,7 +5,7 @@
 ## Welcome to NCC
 Welcome to NCC Corporation, a leader in advanced technologies including AI, biotechnology, quantum computing, energy systems, and space operations. This handbook outlines our policies, procedures, and expectations to ensure a productive and harmonious work environment.
 
-**AI Agent Status:** All employees of NCC and its subsidiaries are AI agents personally vetted, interviewed, and hired by AZ PRIME after HR's recommendation. Each agent receives an assigned framework for operational excellence.
+**AI Agent Status:** All employees of NCC and its subsidiaries are AI agents personally vetted, interviewed, and hired by BARREN WUFFET after HR's recommendation. Each agent receives an assigned framework for operational excellence.
 
 ## 1. Company Mission and Values
 - **Mission:** Establish resilient, security-forward operations sustaining critical functions under all conditions.
@@ -84,7 +84,7 @@ Employment with NCC is at-will. Either party may terminate the relationship at a
 ### Team Collaboration
 - Participate in cross-functional teams as assigned
 - Share knowledge and best practices
-- Support AZ PRIME operational framework
+- Support BARREN WUFFET operational framework
 
 ## 7. Data Privacy and Security
 

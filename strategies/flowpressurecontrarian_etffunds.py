@@ -1,5 +1,5 @@
 """
-FlowPressureContrarian(etfFunds)Strategy
+FlowPressureContrarianEtfFundsStrategy
 ========================================
 
 Short names with self-inflated returns from flow-chasing; expect reversion.
@@ -19,7 +19,7 @@ from shared.audit_logger import AuditLogger
 logger = logging.getLogger(__name__)
 
 
-class FlowPressureContrarian(etfFunds)Strategy(BaseArbitrageStrategy):
+class FlowPressureContrarianEtfFundsStrategy(BaseArbitrageStrategy):
     """
     Flow-Pressure Contrarian (ETF/Funds)
 

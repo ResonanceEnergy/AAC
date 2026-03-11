@@ -203,7 +203,7 @@
 ## Governance Structure
 
 ### Executive Oversight
-- **Project Sponsor:** AZ PRIME Autonomous Intelligence
+- **Project Sponsor:** BARREN WUFFET Autonomous Intelligence
 - **Steering Committee:** C33 Council members and senior executives
 - **Project Director:** AX Helix with full decision authority
 - **Technical Director:** NCL Strategic Analytics Lead
@@ -215,7 +215,7 @@
 - **Quality Assurance:** Independent quality and compliance oversight
 
 ### Decision-Making Authority
-- **Strategic Decisions:** AZ PRIME and C33 Council approval required
+- **Strategic Decisions:** BARREN WUFFET and C33 Council approval required
 - **Tactical Decisions:** Project Director authority up to $5M
 - **Operational Decisions:** Workstream leads with escalation protocols
 - **Emergency Decisions:** 24/7 on-call executive decision-making
@@ -223,6 +223,6 @@
 ---
 
 **Prepared by:** AX Helix (Project Director)  
-**Approved by:** AZ PRIME Autonomous Intelligence  
+**Approved by:** BARREN WUFFET Autonomous Intelligence  
 **Classification:** TOP SECRET//NCC EYES ONLY</content>
 <parameter name="filePath">c:\Users\gripa\OneDrive\Desktop\NCC\NCC-Doctrine\Projects\Uruguay_Project_International_Expansion.md

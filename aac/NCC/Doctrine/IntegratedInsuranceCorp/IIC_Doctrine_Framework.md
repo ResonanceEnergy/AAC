@@ -1,7 +1,7 @@
 # INTEGRATED INSURANCE CORP (IIC) DOCTRINE
 # Most Efficient Innovation-Driven International Insurance Company
 # Date: January 29, 2026
-# Authority: AZ PRIME Command | Innovation: BigBrain Intelligence
+# Authority: BARREN WUFFET Command | Innovation: BigBrain Intelligence
 
 ## 1. CORE PURPOSE & MISSION
 
@@ -166,8 +166,8 @@ Transform traditional insurance into an intelligent, predictive, and proactive g
 
 ## 6. INTEGRATION WITH NCC ENTERPRISE
 
-### 6.1 AZ PRIME Orchestration
-- Real-time integration with AZ PRIME command systems
+### 6.1 BARREN WUFFET Orchestration
+- Real-time integration with BARREN WUFFET command systems
 - Automated decision-making for underwriting and claims
 - Predictive analytics for enterprise risk management
 - Continuous optimization of all insurance processes
@@ -321,7 +321,7 @@ Transform traditional insurance into an intelligent, predictive, and proactive g
 ## AUTHORITY & APPROVAL
 
 **Approved By:**
-- AZ PRIME Command Core
+- BARREN WUFFET Command Core
 - C-Suite Executive Council
 - Ludwig Law Corp Legal Team
 - BigBrain Intelligence Research Team

@@ -14,7 +14,7 @@ Automated compliance tracking system for regulatory requirements across all NCC 
 - Real-time compliance dashboard
 
 ## Integration Points
-- AZ PRIME sync for automated monitoring
+- BARREN WUFFET sync for automated monitoring
 - Dashboard integration for executive visibility
 - Cross-departmental compliance alerts
 

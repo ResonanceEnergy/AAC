@@ -29,9 +29,12 @@ from dataclasses import dataclass
 from dotenv import load_dotenv
 
 # Import AAC components
-from multi_source_arbitrage_demo import MultiSourceArbitrageDetector
-from binance_trading_engine import BinanceTradingEngine, TradingConfig, TradeSignal
-from binance_arbitrage_integration import BinanceConfig
+try:
+    from demos.multi_source_arbitrage_demo import MultiSourceArbitrageDemo as MultiSourceArbitrageDetector
+except ImportError:
+    MultiSourceArbitrageDetector = None
+from trading.binance_trading_engine import BinanceTradingEngine, TradingConfig, TradeSignal
+from trading.binance_arbitrage_integration import BinanceConfig
 
 # Load environment variables
 load_dotenv()

@@ -1,5 +1,5 @@
 """
-OvernightVs.IntradaySplit(newsGuided)Strategy
+OvernightVsIntradaySplitNewsGuidedStrategy
 =============================================
 
 Go long overnight, neutral intraday with NLP topic filters to pick names.
@@ -19,7 +19,7 @@ from shared.audit_logger import AuditLogger
 logger = logging.getLogger(__name__)
 
 
-class OvernightVs.IntradaySplit(newsGuided)Strategy(BaseArbitrageStrategy):
+class OvernightVsIntradaySplitNewsGuidedStrategy(BaseArbitrageStrategy):
     """
     Overnight vs. Intraday Split (News-Guided)
 

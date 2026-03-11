@@ -27,8 +27,8 @@ This document summarizes the incorporation of 500+ insights from the NCL System 
 - **SSOT as Nervous System** (Insight #12): Enhanced SSOT description
 - **Real-Time Command** (Insight #11): Expanded command rhythm section
 
-#### AZ PRIME Framework Integration (AZ_PRIME_24_7_Framework.md)
-- **Supreme Commander Integration** (Insight #2): AZ PRIME positioned as operational embodiment
+#### BARREN WUFFET Framework Integration (BARREN_WUFFET_24_7_Framework.md)
+- **Supreme Commander Integration** (Insight #2): BARREN WUFFET positioned as operational embodiment
 - **Governance Councils** (Insight #15): Referenced in oversight structure
 - **Enterprise Integration** (Insight #37): Added to corporate reporting section
 - **Performance Transparency** (Insight #38): Integrated into monitoring protocols
@@ -53,7 +53,7 @@ This document summarizes the incorporation of 500+ insights from the NCL System 
 - **Future-proofing** incorporated through technological singularity planning
 
 ### Operational Excellence
-- **Real-time command** implemented through 24/7 AZ PRIME operations
+- **Real-time command** implemented through 24/7 BARREN WUFFET operations
 - **Decision standardization** through NCC Decision Template
 - **Metrics pyramid** providing cascading accountability
 - **Automation classes** ensuring appropriate AI deployment
@@ -67,7 +67,7 @@ This document summarizes the incorporation of 500+ insights from the NCL System 
 - **Continuous monitoring** providing real-time visibility
 
 ### Enterprise Integration
-- **Unified command structure** through AZ PRIME oversight
+- **Unified command structure** through BARREN WUFFET oversight
 - **Cross-domain optimization** coordinating all 7 NCL domains
 - **Corporate reporting hierarchy** ensuring strategic alignment
 - **Resource intelligence** optimizing capital and time deployment

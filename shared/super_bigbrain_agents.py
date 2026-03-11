@@ -98,8 +98,7 @@ class SuperResearchAgent(BaseResearchAgent):
 
     async def _perform_traditional_scan(self) -> List[ResearchFinding]:
         """Perform traditional research scan (to be overridden by subclasses)"""
-        # This should be implemented by subclasses
-        return []
+        raise NotImplementedError("Subclasses must implement _perform_traditional_scan")
 
     async def _perform_super_analysis(self) -> List[ResearchFinding]:
         """Perform super-enhanced analysis"""
@@ -145,34 +144,133 @@ class SuperResearchAgent(BaseResearchAgent):
         }
 
     async def _get_market_context(self) -> Dict[str, Any]:
-        """Get current market context"""
-        # Placeholder - should be implemented with actual market data
+        """Get current market context from CoinGecko"""
+        try:
+            import aiohttp
+            url = "https://api.coingecko.com/api/v3/simple/price"
+            params = {
+                "ids": "bitcoin",
+                "vs_currencies": "usd",
+                "include_24hr_vol": "true",
+                "include_24hr_change": "true"
+            }
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url, params=params, timeout=aiohttp.ClientTimeout(total=10)) as resp:
+                    if resp.status == 200:
+                        data = await resp.json()
+                        btc = data.get("bitcoin", {})
+                        price = btc.get("usd", 0)
+                        change_24h = btc.get("usd_24h_change", 0)
+                        return {
+                            "price": price,
+                            "volume": btc.get("usd_24h_vol", 0),
+                            "volatility": abs(change_24h) / 100 if change_24h else 0.02,
+                            "trend": "bullish" if change_24h > 0 else "bearish"
+                        }
+        except Exception as e:
+            logger.warning(f"Market data fetch failed, using defaults: {e}")
         return {
             "price": 50000,
             "volume": 1000000,
             "volatility": 0.02,
-            "trend": "bullish"
+            "trend": "neutral"
         }
 
     async def _get_technical_data(self) -> Dict[str, Any]:
-        """Get technical analysis data"""
-        # Placeholder - should be implemented with actual technical indicators
+        """Get technical analysis data from CoinGecko OHLC"""
+        try:
+            import aiohttp
+            url = "https://api.coingecko.com/api/v3/coins/bitcoin/ohlc"
+            params = {"vs_currency": "usd", "days": "30"}
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url, params=params, timeout=aiohttp.ClientTimeout(total=10)) as resp:
+                    if resp.status == 200:
+                        data = await resp.json()  # [[timestamp, open, high, low, close], ...]
+                        if len(data) >= 50:
+                            closes = [c[4] for c in data]
+                            sma_20 = sum(closes[-20:]) / 20
+                            sma_50 = sum(closes[-50:]) / 50
+                            # Simple RSI approximation
+                            deltas = [closes[i] - closes[i-1] for i in range(-14, 0)]
+                            gains = [d for d in deltas if d > 0]
+                            losses = [-d for d in deltas if d < 0]
+                            avg_gain = sum(gains) / 14 if gains else 0.001
+                            avg_loss = sum(losses) / 14 if losses else 0.001
+                            rs = avg_gain / avg_loss
+                            rsi = 100 - (100 / (1 + rs))
+                            # Simple MACD approximation
+                            ema_12 = sum(closes[-12:]) / 12
+                            ema_26 = sum(closes[-26:]) / 26
+                            macd = ema_12 - ema_26
+                            recent_lows = sorted([c[3] for c in data[-20:]])
+                            recent_highs = sorted([c[2] for c in data[-20:]])
+                            return {
+                                "rsi": round(rsi, 2),
+                                "macd": round(macd, 2),
+                                "moving_averages": {"sma_20": round(sma_20, 2), "sma_50": round(sma_50, 2)},
+                                "support_resistance": {
+                                    "support": round(recent_lows[1], 2),
+                                    "resistance": round(recent_highs[-2], 2)
+                                }
+                            }
+        except Exception as e:
+            logger.warning(f"Technical data fetch failed, using defaults: {e}")
         return {
-            "rsi": 65,
-            "macd": 0.5,
-            "moving_averages": {"sma_20": 49500, "sma_50": 48500},
-            "support_resistance": {"support": 48000, "resistance": 52000}
+            "rsi": 50,
+            "macd": 0.0,
+            "moving_averages": {"sma_20": 0, "sma_50": 0},
+            "support_resistance": {"support": 0, "resistance": 0}
         }
 
     async def _get_sentiment_data(self) -> Dict[str, Any]:
-        """Get sentiment analysis data"""
-        # Placeholder - should be implemented with actual sentiment data
-        return {
-            "overall_sentiment": 0.7,
-            "social_media_score": 0.75,
-            "news_sentiment": 0.65,
-            "fear_greed_index": 65
+        """Get sentiment analysis data from Alternative.me Fear & Greed + TradeStie"""
+        sentiment = {
+            "overall_sentiment": 0.5,
+            "social_media_score": 0.5,
+            "news_sentiment": 0.5,
+            "fear_greed_index": 50
         }
+        try:
+            import aiohttp
+            async with aiohttp.ClientSession() as session:
+                # Fear & Greed Index (free, no auth)
+                try:
+                    async with session.get(
+                        "https://api.alternative.me/fng/?limit=1",
+                        timeout=aiohttp.ClientTimeout(total=10)
+                    ) as resp:
+                        if resp.status == 200:
+                            data = await resp.json()
+                            fng = data.get("data", [{}])[0]
+                            fgi = int(fng.get("value", 50))
+                            sentiment["fear_greed_index"] = fgi
+                            sentiment["overall_sentiment"] = fgi / 100.0
+                except Exception:
+                    pass
+
+                # TradeStie WSB sentiment (free, no auth)
+                try:
+                    async with session.get(
+                        "https://tradestie.com/api/v1/apps/reddit",
+                        timeout=aiohttp.ClientTimeout(total=10)
+                    ) as resp:
+                        if resp.status == 200:
+                            data = await resp.json()
+                            if data:
+                                sentiments = [
+                                    d.get("sentiment_score", 0)
+                                    for d in data[:10] if "sentiment_score" in d
+                                ]
+                                if sentiments:
+                                    sentiment["social_media_score"] = round(
+                                        (sum(sentiments) / len(sentiments) + 1) / 2, 3
+                                    )
+                except Exception:
+                    pass
+
+        except Exception as e:
+            logger.warning(f"Sentiment data fetch failed, using defaults: {e}")
+        return sentiment
 
     async def _convert_super_insights_to_findings(self, super_result: Dict[str, Any]) -> List[ResearchFinding]:
         """Convert super analysis results to research findings"""
@@ -826,6 +924,9 @@ class SuperAccessArbitrageAgent(SuperResearchAgent):
 
         original_agent = get_agent('access_arbitrage')
         if original_agent:
+            if not hasattr(original_agent, 'scan'):
+                logger.warning(f"Agent {self.agent_id} has no scan method")
+                return []
             return await original_agent.scan()
         return []
 
@@ -846,6 +947,7 @@ class SuperAccessArbitrageAgent(SuperResearchAgent):
     async def _get_access_disparities(self) -> List[Dict[str, Any]]:
         """Get access disparity analysis"""
         disparities = []
+        logger.warning("Using random placeholder data for access disparities")
         for i in range(np.random.randint(5, 15)):
             disparities.append({
                 "data_type": np.random.choice(["price", "order_book", "news", "social", "on_chain"]),

@@ -21,8 +21,7 @@ from datetime import datetime
 import json
 
 # Add project root to path
-PROJECT_ROOT = Path(__file__).resolve().parent
-sys.path.insert(0, str(PROJECT_ROOT))
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 # Configure logging
 logging.basicConfig(
@@ -118,7 +117,7 @@ class AACAutomationEngine:
 
         logger.info(f"✅ Phase 1 Complete: {len(implemented)}/50 strategies now implemented")
 
-    async def _implement_missing_strategies(self, factory, current_strategies):
+    async def _implement_missing_strategies(self, factory: Any, current_strategies: List[str]) -> None:
         """Implement all missing strategies"""
         from shared.strategy_loader import StrategyLoader
 

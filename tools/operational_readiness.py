@@ -17,12 +17,12 @@ import json
 import logging
 
 # Add project root
-PROJECT_ROOT = Path(__file__).resolve().parent
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from orchestrator import AAC2100Orchestrator
-from command_center import get_command_center
-from avatar_system import get_avatar
+from core.orchestrator import AAC2100Orchestrator
+from core.command_center import get_command_center
+from shared.avatar_system import get_avatar_manager
 
 # Configure logging
 logging.basicConfig(
@@ -112,8 +112,9 @@ class OperationalReadinessTester:
         logger.info("✅ Command & Control Center initialized")
 
         # Initialize avatars
-        self.avatars["supreme"] = await get_avatar("supreme")
-        self.avatars["helix"] = await get_avatar("helix")
+        _mgr = get_avatar_manager()
+        self.avatars["supreme"] = _mgr.get_avatar("supreme")
+        self.avatars["helix"] = _mgr.get_avatar("helix")
         logger.info("✅ AI Avatars initialized")
 
         self.test_results["phase_1"] = "PASSED"
@@ -265,7 +266,8 @@ class OperationalReadinessTester:
             # Test integration metrics
             metrics = await self.orchestrator.gln_integration.get_integration_metrics()
             return len(metrics.get("integrated_departments", [])) > 0
-        except:
+        except Exception as e:
+            logger.error(f"GLN integration test failed: {e}")
             return False
 
     async def _test_gta_integration(self) -> bool:
@@ -277,7 +279,8 @@ class OperationalReadinessTester:
             # Test integration metrics
             metrics = await self.orchestrator.gta_integration.get_integration_metrics()
             return len(metrics.get("integrated_departments", [])) > 0
-        except:
+        except Exception as e:
+            logger.error(f"GTA integration test failed: {e}")
             return False
 
     async def _test_executive_branch(self) -> bool:
@@ -288,7 +291,8 @@ class OperationalReadinessTester:
                 self.orchestrator.ax_helix is not None and
                 self.command_center is not None
             )
-        except:
+        except Exception as e:
+            logger.error(f"Executive branch test failed: {e}")
             return False
 
     async def _test_communication_framework(self) -> bool:
@@ -297,7 +301,8 @@ class OperationalReadinessTester:
             # Test channel registration
             result = await self.orchestrator.communication.register_channel("TEST_CHANNEL", "test")
             return result
-        except:
+        except Exception as e:
+            logger.error(f"Communication framework test failed: {e}")
             return False
 
     async def _test_talent_insights_application(self):

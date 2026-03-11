@@ -1,6 +1,6 @@
 # Risk Management Division - AAC Integration
 # Enterprise risk management and portfolio protection
-# Date: 2026-02-04 | Authority: AZ PRIME Command
+# Date: 2026-02-04 | Authority: BARREN WUFFET Command
 
 from shared.super_agent_framework import SuperAgent
 from shared.communication import CommunicationFramework
@@ -254,7 +254,7 @@ async def get_risk_management_division():
     """Factory function for Risk Management Division"""
     division = {
         'name': 'Risk Management Division',
-        'authority': 'AZ PRIME',
+        'authority': 'BARREN WUFFET',
         'agents': [
             EnterpriseRiskAgent(),
             MarketRiskAgent(),

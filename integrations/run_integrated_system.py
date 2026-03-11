@@ -9,7 +9,7 @@ AAC Unified System Runner
 Main entry point for the fully integrated AAC system with:
 - 8 Doctrine Packs (1845 lines of operational wisdom)
 - 5 Department Adapters (live metric collection)
-- AZ Prime State Machine (automated risk response)
+- BARREN WUFFET State Machine (automated risk response)
 - Cross-Department Coordination
 
 Usage:
@@ -32,18 +32,20 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 from aac.doctrine import (
     DoctrineOrchestrator,
-    AZPrimeState,
+    BarrenWuffetState,
     Department,
     DOCTRINE_PACKS,
 )
 
 # Configure logging
+_log_dir = PROJECT_ROOT / 'logs'
+_log_dir.mkdir(exist_ok=True)
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
     handlers=[
         logging.StreamHandler(),
-        logging.FileHandler(PROJECT_ROOT / 'logs' / 'integrated_system.log'),
+        logging.FileHandler(_log_dir / 'integrated_system.log'),
     ]
 )
 logger = logging.getLogger("AAC-System")
@@ -91,11 +93,11 @@ def print_department_map():
 """)
 
 
-def print_az_prime_states():
-    """Print AZ Prime state machine."""
+def print_barren_wuffet_states():
+    """Print BARREN WUFFET state machine."""
     print("""
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                           AZ PRIME STATE MACHINE                            │
+│                           BARREN WUFFET STATE MACHINE                            │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
 │    ┌──────────┐      trigger      ┌──────────┐      trigger     ┌────────┐ │
@@ -133,14 +135,14 @@ async def run_single_check(orchestrator: DoctrineOrchestrator):
         "SAFE_MODE": "🟠",
         "HALT": "🔴",
     }
-    state_icon = state_icons.get(result['az_prime_state'], "⚪")
+    state_icon = state_icons.get(result['barren_wuffet_state'], "⚪")
     
     print(f"""
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                         COMPLIANCE CHECK RESULTS                            │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │  Timestamp:        {result['timestamp'][:19]}                              │
-│  AZ Prime State:   {state_icon} {result['az_prime_state']:<12}                                        │
+│  BARREN WUFFET State:   {state_icon} {result['barren_wuffet_state']:<12}                                        │
 │  Compliance Score: {result['compliance_score']:>6.2f}%                                              │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │  ✅ Compliant:     {result['compliant']:>3}                                                         │
@@ -157,7 +159,7 @@ async def run_status(orchestrator: DoctrineOrchestrator):
     
     print("\n[MONITOR] SYSTEM STATUS")
     print("─" * 77)
-    print(f"  AZ Prime State: {status['az_prime_state']}")
+    print(f"  BARREN WUFFET State: {status['barren_wuffet_state']}")
     print(f"  Last Check: {status['last_check'] or 'Never'}")
     print(f"  Monitoring: {'Active' if status['monitoring_active'] else 'Inactive'}")
     
@@ -214,7 +216,7 @@ async def main():
     
     # Print maps
     print_department_map()
-    print_az_prime_states()
+    print_barren_wuffet_states()
     
     # Run based on mode
     if args.mode == 'check':

@@ -213,7 +213,7 @@ The Security 10 Directive represents NCC's unwavering commitment to absolute con
 This directive evolves continuously through AI-driven insights and executive oversight, maintaining NCC's position as the most secure and advanced organization in human history.
 
 **Enforcement Authority:** NCC Security Council  
-**Oversight Body:** AZ PRIME Executive Council  
+**Oversight Body:** BARREN WUFFET Executive Council  
 **Technical Implementation:** Cybersecurity Command Center  
 **Review Cycle:** Continuous with annual formal assessment
 

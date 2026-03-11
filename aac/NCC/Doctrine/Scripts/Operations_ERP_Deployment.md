@@ -15,7 +15,7 @@ Enterprise resource planning system for operations and supply chain management.
 - Demand planning and forecasting
 
 ## Integration Points
-- AZ PRIME operations monitoring
+- BARREN WUFFET operations monitoring
 - Dashboard integration for operational KPIs
 - Cross-departmental supply chain visibility
 - Automated procurement workflows

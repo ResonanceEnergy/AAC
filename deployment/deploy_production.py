@@ -23,6 +23,7 @@ Usage:
 import argparse
 import asyncio
 import json
+import logging
 import os
 import subprocess
 import sys
@@ -32,11 +33,16 @@ from pathlib import Path
 from typing import Dict, List, Any, Optional
 import requests
 
+logger = logging.getLogger(__name__)
+
 # Import AAC components
-from aac_arbitrage_execution_system import AACArbitrageExecutionSystem, ExecutionConfig
-from binance_trading_engine import TradingConfig
-from binance_arbitrage_integration import BinanceConfig
-from multi_source_arbitrage_demo import MultiSourceArbitrageDetector
+from trading.aac_arbitrage_execution_system import AACArbitrageExecutionSystem, ExecutionConfig
+from trading.binance_trading_engine import TradingConfig
+from trading.binance_arbitrage_integration import BinanceConfig
+try:
+    from demos.multi_source_arbitrage_demo import MultiSourceArbitrageDemo as MultiSourceArbitrageDetector
+except ImportError:
+    MultiSourceArbitrageDetector = None
 
 class AACProductionDeployer:
     """Production deployment manager for AAC system"""
@@ -347,7 +353,8 @@ class AACProductionDeployer:
             try:
                 requests.get('https://api.binance.com/api/v3/ping', timeout=5)
                 health_status['checks']['network'] = 'connected'
-            except:
+            except Exception as e:
+                logger.error(f"Deployment step failed: {e}")
                 health_status['checks']['network'] = 'disconnected'
 
             # API responsiveness
@@ -394,8 +401,8 @@ async def main():
         return
 
     # Validation phase
-    print("
-📋 Phase 1: Validation"    print("-" * 30)
+    print("\n📋 Phase 1: Validation")
+    print("-" * 30)
 
     validations = [
         ('Environment', deployer.validate_environment()),
@@ -427,8 +434,8 @@ async def main():
         return
 
     # Deployment phase
-    print("
-🚀 Phase 2: Deployment"    print("-" * 30)
+    print("\n🚀 Phase 2: Deployment")
+    print("-" * 30)
 
     if args.mode == 'live':
         print("⚠️  LIVE MODE: This will execute real trades!")

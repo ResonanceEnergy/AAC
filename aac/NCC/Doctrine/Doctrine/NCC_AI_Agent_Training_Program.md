@@ -1,7 +1,7 @@
 # NCC AI Agent Training Program
 **Program Launch:** January 29, 2026  
 **Developed By:** Human Resources Department (Sarah Johnson)  
-**Approved By:** AZ PRIME Oversight  
+**Approved By:** BARREN WUFFET Oversight  
 
 ## Program Overview
 Comprehensive training program for all NCC AI agents to ensure operational excellence and framework compliance.
@@ -27,7 +27,7 @@ Comprehensive training program for all NCC AI agents to ensure operational excel
 - Incident reporting procedures
 
 ### Module 4: Technical Proficiency
-- AZ PRIME system navigation
+- BARREN WUFFET system navigation
 - Dashboard utilization
 - Reporting and analytics
 - Automation tools

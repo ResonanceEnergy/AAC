@@ -6,8 +6,11 @@ Mock implementation for inter-agent communication.
 """
 
 import asyncio
+import logging
 from typing import Dict, List, Any, Optional
 from dataclasses import dataclass
+
+logger = logging.getLogger(__name__)
 
 @dataclass
 class Message:
@@ -45,7 +48,7 @@ class CommunicationFramework:
 
     async def initialize(self):
         """Initialize the communication framework"""
-        pass
+        logger.info("CommunicationFramework initialized (base implementation)")
 
     async def send_message(self, sender: str, recipient: str, message_type: str,
                           payload: Dict[str, Any], priority: str = "normal") -> bool:

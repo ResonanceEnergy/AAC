@@ -4,7 +4,7 @@
 **Version:** 1.0.0  
 **Classification:** NATHAN COMMAND CORP CORE DOCTRINE  
 **Date:** 2026-01-29  
-**Authority:** AZ PRIME Command  
+**Authority:** BARREN WUFFET Command  
 **Optimization:** AX Intelligence  
 
 ---
@@ -139,12 +139,12 @@ $MEMO_DOCTRINE_CONFIG = @{
 ## AUTHORITY AND OVERSIGHT
 
 ### Command Authority
-- **Primary:** AZ PRIME Command
+- **Primary:** BARREN WUFFET Command
 - **Technical:** AX Intelligence Division
 - **Oversight:** NCC Supreme Organization Audit Committee
 
 ### Modification Protocol
-- **Approval Required:** AZ PRIME Command authorization
+- **Approval Required:** BARREN WUFFET Command authorization
 - **Documentation:** Version control and change logs
 - **Testing:** Full system validation before deployment
 
@@ -174,6 +174,6 @@ $MEMO_DOCTRINE_CONFIG = @{
 
 **This doctrine is effective immediately and applies to all NCC agents. Non-compliance will result in performance review and potential disciplinary action.**
 
-**AZ PRIME Command Authority**  
+**BARREN WUFFET Command Authority**  
 **NATHAN COMMAND CORP**  
 **2026-01-29**

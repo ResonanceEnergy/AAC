@@ -15,7 +15,7 @@ Customer relationship and sales management platform.
 - Mobile sales applications
 
 ## Integration Points
-- AZ PRIME sales performance monitoring
+- BARREN WUFFET sales performance monitoring
 - Dashboard integration for sales KPIs
 - Marketing automation sync
 - Customer data privacy compliance

@@ -6,12 +6,12 @@ The AAC Automation System provides comprehensive automation for the Accelerated 
 
 ## 📁 Files Created
 
-### `AAC_AUTO_LAUNCH.bat`
-**One-click automation script**
-- Automatically syncs changes to git
-- Launches dashboard with browser auto-open
-- Handles commit and push operations
-- Perfect for daily development workflow
+### `launch.py` (Unified Launcher)
+**Single cross-platform launcher — replaces all old .bat/.ps1 files**
+- 8 modes: dashboard, monitor, paper, core, full, test, health, git-sync
+- `git-sync` mode: auto-commit/push + launch dashboard
+- Thin wrappers: `launch.bat` (Windows) / `launch.sh` (Unix)
+- See `.github/SINGLE_LAUNCHER_RULE.md`
 
 ### `aac_automation.py`
 **Advanced Python automation script**
@@ -30,8 +30,11 @@ The AAC Automation System provides comprehensive automation for the Accelerated 
 
 ### Option 1: One-Click Launch
 ```bash
-# Double-click this file for instant launch + git sync
-AAC_AUTO_LAUNCH.bat
+# Double-click launch.bat or run from terminal:
+python launch.py dashboard
+
+# Git sync + dashboard in one step:
+python launch.py git-sync
 ```
 
 ### Option 2: Python Automation
@@ -200,7 +203,7 @@ The automation system can be integrated into CI/CD pipelines:
 
 ## 🎯 Best Practices
 
-1. **Run Daily**: Use `AAC_AUTO_LAUNCH.bat` for daily development
+1. **Run Daily**: Use `python launch.py git-sync` for daily development
 2. **Monitor Health**: Check logs regularly for system issues
 3. **Backup Regularly**: The daily backup task ensures code safety
 4. **Test Before Commit**: Run tests before major changes

@@ -8,7 +8,7 @@ async def check_departments():
     await doctrine.initialize()  # Initialize first
     status = doctrine.orchestrator.get_system_status()  # Use orchestrator's method
 
-    print(f'\n[MONITOR] SYSTEM STATUS: {status["az_prime_state"]}')
+    print(f'\n[MONITOR] SYSTEM STATUS: {status["barren_wuffet_state"]}')
     print(f'Last Check: {status.get("last_check", "Never")}')
     print(f'Monitoring Active: {status["monitoring_active"]}')
 

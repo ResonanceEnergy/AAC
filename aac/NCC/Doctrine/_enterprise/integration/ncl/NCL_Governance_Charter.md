@@ -20,7 +20,7 @@ The NCL Governance Charter establishes the supreme authority, operational framew
 ## Governance Structure
 
 ### NCL Supreme Council
-**Composition:** Supreme Commander + AZ PRIME Executive Team
+**Composition:** Supreme Commander + BARREN WUFFET Executive Team
 **Frequency:** Weekly meetings, monthly strategic reviews
 **Responsibilities:**
 - System architecture decisions

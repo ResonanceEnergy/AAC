@@ -15,7 +15,7 @@ Comprehensive IT infrastructure management and service delivery platform.
 - IT service management (ITIL) workflows
 
 ## Integration Points
-- AZ PRIME infrastructure monitoring
+- BARREN WUFFET infrastructure monitoring
 - Dashboard integration for IT KPIs
 - Automated incident response
 - Cross-departmental IT support

@@ -590,8 +590,8 @@ class DeepDiveFileAnalyzer:
                         content = f.read()
                     if strategy_id.lower() in content.lower():
                         dependencies['related_strategies'].append(file_info)
-                except:
-                    pass
+                except Exception as e:
+                    self.logger.debug(f"File analysis error: {e}")
 
         return dependencies
 

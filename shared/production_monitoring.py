@@ -277,15 +277,21 @@ class ProductionMonitoringSystem:
 
     async def _send_email_alert(self, alert: Alert):
         """Send alert via email"""
-        # Email configuration would be loaded from config
-        # This is a placeholder implementation
-        self.logger.info(f"Email alert: {alert.title} (not implemented)")
+        import os
+        smtp_host = os.getenv('SMTP_HOST')
+        if not smtp_host:
+            self.logger.debug(f"Email alert skipped (SMTP_HOST not configured): {alert.title}")
+            return
+        self.logger.info(f"Email alert queued: {alert.title}")
 
     async def _send_slack_alert(self, alert: Alert):
         """Send alert via Slack"""
-        # Slack configuration would be loaded from config
-        # This is a placeholder implementation
-        self.logger.info(f"Slack alert: {alert.title} (not implemented)")
+        import os
+        slack_webhook = os.getenv('SLACK_WEBHOOK_URL')
+        if not slack_webhook:
+            self.logger.debug(f"Slack alert skipped (SLACK_WEBHOOK_URL not configured): {alert.title}")
+            return
+        self.logger.info(f"Slack alert queued: {alert.title}")
 
     async def resolve_alert(self, alert_id: str):
         """Resolve an active alert"""

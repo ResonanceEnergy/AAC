@@ -377,6 +377,7 @@ class ThreatDetectionEngine:
 
     async def start_monitoring(self):
         """Start continuous threat monitoring"""
+        self.monitoring_active = True
         logger.info("Starting threat detection monitoring")
         # Start monitoring tasks
 
@@ -400,41 +401,73 @@ class OperationalRhythmEngine:
     async def execute_current_phase(self):
         """Execute the current operational phase"""
         # Implement phase execution logic
+        logger.info("Daily cycle phase execution \u2014 stub")
 
 # Placeholder classes for components that would be fully implemented
 class DoctrineComplianceEngine:
     async def evaluate_pack(self, pack: str) -> float:
+        logger.warning("Using placeholder compliance score")
         return 0.98  # Mock compliance score
 
 class RiskOrchestrator:
-    pass
+    """Stub implementation — to be replaced with production version"""
+    def __init__(self):
+        self.logger = logging.getLogger(type(self).__name__)
+        self.logger.warning("Using stub implementation")
 
 class PerformanceMonitor:
-    pass
+    """Stub implementation — to be replaced with production version"""
+    def __init__(self):
+        self.logger = logging.getLogger(type(self).__name__)
+        self.logger.warning("Using stub implementation")
 
 class IncidentCoordinator:
-    pass
+    """Stub implementation — to be replaced with production version"""
+    def __init__(self):
+        self.logger = logging.getLogger(type(self).__name__)
+        self.logger.warning("Using stub implementation")
 
 class AICyberThreatDetector:
-    pass
+    """Stub implementation — to be replaced with production version"""
+    def __init__(self):
+        self.logger = logging.getLogger(type(self).__name__)
+        self.logger.warning("Using stub implementation")
 
 class PhysicalThreatMonitor:
-    pass
+    """Stub implementation — to be replaced with production version"""
+    def __init__(self):
+        self.logger = logging.getLogger(type(self).__name__)
+        self.logger.warning("Using stub implementation")
 
 class MarketCrashPredictor:
-    pass
+    """Stub implementation — to be replaced with production version"""
+    def __init__(self):
+        self.logger = logging.getLogger(type(self).__name__)
+        self.logger.warning("Using stub implementation")
 
 class RegulatoryChangeMonitor:
-    pass
+    """Stub implementation — to be replaced with production version"""
+    def __init__(self):
+        self.logger = logging.getLogger(type(self).__name__)
+        self.logger.warning("Using stub implementation")
 
 class AdvancedScheduleManager:
-    pass
+    """Stub implementation — to be replaced with production version"""
+    def __init__(self):
+        self.logger = logging.getLogger(type(self).__name__)
+        self.logger.warning("Using stub implementation")
 
 class StateCoordinator:
-    pass
+    """Stub implementation — to be replaced with production version"""
+    def __init__(self):
+        self.logger = logging.getLogger(type(self).__name__)
+        self.logger.warning("Using stub implementation")
 
 class PerformanceTracker:
-    pass
+    """Stub implementation — to be replaced with production version"""
+    def __init__(self):
+        self.logger = logging.getLogger(type(self).__name__)
+        self.logger.warning("Using stub implementation")
 
 # Main execution
 async def main():

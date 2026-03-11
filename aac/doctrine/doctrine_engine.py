@@ -59,8 +59,8 @@ class ComplianceState(Enum):
     UNKNOWN = "UNKNOWN"
 
 
-class AZPrimeState(Enum):
-    """AZ Prime operational states."""
+class BarrenWuffetState(Enum):
+    """BARREN WUFFET operational states."""
     NORMAL = "NORMAL"
     CAUTION = "CAUTION"
     SAFE_MODE = "SAFE_MODE"
@@ -103,7 +103,7 @@ class DoctrineViolation:
     """A doctrine violation requiring action."""
     pack_id: int
     pack_name: str
-    rule_type: str  # 'metric', 'failure_mode', 'az_prime_hook'
+    rule_type: str  # 'metric', 'failure_mode', 'barren_wuffet_hook'
     rule_id: str
     description: str
     severity: str  # 'warning', 'critical'
@@ -124,7 +124,7 @@ class DoctrineComplianceReport:
     violations: int
     violations_list: List[DoctrineViolation]
     compliance_score: float  # 0-100
-    az_prime_state: AZPrimeState
+    barren_wuffet_state: BarrenWuffetState
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -179,10 +179,10 @@ DOCTRINE_PACKS = {
         "failure_modes": [
             "cascading_liquidation", "correlated_drawdown", "leverage_trap"
         ],
-        "az_prime_triggers": [
-            ("drawdown_exceeds_5pct", AZPrimeState.CAUTION, ActionType.A_THROTTLE_RISK),
-            ("drawdown_exceeds_10pct", AZPrimeState.SAFE_MODE, ActionType.A_STOP_EXECUTION),
-            ("daily_loss_exceeds_2pct", AZPrimeState.HALT, ActionType.A_STOP_EXECUTION),
+        "barren_wuffet_triggers": [
+            ("drawdown_exceeds_5pct", BarrenWuffetState.CAUTION, ActionType.A_THROTTLE_RISK),
+            ("drawdown_exceeds_10pct", BarrenWuffetState.SAFE_MODE, ActionType.A_STOP_EXECUTION),
+            ("daily_loss_exceeds_2pct", BarrenWuffetState.HALT, ActionType.A_STOP_EXECUTION),
         ]
     },
     2: {
@@ -217,9 +217,9 @@ DOCTRINE_PACKS = {
         "failure_modes": [
             "key_compromise", "audit_gap"
         ],
-        "az_prime_triggers": [
-            ("failed_auth_count > 5/min", AZPrimeState.SAFE_MODE, ActionType.A_LOCK_KEYS),
-            ("key_exposure_detected", AZPrimeState.HALT, ActionType.A_LOCK_KEYS),
+        "barren_wuffet_triggers": [
+            ("failed_auth_count > 5/min", BarrenWuffetState.SAFE_MODE, ActionType.A_LOCK_KEYS),
+            ("key_exposure_detected", BarrenWuffetState.HALT, ActionType.A_LOCK_KEYS),
         ]
     },
     3: {
@@ -251,11 +251,11 @@ DOCTRINE_PACKS = {
             "test_environment_drift", "flaky_test_syndrome",
             "backtest_overfitting", "replay_data_corruption"
         ],
-        "az_prime_triggers": [
-            ("test_coverage_pct < 70", AZPrimeState.CAUTION, ActionType.A_CREATE_INCIDENT),
-            ("regression_test_failures > 0", AZPrimeState.CAUTION, ActionType.A_STOP_EXECUTION),
-            ("chaos_test_failed", AZPrimeState.SAFE_MODE, ActionType.A_ENTER_SAFE_MODE),
-            ("backtest_vs_live_drift > 50%", AZPrimeState.CAUTION, ActionType.A_FREEZE_STRATEGY),
+        "barren_wuffet_triggers": [
+            ("test_coverage_pct < 70", BarrenWuffetState.CAUTION, ActionType.A_CREATE_INCIDENT),
+            ("regression_test_failures > 0", BarrenWuffetState.CAUTION, ActionType.A_STOP_EXECUTION),
+            ("chaos_test_failed", BarrenWuffetState.SAFE_MODE, ActionType.A_ENTER_SAFE_MODE),
+            ("backtest_vs_live_drift > 50%", BarrenWuffetState.CAUTION, ActionType.A_FREEZE_STRATEGY),
         ]
     },
     4: {
@@ -287,11 +287,11 @@ DOCTRINE_PACKS = {
             "alert_fatigue", "escalation_failure",
             "communication_breakdown", "incomplete_postmortem"
         ],
-        "az_prime_triggers": [
-            ("active_sev1_count > 0", AZPrimeState.CAUTION, ActionType.A_THROTTLE_RISK),
-            ("mttd > 10min for sev1", AZPrimeState.CAUTION, ActionType.A_CREATE_INCIDENT),
-            ("mttr > 60min for sev1", AZPrimeState.SAFE_MODE, ActionType.A_ENTER_SAFE_MODE),
-            ("incident_recurrence within 7 days", AZPrimeState.CAUTION, ActionType.A_CREATE_INCIDENT),
+        "barren_wuffet_triggers": [
+            ("active_sev1_count > 0", BarrenWuffetState.CAUTION, ActionType.A_THROTTLE_RISK),
+            ("mttd > 10min for sev1", BarrenWuffetState.CAUTION, ActionType.A_CREATE_INCIDENT),
+            ("mttr > 60min for sev1", BarrenWuffetState.SAFE_MODE, ActionType.A_ENTER_SAFE_MODE),
+            ("incident_recurrence within 7 days", BarrenWuffetState.CAUTION, ActionType.A_CREATE_INCIDENT),
         ]
     },
     5: {
@@ -336,11 +336,11 @@ DOCTRINE_PACKS = {
             "liquidity_mirage", "market_impact_underestimation",
             "partial_fill_cascade", "adverse_selection_trap"
         ],
-        "az_prime_triggers": [
-            ("slippage_bps_p95 > 10", AZPrimeState.CAUTION, ActionType.A_THROTTLE_RISK),
-            ("partial_fill_rate > 30%", AZPrimeState.CAUTION, ActionType.A_CREATE_INCIDENT),
-            ("market_impact_bps > 20", AZPrimeState.SAFE_MODE, ActionType.A_STOP_EXECUTION),
-            ("liquidity_available_pct < 100%", AZPrimeState.CAUTION, ActionType.A_THROTTLE_RISK),
+        "barren_wuffet_triggers": [
+            ("slippage_bps_p95 > 10", BarrenWuffetState.CAUTION, ActionType.A_THROTTLE_RISK),
+            ("partial_fill_rate > 30%", BarrenWuffetState.CAUTION, ActionType.A_CREATE_INCIDENT),
+            ("market_impact_bps > 20", BarrenWuffetState.SAFE_MODE, ActionType.A_STOP_EXECUTION),
+            ("liquidity_available_pct < 100%", BarrenWuffetState.CAUTION, ActionType.A_THROTTLE_RISK),
         ]
     },
     6: {
@@ -376,11 +376,11 @@ DOCTRINE_PACKS = {
         "failure_modes": [
             "venue_insolvency", "withdrawal_freeze"
         ],
-        "az_prime_triggers": [
-            ("venue_health_score < 0.70", AZPrimeState.CAUTION, ActionType.A_ROUTE_FAILOVER),
-            ("withdrawal_frozen", AZPrimeState.SAFE_MODE, ActionType.A_CREATE_INCIDENT),
-            ("settlement_failure_rate > 1%", AZPrimeState.CAUTION, ActionType.A_THROTTLE_RISK),
-            ("counterparty_credit_score < 50", AZPrimeState.SAFE_MODE, ActionType.A_ROUTE_FAILOVER),
+        "barren_wuffet_triggers": [
+            ("venue_health_score < 0.70", BarrenWuffetState.CAUTION, ActionType.A_ROUTE_FAILOVER),
+            ("withdrawal_frozen", BarrenWuffetState.SAFE_MODE, ActionType.A_CREATE_INCIDENT),
+            ("settlement_failure_rate > 1%", BarrenWuffetState.CAUTION, ActionType.A_THROTTLE_RISK),
+            ("counterparty_credit_score < 50", BarrenWuffetState.SAFE_MODE, ActionType.A_ROUTE_FAILOVER),
         ]
     },
     7: {
@@ -412,11 +412,11 @@ DOCTRINE_PACKS = {
             "research_stagnation", "strategy_overfitting",
             "feature_bloat", "experiment_sprawl"
         ],
-        "az_prime_triggers": [
-            ("research_pipeline_velocity < 1", AZPrimeState.CAUTION, ActionType.A_CREATE_INCIDENT),
-            ("strategy_survival_rate < 25%", AZPrimeState.CAUTION, ActionType.A_FREEZE_STRATEGY),
-            ("experiment_completion_rate < 50%", AZPrimeState.CAUTION, ActionType.A_CREATE_INCIDENT),
-            ("model_version_rollback_count > 2 in 7 days", AZPrimeState.SAFE_MODE, ActionType.A_FREEZE_STRATEGY),
+        "barren_wuffet_triggers": [
+            ("research_pipeline_velocity < 1", BarrenWuffetState.CAUTION, ActionType.A_CREATE_INCIDENT),
+            ("strategy_survival_rate < 25%", BarrenWuffetState.CAUTION, ActionType.A_FREEZE_STRATEGY),
+            ("experiment_completion_rate < 50%", BarrenWuffetState.CAUTION, ActionType.A_CREATE_INCIDENT),
+            ("model_version_rollback_count > 2 in 7 days", BarrenWuffetState.SAFE_MODE, ActionType.A_FREEZE_STRATEGY),
         ]
     },
     8: {
@@ -448,11 +448,11 @@ DOCTRINE_PACKS = {
             "metric_drift", "truth_conflict_stalemate",
             "retention_policy_violation", "dashboard_stale_data"
         ],
-        "az_prime_triggers": [
-            ("data_quality_score < 0.85", AZPrimeState.CAUTION, ActionType.A_QUARANTINE_SOURCE),
-            ("reconciliation_accuracy < 95%", AZPrimeState.CAUTION, ActionType.A_FORCE_RECON),
-            ("truth_conflict_unresolved > 30min", AZPrimeState.SAFE_MODE, ActionType.A_PAGE_ONCALL),
-            ("metric_lineage_coverage < 70%", AZPrimeState.CAUTION, ActionType.A_CREATE_INCIDENT),
+        "barren_wuffet_triggers": [
+            ("data_quality_score < 0.85", BarrenWuffetState.CAUTION, ActionType.A_QUARANTINE_SOURCE),
+            ("reconciliation_accuracy < 95%", BarrenWuffetState.CAUTION, ActionType.A_FORCE_RECON),
+            ("truth_conflict_unresolved > 30min", BarrenWuffetState.SAFE_MODE, ActionType.A_PAGE_ONCALL),
+            ("metric_lineage_coverage < 70%", BarrenWuffetState.CAUTION, ActionType.A_CREATE_INCIDENT),
         ]
     },
 }
@@ -470,14 +470,14 @@ class DoctrineEngine:
     - Load and parse doctrine packs from YAML
     - Check compliance across all departments
     - Generate violations and recommended actions
-    - Track AZ Prime state transitions
+    - Track BARREN WUFFET state transitions
     - Execute automated remediation actions
     """
     
     def __init__(self, config_path: Optional[Path] = None):
         self.config_path = config_path or Path(__file__).parent.parent.parent / "config" / "doctrine_packs.yaml"
         self.doctrine_packs: Dict[int, Dict] = {}
-        self.current_az_state: AZPrimeState = AZPrimeState.NORMAL
+        self.current_az_state: BarrenWuffetState = BarrenWuffetState.NORMAL
         self.active_violations: List[DoctrineViolation] = []
         self.metric_values: Dict[str, MetricValue] = {}
         self.action_handlers: Dict[ActionType, Callable] = {}
@@ -622,7 +622,7 @@ class DoctrineEngine:
     def _get_recommended_action(self, pack_id: int, metric_name: str) -> ActionType:
         """Get recommended action for a metric violation."""
         pack = DOCTRINE_PACKS.get(pack_id, {})
-        triggers = pack.get('az_prime_triggers', [])
+        triggers = pack.get('barren_wuffet_triggers', [])
         
         for trigger_str, state, action in triggers:
             if metric_name in trigger_str:
@@ -641,20 +641,20 @@ class DoctrineEngine:
         }
         return default_actions.get(pack_id, ActionType.A_CREATE_INCIDENT)
     
-    def check_az_prime_triggers(self, metrics: Dict[str, Any]) -> Tuple[AZPrimeState, List[ActionType]]:
-        """Check all AZ Prime triggers and return state + required actions."""
+    def check_barren_wuffet_triggers(self, metrics: Dict[str, Any]) -> Tuple[BarrenWuffetState, List[ActionType]]:
+        """Check all BARREN WUFFET triggers and return state + required actions."""
         triggered_actions: List[ActionType] = []
-        worst_state = AZPrimeState.NORMAL
+        worst_state = BarrenWuffetState.NORMAL
         
         for pack_id, pack_info in DOCTRINE_PACKS.items():
-            triggers = pack_info.get('az_prime_triggers', [])
+            triggers = pack_info.get('barren_wuffet_triggers', [])
             
             for trigger_str, target_state, action in triggers:
                 if self._evaluate_trigger(trigger_str, metrics):
                     triggered_actions.append(action)
                     if self._state_severity(target_state) > self._state_severity(worst_state):
                         worst_state = target_state
-                    logger.warning(f"AZ Prime trigger fired: {trigger_str} → {target_state.value}")
+                    logger.warning(f"BARREN WUFFET trigger fired: {trigger_str} → {target_state.value}")
         
         return worst_state, triggered_actions
     
@@ -771,13 +771,13 @@ class DoctrineEngine:
             pass
         return False
     
-    def _state_severity(self, state: AZPrimeState) -> int:
+    def _state_severity(self, state: BarrenWuffetState) -> int:
         """Get numeric severity for state comparison."""
         severities = {
-            AZPrimeState.NORMAL: 0,
-            AZPrimeState.CAUTION: 1,
-            AZPrimeState.SAFE_MODE: 2,
-            AZPrimeState.HALT: 3,
+            BarrenWuffetState.NORMAL: 0,
+            BarrenWuffetState.CAUTION: 1,
+            BarrenWuffetState.SAFE_MODE: 2,
+            BarrenWuffetState.HALT: 3,
         }
         return severities.get(state, 0)
     
@@ -826,7 +826,7 @@ class DoctrineEngine:
             violations=violation_count,
             violations_list=violations,
             compliance_score=round(score, 2),
-            az_prime_state=self.current_az_state
+            barren_wuffet_state=self.current_az_state
         )
     
     def get_department_doctrine_summary(self, department: Department) -> Dict[str, Any]:
@@ -840,7 +840,7 @@ class DoctrineEngine:
                     'name': pack_info['name'],
                     'metrics': pack_info.get('key_metrics', []),
                     'failure_modes': pack_info.get('failure_modes', []),
-                    'trigger_count': len(pack_info.get('az_prime_triggers', []))
+                    'trigger_count': len(pack_info.get('barren_wuffet_triggers', []))
                 })
         
         return {
@@ -945,8 +945,8 @@ class DoctrineApplicationService:
             dept = self._metric_to_department(name)
             self.engine.update_metric(name, value, dept)
         
-        # Check AZ Prime triggers
-        new_state, actions = self.engine.check_az_prime_triggers(metrics)
+        # Check BARREN WUFFET triggers
+        new_state, actions = self.engine.check_barren_wuffet_triggers(metrics)
         
         # Execute triggered actions
         for action in actions:
@@ -954,7 +954,7 @@ class DoctrineApplicationService:
         
         # Update state if needed
         if self.engine._state_severity(new_state) > self.engine._state_severity(self.engine.current_az_state):
-            logger.warning(f"AZ Prime state transition: {self.engine.current_az_state.value} → {new_state.value}")
+            logger.warning(f"BARREN WUFFET state transition: {self.engine.current_az_state.value} → {new_state.value}")
             self.engine.current_az_state = new_state
         
         return self.engine.generate_compliance_report()
@@ -1041,7 +1041,7 @@ class DoctrineApplicationService:
             pack = DOCTRINE_PACKS[pack_id]
             metrics = len(pack.get('key_metrics', []))
             failures = len(pack.get('failure_modes', []))
-            triggers = len(pack.get('az_prime_triggers', []))
+            triggers = len(pack.get('barren_wuffet_triggers', []))
             
             total_metrics += metrics
             total_failure_modes += failures
@@ -1095,7 +1095,7 @@ async def main(quiet_mode: bool = False):
             print(f"\n[MONITOR] COMPLIANCE REPORT (Cycle {cycle})")
             print(f"   Generated: {report.generated_at.strftime('%Y-%m-%d %H:%M:%S')}")
             print(f"   Scope: {report.scope}")
-            print(f"   AZ Prime State: {report.az_prime_state.value}")
+            print(f"   BARREN WUFFET State: {report.barren_wuffet_state.value}")
             print(f"\n   ✅ Compliant: {report.compliant}")
             print(f"   [WARN]️  Warnings: {report.warnings}")
             print(f"   [CROSS] Violations: {report.violations}")

@@ -11,7 +11,7 @@ Provide comprehensive YouTube ecosystem intelligence through advanced scraping, 
 ## Leadership Structure
 - **Department Head:** Ludwig Law (Chief Content Intelligence Officer)
 - **Reports to:** AX (Helix) - Media & Communications Director
-- **Coordinates with:** AZ PRIME (Autonomous Intelligence), Security Chief
+- **Coordinates with:** BARREN WUFFET (Autonomous Intelligence), Security Chief
 - **Department Size:** 30 specialized agents
 
 ## Core Capabilities
@@ -149,7 +149,7 @@ Provide comprehensive YouTube ecosystem intelligence through advanced scraping, 
 
 ## Communication Flow
 - **Daily Reports:** Automated trend summaries to AX (Helix)
-- **Weekly Briefings:** Strategic intelligence updates to AZ PRIME
+- **Weekly Briefings:** Strategic intelligence updates to BARREN WUFFET
 - **Crisis Alerts:** Immediate notifications to Security Chief for threat response
 - **Monthly Reviews:** Comprehensive performance analysis for C-Suite
 

@@ -15,7 +15,7 @@ Unified marketing and branding platform for NCC's market presence and communicat
 - Analytics and reporting
 
 ## Integration Points
-- AZ PRIME sync for brand compliance monitoring
+- BARREN WUFFET sync for brand compliance monitoring
 - Dashboard integration for marketing KPIs
 - Cross-departmental content approval workflows
 - Sales team lead generation feeds

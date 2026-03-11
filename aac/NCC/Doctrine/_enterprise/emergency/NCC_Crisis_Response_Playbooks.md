@@ -1,6 +1,6 @@
 # NCC Crisis Response Playbooks
 **Version:** 1.0.0 | **Date:** 2026-01-29 | **Classification:** TOP SECRET
-**Authority:** AZ PRIME Command | **Optimization:** AX Intelligence
+**Authority:** BARREN WUFFET Command | **Optimization:** AX Intelligence
 
 ## Overview
 
@@ -68,7 +68,7 @@ Complete or partial failure of critical NCC systems, including core services, da
 ## Communication Plan
 - **Internal:** Status updates every 5 minutes
 - **External:** Customer impact assessment and resolution timeline
-- **Stakeholders:** AZ PRIME Command and C-Suite notification
+- **Stakeholders:** BARREN WUFFET Command and C-Suite notification
 
 ## Post-Incident Actions
 - Complete incident report

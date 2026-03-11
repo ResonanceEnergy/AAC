@@ -19,20 +19,17 @@ import asyncio
 import logging
 import json
 import time
-import threading
-from datetime import datetime, timedelta
-from typing import Dict, List, Any, Optional, Tuple
+from datetime import datetime
+from typing import Dict, List, Any
 from dataclasses import dataclass, field
 from enum import Enum
-import numpy as np
 import sys
 from pathlib import Path
 import os
-import platform
 import random
 
 # Add project root
-PROJECT_ROOT = Path(__file__).resolve().parent
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from shared.config_loader import get_config
@@ -44,11 +41,20 @@ from shared.executive_branch_agents import get_az_supreme, get_ax_helix
 from shared.super_agent_framework import get_super_agent_core
 from CentralAccounting.financial_analysis_engine import FinancialAnalysisEngine
 from SharedInfrastructure.metrics_collector import get_metrics_collector
-from monitoring_dashboard import AACMonitoringDashboard
+
+# Configurable monitoring intervals (seconds)
+METRICS_INTERVAL = int(os.environ.get('METRICS_INTERVAL', '5'))
+METRICS_ERROR_INTERVAL = int(os.environ.get('METRICS_ERROR_INTERVAL', '10'))
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+try:
+    from monitoring.aac_master_monitoring_dashboard import AACMasterMonitoringDashboard as AACMonitoringDashboard
+except ImportError:
+    AACMonitoringDashboard = None  # type: ignore[misc,assignment]
+    logger.warning("AACMonitoringDashboard not available — monitoring degraded")
 
 class AvatarPersonality(Enum):
     """AI Avatar personality types"""
@@ -179,7 +185,7 @@ class AACCommandCenter:
             self.logger.error(f"[CROSS] Command center initialization failed: {e}")
             return False
 
-    async def _initialize_core_systems(self):
+    async def _initialize_core_systems(self) -> None:
         """Initialize core command center systems"""
         self.logger.info("🔧 Initializing core systems...")
 
@@ -194,7 +200,11 @@ class AACCommandCenter:
         await self.communication.register_agent("command_center")
 
         # Initialize metrics collection (start in background)
-        asyncio.create_task(self.metrics_collector.start_collection())
+        if not hasattr(self, '_tasks'):
+            self._tasks = set()
+        task = asyncio.create_task(self.metrics_collector.start_collection())
+        self._tasks.add(task)
+        task.add_done_callback(self._tasks.discard)
 
         # Initialize financial monitoring
         # FinancialAnalysisEngine initializes in __init__
@@ -204,7 +214,7 @@ class AACCommandCenter:
 
         self.logger.info("✅ Core systems initialized")
 
-    async def _initialize_executive_branch(self):
+    async def _initialize_executive_branch(self) -> None:
         """Initialize executive branch with AI avatars"""
         self.logger.info("👑 Initializing executive branch...")
 
@@ -222,7 +232,7 @@ class AACCommandCenter:
 
         self.logger.info("✅ Executive branch initialized")
 
-    async def _initialize_integrations(self):
+    async def _initialize_integrations(self) -> None:
         """Initialize GLN and GTA integrations"""
         self.logger.info("🔗 Initializing integrations...")
 
@@ -309,10 +319,17 @@ class AACCommandCenter:
         self.logger.info("📈 Starting real-time monitoring...")
 
         # Start monitoring tasks
-        asyncio.create_task(self._real_time_metrics_loop())
-        asyncio.create_task(self._alert_monitoring_loop())
-        asyncio.create_task(self._executive_decision_loop())
-        asyncio.create_task(self._avatar_interaction_loop())
+        if not hasattr(self, '_tasks'):
+            self._tasks = set()
+        for coro in [
+            self._real_time_metrics_loop(),
+            self._alert_monitoring_loop(),
+            self._executive_decision_loop(),
+            self._avatar_interaction_loop(),
+        ]:
+            task = asyncio.create_task(coro)
+            self._tasks.add(task)
+            task.add_done_callback(self._tasks.discard)
 
         # Set active oversight mode
         self.mode = CommandCenterMode.ACTIVE_OVERSIGHT
@@ -321,6 +338,7 @@ class AACCommandCenter:
 
     async def _real_time_metrics_loop(self):
         """Real-time metrics collection and processing"""
+        retry_count = 0
         while self.operational_readiness:
             try:
                 # Collect comprehensive metrics
@@ -338,11 +356,14 @@ class AACCommandCenter:
                 # Update executive awareness
                 await self._update_executive_awareness(metrics)
 
-                await asyncio.sleep(5)  # 5-second intervals
+                retry_count = 0
+                await asyncio.sleep(METRICS_INTERVAL)  # configurable interval
 
             except Exception as e:
                 self.logger.error(f"Metrics loop error: {e}")
-                await asyncio.sleep(10)
+                backoff = min(METRICS_ERROR_INTERVAL * (2 ** retry_count), 300)  # cap at 5 minutes
+                await asyncio.sleep(backoff)
+                retry_count += 1
 
     async def _update_executive_awareness(self, metrics: Dict[str, Any]):
         """Update executive agents with current awareness"""
@@ -390,6 +411,9 @@ class AACCommandCenter:
 
                     # Route to appropriate executive
                     if decision_request.get("type") == "strategic":
+                        if self.az_supreme is None:
+                            self.logger.error("az_supreme not initialized — cannot make strategic decision")
+                            continue
                         decision = await self.az_supreme.make_strategic_decision(decision_request)
                     else:
                         decision = await self.ax_helix.make_operational_decision(decision_request)
@@ -887,6 +911,7 @@ class AACCommandCenter:
 
         except Exception as e:
             self.logger.error(f"Metrics collection error: {e}")
+            self.logger.warning("Returning empty metrics due to collection error")
             return {}
 
     async def _get_system_health(self) -> Dict[str, Any]:
@@ -1002,17 +1027,10 @@ class AACCommandCenter:
         if self.ax_helix:
             await self.ax_helix.receive_operational_alert(alert)
 
-    async def _update_executive_awareness(self, metrics: Dict[str, Any]):
-        """Update executive awareness with current metrics"""
-        if self.az_supreme:
-            await self.az_supreme.update_strategic_awareness(metrics)
-
-        if self.ax_helix:
-            await self.ax_helix.update_operational_awareness(metrics)
-
     async def _check_system_alerts(self) -> List[Dict[str, Any]]:
         """Check for system alerts"""
         # This would integrate with the actual alerting system
+        self.logger.debug("System alerts check returned empty — no alerting backend configured")
         return []
 
     async def _execute_decision(self, decision: Dict[str, Any]):
@@ -1085,7 +1103,7 @@ class AACCommandCenter:
             baseline_file = Path("data/command_center_baselines.json")
             baseline_file.parent.mkdir(parents=True, exist_ok=True)
 
-            with open(baseline_file, 'w') as f:
+            with open(baseline_file, 'w', encoding='utf-8') as f:
                 json.dump(self.monitoring_baselines, f, indent=2)
 
         except Exception as e:
@@ -1158,3 +1176,76 @@ async def get_command_center() -> AACCommandCenter:
 async def initialize_command_center() -> AACCommandCenter:
     """Initialize the command center"""
     return await get_command_center()
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# CLI ENTRY POINT
+# ═══════════════════════════════════════════════════════════════════════════
+
+async def _async_cli():
+    """Async CLI entry point for command center."""
+    import argparse
+
+    parser = argparse.ArgumentParser(description="AAC Command & Control Center")
+    parser.add_argument(
+        "--mode", "-m",
+        choices=["monitoring", "dashboard", "interactive"],
+        default="monitoring",
+        help="Operating mode (default: monitoring)",
+    )
+    parser.add_argument("--port", "-p", type=int, default=8501, help="Port for dashboard mode")
+    args = parser.parse_args()
+
+    cc = await get_command_center()
+
+    try:
+        if args.mode == "dashboard":
+            if AACMonitoringDashboard is not None:
+                from monitoring.aac_master_monitoring_dashboard import get_master_dashboard, DisplayMode
+                dashboard = get_master_dashboard(DisplayMode.TERMINAL)
+                await dashboard.start_monitoring()
+            else:
+                print("❌ Monitoring dashboard module not available")
+                sys.exit(1)
+        elif args.mode == "interactive":
+            print("🎮 AAC Command Center — Interactive Mode")
+            print("Type 'help' for commands, 'quit' to exit\n")
+            while True:
+                try:
+                    cmd = input("AZ> ").strip()
+                    if cmd.lower() in ("quit", "exit", "q"):
+                        break
+                    if cmd.lower() == "help":
+                        print("  status   — System status overview")
+                        print("  supreme  — Talk to AZ Supreme")
+                        print("  helix    — Talk to AX Helix")
+                        print("  quit     — Exit")
+                        continue
+                    if cmd.lower() == "status":
+                        status = await cc.get_system_overview()
+                        print(json.dumps(status, indent=2, default=str))
+                    elif cmd.lower().startswith("supreme "):
+                        resp = await cc.interact_with_avatar("supreme", cmd[8:])
+                        print(f"AZ-SUPREME: {resp}")
+                    elif cmd.lower().startswith("helix "):
+                        resp = await cc.interact_with_avatar("helix", cmd[6:])
+                        print(f"AX-HELIX: {resp}")
+                    else:
+                        print(f"Unknown command: {cmd}. Type 'help'.")
+                except EOFError:
+                    break
+        else:
+            # Default monitoring mode
+            print("📡 AAC Command Center — Monitoring Mode")
+            print("Press Ctrl+C to stop\n")
+            status = await cc.get_system_overview()
+            print(json.dumps(status, indent=2, default=str))
+
+    except KeyboardInterrupt:
+        print("\n🛑 Shutting down command center...")
+    finally:
+        await cc.shutdown_command_center()
+
+
+if __name__ == "__main__":
+    asyncio.run(_async_cli())

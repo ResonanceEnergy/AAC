@@ -113,6 +113,7 @@ class SecretsManager:
         
         # Use PBKDF2 to derive key from password with installation-specific salt
         salt = self._get_or_create_salt()
+        logger.info("Encryption salt generated")
         kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
             length=32,
@@ -120,6 +121,7 @@ class SecretsManager:
             iterations=480000,  # OWASP recommended minimum
         )
         key = base64.urlsafe_b64encode(kdf.derive(password.encode()))
+        logger.info("Encryption key derived")
         self._fernet = Fernet(key)
         self._encrypted = True
         logger.info("Encryption initialized with installation-specific salt")

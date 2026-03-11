@@ -58,7 +58,7 @@ The ADMIN Division provides comprehensive administrative support to NCC operatio
 
 ## Integration Points
 - **All NCC Divisions**: HR support and services
-- **AZ PRIME**: Strategic HR guidance
+- **BARREN WUFFET**: Strategic HR guidance
 - **C-Suite**: Executive HR coordination
 - **Finance Divisions**: Accounting collaboration
 

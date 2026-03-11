@@ -23,9 +23,10 @@ A desktop shortcut has been created for easy access to the AAC Matrix Monitor.
 ### Alternative Access Methods:
 1. **Desktop Shortcut:** Double-click the "AAC Matrix Monitor" icon
 2. **Command Line:** `.\aac_desktop_app.exe`
-3. **Batch Files:**
-   - `LFGCC!.bat` - Full system launch
-   - `LFGCC_DASHBOARD!.bat` - Dashboard only
+3. **Launcher:**
+   - `python launch.py full` — Full system launch
+   - `python launch.py dashboard` — Dashboard only
+   - `launch.bat <mode>` — Windows shortcut
 
 ---
 
@@ -39,13 +40,13 @@ A desktop shortcut has been created for easy access to the AAC Matrix Monitor.
 Double-click "AAC Matrix Monitor" on your desktop
 
 # Option B: Full System Launch
-LFGCC!.bat
+python launch.py full
 
 # Option C: Dashboard Only
-LFGCC_DASHBOARD!.bat
+python launch.py dashboard
 
-# Option D: Command Line
-python core/aac_master_launcher.py --mode paper
+# Option D: Paper Trading
+python launch.py paper
 ```
 
 #### 2. Initial Setup

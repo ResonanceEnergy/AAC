@@ -33,9 +33,9 @@ MediaCorp has been fully implemented according to the MMC Bible specifications, 
 - **High-Frequency Roll-off:** Above 12kHz (removes AI artifacts)
 - **Saturation:** Light warmth application (professional presence)
 
-#### 5. **AZ PRIME Voice Doctrine (Locked)**
+#### 5. **BARREN WUFFET Voice Doctrine (Locked)**
 ```
-You are AZ PRIME.
+You are BARREN WUFFET.
 
 You speak with calm authority, strategic clarity, and mature confidence.
 Your tone is measured, deliberate, and composed.
@@ -55,7 +55,7 @@ Your presence is large, quiet, and controlled.
 #### 6. **Operational Modes**
 - **Mode A:** Scripted Authority (pre-written content)
 - **Mode B:** Live Founder Control (real-time mic)
-- **Mode C:** Autonomous AZ PRIME (AI-driven)
+- **Mode C:** Autonomous BARREN WUFFET (AI-driven)
 
 ## 📁 File Structure
 
@@ -100,7 +100,7 @@ MediaCorp/
 ### Voice Authority
 - Deep, commanding presence without hype
 - Boardroom gravitas through audio processing
-- AZ PRIME personality consistency
+- BARREN WUFFET personality consistency
 - Real-time lip-sync accuracy
 
 ### AI Integration
@@ -136,14 +136,14 @@ All MMC Bible settings are pre-configured in `MMC_Config.yml`:
 
 ### Web Deployment
 ```powershell
-.\MMC.AvatarCreation.ps1 -VideoPath "az_prime_video.mp4" -VoicePreset "Adam" -DeploymentTarget "Web"
+.\MMC.AvatarCreation.ps1 -VideoPath "barren_wuffet_video.mp4" -VoicePreset "Adam" -DeploymentTarget "Web"
 # Result: Interactive web avatar at https://ncc-mediacorp.com/avatar/MMC-AVATAR-XXXX
 ```
 
 ### Autonomous Mode
 ```powershell
-.\MMC.AvatarCreation.ps1 -VideoPath "az_prime_video.mp4" -VoicePreset "Antoni" -AutonomousMode -DeploymentTarget "Web"
-# Result: AI-driven AZ PRIME avatar for continuous operation
+.\MMC.AvatarCreation.ps1 -VideoPath "barren_wuffet_video.mp4" -VoicePreset "Antoni" -AutonomousMode -DeploymentTarget "Web"
+# Result: AI-driven BARREN WUFFET avatar for continuous operation
 ```
 
 ### Live Presentation

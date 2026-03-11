@@ -50,6 +50,12 @@ class ProductionDeploymentManager:
         # Deployment configuration
         self.deployment_config = self._load_deployment_config()
 
+        # Validate required deployment configuration
+        required_keys = ['environments', 'testing', 'monitoring']
+        for key in required_keys:
+            if key not in self.deployment_config:
+                raise ValueError(f"Missing required config key: {key}")
+
         # Test results storage
         self.test_results = {}
 
@@ -57,22 +63,22 @@ class ProductionDeploymentManager:
         self.benchmarks = {}
 
     def _load_deployment_config(self) -> Dict[str, Any]:
-        """Load deployment configuration"""
+        """Load deployment configuration from environment variables."""
         return {
             'environments': {
                 'staging': {
-                    'host': 'localhost',
-                    'port': 8001,
-                    'database_url': 'sqlite:///staging.db',
-                    'log_level': 'INFO'
+                    'host': os.environ.get('STAGING_HOST', 'localhost'),
+                    'port': int(os.environ.get('STAGING_PORT', '8001')),
+                    'database_url': os.environ.get('STAGING_DATABASE_URL', 'sqlite:///staging.db'),
+                    'log_level': os.environ.get('STAGING_LOG_LEVEL', 'INFO')
                 },
                 'production': {
-                    'host': '0.0.0.0',
-                    'port': 8000,
-                    'database_url': 'postgresql://user:pass@prod-db:5432/aac',
-                    'log_level': 'WARNING',
-                    'ssl_enabled': True,
-                    'monitoring_enabled': True
+                    'host': os.environ.get('PROD_HOST', '0.0.0.0'),
+                    'port': int(os.environ.get('PROD_PORT', '8000')),
+                    'database_url': os.environ.get('DATABASE_URL', ''),
+                    'log_level': os.environ.get('PROD_LOG_LEVEL', 'WARNING'),
+                    'ssl_enabled': os.environ.get('SSL_ENABLED', 'true').lower() == 'true',
+                    'monitoring_enabled': os.environ.get('MONITORING_ENABLED', 'true').lower() == 'true'
                 }
             },
             'testing': {
@@ -248,13 +254,16 @@ class ProductionDeploymentManager:
         issues = []
 
         # Check for hardcoded secrets (very basic)
+        count = 0
         for file in Path('.').rglob('*.py'):
             try:
                 content = file.read_text()
+                count += 1
                 if 'password' in content.lower() or 'secret' in content.lower():
                     issues.append(f"Potential secrets in {file.name}")
-            except:
-                pass
+            except Exception as e:
+                logger.warning(f"Security check error: {e}")
+        self.logger.info(f"Scanned {count} files for security issues")
 
         return {
             'passed': len(issues) == 0,
@@ -641,14 +650,14 @@ async def run_production_deployment():
     # Run deployment pipeline
     results = await deployment_manager.run_full_deployment_pipeline('staging')
 
-    print("
-📊 Deployment Results:"    print(f"   Environment: {results['environment']}")
+    print("\n📊 Deployment Results:")
+    print(f"   Environment: {results['environment']}")
     print(f"   Success: {results['success']}")
     print(".2f")
     print(f"   Rollback Performed: {results.get('rollback_performed', False)}")
 
-    print("
-📋 Phase Results:"    for phase, result in results['phases'].items():
+    print("\n📋 Phase Results:")
+    for phase, result in results['phases'].items():
         status = "✅" if result.get('passed', False) else "❌"
         print(f"   {phase}: {status}")
 

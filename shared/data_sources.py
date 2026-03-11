@@ -95,12 +95,12 @@ class BaseDataSource(ABC):
     @abstractmethod
     async def connect(self):
         """Connect to data source"""
-        pass
+        raise NotImplementedError(f"{type(self).__name__} must implement connect")
 
     @abstractmethod
     async def disconnect(self):
         """Disconnect from data source"""
-        pass
+        raise NotImplementedError(f"{type(self).__name__} must implement disconnect")
 
 
 # ============================================

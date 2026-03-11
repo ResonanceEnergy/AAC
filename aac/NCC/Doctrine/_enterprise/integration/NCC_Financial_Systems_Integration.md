@@ -1,6 +1,6 @@
 # NCC Financial Systems Integration
 **Version:** 1.0.0 | **Date:** 2026-01-29 | **Classification:** TOP SECRET
-**Authority:** AZ PRIME Command | **Optimization:** AX Intelligence
+**Authority:** BARREN WUFFET Command | **Optimization:** AX Intelligence
 
 ## Overview
 

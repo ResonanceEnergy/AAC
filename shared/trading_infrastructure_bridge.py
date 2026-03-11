@@ -222,7 +222,11 @@ class TradingInfrastructureBridge:
             }
 
             # Start monitoring task
-            asyncio.create_task(self._monitor_execution(monitor_id))
+            if not hasattr(self, '_background_tasks'):
+                self._background_tasks = set()
+            task = asyncio.create_task(self._monitor_execution(monitor_id))
+            self._background_tasks.add(task)
+            task.add_done_callback(self._background_tasks.discard)
 
             return monitor_id
 

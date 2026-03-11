@@ -27,10 +27,10 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # Import AAC components
-from aac_wsb_sentiment_analyzer import AACWSBSentimentAnalyzer, SentimentResult
-from aac_reddit_web_scraper import AACRedditWebScraper
-from aac_wallstreetodds_integration import AACWallStreetOddsIntegration
-from aac_arbitrage_execution_system import AACArbitrageEngine
+from reddit.aac_wsb_sentiment_analyzer import AACWSBSentimentAnalyzer, SentimentResult
+from reddit.aac_reddit_web_scraper import AACRedditWebScraper
+from integrations.aac_wallstreetodds_integration import AACWallStreetOddsIntegration
+from trading.aac_arbitrage_execution_system import AACArbitrageExecutionSystem as AACArbitrageEngine
 
 @dataclass
 class WSBAnalysisResult:
@@ -383,36 +383,39 @@ async def demo_comprehensive_wsb_integration():
     analysis_report = await hub.run_comprehensive_arbitrage_analysis()
 
     # Display results
-    print("
-📊 Analysis Summary:"    print(f"   Timestamp: {analysis_report['timestamp']}")
-    print(".2f"    print(f"   Data Sources: {', '.join(analysis_report['data_sources'])}")
+    print("\n📊 Analysis Summary:")
+    print(f"   Timestamp: {analysis_report['timestamp']}")
+    print(f"   Data Sources: {', '.join(analysis_report['data_sources'])}")
 
     sentiment = analysis_report['wsb_sentiment_summary']
     if sentiment:
-        print("
-💬 Sentiment Summary:"        print(f"   Total Posts Analyzed: {sentiment.get('total_posts', 0)}")
-        print(".3f"        print(".3f"        print(f"   Sentiment Distribution: {sentiment.get('sentiment_distribution', {})}")
+        print("\n💬 Sentiment Summary:")
+        print(f"   Total Posts Analyzed: {sentiment.get('total_posts', 0)}")
+        print(f"   Bullish Ratio: {sentiment.get('bullish_ratio', 0):.3f}")
+        print(f"   Sentiment Distribution: {sentiment.get('sentiment_distribution', {})}")
 
     signals = analysis_report['enhanced_arbitrage_signals']
     if signals:
-        print("
-📈 Enhanced Arbitrage Signals:"        for signal in signals[:5]:  # Show top 5
+        print("\n📈 Enhanced Arbitrage Signals:")
+        for signal in signals[:5]:  # Show top 5
             print(f"   🎯 {signal['ticker']}: {signal['signal_type']} "
-                  ".2f"
-                  f" (Risk: {signal['risk_level']})")
+                  f"Confidence: {signal.get('confidence', 0):.2f} "
+                  f"(Risk: {signal['risk_level']})")
 
     manipulation = analysis_report['manipulation_signals']
     if manipulation:
-        print("
-🚨 Market Manipulation Signals:"        for signal in manipulation:
+        print("\n🚨 Market Manipulation Signals:")
+        for signal in manipulation:
             print(f"   ⚠️  {signal['type']}: {signal['description']}")
 
     squeeze = analysis_report['squeeze_analysis']
     if squeeze and squeeze.get('squeeze_probability', 0) > 0:
-        print("
-🧹 Short Squeeze Analysis:"        print(".2f"        print(".3f"        print(".3f"
-    print("
-✅ Comprehensive WSB integration analysis complete!"    print("This demonstrates how GME-style sentiment analysis enhances AAC arbitrage detection.")
+        print("\n🧹 Short Squeeze Analysis:")
+        print(f"   Squeeze Probability: {squeeze.get('squeeze_probability', 0):.2f}")
+        print(f"   Short Interest: {squeeze.get('short_interest', 0):.3f}")
+        print(f"   Days to Cover: {squeeze.get('days_to_cover', 0):.3f}")
+    print("\n✅ Comprehensive WSB integration analysis complete!")
+    print("This demonstrates how GME-style sentiment analysis enhances AAC arbitrage detection.")
 
 
 if __name__ == "__main__":

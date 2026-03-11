@@ -33,7 +33,7 @@ Welcome to Big Brain Intelligence, NCC's elite intelligence and analysis divisio
 - Share insights with relevant departments
 
 ### External Coordination
-- Coordinate with AZ PRIME for strategic guidance
+- Coordinate with BARREN WUFFET for strategic guidance
 - Collaborate with CCC for threat intelligence
 - Support other divisions with analysis requests
 - Maintain professional communication standards

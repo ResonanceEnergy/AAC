@@ -215,17 +215,17 @@ class BaseWebSocketFeed(ABC):
     @abstractmethod
     async def _connect(self) -> bool:
         """Establish WebSocket connection"""
-        pass
+        raise NotImplementedError(f"{type(self).__name__} must implement _connect")
     
     @abstractmethod
     async def _subscribe(self, symbols: List[str]):
         """Subscribe to symbols"""
-        pass
+        raise NotImplementedError(f"{type(self).__name__} must implement _subscribe")
     
     @abstractmethod
     async def _handle_message(self, message: str):
         """Handle incoming WebSocket message"""
-        pass
+        raise NotImplementedError(f"{type(self).__name__} must implement _handle_message")
     
     async def connect(self, symbols: List[str]) -> bool:
         """Connect and subscribe to symbols"""

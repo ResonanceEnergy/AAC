@@ -12,6 +12,7 @@ Usage:
 
 import importlib
 import os
+import platform
 import sys
 from pathlib import Path
 
@@ -169,7 +170,12 @@ def check_env_vars() -> None:
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main() -> int:
-    print(f"\n{BOLD}AAC System Health Check{RESET}")
+    # Enable ANSI colors on Windows 10+
+    if platform.system() == "Windows":
+        os.system("")
+
+    print(f"\n{BOLD}BARREN WUFFET — System Health Check{RESET}")
+    print(f"  Platform: {platform.system()} {platform.release()}")
     print("=" * 50)
 
     total_failures = 0

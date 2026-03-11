@@ -1,6 +1,6 @@
 # NCC Emergency & Crisis Management System
 **Version:** 1.0.0 | **Date:** 2026-01-29 | **Classification:** TOP SECRET
-**Authority:** AZ PRIME Command | **Optimization:** AX Intelligence
+**Authority:** BARREN WUFFET Command | **Optimization:** AX Intelligence
 
 ## System Overview
 
@@ -97,7 +97,7 @@ The NCC Emergency & Crisis Management System provides enterprise-wide crisis det
 
 ### Level 4: Critical Incident
 - Emergency broadcast to all stakeholders
-- AZ PRIME command activation
+- BARREN WUFFET command activation
 - Complete system lockdown if necessary
 
 ## Crisis Response Playbooks
@@ -152,7 +152,7 @@ The NCC Emergency & Crisis Management System provides enterprise-wide crisis det
 - **Frequency:** Every 15 minutes until resolution
 
 ### Stakeholder Notification
-- **AZ PRIME Command:** Immediate notification for all incidents
+- **BARREN WUFFET Command:** Immediate notification for all incidents
 - **Division Heads:** Notification for division-impacting incidents
 - **C-Suite:** Notification for enterprise-impacting incidents
 - **External Partners:** As required by incident type

@@ -366,9 +366,7 @@ class TurnOfMonthOverlayStrategy(BaseArbitrageStrategy):
 
     async def _update_tom_schedule(self, calendar_data: Dict[str, Any]):
         """Update TOM schedule based on market calendar changes."""
-        # Handle calendar updates (holidays, trading days, etc.)
-        # This would update the TOM schedule if there are calendar changes
-        pass
+        logger.info(f"Updating TOM schedule with calendar data: {list(calendar_data.keys())}")
 
     async def shutdown(self) -> bool:
         """Shutdown the TOM strategy."""

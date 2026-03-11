@@ -15,7 +15,7 @@ Comprehensive enterprise risk management and compliance platform.
 - Predictive risk analytics
 
 ## Integration Points
-- AZ PRIME risk monitoring and alerts
+- BARREN WUFFET risk monitoring and alerts
 - Dashboard integration for risk KPIs
 - Cross-departmental risk reporting
 - Automated regulatory filings

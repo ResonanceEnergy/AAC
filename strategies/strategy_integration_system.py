@@ -22,8 +22,8 @@ from shared.strategy_framework import BaseArbitrageStrategy, TradingSignal, Sign
 from shared.strategy_loader import StrategyLoader, StrategyCategory, StrategyStatus
 from shared.communication import CommunicationFramework
 from shared.audit_logger import AuditLogger
-from market_data_aggregator import MarketDataAggregator
-from strategy_implementation_factory import StrategyImplementationFactory
+from integrations.market_data_aggregator import MarketDataAggregator
+from strategies.strategy_implementation_factory import StrategyImplementationFactory
 
 logger = logging.getLogger(__name__)
 
