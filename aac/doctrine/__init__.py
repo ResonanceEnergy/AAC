@@ -19,6 +19,19 @@ from .doctrine_integration import (
     CentralAccountingDoctrineAdapter,
     CryptoIntelligenceDoctrineAdapter,
     SharedInfraDoctrineAdapter,
+    StrategicDoctrineAdapter,
+)
+
+from .strategic_doctrine import (
+    StrategicDoctrineEngine,
+    MarketTerrain,
+    StrategicPosture,
+    PowerLaw,
+    TerrainAssessment,
+    ForceAssessment,
+    PowerAssessment,
+    StrategicDirective,
+    get_strategic_doctrine_engine,
 )
 
 __all__ = [
@@ -39,4 +52,15 @@ __all__ = [
     "CentralAccountingDoctrineAdapter",
     "CryptoIntelligenceDoctrineAdapter",
     "SharedInfraDoctrineAdapter",
+    "StrategicDoctrineAdapter",
+    # Strategic Doctrine (Art of War + 48 Laws)
+    "StrategicDoctrineEngine",
+    "MarketTerrain",
+    "StrategicPosture",
+    "PowerLaw",
+    "TerrainAssessment",
+    "ForceAssessment",
+    "PowerAssessment",
+    "StrategicDirective",
+    "get_strategic_doctrine_engine",
 ]

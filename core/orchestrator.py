@@ -811,7 +811,7 @@ class AAC2100Orchestrator:
         
         # Stop strategy execution engine
         if self.strategy_execution_engine:
-            await self.strategy_execution_engine.stop_execution()
+            await self.strategy_execution_engine.shutdown()
             self.logger.info("Strategy execution engine stopped")
         
         # Stop health server
@@ -1003,6 +1003,8 @@ class AAC2100Orchestrator:
             direction=direction,
             strength=finding.confidence,
             confidence=finding.confidence,
+            quantum_advantage=0.0,
+            cross_temporal_score=0.0,
             expires_at=finding.expires_at,
             metadata=finding.data,
         )
@@ -1202,7 +1204,7 @@ class AAC2100Orchestrator:
         """
         try:
             # Try to get balance from database first
-            balances = self.db.get_account_balances(account_id=1)
+            balances = self.db.get_balances(account_id=1)
             if balances:
                 total = sum(
                     b.get('free_balance', 0) + b.get('locked_balance', 0)
@@ -1243,7 +1245,7 @@ class AAC2100Orchestrator:
         
         # Start strategy execution engine
         if self.strategy_execution_engine:
-            await self.strategy_execution_engine.start_execution()
+            await self.strategy_execution_engine.initialize()
             self.logger.info("Strategy execution engine started - real arbitrage algorithms active")
         
         # Initial position reconciliation on startup

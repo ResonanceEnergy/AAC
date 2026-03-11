@@ -335,4 +335,4 @@ Transform traditional insurance into an intelligent, predictive, and proactive g
 
 **IIC Command Center**
 **"Insurance Reimagined Through Intelligence"**</content>
-<parameter name="filePath">c:\Users\gripa\OneDrive\Desktop\NCC\NCC-Doctrine\IntegratedInsuranceCorp\IIC_Doctrine_Framework.md
+<parameter name="filePath">C:\dev\NCC\NCC-Doctrine\IntegratedInsuranceCorp\IIC_Doctrine_Framework.md

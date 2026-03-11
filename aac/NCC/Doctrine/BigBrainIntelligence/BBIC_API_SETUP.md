@@ -56,13 +56,13 @@ REDDIT_CLIENT_SECRET=your_actual_client_secret_here
 
 ### Test YouTube API:
 ```bash
-cd "c:\Users\gripa\OneDrive\Desktop\NCC\NCC-Doctrine"
+cd "C:\dev\NCC\NCC-Doctrine"
 python Scripts/bbic_youtube_ingest.py
 ```
 
 ### Test Reddit API:
 ```bash
-cd "c:\Users\gripa\OneDrive\Desktop\NCC\NCC-Doctrine"
+cd "C:\dev\NCC\NCC-Doctrine"
 python Scripts/bbic_reddit_ingest.py
 ```
 

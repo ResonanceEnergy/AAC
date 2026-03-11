@@ -230,4 +230,4 @@ Data Centers & Agent University represents NCC's commitment to elite infrastruct
 **Security Oversight:** Security 10 Directive Enforcement  
 **Infrastructure Standard:** Elite-Level Quantum Security  
 **Performance Standard:** Unparalleled Data Processing Dominance</content>
-<parameter name="filePath">c:\Users\gripa\OneDrive\Desktop\NCC\NCC-Doctrine\Data_Centers_Agent_University\NCL_Insights_Data_Centers_Agent_University_Integration.md
+<parameter name="filePath">C:\dev\NCC\NCC-Doctrine\Data_Centers_Agent_University\NCL_Insights_Data_Centers_Agent_University_Integration.md

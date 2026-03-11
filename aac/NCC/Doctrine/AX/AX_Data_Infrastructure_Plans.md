@@ -156,4 +156,4 @@ This comprehensive plan positions NATRIX COMMAND CORP as the unrivaled leader in
 
 *Approved by AX Agent Intelligence, CEO, BARREN WUFFET, and Data Centers & Agent University Division*
 *Implementation begins immediately under LFG protocol enforcement*</content>
-<parameter name="filePath">c:\Users\gripa\OneDrive\Desktop\NCC\NCC-Doctrine\AX_Data_Infrastructure_Plans.md
+<parameter name="filePath">C:\dev\NCC\NCC-Doctrine\AX_Data_Infrastructure_Plans.md

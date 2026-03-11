@@ -17,6 +17,8 @@ Features:
 Testnet: https://testnet.binance.vision
 """
 
+from __future__ import annotations
+
 import asyncio
 import aiohttp
 import hmac

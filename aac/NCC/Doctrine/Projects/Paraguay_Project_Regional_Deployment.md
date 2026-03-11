@@ -225,4 +225,4 @@
 **Prepared by:** AX Helix (Project Director)  
 **Approved by:** BARREN WUFFET Autonomous Intelligence  
 **Classification:** TOP SECRET//NCC EYES ONLY</content>
-<parameter name="filePath">c:\Users\gripa\OneDrive\Desktop\NCC\NCC-Doctrine\Projects\Uruguay_Project_International_Expansion.md
+<parameter name="filePath">C:\dev\NCC\NCC-Doctrine\Projects\Uruguay_Project_International_Expansion.md

@@ -400,4 +400,4 @@ Failure of underlying infrastructure components, including servers, networks, po
 
 **Last Updated:** 2026-01-29
 **Next Review:** 2026-04-29</content>
-<parameter name="filePath">c:\Users\gripa\OneDrive\Desktop\NCC\NCC-Doctrine\_enterprise\emergency\NCC_Crisis_Response_Playbooks.md
+<parameter name="filePath">C:\dev\NCC\NCC-Doctrine\_enterprise\emergency\NCC_Crisis_Response_Playbooks.md

@@ -25,7 +25,7 @@ from datetime import datetime
 from pathlib import Path
 
 # Add project root to path
-PROJECT_ROOT = Path(__file__).resolve().parent
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 import sys
 sys.path.insert(0, str(PROJECT_ROOT))
 
@@ -62,6 +62,11 @@ class AACMasterAgentSystem:
     """
     Master controller for all AAC agent systems.
     Provides unified interface for agent management and coordination.
+
+    Integrates Art of War strategic doctrine for agent coordination:
+    - Terrain-aware agent activation (dispersive = minimal agents)
+    - Force-ratio-driven resource allocation
+    - Power dynamics for inter-agent communication patterns
     """
 
     def __init__(self):
@@ -69,6 +74,7 @@ class AACMasterAgentSystem:
         self.super_agents: Dict[str, Any] = {}
         self.agent_integration = None
         self.trading_system = None
+        self.strategic_engine = None
         self.initialized = False
         self.agent_counts = {
             'research': 0,
@@ -109,6 +115,14 @@ class AACMasterAgentSystem:
                 self.trading_system = AgentBasedTradingSystem()
                 await self.trading_system.initialize()
 
+            # Initialize strategic doctrine engine (Art of War + 48 Laws)
+            try:
+                from aac.doctrine.strategic_doctrine import get_strategic_doctrine_engine
+                self.strategic_engine = get_strategic_doctrine_engine()
+                logger.info("Strategic doctrine engine loaded (Art of War + 48 Laws)")
+            except Exception as e:
+                logger.warning(f"Strategic doctrine not available: {e}")
+
             # Calculate totals
             self.agent_counts['total'] = (
                 self.agent_counts['research'] +
@@ -135,7 +149,8 @@ class AACMasterAgentSystem:
             'agent_counts': self.agent_counts.copy(),
             'research_agents': {},
             'super_agents': {},
-            'integration_status': None
+            'integration_status': None,
+            'strategic_doctrine': None
         }
 
         # Research agent status
@@ -153,6 +168,14 @@ class AACMasterAgentSystem:
         # Integration status
         if self.agent_integration:
             status['integration_status'] = await self.agent_integration.get_integration_status()
+
+        # Strategic doctrine status
+        if self.strategic_engine:
+            status['strategic_doctrine'] = {
+                'active_posture': self.strategic_engine.active_posture.value,
+                'metrics': self.strategic_engine.get_doctrine_metrics(),
+                'directive_count': len(self.strategic_engine.directive_history),
+            }
 
         return status
 

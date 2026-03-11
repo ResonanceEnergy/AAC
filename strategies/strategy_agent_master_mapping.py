@@ -51,22 +51,22 @@ STRATEGIES_DATA = [
     {"id": 31, "name": "Reconstitution Close Microstructure", "category": "Index_Arbitrage"},
     {"id": 32, "name": "Euronext Imbalance Capture", "category": "Microstructure"},
     {"id": 33, "name": "ETF Create/Redeem Latency Edge", "category": "ETF_Arbitrage"},
-    {"id": 34, "name": "Bubble‑Watch Flow Contrarian (ETFs)", "category": "Flow_Analysis"},
+    {"id": 34, "name": "Bubble-Watch Flow Contrarian (ETFs)", "category": "Flow_Analysis"},
     {"id": 35, "name": "Muni Fund Outflow Liquidity Provision", "category": "Liquidity_Provision"},
-    {"id": 36, "name": "Option‑Trading ETF Rollover Signal", "category": "ETF_Arbitrage"},
-    {"id": 37, "name": "Cross‑Asset VRP Basket", "category": "Volatility_Premium"},
-    {"id": 38, "name": "VRP Term‑Slope Timing", "category": "Volatility_Premium"},
+    {"id": 36, "name": "Option-Trading ETF Rollover Signal", "category": "ETF_Arbitrage"},
+    {"id": 37, "name": "Cross-Asset VRP Basket", "category": "Volatility_Premium"},
+    {"id": 38, "name": "VRP Term-Slope Timing", "category": "Volatility_Premium"},
     {"id": 39, "name": "Robust VRP via Synthetic Variance Swaps", "category": "Volatility_Premium"},
     {"id": 40, "name": "Overnight vs Intraday Variance Skew", "category": "Volatility_Premium"},
     {"id": 41, "name": "Conditional Dependence Trades", "category": "Correlation"},
     {"id": 42, "name": "IC–RC Gate for Dispersion", "category": "Dispersion"},
-    {"id": 43, "name": "Concentration‑Aware Dispersion", "category": "Dispersion"},
+    {"id": 43, "name": "Concentration-Aware Dispersion", "category": "Dispersion"},
     {"id": 44, "name": "Overnight Jump Fade (Stock-Specific)", "category": "Mean_Reversion"},
     {"id": 45, "name": "Contextual Accruals", "category": "Event_Driven"},
     {"id": 46, "name": "PEAD Disaggregation", "category": "Event_Driven"},
     {"id": 47, "name": "Event Vega Calendars", "category": "Event_Driven"},
-    {"id": 48, "name": "Tenor‑Matched IV–RV", "category": "Volatility_Arbitrage"},
-    {"id": 49, "name": "TOM Futures‑Only Overlay", "category": "Calendar_Anomaly"}
+    {"id": 48, "name": "Tenor-Matched IV–RV", "category": "Volatility_Arbitrage"},
+    {"id": 49, "name": "TOM Futures-Only Overlay", "category": "Calendar_Anomaly"}
 ]
 
 class AACStrategyAgentMapper:

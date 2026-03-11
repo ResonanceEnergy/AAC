@@ -157,4 +157,4 @@ Updates       Arbitrage         Communication   Execution   Tracking     Updates
 
 ## Conclusion
 The AAC Enterprise Communication & Data Management Framework provides the foundation for scalable, efficient, and secure communication and data management across Augmented Arbitrage Corp. By implementing agent-by-agent tracking, comprehensive HR management, and sophisticated information distribution systems, AAC will achieve superior operational efficiency and arbitrage performance while maintaining the highest standards of security and compliance.</content>
-<parameter name="filePath">c:\Users\gripa\OneDrive\Desktop\NCC\NCC-Doctrine\Augmented_Arbitrage_Corp\Doctrine\AAC_Communication_Framework.md
+<parameter name="filePath">C:\dev\NCC\NCC-Doctrine\Augmented_Arbitrage_Corp\Doctrine\AAC_Communication_Framework.md

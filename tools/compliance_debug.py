@@ -1,3 +1,5 @@
+"""CLI tool to run a compliance check and surface warning-level metrics."""
+
 import asyncio
 from aac.doctrine.doctrine_integration import DoctrineOrchestrator
 

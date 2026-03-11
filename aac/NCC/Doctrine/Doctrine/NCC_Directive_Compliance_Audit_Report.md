@@ -397,4 +397,4 @@ With comprehensive directive compliance achieved, NCC now operates as the world'
 **Audit Team:** BARREN WUFFET Central Intelligence  
 **Review Authority:** NCC Security Council  
 **Next Audit:** March 1, 2026</content>
-<parameter name="filePath">c:\Users\gripa\OneDrive\Desktop\NCC\NCC-Doctrine\Doctrine\NCC_Directive_Compliance_Audit_Report.md
+<parameter name="filePath">C:\dev\NCC\NCC-Doctrine\Doctrine\NCC_Directive_Compliance_Audit_Report.md

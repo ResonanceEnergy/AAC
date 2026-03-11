@@ -221,4 +221,4 @@ find . -type d -empty -delete
 **Target State:** 2-3 GB, 200-300K files  
 **Timeframe:** 2-4 weeks  
 **Risk Level:** Managed (phased approach)</content>
-<parameter name="filePath">c:\Users\gripa\OneDrive\Desktop\AAC\FILESYSTEM_OPTIMIZATION_PLAN.md
+<parameter name="filePath">C:\dev\AAC_fresh\FILESYSTEM_OPTIMIZATION_PLAN.md

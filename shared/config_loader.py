@@ -224,7 +224,7 @@ class Config:
 
     # Environment
     environment: str = 'development'
-    debug: bool = True
+    debug: bool = False
     log_level: str = 'INFO'
     project_root: Path = field(default_factory=lambda: PROJECT_ROOT)
     
@@ -271,6 +271,17 @@ class Config:
     reddit_user_agent: str = 'AAC-Trading-Bot/1.0'
     kyc_provider_key: str = field(default='', repr=False)
     kyc_provider_url: str = ''
+    unusual_whales_key: str = field(default='', repr=False)
+    eodhd_key: str = field(default='', repr=False)
+    polygon_key: str = field(default='', repr=False)
+    finnhub_key: str = field(default='', repr=False)
+    tradier_key: str = field(default='', repr=False)
+    fred_key: str = field(default='', repr=False)
+    whale_alert_key: str = field(default='', repr=False)
+    santiment_key: str = field(default='', repr=False)
+    twelve_data_key: str = field(default='', repr=False)
+    iex_cloud_key: str = field(default='', repr=False)
+    intrinio_key: str = field(default='', repr=False)
     
     # Market Data APIs
     polygon_key: str = field(default='', repr=False)
@@ -309,7 +320,7 @@ class Config:
         config = cls(
             # Environment
             environment=get_env('ENVIRONMENT', 'development'),
-            debug=get_env_bool('DEBUG', True),
+            debug=get_env_bool('DEBUG', False),
             log_level=get_env('LOG_LEVEL', 'INFO'),
             
             # Binance
@@ -418,6 +429,17 @@ class Config:
             reddit_user_agent=get_env('REDDIT_USER_AGENT', 'AAC-Trading-Bot/1.0'),
             kyc_provider_key=get_env('KYC_PROVIDER_API_KEY'),
             kyc_provider_url=get_env('KYC_PROVIDER_URL'),
+            unusual_whales_key=get_env('UNUSUAL_WHALES_API_KEY'),
+            eodhd_key=get_env('EODHD_API_KEY'),
+            polygon_key=get_env('POLYGON_API_KEY'),
+            finnhub_key=get_env('FINNHUB_API_KEY'),
+            tradier_key=get_env('TRADIER_API_KEY'),
+            fred_key=get_env('FRED_API_KEY'),
+            whale_alert_key=get_env('WHALE_ALERT_API_KEY'),
+            santiment_key=get_env('SANTIMENT_API_KEY'),
+            twelve_data_key=get_env('TWELVE_DATA_API_KEY'),
+            iex_cloud_key=get_env('IEX_CLOUD_API_KEY'),
+            intrinio_key=get_env('INTRINIO_API_KEY'),
             
             # Market Data APIs
             polygon_key=get_env('POLYGON_API_KEY'),

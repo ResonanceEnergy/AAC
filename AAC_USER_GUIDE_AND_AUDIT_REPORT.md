@@ -382,4 +382,4 @@ python models/comprehensive_backtesting.py --scenario test --max-days 1
 *Report Generated: February 13, 2026*
 *System Version: 2100.1.0*
 *Status: PRODUCTION READY*</content>
-<parameter name="filePath">c:\Users\gripa\OneDrive\Desktop\AAC\AAC_USER_GUIDE_AND_AUDIT_REPORT.md
+<parameter name="filePath">C:\dev\AAC_fresh\AAC_USER_GUIDE_AND_AUDIT_REPORT.md

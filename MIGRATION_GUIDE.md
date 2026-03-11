@@ -509,4 +509,4 @@ After successful migration, you should see:
 **Migration completed successfully!** 🎉
 
 Your AAC system is now running on the enterprise-grade, consolidated architecture with improved performance, maintainability, and scalability. Welcome to the future of algorithmic trading! 🚀📈</content>
-<parameter name="filePath">c:\Users\gripa\OneDrive\Desktop\AAC\MIGRATION_GUIDE.md
+<parameter name="filePath">C:\dev\AAC_fresh\MIGRATION_GUIDE.md

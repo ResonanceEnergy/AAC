@@ -224,4 +224,4 @@ The NCC Emergency & Crisis Management System provides comprehensive protection a
 **System Status:** Design Complete - Ready for Deployment
 **Coverage:** All 3340+ agents and enterprise systems
 **Response Capability:** 24/7 automated monitoring and response</content>
-<parameter name="filePath">c:\Users\gripa\OneDrive\Desktop\NCC\NCC-Doctrine\_enterprise\emergency\NCC_Emergency_Crisis_Management_System.md
+<parameter name="filePath">C:\dev\NCC\NCC-Doctrine\_enterprise\emergency\NCC_Emergency_Crisis_Management_System.md
