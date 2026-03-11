@@ -246,4 +246,4 @@ tests:
 - Quarterly: Strategic review, capital allocation, competitive analysis.
 
 **Status:** Doctrine Complete. Ready for implementation with playbook integration.</content>
-<parameter name="filePath">c:\Users\gripa\OneDrive\Desktop\NCC\NCC-Doctrine\Faraday_Financial_Corp\Faraday_Financial_Corp_Doctrine.md
+<parameter name="filePath">C:\dev\NCC\NCC-Doctrine\Faraday_Financial_Corp\Faraday_Financial_Corp_Doctrine.md

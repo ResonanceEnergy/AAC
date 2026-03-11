@@ -2,7 +2,7 @@
 ContextualAccrualsStrategy
 ==========================
 
-Use accruals in micro‑caps/low‑institutional settings where persistence remains.
+Use accruals in micro-caps/low-institutional settings where persistence remains.
 """
 
 import asyncio
@@ -23,7 +23,7 @@ class ContextualAccrualsStrategy(BaseArbitrageStrategy):
     """
     Contextual Accruals
 
-    Use accruals in micro‑caps/low‑institutional settings where persistence remains.
+    Use accruals in micro-caps/low-institutional settings where persistence remains.
     """
 
     def __init__(self, config: StrategyConfig, communication: CommunicationFramework, audit_logger: AuditLogger):

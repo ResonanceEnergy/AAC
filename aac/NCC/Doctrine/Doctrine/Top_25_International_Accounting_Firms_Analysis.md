@@ -432,4 +432,4 @@ The top 25 international accounting firms provide proven models for organization
 
 **Status:** Analysis Complete - Structure Implementation Approved
 **Next Steps:** Execute Phase 1 foundation activities</content>
-<parameter name="filePath">c:\Users\gripa\OneDrive\Desktop\NCC\NCC-Doctrine\Doctrine\Top_25_International_Accounting_Firms_Analysis.md
+<parameter name="filePath">C:\dev\NCC\NCC-Doctrine\Doctrine\Top_25_International_Accounting_Firms_Analysis.md

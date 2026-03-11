@@ -23,7 +23,7 @@ import random
 import re
 
 # Add project root
-PROJECT_ROOT = Path(__file__).resolve().parent
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from shared.communication_framework import get_communication_framework
@@ -146,6 +146,18 @@ class AvatarInterface:
                 "The data supports this conclusion with high certainty.",
                 "All indicators point to a positive outcome."
             ],
+            "strategic_warfare": [
+                "Sun Tzu teaches: 'The supreme art of war is to subdue the enemy without fighting.' We must minimize market impact.",
+                "Terrain assessment indicates {terrain} conditions. Adjusting strategic posture accordingly.",
+                "Force ratio analysis complete. Our edge vs adversaries: {force_ratio:.2f}. Posture: {posture}.",
+                "'Know your enemy and know yourself; in a hundred battles you will never be in peril.' Intelligence gathered."
+            ],
+            "power_dynamics": [
+                "Law 3: Our intentions remain concealed. Order flow stealth at {stealth:.0%}.",
+                "Law 23: Concentrating capital on top setups. No dilution of force.",
+                "Law 47: Targets reached. Taking profits — knowing when to stop is wisdom.",
+                "Law 28: Entering with boldness. Hesitation reveals weakness to the market."
+            ],
             "question": [
                 "Could you provide more details on {topic}?",
                 "I need additional information about {topic} to give a complete answer.",
@@ -169,6 +181,21 @@ class AvatarInterface:
                 "arbitrage": "Exploiting price differences between markets",
                 "momentum": "Continuing trend in asset prices",
                 "mean_reversion": "Tendency of prices to return to historical average"
+            },
+            "art_of_war": {
+                "terrain_analysis": "Map market conditions to Sun Tzu's Nine Terrains for strategic positioning",
+                "force_assessment": "Compare our capital and edge vs market adversaries before engaging",
+                "timing": "Strike when conditions favor us — rapidity of the wind, patience of the forest",
+                "deception": "Conceal order flow and intentions to avoid front-running",
+                "five_factors": "Moral Law (alignment), Heaven (timing), Earth (terrain), Commander (decisions), Method (discipline)"
+            },
+            "laws_of_power": {
+                "conceal_intentions": "Law 3 — Use iceberg orders and split execution to hide our hand",
+                "guard_reputation": "Law 5 — Maintain stellar exchange relationships and fill rates",
+                "concentrate_forces": "Law 23 — Focus capital on highest-conviction setups, avoid dilution",
+                "enter_boldly": "Law 28 — Once committed, execute decisively without hesitation",
+                "plan_all_the_way": "Law 29 — Define entry, target, stop-loss, and exit before execution",
+                "know_when_to_stop": "Law 47 — Take profits at targets, don't let greed extend exposure"
             },
             "personality_traits": {
                 "supreme": {
@@ -251,6 +278,17 @@ class AvatarInterface:
         for term in financial_terms.keys():
             if term in query_lower:
                 analysis["topics"].append(term)
+
+        # Strategic doctrine topic extraction
+        war_terms = self.knowledge_base.get("art_of_war", {})
+        for term in war_terms.keys():
+            if term.replace("_", " ") in query_lower:
+                analysis["topics"].append(f"art_of_war.{term}")
+
+        power_terms = self.knowledge_base.get("laws_of_power", {})
+        for term in power_terms.keys():
+            if term.replace("_", " ") in query_lower:
+                analysis["topics"].append(f"laws_of_power.{term}")
 
         # Urgency detection
         if any(word in query_lower for word in ["urgent", "critical", "immediate", "emergency"]):

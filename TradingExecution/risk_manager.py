@@ -180,8 +180,12 @@ class RiskManager:
         volatility: float = 0.02,
     ) -> float:
         """
-        Calculate recommended position size based on risk parameters.
-        
+        Calculate recommended position size based on risk parameters
+        and strategic doctrine overlay.
+
+        Sun Tzu: "The general who wins makes many calculations in his temple
+        before the battle is fought."
+
         Args:
             symbol: Trading symbol
             current_price: Current market price
@@ -203,6 +207,21 @@ class RiskManager:
         # Adjust for volatility (lower size in high vol)
         vol_adjustment = min(1.0, 0.02 / max(volatility, 0.001))
         adjusted_usd *= vol_adjustment
+
+        # Apply strategic doctrine position size modifier
+        try:
+            from aac.doctrine.strategic_doctrine import get_strategic_doctrine_engine
+            engine = get_strategic_doctrine_engine()
+            if engine.directive_history:
+                directive = engine.directive_history[-1]
+                strategic_mod = directive.position_size_modifier
+                adjusted_usd *= strategic_mod
+                self.logger.debug(
+                    f"Strategic doctrine modifier: {strategic_mod:.2f} "
+                    f"(posture={directive.overall_posture.value})"
+                )
+        except Exception:
+            pass  # Strategic overlay is advisory
         
         # Convert to units
         position_size = adjusted_usd / current_price
@@ -212,8 +231,8 @@ class RiskManager:
         return position_size
 
     def get_risk_report(self) -> Dict:
-        """Generate risk status report"""
-        return {
+        """Generate risk status report with strategic doctrine overlay."""
+        report = {
             'timestamp': datetime.now().isoformat(),
             'daily_pnl': self.state.daily_pnl,
             'daily_pnl_limit': -self.limits.max_daily_loss_usd,
@@ -227,3 +246,22 @@ class RiskManager:
             'recent_violations': self.state.violations[-10:],
             'status': 'OK' if self.state.daily_pnl > -self.limits.max_daily_loss_usd else 'LIMIT_BREACHED',
         }
+
+        # Attach strategic doctrine overlay if available
+        try:
+            from aac.doctrine.strategic_doctrine import get_strategic_doctrine_engine
+            engine = get_strategic_doctrine_engine()
+            if engine.directive_history:
+                directive = engine.directive_history[-1]
+                report['strategic_overlay'] = {
+                    'posture': directive.overall_posture.value,
+                    'terrain': directive.terrain.terrain.value,
+                    'size_modifier': directive.position_size_modifier,
+                    'urgency': directive.urgency,
+                    'active_principles_count': len(directive.active_principles),
+                    'warnings': directive.warnings,
+                }
+        except Exception:
+            pass
+
+        return report

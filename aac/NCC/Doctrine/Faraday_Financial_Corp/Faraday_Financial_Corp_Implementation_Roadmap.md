@@ -279,4 +279,4 @@ This roadmap outlines the phased implementation of Faraday Financial Corporation
 - Implement redundant systems and backup procedures
 
 This roadmap represents a comprehensive plan for establishing Faraday Financial Corporation as a world-class quantitative trading firm, leveraging the existing playbook while building institutional-grade infrastructure and operations.</content>
-<parameter name="filePath">c:\Users\gripa\OneDrive\Desktop\NCC\NCC-Doctrine\Faraday_Financial_Corp\Faraday_Financial_Corp_Implementation_Roadmap.md
+<parameter name="filePath">C:\dev\NCC\NCC-Doctrine\Faraday_Financial_Corp\Faraday_Financial_Corp_Implementation_Roadmap.md

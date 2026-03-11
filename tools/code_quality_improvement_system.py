@@ -211,7 +211,7 @@ class CodeQualityAnalyzer:
                         code_block = '\n'.join(lines)
 
                         # Create hash for comparison
-                        code_hash = hashlib.md5(code_block.encode()).hexdigest()
+                        code_hash = hashlib.sha256(code_block.encode()).hexdigest()
                         code_blocks[code_hash].append({
                             'file': str(file_path),
                             'name': node.name,

@@ -16,7 +16,7 @@ from pathlib import Path
 import sys
 
 # Add project root to path
-PROJECT_ROOT = Path(__file__).resolve().parent
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from agent_based_trading import AgentContestOrchestrator, TradingAgent, InnovationAgent

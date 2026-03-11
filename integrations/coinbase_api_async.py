@@ -1,8 +1,11 @@
+"""Async Coinbase Exchange REST API client for authenticated trading operations."""
+
 import os
 import time
 import hmac
 import hashlib
 import base64
+import json
 import aiohttp
 from typing import Dict, Any
 

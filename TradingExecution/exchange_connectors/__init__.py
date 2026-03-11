@@ -1,7 +1,7 @@
 """
 Exchange Connectors Package
 ===========================
-Unified interface for multiple cryptocurrency exchanges.
+Unified interface for multiple cryptocurrency and traditional exchanges.
 """
 
 from .base_connector import BaseExchangeConnector, ExchangeError
@@ -16,7 +16,7 @@ __all__ = [
     'BaseExchangeConnector',
     'ExchangeError',
     'BinanceConnector',
-    'CoinbaseConnector', 
+    'CoinbaseConnector',
     'KrakenConnector',
     'IBKRConnector',
     'MoomooConnector',

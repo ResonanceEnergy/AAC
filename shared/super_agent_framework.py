@@ -50,7 +50,7 @@ from pathlib import Path
 import json
 import aiohttp
 
-PROJECT_ROOT = Path(__file__).resolve().parent
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from shared.quantum_arbitrage_engine import QuantumArbitrageEngine
@@ -115,12 +115,10 @@ class NeuralNetworkModule:
             }
             return
 
-    def __call__(self, x):
-        return self.forward(x)
-
-        return
-
-        super().__init__()
+        # Torch implementation
+        self.input_size = input_size
+        self.hidden_size = hidden_size
+        self.output_size = output_size
         self.layers = nn.Sequential(
             nn.Linear(input_size, hidden_size),
             nn.ReLU(),
@@ -131,8 +129,6 @@ class NeuralNetworkModule:
             nn.Linear(hidden_size * 2, output_size),
             nn.Softmax(dim=1)
         )
-
-        # Quantum-inspired attention mechanism
         self.attention = nn.MultiheadAttention(hidden_size * 2, num_heads=8)
 
     def __call__(self, x):

@@ -248,4 +248,4 @@ CREATE TABLE technology_trends (
 
 **Effective Date:** January 29, 2026
 **Completion Target:** December 31, 2026</content>
-<parameter name="filePath">c:\Users\gripa\OneDrive\Desktop\NCC\NCC-Doctrine\IntegratedInsuranceCorp\IIC_Deep_Dive_Research_Framework.md
+<parameter name="filePath">C:\dev\NCC\NCC-Doctrine\IntegratedInsuranceCorp\IIC_Deep_Dive_Research_Framework.md

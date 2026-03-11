@@ -336,7 +336,7 @@ class ConnectionPool:
             try:
                 conn = self._pool.get_nowait()
                 conn.close()
-            except:
+            except Exception:
                 pass
         self._initialized = False
         self.logger.info("All pool connections closed")

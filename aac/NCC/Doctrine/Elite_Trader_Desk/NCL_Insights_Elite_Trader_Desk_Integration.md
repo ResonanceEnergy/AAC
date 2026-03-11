@@ -230,4 +230,4 @@ The Elite Trader Desk represents NCC's commitment to absolute market dominance t
 **Security Oversight:** Security 10 Directive Enforcement  
 **Intelligence Integration:** All NCC Intelligence Divisions  
 **Performance Standard:** Elite-Level Market Dominance</content>
-<parameter name="filePath">c:\Users\gripa\OneDrive\Desktop\NCC\NCC-Doctrine\Elite_Trader_Desk\NCL_Insights_Elite_Trader_Desk_Integration.md
+<parameter name="filePath">C:\dev\NCC\NCC-Doctrine\Elite_Trader_Desk\NCL_Insights_Elite_Trader_Desk_Integration.md

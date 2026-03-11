@@ -230,4 +230,4 @@ Data Brokers represents NCC's commitment to elite information dominance through 
 **Security Oversight:** Security 10 Directive Enforcement  
 **Data Standard:** Elite-Level Quantum Security  
 **Performance Standard:** Unparalleled Intelligence Dominance</content>
-<parameter name="filePath">c:\Users\gripa\OneDrive\Desktop\NCC\NCC-Doctrine\Data_Brokers\NCL_Insights_Data_Brokers_Integration.md
+<parameter name="filePath">C:\dev\NCC\NCC-Doctrine\Data_Brokers\NCL_Insights_Data_Brokers_Integration.md

@@ -108,19 +108,36 @@ class BaseDataSource(ABC):
 # ============================================
 
 class CoinGeckoClient(BaseDataSource):
-    """CoinGecko API client for price data"""
+    """CoinGecko API client for price data (supports Free, Demo, and Pro tiers)"""
 
-    BASE_URL = "https://api.coingecko.com/api/v3"
+    FREE_URL = "https://api.coingecko.com/api/v3"
+    PRO_URL = "https://pro-api.coingecko.com/api/v3"
 
     def __init__(self):
         super().__init__("coingecko")
         self.session: Optional[aiohttp.ClientSession] = None
-        self._rate_limit_delay = 1.5  # CoinGecko free tier rate limit
+        self._api_key = self.config.coingecko_key
+        self._is_pro = bool(self._api_key)
+        self.BASE_URL = self.PRO_URL if self._is_pro else self.FREE_URL
+        # Pro: 500 req/min, Free: ~10 req/min
+        self._rate_limit_delay = 0.15 if self._is_pro else 1.5
+
+    def _get_headers(self) -> Dict[str, str]:
+        """Get auth headers — Pro API uses x-cg-pro-api-key"""
+        if self._is_pro:
+            return {'x-cg-pro-api-key': self._api_key}
+        return {}
+
+    @property
+    def tier_name(self) -> str:
+        return "Pro" if self._is_pro else "Free"
 
     async def connect(self):
-        self.session = aiohttp.ClientSession()
+        # Use ThreadedResolver to avoid aiodns/pycares DNS failures on some systems
+        connector = aiohttp.TCPConnector(resolver=aiohttp.resolver.ThreadedResolver())
+        self.session = aiohttp.ClientSession(connector=connector, headers=self._get_headers())
         self.is_connected = True
-        self.logger.info("CoinGecko client connected")
+        self.logger.info(f"CoinGecko client connected ({self.tier_name} tier)")
 
     async def disconnect(self):
         if self.session:
@@ -214,6 +231,111 @@ class CoinGeckoClient(BaseDataSource):
                 data = await resp.json()
                 await asyncio.sleep(self._rate_limit_delay)
                 return data.get("coins", [])
+            elif resp.status == 429:
+                raise aiohttp.ClientError("Rate limited by CoinGecko")
+
+        await asyncio.sleep(self._rate_limit_delay)
+        return []
+
+    # --- Pro-tier methods (require API key) ---
+
+    @with_circuit_breaker("coingecko_api", failure_threshold=5, timeout=60.0)
+    @retry(max_attempts=3, base_delay=2.0, retryable_exceptions=(aiohttp.ClientError, asyncio.TimeoutError))
+    async def get_coin_market_chart(
+        self, coin_id: str, vs_currency: str = "usd", days: int = 30
+    ) -> Dict[str, Any]:
+        """Get historical market data (OHLCV available on Pro tier)"""
+        if not self.session:
+            await self.connect()
+
+        url = f"{self.BASE_URL}/coins/{coin_id}/market_chart"
+        params = {"vs_currency": vs_currency, "days": str(days)}
+
+        async with self.session.get(url, params=params, timeout=aiohttp.ClientTimeout(total=15)) as resp:
+            if resp.status == 200:
+                data = await resp.json()
+                await asyncio.sleep(self._rate_limit_delay)
+                return data
+            elif resp.status == 429:
+                raise aiohttp.ClientError("Rate limited by CoinGecko")
+
+        await asyncio.sleep(self._rate_limit_delay)
+        return {}
+
+    @with_circuit_breaker("coingecko_api", failure_threshold=5, timeout=60.0)
+    @retry(max_attempts=3, base_delay=2.0, retryable_exceptions=(aiohttp.ClientError, asyncio.TimeoutError))
+    async def get_global_data(self) -> Dict[str, Any]:
+        """Get global crypto market data (market cap, volume, dominance)"""
+        if not self.session:
+            await self.connect()
+
+        url = f"{self.BASE_URL}/global"
+        async with self.session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as resp:
+            if resp.status == 200:
+                data = await resp.json()
+                await asyncio.sleep(self._rate_limit_delay)
+                return data.get("data", {})
+            elif resp.status == 429:
+                raise aiohttp.ClientError("Rate limited by CoinGecko")
+
+        await asyncio.sleep(self._rate_limit_delay)
+        return {}
+
+    @with_circuit_breaker("coingecko_api", failure_threshold=5, timeout=60.0)
+    @retry(max_attempts=3, base_delay=2.0, retryable_exceptions=(aiohttp.ClientError, asyncio.TimeoutError))
+    async def get_coin_details(self, coin_id: str) -> Dict[str, Any]:
+        """Get detailed coin information (desc, links, market data, dev stats)"""
+        if not self.session:
+            await self.connect()
+
+        url = f"{self.BASE_URL}/coins/{coin_id}"
+        params = {
+            "localization": "false",
+            "tickers": "true",
+            "market_data": "true",
+            "community_data": "true",
+            "developer_data": "true",
+        }
+
+        async with self.session.get(url, params=params, timeout=aiohttp.ClientTimeout(total=15)) as resp:
+            if resp.status == 200:
+                data = await resp.json()
+                await asyncio.sleep(self._rate_limit_delay)
+                return data
+            elif resp.status == 429:
+                raise aiohttp.ClientError("Rate limited by CoinGecko")
+
+        await asyncio.sleep(self._rate_limit_delay)
+        return {}
+
+    @with_circuit_breaker("coingecko_api", failure_threshold=5, timeout=60.0)
+    @retry(max_attempts=3, base_delay=2.0, retryable_exceptions=(aiohttp.ClientError, asyncio.TimeoutError))
+    async def get_coins_markets(
+        self,
+        vs_currency: str = "usd",
+        order: str = "market_cap_desc",
+        per_page: int = 100,
+        page: int = 1,
+        sparkline: bool = False,
+    ) -> List[Dict[str, Any]]:
+        """Get top coins by market cap with full market data"""
+        if not self.session:
+            await self.connect()
+
+        url = f"{self.BASE_URL}/coins/markets"
+        params = {
+            "vs_currency": vs_currency,
+            "order": order,
+            "per_page": str(per_page),
+            "page": str(page),
+            "sparkline": str(sparkline).lower(),
+        }
+
+        async with self.session.get(url, params=params, timeout=aiohttp.ClientTimeout(total=15)) as resp:
+            if resp.status == 200:
+                data = await resp.json()
+                await asyncio.sleep(self._rate_limit_delay)
+                return data if isinstance(data, list) else []
             elif resp.status == 429:
                 raise aiohttp.ClientError("Rate limited by CoinGecko")
 

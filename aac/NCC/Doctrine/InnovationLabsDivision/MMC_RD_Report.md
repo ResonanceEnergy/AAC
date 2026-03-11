@@ -231,4 +231,4 @@ The R&D analysis of Mega Media Corp case studies reveals a clear pathway to medi
 **Research Team:** Innovation Labs Division
 **Report Approval:** BARREN WUFFET Command Authority
 **Next Review:** February 2026</content>
-<parameter name="filePath">c:\Users\gripa\OneDrive\Desktop\NCC\NCC-Doctrine\InnovationLabsDivision\MMC_RD_Report.md
+<parameter name="filePath">C:\dev\NCC\NCC-Doctrine\InnovationLabsDivision\MMC_RD_Report.md

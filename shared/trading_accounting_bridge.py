@@ -421,21 +421,9 @@ class TradingAccountingBridge:
             # 3. Identify discrepancies
             # 4. Return detailed discrepancy report
 
-            # For now, simulate reconciliation
+            # For now, return empty — real reconciliation will compare
+            # TradingExecution positions vs CentralAccounting positions
             discrepancies = []
-
-            # Simulate occasional discrepancies for testing
-            import random
-            if random.random() < 0.1:  # 10% chance of discrepancy
-                discrepancies.append({
-                    "symbol": "BTC/USD",
-                    "trading_position": 100.0,
-                    "accounting_position": 95.0,
-                    "discrepancy": 5.0,
-                    "severity": "medium",
-                    "description": "Position mismatch detected"
-                })
-
             return discrepancies
 
         except Exception as e:

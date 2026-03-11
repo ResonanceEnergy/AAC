@@ -331,4 +331,4 @@ This corporate structure positions the NCC Accounting Division as a world-class 
 
 **Status:** Structure Approved and Implementation Initiated
 **Next Steps:** Detailed implementation plan and resource allocation</content>
-<parameter name="filePath">c:\Users\gripa\OneDrive\Desktop\NCC\NCC-Doctrine\Doctrine\NCC_Accounting_Division_Corporate_Structure.md
+<parameter name="filePath">C:\dev\NCC\NCC-Doctrine\Doctrine\NCC_Accounting_Division_Corporate_Structure.md

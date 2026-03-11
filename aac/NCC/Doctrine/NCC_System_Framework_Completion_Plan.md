@@ -289,4 +289,4 @@ This comprehensive plan provides a structured path to complete the NCC-Doctrine 
 **Total Timeline:** 24 weeks
 **Total Budget:** $2.25M
 **Expected Outcome:** Fully operational NCC enterprise with 3340+ agents achieving 99.9% efficiency</content>
-<parameter name="filePath">c:\Users\gripa\OneDrive\Desktop\NCC\NCC-Doctrine\NCC_System_Framework_Completion_Plan.md
+<parameter name="filePath">C:\dev\NCC\NCC-Doctrine\NCC_System_Framework_Completion_Plan.md

@@ -175,4 +175,4 @@ This Agreement constitutes the entire understanding among the Members.
 IN WITNESS WHEREOF, the Members have executed this Agreement as of the date first above written.
 
 [Signatures]</content>
-<parameter name="filePath">c:\Users\gripa\OneDrive\Desktop\NCC\NCC-Doctrine\Faraday_Financial_Corp\Faraday_Financial_Corp_Operating_Agreement.md
+<parameter name="filePath">C:\dev\NCC\NCC-Doctrine\Faraday_Financial_Corp\Faraday_Financial_Corp_Operating_Agreement.md

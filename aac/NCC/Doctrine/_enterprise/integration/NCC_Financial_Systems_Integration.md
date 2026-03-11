@@ -242,4 +242,4 @@ The NCC Financial Systems Integration provides comprehensive capabilities for re
 **System Status:** Design Complete - Ready for Deployment
 **Integration Coverage:** Banking, Payments, Assets, Revenue
 **Security Level:** Enterprise-grade with regulatory compliance</content>
-<parameter name="filePath">c:\Users\gripa\OneDrive\Desktop\NCC\NCC-Doctrine\_enterprise\integration\NCC_Financial_Systems_Integration.md
+<parameter name="filePath">C:\dev\NCC\NCC-Doctrine\_enterprise\integration\NCC_Financial_Systems_Integration.md

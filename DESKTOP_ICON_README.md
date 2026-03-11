@@ -11,7 +11,7 @@ Your AAC Matrix Monitor now has a professional rocket-themed desktop icon for ea
 - **Features**: Sleek aerodynamic design, AAC branding, dynamic flame effects, professional appearance
 
 ### 🖥️ Desktop Shortcut
-- **Location**: `C:\Users\[USERNAME]\OneDrive\Desktop\AAC Matrix Monitor.lnk`
+- **Location**: `C:\dev\AAC_fresh Matrix Monitor.lnk`
 - **Name**: "AAC Matrix Monitor"
 - **Target**: Launches the AAC Matrix Monitor Streamlit app
 - **Icon**: Uses the custom rocket icon
@@ -50,13 +50,13 @@ Your AAC Matrix Monitor now has a professional rocket-themed desktop icon for ea
 
 ### Recreate Icon (if needed)
 ```bash
-cd "C:\Users\[USERNAME]\OneDrive\Desktop\AAC"
+cd "C:\dev\AAC_fresh"
 python create_rocket_icon.py
 ```
 
 ### Recreate Desktop Shortcut (if needed)
 ```bash
-cd "C:\Users\[USERNAME]\OneDrive\Desktop\AAC"
+cd "C:\dev\AAC_fresh"
 .\create_aac_desktop_icon_simple.bat
 ```
 

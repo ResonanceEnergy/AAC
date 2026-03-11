@@ -230,4 +230,4 @@ Hedge Fund represents NCC's commitment to elite financial dominance through quan
 **Security Oversight:** Security 10 Directive Enforcement  
 **Investment Standard:** Elite-Level Quantum Security  
 **Performance Standard:** Unparalleled Financial Dominance</content>
-<parameter name="filePath">c:\Users\gripa\OneDrive\Desktop\NCC\NCC-Doctrine\Hedge_Fund\NCL_Insights_Hedge_Fund_Integration.md
+<parameter name="filePath">C:\dev\NCC\NCC-Doctrine\Hedge_Fund\NCL_Insights_Hedge_Fund_Integration.md

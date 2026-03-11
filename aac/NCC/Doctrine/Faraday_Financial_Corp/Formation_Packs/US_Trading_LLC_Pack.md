@@ -288,4 +288,4 @@
 - Innovation: 2-4 new strategies launched annually
 
 This formation pack provides the comprehensive framework for establishing Faraday Financial US Trading LLC as a world-class quantitative trading operation within the Faraday Financial Corporation ecosystem.</content>
-<parameter name="filePath">c:\Users\gripa\OneDrive\Desktop\NCC\NCC-Doctrine\Faraday_Financial_Corp\Formation_Packs\US_Trading_LLC_Pack.md
+<parameter name="filePath">C:\dev\NCC\NCC-Doctrine\Faraday_Financial_Corp\Formation_Packs\US_Trading_LLC_Pack.md

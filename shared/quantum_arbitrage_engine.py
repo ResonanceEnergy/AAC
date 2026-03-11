@@ -465,7 +465,7 @@ class QuantumRiskManager:
         # Quantum confidence reduces perceived risk
         adjusted_risk = risk_score * (1 - opportunity.quantum_confidence * 0.3)
 
-        return adjusted_risk <= max_risk
+        return adjusted_risk <= self.max_risk
 
 
 # Global arbitrage engine instance
