@@ -145,6 +145,18 @@ class FFDMetrics:
     global_debt_gdp_ratio: float = 0.0          # Global debt-to-GDP percentage
     micar_compliance_score: float = 0.0         # 0-100 AAC MiCAR readiness
 
+    # Master Plan metrics (FFD-11 strategic execution tracking)
+    portfolio_nominal_usd: float = 0.0          # Total portfolio value (USD nominal)
+    portfolio_purchasing_power: float = 0.0     # Portfolio value adjusted for CPI/M2
+    portfolio_gold_ratio: float = 0.0           # Portfolio value / gold oz (real wealth)
+    stablecoin_yield_monthly: float = 0.0       # Monthly yield from stablecoin deployments (USD)
+    arb_profit_monthly: float = 0.0             # Monthly cross-exchange arb profits (USD)
+    strategy_count_live: int = 0                # Number of strategies at E4+ (live)
+    strategy_count_paper: int = 0               # Number of strategies at E2-E3 (paper)
+    capital_injected_total: float = 0.0         # Total capital injected since inception (USD)
+    portfolio_drawdown_pct: float = 0.0         # Current drawdown from portfolio ATH (%)
+    cycle_phase: str = "expansion"              # "accumulation", "expansion", "peak", "correction"
+
     evidence_level: EvidenceLevel = EvidenceLevel.E0_CONCEPTUAL
     phase: TransitionPhase = TransitionPhase.PHASE_1_INTELLIGENCE
 
@@ -178,6 +190,13 @@ FFD_DOCTRINE_PACK = {
         "tokenized_treasury_aum",
         "global_debt_gdp_ratio",
         "micar_compliance_score",
+        "portfolio_nominal_usd",
+        "portfolio_purchasing_power",
+        "portfolio_gold_ratio",
+        "stablecoin_yield_monthly",
+        "arb_profit_monthly",
+        "portfolio_drawdown_pct",
+        "cycle_phase",
     ],
     "required_metrics": [
         {
@@ -590,6 +609,17 @@ class FFDEngine:
             "prediction_market_volume": self.metrics.prediction_market_volume,
             "global_debt_gdp_ratio": self.metrics.global_debt_gdp_ratio,
             "micar_compliance_score": self.metrics.micar_compliance_score,
+            # Master Plan metrics
+            "portfolio_nominal_usd": self.metrics.portfolio_nominal_usd,
+            "portfolio_purchasing_power": self.metrics.portfolio_purchasing_power,
+            "portfolio_gold_ratio": self.metrics.portfolio_gold_ratio,
+            "stablecoin_yield_monthly": self.metrics.stablecoin_yield_monthly,
+            "arb_profit_monthly": self.metrics.arb_profit_monthly,
+            "strategy_count_live": float(self.metrics.strategy_count_live),
+            "strategy_count_paper": float(self.metrics.strategy_count_paper),
+            "capital_injected_total": self.metrics.capital_injected_total,
+            "portfolio_drawdown_pct": self.metrics.portfolio_drawdown_pct,
+            "cycle_phase": self.metrics.cycle_phase,
         }
 
     def get_active_strategies(self) -> Dict[str, List[str]]:
@@ -642,6 +672,73 @@ class FFDEngine:
             return "CAUTION"
 
         return None
+
+    def compute_cycle_phase(self, halving_position: float) -> str:
+        """
+        Determine BTC halving cycle phase from normalized position (0.0-1.0).
+        0.0 = halving day, 1.0 = next halving day.
+        """
+        if halving_position < 0.15:
+            return "accumulation"      # 0-6 months post-halving: recovery begins
+        elif halving_position < 0.50:
+            return "expansion"         # 6-24 months: main bull run
+        elif halving_position < 0.70:
+            return "peak"              # 24-33 months: cycle top territory
+        else:
+            return "correction"        # 33-48 months: bear market / pre-halving
+
+    def update_halving_position(self, position: float):
+        """Update halving cycle position and derive cycle phase."""
+        self.metrics.halving_cycle_position = max(0.0, min(1.0, position))
+        self.metrics.cycle_phase = self.compute_cycle_phase(position)
+
+    def update_portfolio(self, nominal_usd: float, gold_price_oz: float = 0.0,
+                         cpi_adjustment: float = 1.0):
+        """Update portfolio tracking metrics."""
+        self.metrics.portfolio_nominal_usd = nominal_usd
+        if cpi_adjustment > 0:
+            self.metrics.portfolio_purchasing_power = nominal_usd / cpi_adjustment
+        if gold_price_oz > 0:
+            self.metrics.portfolio_gold_ratio = nominal_usd / gold_price_oz
+
+    def get_allocation_targets(self) -> Dict[str, Dict[str, float]]:
+        """
+        Return dynamic allocation targets adjusted for cycle phase.
+        In peak/correction phases, shift toward stablecoins and yield.
+        In accumulation/expansion phases, shift toward spot appreciation.
+        """
+        base = FFD_DOCTRINE_PACK["allocation_guidance"]
+        phase = self.metrics.cycle_phase
+
+        if phase == "accumulation":
+            return {
+                "decentralized": {"min_pct": 50, "max_pct": 60},
+                "private_digital": {"min_pct": 20, "max_pct": 25},
+                "legacy_to_new_arbitrage": {"min_pct": 15, "max_pct": 20},
+                "cbdc_hedging": {"min_pct": 5, "max_pct": 10},
+            }
+        elif phase == "expansion":
+            return {
+                "decentralized": {"min_pct": 45, "max_pct": 55},
+                "private_digital": {"min_pct": 20, "max_pct": 25},
+                "legacy_to_new_arbitrage": {"min_pct": 20, "max_pct": 25},
+                "cbdc_hedging": {"min_pct": 5, "max_pct": 10},
+            }
+        elif phase == "peak":
+            return {
+                "decentralized": {"min_pct": 25, "max_pct": 35},
+                "private_digital": {"min_pct": 35, "max_pct": 45},
+                "legacy_to_new_arbitrage": {"min_pct": 20, "max_pct": 25},
+                "cbdc_hedging": {"min_pct": 5, "max_pct": 10},
+            }
+        elif phase == "correction":
+            return {
+                "decentralized": {"min_pct": 30, "max_pct": 40},
+                "private_digital": {"min_pct": 35, "max_pct": 45},
+                "legacy_to_new_arbitrage": {"min_pct": 15, "max_pct": 25},
+                "cbdc_hedging": {"min_pct": 5, "max_pct": 10},
+            }
+        return base
 
 
 # ═══════════════════════════════════════════════════════════════════════════
