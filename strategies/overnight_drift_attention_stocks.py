@@ -172,9 +172,11 @@ class OvernightDriftAttentionStocksStrategy(BaseArbitrageStrategy):
         return bool(self.attention_scores) and len(self.active_positions) < self.max_positions
 
     async def _enter_positions(self):
-        """Enter overnight positions."""
-        # This would be called by market schedule handler
-        pass
+        """Enter overnight positions based on attention scores."""
+        signals = await self._generate_signals()
+        if signals:
+            await self.communication.publish('strategy_signals', signals)
+            self.logger.info(f"Entered {len(signals)} overnight positions")
 
     async def _exit_positions(self):
         """Exit overnight positions."""
@@ -199,8 +201,10 @@ class OvernightDriftAttentionStocksStrategy(BaseArbitrageStrategy):
 
     def _calculate_position_size(self, symbol: str) -> float:
         """Calculate position size for a symbol."""
-        # Simple position sizing based on available capital
-        return 1000  # Fixed size for demo
+        base_size = self.config.risk_envelope.get('base_position_size', 1000)
+        attention = self.attention_scores.get(symbol, 0.5)
+        # Scale position size by attention score (higher attention = larger position)
+        return base_size * (0.5 + attention)
 
     async def _close_all_positions(self):
         """Close all active positions."""

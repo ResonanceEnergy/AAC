@@ -339,9 +339,16 @@ class ProductionMonitoringSystem:
 
     async def _check_market_data_feeds(self) -> bool:
         """Check market data feeds status"""
-        # This would check actual market data feed connections
-        # For now, return True
-        return True
+        try:
+            from shared.market_data_connector import get_connector_manager
+            manager = get_connector_manager()
+            if manager:
+                status = manager.get_status()
+                connected = status.get('connected_feeds', 0)
+                return connected > 0
+        except (ImportError, AttributeError):
+            pass
+        return True  # Assume healthy if connector manager not available
 
     async def _check_deployment_status(self) -> bool:
         """Check production deployment status"""
@@ -350,8 +357,14 @@ class ProductionMonitoringSystem:
 
     async def _check_network_connectivity(self) -> bool:
         """Check network connectivity"""
-        # Simple connectivity check
-        return True
+        try:
+            import socket
+            socket.setdefaulttimeout(3)
+            sock = socket.create_connection(('8.8.8.8', 53), timeout=3)
+            sock.close()
+            return True
+        except (OSError, socket.timeout):
+            return False
 
     async def _check_disk_space(self) -> bool:
         """Check disk space"""

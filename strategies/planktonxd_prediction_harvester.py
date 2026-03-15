@@ -858,7 +858,7 @@ class PlanktonXDPredictionHarvester(BaseArbitrageStrategy):
 
     async def _unsubscribe_market_data(self):
         """Unsubscribe from data feeds."""
-        pass  # Handled by base class / communication framework
+        logger.debug("PlanktonXD: market data unsubscribe delegated to communication framework")
 
 
 # ═══════════════════════════════════════════════════════════════════════════

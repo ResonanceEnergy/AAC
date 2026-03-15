@@ -321,8 +321,24 @@ class QuantumSignalAggregator:
 
     def _update_correlation_matrix(self, signal: QuantumSignal):
         """Update quantum correlation tracking"""
-        # Track signal correlations for quantum optimization
-        pass
+        theater = signal.theater
+        symbol = signal.symbol
+        key = f"{theater}:{symbol}"
+        if key not in self.quantum_correlation_matrix:
+            self.quantum_correlation_matrix[key] = {
+                'count': 0,
+                'directions': [],
+                'avg_confidence': 0.0
+            }
+        entry = self.quantum_correlation_matrix[key]
+        entry['count'] += 1
+        entry['directions'].append(signal.direction)
+        # Keep rolling window of last 20 directions
+        if len(entry['directions']) > 20:
+            entry['directions'] = entry['directions'][-20:]
+        entry['avg_confidence'] = (
+            entry['avg_confidence'] * (entry['count'] - 1) + signal.confidence
+        ) / entry['count']
 
     def _cleanup_expired(self):
         """Remove expired signals"""

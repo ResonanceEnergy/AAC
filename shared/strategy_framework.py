@@ -217,8 +217,17 @@ class BaseArbitrageStrategy(ABC):
 
     async def _unsubscribe_market_data(self):
         """Unsubscribe from market data feeds."""
-        # Implementation would unsubscribe from feeds
-        pass
+        if hasattr(self, 'communication') and self.communication:
+            message_types = []
+            for requirement in self.config.data_requirements:
+                if requirement == "etf_prices":
+                    message_types.append("market_data.etf.*")
+                elif requirement == "nav_calculations":
+                    message_types.append("bigbrain.nav.*")
+                elif requirement == "index_futures":
+                    message_types.append("market_data.futures.*")
+            if message_types:
+                await self.communication.unsubscribe_from_messages(self.config.strategy_id, message_types)
 
     def _update_market_data(self, data: Dict[str, Any]):
         """Update internal market data cache."""

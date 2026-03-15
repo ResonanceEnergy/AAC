@@ -464,7 +464,18 @@ class ContentOptimizerAgent(BaseResearchAgent):
 
     async def _analyze_content_performance(self) -> List[Dict]:
         """Analyze what content is performing well"""
-        return []
+        insights = []
+        # Analyze recent findings for patterns
+        recent = self.get_recent_findings(hours=24)
+        if recent:
+            avg_confidence = sum(f.confidence for f in recent) / len(recent)
+            insights.append({
+                'title': 'Content performance summary',
+                'description': f'{len(recent)} findings in last 24h, avg confidence {avg_confidence:.2f}',
+                'confidence': avg_confidence,
+                'data': {'finding_count': len(recent), 'avg_confidence': avg_confidence}
+            })
+        return insights
 
 
 # ============================================

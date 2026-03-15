@@ -483,8 +483,23 @@ class ContinuousMonitoringService:
 
     async def _check_safeguard_alerts(self):
         """Check safeguard-related alerts"""
-        # Implementation for safeguard alerts
-        pass
+        try:
+            safeguards = get_safeguards_health()
+            for exchange, status in safeguards.get('exchanges', {}).items():
+                if status.get('circuit_breaker_state') == 'open':
+                    await self._create_alert(
+                        f'safeguard_{exchange}_cb_open',
+                        'warning',
+                        f"Circuit breaker open for {exchange}"
+                    )
+                if status.get('rate_limited', False):
+                    await self._create_alert(
+                        f'safeguard_{exchange}_rate_limit',
+                        'warning',
+                        f"Rate limiting active for {exchange}"
+                    )
+        except Exception as e:
+            self.logger.error(f"Safeguard alert check failed: {e}")
 
     async def _create_alert(self, alert_id: str, severity: str, message: str):
         """Create a new alert"""
@@ -532,13 +547,34 @@ class ContinuousMonitoringService:
 
     async def _cleanup_resolved_alerts(self):
         """Clean up resolved alerts"""
-        # Implementation for alert cleanup
-        pass
+        resolved_ids = []
+        for alert_id, alert in self.active_alerts.items():
+            if alert.get('resolved', False):
+                resolved_ids.append(alert_id)
+            elif (datetime.now() - alert.get('timestamp', datetime.now())).total_seconds() > 3600:
+                # Auto-resolve alerts older than 1 hour
+                alert['resolved'] = True
+                resolved_ids.append(alert_id)
+        for alert_id in resolved_ids:
+            del self.active_alerts[alert_id]
+        if resolved_ids:
+            self.logger.info(f"Cleaned up {len(resolved_ids)} resolved alerts")
 
     async def _detect_incidents(self):
         """Detect and handle incidents"""
-        # Implementation for incident detection
-        pass
+        critical_alerts = [
+            a for a in self.active_alerts.values()
+            if a.get('severity') == 'critical' and not a.get('resolved')
+        ]
+        if len(critical_alerts) >= 3:
+            self.logger.critical(f"INCIDENT DETECTED: {len(critical_alerts)} critical alerts active")
+            if not hasattr(self, '_active_incidents'):
+                self._active_incidents: list = []
+            self._active_incidents.append({
+                'timestamp': datetime.now().isoformat(),
+                'critical_count': len(critical_alerts),
+                'alert_ids': [a['id'] for a in critical_alerts]
+            })
 
     def get_monitoring_status(self) -> Dict[str, Any]:
         """Get current monitoring status"""

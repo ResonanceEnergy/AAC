@@ -245,9 +245,13 @@ class ProductionDeploymentSystem:
 
     async def _check_performance_criteria(self, criteria: Dict[str, Any]) -> bool:
         """Check if performance criteria are met"""
-        # Get current performance metrics
-        # This would integrate with actual trading performance
-        # For now, return True for simulation
+        if not criteria:
+            return True
+        for metric_name, threshold in criteria.items():
+            actual = getattr(self, f'_{metric_name}', None)
+            if actual is not None and actual < threshold:
+                self.logger.warning(f"Criteria not met: {metric_name}={actual} < {threshold}")
+                return False
         return True
 
     async def _advance_to_next_phase(self):

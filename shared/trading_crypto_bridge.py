@@ -237,18 +237,36 @@ class TradingCryptoBridge:
 
     async def _get_venue_health(self, venue_name: str) -> float:
         """Get venue health score (0.0 to 1.0)."""
-        # Placeholder - would integrate with CryptoIntelligence engine
-        return 0.85  # Mock healthy venue
+        venue_data = self.active_routes
+        # Check recent route failures for this venue
+        recent_routes = [r for r in venue_data.values() if r.get('venue') == venue_name]
+        if recent_routes:
+            failed = sum(1 for r in recent_routes if r.get('status') == 'failed')
+            if len(recent_routes) > 0:
+                return max(0.0, 1.0 - (failed / len(recent_routes)))
+        return 0.85  # Default: healthy
 
     async def _get_venue_capacity(self, venue_name: str, asset: str, amount: float) -> float:
         """Get venue capacity score for asset/amount."""
-        # Placeholder - would check venue limits and current utilization
-        return 0.90  # Mock good capacity
+        # Check if venue has known limits
+        venue_limits = getattr(self, 'venue_limits', {})
+        limit = venue_limits.get(venue_name, {}).get(asset, float('inf'))
+        if limit < float('inf') and amount > 0:
+            utilization = min(amount / limit, 1.0)
+            return max(0.0, 1.0 - utilization)
+        return 0.90  # Default: good capacity
 
     async def _get_venue_liquidity(self, venue_name: str, asset: str) -> float:
         """Get venue liquidity score for asset."""
-        # Placeholder - would check order book depth
-        return 0.80  # Mock good liquidity
+        # Check cached orderbook depth if available
+        orderbooks = getattr(self, 'cached_orderbooks', {})
+        book = orderbooks.get(f'{venue_name}:{asset}')
+        if book:
+            bid_depth = sum(level.get('size', 0) for level in book.get('bids', []))
+            ask_depth = sum(level.get('size', 0) for level in book.get('asks', []))
+            total = bid_depth + ask_depth
+            return min(1.0, total / 1000.0) if total > 0 else 0.1
+        return 0.80  # Default: good liquidity
 
     async def _route_execution(self, order_id: str, venue: str, execution_params: Dict) -> Optional[str]:
         """Route execution to venue."""
