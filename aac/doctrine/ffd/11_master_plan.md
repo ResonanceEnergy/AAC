@@ -379,7 +379,8 @@ By Q2 end:
 | XRP + FLR | 5% ($50K) | Cross-border settlement exposure |
 | Stablecoin Yield | 20% ($200K) | Cash-flow generating base |
 | Tokenized RWAs | 15% ($150K) | Real estate, Treasuries, commodities |
-| Gold (PAXG) | 10% ($100K) | Anti-fragile monetary hedge |
+| Gold (PAXG) | 8% ($80K) | Anti-fragile monetary hedge |
+| Silver (PSLV/XAGUSD) | 2% ($20K) | Undervalued precious metal, GSR reversion |
 | DeFi Yield (deployed) | 10% ($100K) | Aave, Compound, restaking |
 | Cash Reserve (USDC) | 5% ($50K) | Opportunity fund + emergency |
 
@@ -416,10 +417,16 @@ functional components around FFD as the supreme doctrine.
 | Pipeline Runner | pipeline_runner.py | Working — CoinGecko → Fibonacci → Execution |
 | Exchange Connectors | integrations/ | Binance, Coinbase, Kraken via ccxt |
 | CryptoIntelligence | CryptoIntelligence/ | Market data aggregation |
-| FFD Engine | aac/doctrine/ffd/ffd_engine.py | 31 metrics, stablecoin monitor, kill switches |
+| FFD Engine | aac/doctrine/ffd/ffd_engine.py | 48+ metrics, stablecoin monitor, kill switches |
 | Execution Engine | core/ | SQLite paper trade logging |
-| Strategy Framework | strategies/ | 30 real strategies kept (49 stubs purged) |
+| Strategy Framework | strategies/ | 116 strategies (66 existing + 50 no-limits) |
 | Circuit Breaker | shared/circuit_breaker.py | Clean replacement for quantum_circuit_breaker |
+| PlanktonXD Harvester | strategies/planktonxd_prediction_harvester.py | Prediction market micro-arb ($1K→$106K emulation) |
+| PU Prime VCE Module | modules/aac_puprime_vce/ | Vol Compression→Expansion: XAUUSD, EURUSD, BTCUSD via MT5 |
+| Unusual Whales Client | integrations/unusual_whales_client.py | Options flow, dark pools, whale alerts, Congress trades |
+| SuperStonk DD Engine | integrations/barren_wuffet_telegram_bot.py | FTD cycle analysis, dark pool volume, short interest |
+| Jonny Bravo Division | agent_jonny_bravo_division/ | Trading education, 7 methodologies, trade journaling |
+| Reddit Scraper | reddit/aac_multi_subreddit_scraper.py | r/Superstonk, r/WallStreetBets, r/GME sentiment |
 
 **BUILD NEXT (priority order)**:
 | Component | Purpose | Priority |
@@ -448,6 +455,11 @@ functional components around FFD as the supreme doctrine.
 - XRP regulatory catalyst trading (E1-E2 — hard to backtest but clear historical signals)
 - ETF flow momentum (E1-E2 — new phenomenon, limited history but strong logic)
 - Gold/BTC ratio mean reversion (E1-E2 — limited data but strong macro thesis)
+- Gold/Silver ratio mean reversion (E1-E2 — centuries of data, well-understood)
+- PlanktonXD prediction market harvesting (E2 — proven $1K→$106K via Polymarket, code exists)
+- PU Prime VCE gold/forex momentum (E1-E2 — XAUUSD/EURUSD/BTCUSD, module exists)
+- Unusual Whales options flow following (E1-E2 — dark pool + whale alert signals, client exists)
+- SuperStonk DD FTD cycle trading (E1 — FTD T+35, short interest, dark pool volume)
 - BRICS de-dollarization hedge (E1 — macro thesis, hard to execute directly)
 
 **Tier 3 — Research Only (E0-E1, do NOT allocate)**:
@@ -608,12 +620,37 @@ ever day, across every venue where AAC has execution capability.
 - Monthly: $300-$750 → annual: $3,600-$9,000 from $5,000 base
 - Scales with capital — at $50,000: $36,000-$90,000/year
 
-**Stream 4: Regulatory Catalyst Trading (Event-driven — ~10% of returns)**
+**Stream 4: Regulatory Catalyst Trading (Event-driven — ~5% of returns)**
 - XRP ETF approval: position $1,000 → potential $1,300-$1,500 in 48h
 - Major legislation passed: sector rotation opportunity
 - CBDC launch: FX dislocations in affected currency
 - Frequency: 3-6 major events per year
 - Per-event return: 15-50% on allocated capital
+
+**Stream 5: Prediction Market Harvesting — PlanktonXD Strategy (~5% of returns)**
+- PlanktonXD turned $1,000 → $106,000 in 12 months on Polymarket (61,000+ predictions)
+- AAC has full PlanktonXD emulation: `strategies/planktonxd_prediction_harvester.py`
+- Deep OTM harvesting: buy "impossible" outcomes at 0.1-3¢, rare 500x-23,750x payoffs
+- Spread market-making: bid-ask in thin order books (sports, weather, crypto, politics, esports)
+- Antifragile sizing: $5-$25 per bet, volume-based 0.5% daily compounding
+- With $1,000 deployed: $100-$200/month from volume, occasional tail-event jackpots
+- DIVERSIFICATION: uncorrelated returns — prediction markets don't track BTC cycle
+
+**Stream 6: Options Flow & Whale Intelligence (~5% of returns)**
+- Unusual Whales API: real-time options flow, dark pool trades, Congress/Senate trades
+- AAC has full client: `integrations/unusual_whales_client.py`
+- Follow institutional smart money: unusual options activity → directional signals
+- Dark pool sweeps signal large institutional positioning before public moves
+- Congress trade tracking: politicians beat S&P by 12% historically
+- With $5,000 on IBKR: mirror top signals with defined-risk options, 15-30% monthly
+
+**Stream 7: Precious Metals — Gold & Silver via PU Prime VCE (~5% of returns)**
+- Gold >$4,000/oz, silver historically undervalued (GSR ~80, fair value ~50-60)
+- PU Prime VCE module: vol compression→expansion on XAUUSD, EURUSD, BTCUSD
+- VCE: buy breakouts from low-vol compression zones, 2R take profit, ATR-based stops
+- Silver exposure via: SLV/PSLV ETFs on Moomoo/IBKR, or XAGUSD on PU Prime/MT5
+- Precious metals = anti-fragile hedge in monetary transition (central bank buying)
+- Gold/silver ratio reversion: when GSR >80, overweight silver; when <60, overweight gold
 
 ### 3.4 Critical Success Factors
 
@@ -719,7 +756,10 @@ Before ANY $1B path activates, the following must be TRUE:
 - [ ] Cross-exchange arb scanner: NDAX vs Binance/Coinbase BTC/ETH spreads
 - [ ] Enable ETF flow monitoring (CoinGecko or third-party API)
 - [ ] Add gold price feed (PAXG or commodity API)
+- [ ] Add silver price feed (XAGUSD or SLV ETF tracking)
 - [ ] Paper trade stablecoin peg deviation capture
+- [ ] Paper trade PlanktonXD on Polymarket (validate prediction market harvesting)
+- [ ] Configure Unusual Whales API key and validate options flow data
 - [ ] Create FFD dashboard: all metrics to SQLite + console
 - [ ] Target: portfolio approaching M1 ($15,000)
 
@@ -727,6 +767,10 @@ Before ANY $1B path activates, the following must be TRUE:
 
 - [ ] Cross-exchange arb: LIVE execution between NDAX and Binance/Coinbase/Kraken
 - [ ] Gold/BTC ratio engine: calculate and track daily
+- [ ] Gold/Silver ratio tracking: GSR for precious metals rotation signals
+- [ ] PU Prime VCE: run backtest on XAUUSD, validate VCE signals
+- [ ] Unusual Whales: integrate top options flow signals into IBKR strategy
+- [ ] SuperStonk DD: automate FTD cycle alerts from Reddit scraper
 - [ ] Regulatory event RSS monitor (SEC, EU Parliament, BIS)
 - [ ] XRP ETF probability tracker (news sentiment → probability estimate)
 - [ ] All 4 accounts active and contributing
@@ -750,7 +794,7 @@ Before ANY $1B path activates, the following must be TRUE:
 - [ ] X API integration (sentiment signals)
 - [ ] MEV-protected execution enabled
 - [ ] Total deployed: $50,000-$100,000+ (M3-M4 milestone range)
-- [ ] Monthly performance report: return vs BTC vs gold vs CPI
+- [ ] Monthly performance report: return vs BTC vs gold vs silver vs CPI
 - [ ] Target: approaching or past M4 ($100,000)
 
 ### 5.6 Performance-Based Milestones (Replace Calendar Milestones)
@@ -966,6 +1010,15 @@ Total accounts expanded from 4 to 7-8:
 | 2026-03-15 | FFD-12 doc created | E0 | 50 strategies across 6 categories + deployment priority matrix |
 | 2026-03-15 | Account expansion: +3 (Deribit/OKX/Bybit) | E0 | Crypto derivatives access for leverage strategies |
 | 2026-03-15 | Leverage policy formalized | E0 | Per-account limits, hard rules, kill switch integration |
+| 2026-03-15 | ASSET AUDIT: 6 missing integrations found | E1 | PlanktonXD, PU Prime VCE, Unusual Whales, SuperStonk DD, Jonny Bravo, Silver |
+| 2026-03-15 | PlanktonXD prediction harvester integrated | E2 | $1K→$106K proven strategy — Strategy #51, full code exists |
+| 2026-03-15 | PU Prime VCE module integrated | E1 | XAUUSD/EURUSD/BTCUSD vol compression→expansion, full module exists |
+| 2026-03-15 | Unusual Whales client integrated | E1 | Options flow, dark pools, whale alerts, Congress trades — client exists |
+| 2026-03-15 | SuperStonk DD engine integrated | E1 | FTD cycle analysis, dark pool volume, short interest research |
+| 2026-03-15 | Jonny Bravo Division integrated | E1 | Trading education, 7 methodologies, trade journaling — agent exists |
+| 2026-03-15 | Silver added to precious metals allocation | E0 | Gold/silver ratio reversion strategy, PSLV/XAGUSD exposure |
+| 2026-03-15 | Revenue streams expanded: 4 → 7 | E0 | Added prediction markets, options flow intel, precious metals |
+| 2026-03-15 | Contact: acceleratedarbitrage@outlook.com | E1 | Linked in pyproject.toml + trading_desk_security.py |
 
 ---
 

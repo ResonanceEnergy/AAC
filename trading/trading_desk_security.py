@@ -111,7 +111,8 @@ class TradingDeskSecurity:
         # Emergency protocols
         self.emergency_shutdown = False
         self.emergency_contacts = [
-            "security@acceleratedarbitrage.com",
+            "acceleratedarbitrage@outlook.com",
+            "gripandripphdd@outlook.com",
             "+1-555-0100"  # Emergency hotline
         ]
 

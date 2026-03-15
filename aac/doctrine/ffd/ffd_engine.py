@@ -166,6 +166,14 @@ class FFDMetrics:
     active_jurisdiction: str = "Canada"         # Current operating jurisdiction
     uruguay_relocation_days: int = 0            # Days until Uruguay relocation (countdown)
 
+    # Integrated asset metrics (asset audit integration)
+    prediction_market_pnl: float = 0.0          # Cumulative prediction market P&L (USD) — PlanktonXD
+    options_flow_signal_count: int = 0           # Unusual Whales options flow signals received today
+    gold_silver_ratio: float = 0.0              # Gold price / Silver price (oz/oz)
+    silver_price_oz: float = 0.0                # Silver spot price per oz (USD)
+    vce_signal_active: bool = False             # PU Prime VCE signal currently active
+    superstonk_ftd_alert_count: int = 0          # SuperStonk FTD cycle alerts pending
+
     evidence_level: EvidenceLevel = EvidenceLevel.E0_CONCEPTUAL
     phase: TransitionPhase = TransitionPhase.PHASE_1_INTELLIGENCE
 
@@ -206,6 +214,12 @@ FFD_DOCTRINE_PACK = {
         "arb_profit_monthly",
         "portfolio_drawdown_pct",
         "cycle_phase",
+        "prediction_market_pnl",
+        "options_flow_signal_count",
+        "gold_silver_ratio",
+        "silver_price_oz",
+        "vce_signal_active",
+        "superstonk_ftd_alert_count",
     ],
     "required_metrics": [
         {
@@ -371,6 +385,51 @@ FFD_DOCTRINE_PACK = {
             "vol_adjusted_dca",
             "capital_cockpit_dashboard",
         ],
+    },
+    # Integrated assets discovered during asset audit
+    "integrated_assets": {
+        "planktonxd_prediction_harvester": {
+            "module": "strategies/planktonxd_prediction_harvester.py",
+            "class": "PlanktonXDPredictionHarvester",
+            "role": "Prediction market harvesting — Polymarket deep OTM + spread making",
+            "tier": 2,
+            "revenue_stream": 5,
+        },
+        "puprime_vce_module": {
+            "module": "modules/aac_puprime_vce/",
+            "class": "VCEStrategy",
+            "role": "Volatility Compression→Expansion on XAUUSD/EURUSD/BTCUSD via MT5",
+            "tier": 2,
+            "revenue_stream": 7,
+        },
+        "unusual_whales_client": {
+            "module": "integrations/unusual_whales_client.py",
+            "class": "UnusualWhalesClient",
+            "role": "Options flow, dark pool, Congress trades intelligence",
+            "tier": 2,
+            "revenue_stream": 6,
+        },
+        "superstonk_dd_engine": {
+            "module": "reddit/reddit_scraper.py",
+            "class": None,
+            "role": "FTD cycle T+35, short interest, dark pool volume from r/Superstonk",
+            "tier": 2,
+            "revenue_stream": None,
+        },
+        "jonny_bravo_division": {
+            "module": "agent_jonny_bravo_division/jonny_bravo_agent.py",
+            "class": "JonnyBravoAgent",
+            "role": "Education + methodology (supply/demand, order flow, fibonacci)",
+            "tier": 3,
+            "revenue_stream": None,
+        },
+        "silver_precious_metals": {
+            "module": "modules/aac_puprime_vce/",
+            "class": None,
+            "role": "Silver (XAGUSD/PSLV) alongside gold — 2% portfolio target at $1M",
+            "tier": 2,
+            "revenue_stream": 7,
+        },
     },
 }
 
@@ -844,6 +903,13 @@ class FFDEngine:
             "capital_injected_total": self.metrics.capital_injected_total,
             "portfolio_drawdown_pct": self.metrics.portfolio_drawdown_pct,
             "cycle_phase": self.metrics.cycle_phase,
+            # Integrated asset metrics
+            "prediction_market_pnl": self.metrics.prediction_market_pnl,
+            "options_flow_signal_count": float(self.metrics.options_flow_signal_count),
+            "gold_silver_ratio": self.metrics.gold_silver_ratio,
+            "silver_price_oz": self.metrics.silver_price_oz,
+            "vce_signal_active": float(self.metrics.vce_signal_active),
+            "superstonk_ftd_alert_count": float(self.metrics.superstonk_ftd_alert_count),
         }
 
     def get_active_strategies(self) -> Dict[str, List[str]]:
@@ -917,13 +983,17 @@ class FFDEngine:
         self.metrics.cycle_phase = self.compute_cycle_phase(position)
 
     def update_portfolio(self, nominal_usd: float, gold_price_oz: float = 0.0,
-                         cpi_adjustment: float = 1.0):
+                         cpi_adjustment: float = 1.0, silver_price_oz: float = 0.0):
         """Update portfolio tracking metrics."""
         self.metrics.portfolio_nominal_usd = nominal_usd
         if cpi_adjustment > 0:
             self.metrics.portfolio_purchasing_power = nominal_usd / cpi_adjustment
         if gold_price_oz > 0:
             self.metrics.portfolio_gold_ratio = nominal_usd / gold_price_oz
+        if silver_price_oz > 0:
+            self.metrics.silver_price_oz = silver_price_oz
+        if gold_price_oz > 0 and silver_price_oz > 0:
+            self.metrics.gold_silver_ratio = gold_price_oz / silver_price_oz
 
     def get_allocation_targets(self) -> Dict[str, Dict[str, float]]:
         """
