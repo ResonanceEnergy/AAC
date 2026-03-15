@@ -118,6 +118,19 @@ class FFDMetrics:
 
     # Cross-track
     monetary_transition_index: float = 0.0      # 0-100 composite of all tracks
+
+    # Expanded metrics (Pack 11 deep-dive expansion)
+    etf_net_inflow_daily: float = 0.0           # Daily net inflows across all crypto ETFs (USD)
+    memecoin_sentiment_index: float = 0.0       # 0-100 memecoin social momentum
+    political_token_risk: float = 0.0           # 0-100 risk from politically-affiliated tokens
+    xrp_etf_probability: float = 0.0            # 0-100 market-implied XRP ETF approval odds
+    sol_network_uptime: float = 100.0           # 0-100 Solana uptime (100 = no outages)
+    eth_l2_tvl_ratio: float = 0.0               # L2 TVL as % of L1 TVL
+    defi_tvl_total: float = 0.0                 # Total DeFi TVL across all chains (USD)
+    x_platform_sentiment: float = 50.0          # 0-100 aggregate financial sentiment from X
+    halving_cycle_position: float = 0.0         # 0-1 normalized position in BTC halving cycle
+    regulatory_convergence_score: float = 0.0   # 0-100 major-economy regulatory alignment
+
     evidence_level: EvidenceLevel = EvidenceLevel.E0_CONCEPTUAL
     phase: TransitionPhase = TransitionPhase.PHASE_1_INTELLIGENCE
 
@@ -138,6 +151,12 @@ FFD_DOCTRINE_PACK = {
         "capital_flight_signal",
         "cross_chain_settlement_score",
         "defi_yield_sustainability",
+        "etf_net_inflow_daily",
+        "defi_tvl_total",
+        "x_platform_sentiment",
+        "halving_cycle_position",
+        "regulatory_convergence_score",
+        "political_token_risk",
     ],
     "required_metrics": [
         {
@@ -172,6 +191,12 @@ FFD_DOCTRINE_PACK = {
         "capital_flight_acceleration",
         "defi_yield_collapse",
         "quantum_cryptographic_threat",
+        "flash_loan_exploit_cascade",
+        "political_token_conflict_of_interest",
+        "solana_network_outage",
+        "etf_redemption_spiral",
+        "ai_flash_crash_amplification",
+        "cross_chain_bridge_hack",
     ],
     "strategies": {
         "track_1_decentralized": [
@@ -180,6 +205,11 @@ FFD_DOCTRINE_PACK = {
             "xrp_escrow_release_trading",
             "flare_ftso_delegation_yield",
             "cross_l1_settlement_arbitrage",
+            "etf_inflow_momentum_trading",
+            "xrp_etf_catalyst_positioning",
+            "sol_network_recovery_trading",
+            "eth_l2_migration_flow_tracking",
+            "memecoin_sentiment_momentum",
         ],
         "track_2_private_digital": [
             "stablecoin_peg_deviation_capture",
@@ -188,6 +218,10 @@ FFD_DOCTRINE_PACK = {
             "regulatory_catalyst_trading",
             "stablecoin_flow_signals",
             "rwa_tokenization_arb",
+            "defi_yield_harvesting",
+            "flash_loan_arbitrage",
+            "institutional_flow_tracking",
+            "political_token_risk_hedging",
         ],
         "track_3_sovereign_digital": [
             "cbdc_launch_window_trading",
@@ -195,6 +229,13 @@ FFD_DOCTRINE_PACK = {
             "capital_flight_detection",
             "privacy_premium_trading",
             "cross_cbdc_fx_arbitrage",
+        ],
+        "cross_track_expanded": [
+            "x_sentiment_signal_trading",
+            "social_momentum_event_driven",
+            "geopolitical_bloc_divergence_arb",
+            "tokenized_securities_early_mover",
+            "ai_market_consensus_contrarian",
         ],
     },
     "allocation_guidance": {
@@ -217,6 +258,7 @@ MONITORED_STABLECOINS = {
     "RLUSD": {"issuer": "Ripple", "peg": 1.0, "tier": "emerging"},
     "EURC": {"issuer": "Circle", "peg": 1.0, "tier": "emerging"},    # EUR peg
     "BUSD": {"issuer": "Paxos", "peg": 1.0, "tier": "legacy"},
+    "USD1": {"issuer": "WLFI", "peg": 1.0, "tier": "political"},
 }
 
 # Kill switch thresholds
@@ -456,6 +498,17 @@ class FFDEngine:
             "stablecoin_concentration": self.metrics.stablecoin_concentration,
             "cbdc_pilot_count": float(self.metrics.cbdc_pilot_count),
             "rwa_tvl_growth": self.metrics.rwa_tvl_growth,
+            # Expanded metrics
+            "etf_net_inflow_daily": self.metrics.etf_net_inflow_daily,
+            "memecoin_sentiment_index": self.metrics.memecoin_sentiment_index,
+            "political_token_risk": self.metrics.political_token_risk,
+            "xrp_etf_probability": self.metrics.xrp_etf_probability,
+            "sol_network_uptime": self.metrics.sol_network_uptime,
+            "eth_l2_tvl_ratio": self.metrics.eth_l2_tvl_ratio,
+            "defi_tvl_total": self.metrics.defi_tvl_total,
+            "x_platform_sentiment": self.metrics.x_platform_sentiment,
+            "halving_cycle_position": self.metrics.halving_cycle_position,
+            "regulatory_convergence_score": self.metrics.regulatory_convergence_score,
         }
 
     def get_active_strategies(self) -> Dict[str, List[str]]:
