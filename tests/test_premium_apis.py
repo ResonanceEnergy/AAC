@@ -6,13 +6,9 @@ Test script to verify premium API connections work correctly.
 """
 
 import asyncio
-import sys
 from pathlib import Path
 
 import pytest
-
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(PROJECT_ROOT))
 
 from shared.market_data_connector import (
     PolygonConnector,
@@ -22,6 +18,7 @@ from shared.market_data_connector import (
     IntrinioConnector
 )
 
+@pytest.mark.api
 @pytest.mark.slow
 @pytest.mark.timeout(30)
 async def test_premium_apis():

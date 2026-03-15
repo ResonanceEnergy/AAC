@@ -3,12 +3,8 @@ Simple test for code quality improvement system
 """
 
 import os
-import sys
 import asyncio
 from pathlib import Path
-
-# Add current directory to path
-sys.path.insert(0, os.getcwd())
 
 async def test_code_quality():
     print("Testing code quality improvement system...")

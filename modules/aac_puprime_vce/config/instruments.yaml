@@ -1,0 +1,24 @@
+instruments:
+  XAUUSD:
+    type: metal
+    point_value: 1.0        # value per 1.0 price move per 1 unit
+    session: "24x5"
+    price_decimals: 2
+    signal_timeframe: "H1"
+    trend_timeframe: "D1"
+
+  EURUSD:
+    type: fx
+    point_value: 10.0       # value per pip per standard lot
+    session: "24x5"
+    price_decimals: 5
+    signal_timeframe: "H1"
+    trend_timeframe: "D1"
+
+  BTCUSD:
+    type: crypto
+    point_value: 1.0
+    session: "24x7"
+    price_decimals: 2
+    signal_timeframe: "H1"
+    trend_timeframe: "D1"

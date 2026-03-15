@@ -4,14 +4,10 @@ Validates message parsing, intent classification, session management,
 and skill routing without making real API calls.
 """
 
-import sys
 from datetime import datetime
 from pathlib import Path
 
 import pytest
-
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(PROJECT_ROOT))
 
 from integrations.openclaw_gateway_bridge import (
     AACIntentClassifier,

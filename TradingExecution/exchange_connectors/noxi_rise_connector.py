@@ -26,6 +26,16 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 from shared.config_loader import get_config
 
+try:
+    from shared.utils import with_circuit_breaker, CircuitOpenError
+except ImportError:
+    def with_circuit_breaker(*args, **kwargs):
+        def decorator(func):
+            return func
+        return decorator
+    class CircuitOpenError(Exception):
+        pass
+
 from .base_connector import (
     BaseExchangeConnector,
     Ticker,
@@ -157,7 +167,10 @@ class NoxiRiseConnector(BaseExchangeConnector):
         """Get current price for a symbol (e.g. 'EURUSD', 'BTCUSD', 'XAUUSD')"""
         self._ensure_connected()
         await self._rate_limit_wait()
+        return await self._get_ticker_with_breaker(symbol)
 
+    @with_circuit_breaker("noxirise_ticker", failure_threshold=5, timeout=30.0)
+    async def _get_ticker_with_breaker(self, symbol: str) -> Ticker:
         try:
             tick = await asyncio.get_event_loop().run_in_executor(
                 None, lambda: mt5.symbol_info_tick(symbol)
@@ -198,7 +211,10 @@ class NoxiRiseConnector(BaseExchangeConnector):
         """
         self._ensure_connected()
         await self._rate_limit_wait()
+        return await self._get_orderbook_with_breaker(symbol, limit)
 
+    @with_circuit_breaker("noxirise_orderbook", failure_threshold=5, timeout=30.0)
+    async def _get_orderbook_with_breaker(self, symbol: str, limit: int = 20) -> OrderBook:
         try:
             # Enable market depth for the symbol
             await asyncio.get_event_loop().run_in_executor(
@@ -291,7 +307,20 @@ class NoxiRiseConnector(BaseExchangeConnector):
         """Create an order via MT5"""
         self._ensure_connected()
         await self._rate_limit_wait()
+        return await self._create_order_with_breaker(
+            symbol, side, order_type, quantity, price, client_order_id
+        )
 
+    @with_circuit_breaker("noxirise_order", failure_threshold=3, timeout=60.0)
+    async def _create_order_with_breaker(
+        self,
+        symbol: str,
+        side: str,
+        order_type: str,
+        quantity: float,
+        price: Optional[float] = None,
+        client_order_id: Optional[str] = None,
+    ) -> ExchangeOrder:
         import time
         start_time = time.time()
 

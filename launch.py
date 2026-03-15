@@ -308,7 +308,17 @@ def _mode_dashboard() -> int:
 
 def _mode_monitor() -> int:
     print(_cyan("  Starting System Monitor ..."))
-    return _run([_python(), "-m", "SharedInfrastructure.system_monitor"])
+    return _run([_python(), "-m", "shared.system_monitor"])
+
+
+def _start_health_endpoint():
+    """Start background health HTTP endpoint."""
+    try:
+        from health_server import start_health_server
+        start_health_server(background=True)
+        print(_green("  [+] Health endpoint: http://localhost:8080/health"))
+    except Exception as e:
+        print(_red(f"  [!] Health endpoint failed: {e}"))
 
 
 def _mode_paper() -> int:
@@ -318,20 +328,39 @@ def _mode_paper() -> int:
     print()
     os.environ["PAPER_TRADING"] = "true"
     os.environ["LIVE_TRADING_ENABLED"] = "false"
+    _start_health_endpoint()
     return _run([_python(), "-m", "core.orchestrator", "--paper"])
 
 
 def _mode_core() -> int:
     print(_cyan("  Starting Core Orchestrator ..."))
+    _start_health_endpoint()
     return _run([_python(), "-m", "core.orchestrator"])
 
 
 def _mode_full() -> int:
     print(_cyan("  Starting Full System ..."))
-    print(_cyan("  Pre-flight: checking gateways ..."))
-    _start_all_gateways()
-    print()
+    _start_health_endpoint()
+    _run_compliance_preflight()
     return _run([_python(), "-m", "core.aac_master_launcher"])
+
+
+def _run_compliance_preflight() -> None:
+    """Run compliance review checks before full launch (warn-only)."""
+    try:
+        import asyncio
+        from shared.compliance_review import ComplianceReviewSystem
+        print(_cyan("  Running compliance pre-flight checks ..."))
+        system = ComplianceReviewSystem()
+        report = asyncio.run(system.run_compliance_review())
+        if report.overall_compliant:
+            print(_green("  [OK] Compliance pre-flight passed"))
+        else:
+            failed = [k for k, v in report.check_results.items() if not v.get("passed")]
+            print(_red(f"  [!] Compliance pre-flight: {len(failed)} check(s) failed: {', '.join(failed)}"))
+            print(_red("  Review compliance before going live."))
+    except Exception as exc:
+        print(_red(f"  [!] Compliance pre-flight skipped: {exc}"))
 
 
 def _mode_test(extra_args: list[str] | None = None) -> int:
@@ -456,6 +485,18 @@ def main() -> int:
     os.chdir(PROJECT_ROOT)
     _activate_venv()
     _load_env()
+
+    # Startup config validation (skip for non-trading modes)
+    if args.mode not in ("test", "health", "git-sync"):
+        try:
+            from shared.config_loader import validate_startup_requirements
+            if not validate_startup_requirements():
+                print(_red("  [!] Configuration validation FAILED — check .env"))
+                print(_red("  [!] Set exchange API keys or DRY_RUN=true"))
+                return 1
+        except Exception as e:
+            print(_red(f"  [!] Config validation error: {e}"))
+
     print()
 
     # Dispatch

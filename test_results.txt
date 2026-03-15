@@ -1,0 +1,123 @@
+[1m============================= test session starts =============================[0m
+platform win32 -- Python 3.14.2, pytest-9.0.2, pluggy-1.6.0
+benchmark: 5.2.3 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 warmup=False warmup_iterations=100000)
+rootdir: C:\dev\AAC_fresh
+configfile: pytest.ini (WARNING: ignoring pytest config in pyproject.toml!)
+testpaths: tests
+plugins: anyio-4.12.1, dash-4.0.0, asyncio-1.3.0, benchmark-5.2.3, cov-7.0.0, mock-3.15.1, timeout-2.4.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+timeout: 30.0s
+timeout method: thread
+timeout func_only: False
+collected 764 items
+
+tests\integration_test.py [33mx[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m                                        [  0%][0m
+tests\security_integration_test.py [32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m.[0m[32m                                [  1%][0m
+tests\simple_test.py [32m.[0m[32m                                                   [  1%][0m
+tests\test_alpha_vantage.py [32m.[0m[32m                                            [  1%][0m
+tests\test_barren_wuffet.py [32m.[0m[32m                                            [  2%][0m
+tests\test_bridge_integration.py +++++++++++++++++++++++++++++++++++ Timeout +++++++++++++++++++++++++++++++++++
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Captured stdout ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[DEPLOY] Starting Bridge System Integration Test\n============================================================\n\U0001f4e1 Initializing all 10 bridge handlers...\n\u2705 Bridge Status: 6/10 bridges active\n[CROSS] ERROR: Not all bridges initialized successfully\n\n\U0001f9f9 Bridge system shutdown complete\n~~~~~~~~~~~~~ Stack of Thread-5 (_run_safe_shutdown_loop) (23300) ~~~~~~~~~~~~~
+  File "C:\Python314\Lib\threading.py", line 1044, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+    self._context.run(self.run)
+  File "C:\Python314\Lib\threading.py", line 1024, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\gripa\AppData\Roaming\Python\Python314\site-packages\pycares\__init__.py", line 430, in _run_safe_shutdown_loop
+    channel, _ = self._queue.get()
+~~~~~~~~~~~~~~~~~~~~~~~~~ Stack of MainThread (36448) ~~~~~~~~~~~~~~~~~~~~~~~~~
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\gripa\AppData\Roaming\Python\Python314\site-packages\pytest\__main__.py", line 9, in <module>
+    raise SystemExit(pytest.console_main())
+  File "C:\Users\gripa\AppData\Roaming\Python\Python314\site-packages\_pytest\config\__init__.py", line 223, in console_main
+    code = main()
+  File "C:\Users\gripa\AppData\Roaming\Python\Python314\site-packages\_pytest\config\__init__.py", line 199, in main
+    ret: ExitCode | int = config.hook.pytest_cmdline_main(config=config)
+  File "C:\Users\gripa\AppData\Roaming\Python\Python314\site-packages\pluggy\_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "C:\Users\gripa\AppData\Roaming\Python\Python314\site-packages\pluggy\_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "C:\Users\gripa\AppData\Roaming\Python\Python314\site-packages\pluggy\_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "C:\Users\gripa\AppData\Roaming\Python\Python314\site-packages\_pytest\main.py", line 365, in pytest_cmdline_main
+    return wrap_session(config, _main)
+  File "C:\Users\gripa\AppData\Roaming\Python\Python314\site-packages\_pytest\main.py", line 318, in wrap_session
+    session.exitstatus = doit(config, session) or 0
+  File "C:\Users\gripa\AppData\Roaming\Python\Python314\site-packages\_pytest\main.py", line 372, in _main
+    config.hook.pytest_runtestloop(session=session)
+  File "C:\Users\gripa\AppData\Roaming\Python\Python314\site-packages\pluggy\_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "C:\Users\gripa\AppData\Roaming\Python\Python314\site-packages\pluggy\_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "C:\Users\gripa\AppData\Roaming\Python\Python314\site-packages\pluggy\_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "C:\Users\gripa\AppData\Roaming\Python\Python314\site-packages\_pytest\main.py", line 396, in pytest_runtestloop
+    item.config.hook.pytest_runtest_protocol(item=item, nextitem=nextitem)
+  File "C:\Users\gripa\AppData\Roaming\Python\Python314\site-packages\pluggy\_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "C:\Users\gripa\AppData\Roaming\Python\Python314\site-packages\pluggy\_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "C:\Users\gripa\AppData\Roaming\Python\Python314\site-packages\pluggy\_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "C:\Users\gripa\AppData\Roaming\Python\Python314\site-packages\_pytest\runner.py", line 118, in pytest_runtest_protocol
+    runtestprotocol(item, nextitem=nextitem)
+  File "C:\Users\gripa\AppData\Roaming\Python\Python314\site-packages\_pytest\runner.py", line 137, in runtestprotocol
+    reports.append(call_and_report(item, "call", log))
+  File "C:\Users\gripa\AppData\Roaming\Python\Python314\site-packages\_pytest\runner.py", line 244, in call_and_report
+    call = CallInfo.from_call(
+  File "C:\Users\gripa\AppData\Roaming\Python\Python314\site-packages\_pytest\runner.py", line 353, in from_call
+    result: TResult | None = func()
+  File "C:\Users\gripa\AppData\Roaming\Python\Python314\site-packages\_pytest\runner.py", line 245, in <lambda>
+    lambda: runtest_hook(item=item, **kwds),
+  File "C:\Users\gripa\AppData\Roaming\Python\Python314\site-packages\pluggy\_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "C:\Users\gripa\AppData\Roaming\Python\Python314\site-packages\pluggy\_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "C:\Users\gripa\AppData\Roaming\Python\Python314\site-packages\pluggy\_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "C:\Users\gripa\AppData\Roaming\Python\Python314\site-packages\_pytest\runner.py", line 179, in pytest_runtest_call
+    item.runtest()
+  File "C:\Users\gripa\AppData\Roaming\Python\Python314\site-packages\pytest_asyncio\plugin.py", line 469, in runtest
+    super().runtest()
+  File "C:\Users\gripa\AppData\Roaming\Python\Python314\site-packages\_pytest\python.py", line 1720, in runtest
+    self.ihook.pytest_pyfunc_call(pyfuncitem=self)
+  File "C:\Users\gripa\AppData\Roaming\Python\Python314\site-packages\pluggy\_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "C:\Users\gripa\AppData\Roaming\Python\Python314\site-packages\pluggy\_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "C:\Users\gripa\AppData\Roaming\Python\Python314\site-packages\pluggy\_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "C:\Users\gripa\AppData\Roaming\Python\Python314\site-packages\_pytest\python.py", line 166, in pytest_pyfunc_call
+    result = testfunction(**testargs)
+  File "C:\Users\gripa\AppData\Roaming\Python\Python314\site-packages\pytest_asyncio\plugin.py", line 716, in inner
+    runner.run(coro, context=context)
+  File "C:\Python314\Lib\asyncio\runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+  File "C:\Python314\Lib\asyncio\base_events.py", line 706, in run_until_complete
+    self.run_forever()
+  File "C:\Python314\Lib\asyncio\base_events.py", line 677, in run_forever
+    self._run_once()
+  File "C:\Python314\Lib\asyncio\base_events.py", line 2046, in _run_once
+    handle._run()
+  File "C:\Python314\Lib\asyncio\events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\dev\AAC_fresh\shared\trading_intelligence_bridge.py", line 409, in _process_execution_feedback
+    logger.error(f"Feedback processing error: {e}")
+  File "C:\Python314\Lib\logging\__init__.py", line 1549, in error
+    self._log(ERROR, msg, args, **kwargs)
+  File "C:\Python314\Lib\logging\__init__.py", line 1665, in _log
+    self.handle(record)
+  File "C:\Python314\Lib\logging\__init__.py", line 1681, in handle
+    self.callHandlers(record)
+  File "C:\Python314\Lib\logging\__init__.py", line 1742, in callHandlers
+    if (found == 0):
+  File "C:\Python314\Lib\logging\__init__.py", line 1028, in handle
+    return rv
+  File "C:\Python314\Lib\logging\__init__.py", line 1265, in emit
+    StreamHandler.emit(self, record)
+  File "C:\Python314\Lib\logging\__init__.py", line 1155, in emit
+    self.flush()
++++++++++++++++++++++++++++++++++++ Timeout +++++++++++++++++++++++++++++++++++

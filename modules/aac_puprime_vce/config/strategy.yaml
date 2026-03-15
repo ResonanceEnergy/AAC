@@ -1,0 +1,25 @@
+strategy:
+  name: VCE
+  description: "Volatility Compression → Expansion breakout"
+
+  indicators:
+    atr_period: 14
+    bb_period: 20
+    bb_k: 2.0
+
+  compression:
+    lookback: 100           # rolling window for percentile rank
+    threshold_pct: 0.20     # bottom 20% = compression
+
+  breakout:
+    range_lookback: 20      # bars for range high/low
+
+  trend_filter:
+    ma_period: 50           # daily MA for trend direction
+
+  exits:
+    stop_atr_mult: 1.5      # stop distance = 1.5x ATR
+    takeprofit_r: 2.0       # target = 2x risk
+    trail_after_r: 1.0      # begin trailing after 1R
+    trail_atr_mult: 1.0     # trailing distance = 1x ATR
+    time_stop_bars: 24      # exit after N signal-TF bars

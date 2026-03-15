@@ -10,11 +10,7 @@ import logging
 import time
 from datetime import datetime, timedelta
 from typing import Dict, List, Any
-import sys
 from pathlib import Path
-
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(PROJECT_ROOT))
 
 from shared.market_data_integration import market_data_integration, initialize_market_data_integration
 from shared.market_data_connector import market_data_manager

@@ -195,7 +195,7 @@ class AACCommandCenter:
         self.money_monitor = get_money_monitor()
         self.metrics_collector = await get_metrics_collector()
         self.financial_engine = FinancialAnalysisEngine()
-        self.monitoring_dashboard = AACMonitoringDashboard()
+        self.monitoring_dashboard = AACMonitoringDashboard() if AACMonitoringDashboard else None
 
         # Initialize communication framework
         await self.communication.register_agent("command_center")

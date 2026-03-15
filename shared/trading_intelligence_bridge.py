@@ -49,6 +49,7 @@ class TradingIntelligenceBridge:
 
         # Feedback queue
         self.feedback_queue: List[Dict] = []
+        self.execution_feedback_queue: Optional[asyncio.Queue] = None
 
         # Performance metrics
         self.performance_metrics = {
@@ -222,6 +223,9 @@ class TradingIntelligenceBridge:
         try:
             logger.info("Initializing TradingExecution ↔ BigBrainIntelligence bridge")
 
+            # Initialize async queue for feedback processing
+            self.execution_feedback_queue = asyncio.Queue()
+
             # Load active signals from BigBrainIntelligence
             await self._load_active_signals()
 
@@ -391,6 +395,9 @@ class TradingIntelligenceBridge:
         """Process execution feedback and update research models."""
         while True:
             try:
+                if self.execution_feedback_queue is None:
+                    await asyncio.sleep(1)
+                    continue
                 feedback = await self.execution_feedback_queue.get()
 
                 # Process feedback based on type
@@ -535,7 +542,7 @@ class TradingIntelligenceBridge:
         return {
             "is_initialized": self.is_initialized,
             "active_signals": len(self.active_signals),
-            "feedback_queue_size": self.execution_feedback_queue.qsize(),
+            "feedback_queue_size": self.execution_feedback_queue.qsize() if self.execution_feedback_queue else 0,
             "last_signal_processed": self.last_signal_processed.isoformat() if self.last_signal_processed else None,
             "last_feedback_sent": self.last_feedback_sent.isoformat() if self.last_feedback_sent else None,
             "signal_performance_tracked": len(self.signal_performance)

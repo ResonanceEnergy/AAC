@@ -5,17 +5,16 @@ Tests all 10 department bridge pairs for complete cross-department communication
 """
 
 import asyncio
-import sys
 import os
+import pytest
 from datetime import datetime
 from pathlib import Path
-
-# Add shared directory to path
-sys.path.insert(0, str(Path(__file__).parent))
 
 from shared.bridge_orchestrator import BridgeOrchestrator
 from shared.audit_logger import AuditLogger
 
+@pytest.mark.api
+@pytest.mark.integration
 async def test_bridge_system():
     """Test complete bridge system with all 10 department pairs"""
 

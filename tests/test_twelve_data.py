@@ -3,9 +3,11 @@
 Test Twelve Data API for AAC arbitrage system
 """
 
+import pytest
 import requests
 import json
 
+@pytest.mark.api
 def test_twelve_data_api():
     """Test Twelve Data API connectivity and data retrieval"""
 

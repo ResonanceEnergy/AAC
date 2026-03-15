@@ -33,6 +33,13 @@ from shared.secrets_manager import (
 from shared.websocket_feeds import OrderBookDepth, OrderBookUpdate
 from CentralAccounting.database import AccountingDatabase
 
+# Capital management (optional — wired in post-fill)
+try:
+    from shared.capital_management import CapitalManagementSystem
+    CAPITAL_MGMT_AVAILABLE = True
+except ImportError:
+    CAPITAL_MGMT_AVAILABLE = False
+
 # Models live in TradingExecution.models — re-exported here for backward compat
 from TradingExecution.models import (  # noqa: F401
     OrderSide,
@@ -57,9 +64,14 @@ class RiskManager:
         self.max_open_positions = getattr(self.config.risk, "max_open_positions", 5)
         self.default_stop_loss_pct = getattr(self.config.risk, "default_stop_loss_pct", 5.0)
         self.default_take_profit_pct = getattr(self.config.risk, "default_take_profit_pct", 10.0)
+        self.max_concentration_pct = getattr(self.config.risk, "max_concentration_pct", 0.25)
+        self.daily_trade_limit = getattr(self.config.risk, "daily_trade_limit", 100)
+        self.strategy_max_allocation_pct = getattr(self.config.risk, "strategy_max_allocation_pct", 25.0)
+        self.max_daily_trades = getattr(self.config.risk, "max_daily_trades", 100)
         
         # Tracking
         self.daily_pnl = 0.0
+        self.daily_trades = 0
         self.daily_reset_time = datetime.now().replace(hour=0, minute=0, second=0)
 
     def check_daily_reset(self) -> None:
@@ -67,6 +79,7 @@ class RiskManager:
         now = datetime.now()
         if now.date() > self.daily_reset_time.date():
             self.daily_pnl = 0.0
+            self.daily_trades = 0
             self.daily_reset_time = now.replace(hour=0, minute=0, second=0)
             self.logger.info("Daily risk limits reset")
 
@@ -74,6 +87,10 @@ class RiskManager:
         self,
         size_usd: float,
         current_positions: int,
+        symbol: str = "",
+        positions: Optional[Dict] = None,
+        strategy: str = "",
+        total_capital: float = 0.0,
     ) -> tuple[bool, str]:
         """Check if a new position can be opened"""
         self.check_daily_reset()
@@ -89,6 +106,40 @@ class RiskManager:
         # Check daily loss
         if self.daily_pnl < -self.max_daily_loss_usd:
             return False, f"Daily loss limit (${self.max_daily_loss_usd:.2f}) reached"
+
+        # Check daily trade limit
+        if self.daily_trades >= self.daily_trade_limit:
+            return False, f"Daily trade limit ({self.daily_trade_limit}) reached"
+
+        # Check concentration limit
+        if positions and symbol:
+            total_exposure = sum(
+                getattr(p, 'quantity', 0) * getattr(p, 'current_price', 0)
+                for p in positions.values()
+            )
+            if total_exposure > 0:
+                symbol_exposure = sum(
+                    getattr(p, 'quantity', 0) * getattr(p, 'current_price', 0)
+                    for p in positions.values()
+                    if getattr(p, 'symbol', '') == symbol
+                )
+                concentration = (symbol_exposure + size_usd) / (total_exposure + size_usd)
+                if concentration > self.max_concentration_pct:
+                    return False, f"Concentration {concentration:.1%} exceeds max {self.max_concentration_pct:.1%}"
+
+        # Check per-strategy allocation limit
+        if strategy and total_capital > 0:
+            strategy_exposure = sum(
+                getattr(p, 'quantity', 0) * getattr(p, 'current_price', 0)
+                for p in (positions or {}).values()
+                if getattr(p, 'strategy', '') == strategy
+            )
+            strategy_pct = ((strategy_exposure + size_usd) / total_capital) * 100
+            if strategy_pct > self.strategy_max_allocation_pct:
+                return False, (
+                    f"Strategy '{strategy}' allocation {strategy_pct:.1f}% "
+                    f"exceeds max {self.strategy_max_allocation_pct:.1f}%"
+                )
 
         return True, "OK"
 
@@ -120,7 +171,8 @@ class RiskManager:
     def update_daily_pnl(self, pnl: float):
         """Update daily P&L tracking"""
         self.daily_pnl += pnl
-        self.logger.info(f"Daily P&L updated: ${self.daily_pnl:.2f}")
+        self.daily_trades += 1
+        self.logger.info(f"Daily P&L updated: ${self.daily_pnl:.2f} ({self.daily_trades} trades)")
 
     def check_liquidity(
         self,
@@ -240,10 +292,23 @@ class ExecutionEngine:
                 self._connectors[exchange] = IBKRConnector()
             elif exchange == "moomoo":
                 from TradingExecution.exchange_connectors.moomoo_connector import MoomooConnector
-                self._connectors[exchange] = MoomooConnector()
-            elif exchange == "ndax":
-                from TradingExecution.exchange_connectors.ndax_connector import NDAXConnector
-                self._connectors[exchange] = NDAXConnector()
+                self._connectors[exchange] = MoomooConnector(
+                    paper=getattr(self.config, 'moomoo_paper', True),
+                )
+            elif exchange == "noxi_rise":
+                from TradingExecution.exchange_connectors.noxi_rise_connector import NoxiRiseConnector
+                self._connectors[exchange] = NoxiRiseConnector(
+                    mt5_path=getattr(self.config, 'mt5_path', ''),
+                    login=getattr(self.config, 'mt5_login', 0),
+                    password=getattr(self.config, 'mt5_password', ''),
+                    server=getattr(self.config, 'mt5_server', 'NoxiRise-Live'),
+                )
+            elif exchange == "metalx":
+                from TradingExecution.exchange_connectors.metalx_connector import MetalXConnector
+                self._connectors[exchange] = MetalXConnector(
+                    api_key=getattr(self.config, 'metalx_api_key', ''),
+                    api_secret=getattr(self.config, 'metalx_api_secret', ''),
+                )
             else:
                 raise ValueError(f"Unknown exchange: {exchange}")
         
@@ -459,6 +524,7 @@ class ExecutionEngine:
                                f"(Model {model_name}, slippage: {slippage_bps:.1f}bps)")
             
             await self._persist_order(order)
+            await self._update_capital_post_fill(order)
             return order
 
         # Real execution
@@ -492,6 +558,7 @@ class ExecutionEngine:
 
         # Persist order status update
         await self._persist_order(order)
+        await self._update_capital_post_fill(order)
         return order
 
     async def cancel_order(self, order_id: str) -> bool:
@@ -769,6 +836,20 @@ class ExecutionEngine:
             self.logger.debug(f"Order persisted: {order.order_id}")
         except Exception as e:
             self.logger.error(f"Failed to persist order: {e}")
+
+    async def _update_capital_post_fill(self, order: Order):
+        """Update capital management after order fill."""
+        if not CAPITAL_MGMT_AVAILABLE:
+            return
+        if order.filled_quantity <= 0:
+            return
+        try:
+            from decimal import Decimal
+            cost = Decimal(str(order.filled_quantity * (getattr(order, 'average_fill_price', 0) or order.price or 0)))
+            capital_mgr = CapitalManagementSystem()
+            await capital_mgr.update_capital_position(margin_used=cost)
+        except Exception as e:
+            self.logger.debug(f"Capital management update skipped: {e}")
 
     async def load_positions_from_db(self):
         """Load open positions from database on startup"""

@@ -4,14 +4,9 @@ Validates the 35-skill definitions, RESEARCH_INTEL data, utility functions,
 and SKILL.md generation for the BARREN WUFFET OpenClaw integration.
 """
 
-import sys
 from pathlib import Path
 
 import pytest
-
-# Ensure project root is importable
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(PROJECT_ROOT))
 
 from integrations.openclaw_barren_wuffet_skills import (
     BARREN_WUFFET_SKILLS,

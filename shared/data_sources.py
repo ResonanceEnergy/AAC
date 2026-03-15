@@ -717,6 +717,134 @@ class EtherscanClient(BaseDataSource):
 
 
 # ============================================
+# METAL BLOCKCHAIN DATA SOURCE (Vector 5)
+# ============================================
+
+class MetalBlockchainSource(BaseDataSource):
+    """
+    Metal Blockchain C-Chain data source.
+
+    Monitors EVM-compatible C-Chain for:
+      - Large token transfers (whale alerts)
+      - Smart contract deployments
+      - DeFi protocol interactions
+      - Bridge activity between Metal Blockchain and other chains
+
+    Metal Blockchain uses Avalanche subnet architecture with
+    three chains: X-Chain (assets), P-Chain (validators), C-Chain (EVM).
+    """
+
+    DEFAULT_RPC = "https://tahoe.metalblockchain.org/ext/bc/C/rpc"
+
+    def __init__(self):
+        super().__init__("metal_blockchain")
+        self.session: Optional[aiohttp.ClientSession] = None
+        self._rpc_url = self.config.metal_blockchain_rpc_url if hasattr(self.config, 'metal_blockchain_rpc_url') and self.config.metal_blockchain_rpc_url else self.DEFAULT_RPC
+
+    async def connect(self):
+        connector = aiohttp.TCPConnector(resolver=aiohttp.resolver.ThreadedResolver())
+        self.session = aiohttp.ClientSession(connector=connector)
+        self.is_connected = True
+        self.logger.info(f"Metal Blockchain source connected ({self._rpc_url})")
+
+    async def disconnect(self):
+        if self.session:
+            await self.session.close()
+        self.is_connected = False
+
+    async def _rpc_call(self, method: str, params: list = None) -> Any:
+        """Make a JSON-RPC call to Metal Blockchain C-Chain."""
+        if not self.session:
+            await self.connect()
+
+        payload = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": method,
+            "params": params or [],
+        }
+
+        try:
+            async with self.session.post(self._rpc_url, json=payload) as resp:
+                resp.raise_for_status()
+                data = await resp.json()
+                if "error" in data:
+                    self.logger.error(f"RPC error: {data['error']}")
+                    return None
+                return data.get("result")
+        except Exception as e:
+            self.logger.error(f"Metal Blockchain RPC error: {e}")
+            return None
+
+    async def get_latest_block(self) -> Optional[Dict]:
+        """Get the latest block on C-Chain."""
+        return await self._rpc_call("eth_getBlockByNumber", ["latest", False])
+
+    async def get_block_number(self) -> Optional[int]:
+        """Get the current block height."""
+        result = await self._rpc_call("eth_blockNumber")
+        return int(result, 16) if result else None
+
+    async def get_balance(self, address: str) -> Optional[float]:
+        """Get METAL balance for an address (in METAL, not wei)."""
+        result = await self._rpc_call("eth_getBalance", [address, "latest"])
+        if result:
+            return int(result, 16) / 1e18
+        return None
+
+    async def get_transaction(self, tx_hash: str) -> Optional[Dict]:
+        """Get transaction details by hash."""
+        return await self._rpc_call("eth_getTransactionByHash", [tx_hash])
+
+    async def monitor_blocks(self, callback=None, poll_interval: float = 2.0):
+        """
+        Poll for new blocks and emit BlockchainEvents.
+
+        In production, this runs as a background task to feed
+        the XPR Intelligence Agent with on-chain events.
+        """
+        last_block = await self.get_block_number()
+        if last_block is None:
+            self.logger.error("Cannot get initial block number")
+            return
+
+        while self.is_connected:
+            try:
+                current = await self.get_block_number()
+                if current and current > last_block:
+                    for bn in range(last_block + 1, current + 1):
+                        block = await self._rpc_call(
+                            "eth_getBlockByNumber", [hex(bn), True]
+                        )
+                        if block:
+                            event = BlockchainEvent(
+                                chain="metal_blockchain",
+                                event_type="new_block",
+                                data={
+                                    "block_number": bn,
+                                    "tx_count": len(block.get("transactions", [])),
+                                    "timestamp": int(block.get("timestamp", "0x0"), 16),
+                                },
+                                block_number=bn,
+                                tx_hash=block.get("hash", ""),
+                                timestamp=datetime.fromtimestamp(
+                                    int(block.get("timestamp", "0x0"), 16)
+                                ),
+                            )
+                            await self._notify(event)
+                            if callback:
+                                await callback(event) if asyncio.iscoroutinefunction(callback) else callback(event)
+
+                    last_block = current
+
+                await asyncio.sleep(poll_interval)
+
+            except Exception as e:
+                self.logger.error(f"Block monitor error: {e}")
+                await asyncio.sleep(poll_interval * 2)
+
+
+# ============================================
 # DATA AGGREGATOR
 # ============================================
 
@@ -732,7 +860,12 @@ class DataAggregator:
         self.reddit = RedditClient()
         self.twitter = TwitterClient()
         self.etherscan = EtherscanClient()
-        
+        self.metal_blockchain = MetalBlockchainSource()
+
+        # Forex (Knightsbridge FX)
+        from shared.forex_data_source import ForexDataSource
+        self.forex = ForexDataSource()
+
         # Data storage
         self.latest_ticks: Dict[str, MarketTick] = {}
         self.social_mentions: List[SocialMention] = []
@@ -741,6 +874,7 @@ class DataAggregator:
         # Subscribe to updates
         self.coingecko.subscribe(self._on_tick)
         self.binance_ws.subscribe(self._on_tick)
+        self.forex.subscribe(self._on_tick)
         self.reddit.subscribe(self._on_social)
 
     async def _on_tick(self, tick: MarketTick):

@@ -62,9 +62,9 @@ class SecretsManager:
         auto_load: bool = True,
     ):
         if not CRYPTO_AVAILABLE:
-            logger.warning(
+            raise EncryptionError(
                 "cryptography library not installed. "
-                "Secrets will be stored in plaintext. "
+                "Secrets cannot be stored securely. "
                 "Install with: pip install cryptography"
             )
         
@@ -108,8 +108,9 @@ class SecretsManager:
     def _init_encryption(self, password: str):
         """Initialize Fernet encryption with password-derived key"""
         if not CRYPTO_AVAILABLE:
-            logger.warning("Encryption not available - secrets stored in plaintext")
-            return
+            raise EncryptionError(
+                "Encryption not available — install cryptography: pip install cryptography"
+            )
         
         # Use PBKDF2 to derive key from password with installation-specific salt
         salt = self._get_or_create_salt()
@@ -163,11 +164,10 @@ class SecretsManager:
                 f.write(encrypted)
             logger.info(f"Saved {len(self._secrets)} encrypted secrets")
         else:
-            # Store as base64-encoded JSON (not secure, but obfuscated)
-            encoded = base64.b64encode(data.encode())
-            with open(self.secrets_file, 'wb') as f:
-                f.write(b'PLAIN:' + encoded)
-            logger.warning(f"Saved {len(self._secrets)} secrets WITHOUT encryption")
+            raise EncryptionError(
+                "Cannot save secrets without encryption. "
+                "Provide a master_password when initializing SecretsManager."
+            )
     
     def load(self) -> bool:
         """Load secrets from file"""

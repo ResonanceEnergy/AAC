@@ -4,15 +4,11 @@ Validates command routing, message parsing, NL intent detection,
 memory storage, and response generation without making real API calls.
 """
 
-import sys
 from datetime import datetime
 from pathlib import Path
 from unittest.mock import AsyncMock, patch
 
 import pytest
-
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(PROJECT_ROOT))
 
 from integrations.barren_wuffet_telegram_bot import (
     BOT_USERNAME,

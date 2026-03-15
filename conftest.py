@@ -16,6 +16,7 @@ PACKAGE_ROOTS = [
     PROJECT_ROOT / "src",   # src/ layout: src/aac/...
     PROJECT_ROOT / "core",  # core/orchestrator, core/risk_engine, etc.
     PROJECT_ROOT / "agents",  # agent_based_trading_integration, etc.
+    PROJECT_ROOT / "scripts",  # scripts/health_check, etc.
 ]
 
 for path in PACKAGE_ROOTS:

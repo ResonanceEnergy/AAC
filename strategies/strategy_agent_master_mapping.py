@@ -66,7 +66,15 @@ STRATEGIES_DATA = [
     {"id": 46, "name": "PEAD Disaggregation", "category": "Event_Driven"},
     {"id": 47, "name": "Event Vega Calendars", "category": "Event_Driven"},
     {"id": 48, "name": "Tenor-Matched IV–RV", "category": "Volatility_Arbitrage"},
-    {"id": 49, "name": "TOM Futures-Only Overlay", "category": "Calendar_Anomaly"}
+    {"id": 49, "name": "TOM Futures-Only Overlay", "category": "Calendar_Anomaly"},
+    # Metallicus Ecosystem Strategies (Vectors 2, 3, 8)
+    {"id": 50, "name": "Metal X ↔ CEX Arbitrage", "category": "DEX_Arbitrage"},
+    {"id": 51, "name": "XMD Stablecoin Treasury", "category": "Stablecoin_Arb"},
+    {"id": 52, "name": "Metal X Yield Optimization", "category": "DeFi_Yield"},
+    # Foreign Exchange Strategy (Knightsbridge FX)
+    {"id": 53, "name": "Forex Triangular Arbitrage", "category": "FX_Arbitrage"},
+    {"id": 54, "name": "Forex Spread Dislocation", "category": "FX_Arbitrage"},
+    {"id": 55, "name": "CAD Corridor FX Optimization", "category": "FX_Arbitrage"},
 ]
 
 class AACStrategyAgentMapper:

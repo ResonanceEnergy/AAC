@@ -58,8 +58,11 @@ try:
         Trade, util,
     )
     IB_INSYNC_AVAILABLE = True
-except ImportError:
+except (ImportError, RuntimeError):
     IB_INSYNC_AVAILABLE = False
+    IB = None
+    Stock = Forex = Crypto = Future = Option = Contract = None
+    MarketOrder = LimitOrder = StopOrder = StopLimitOrder = TrailingStopOrder = None
 
 
 # Symbol mapping: AAC format -> IBKR contract

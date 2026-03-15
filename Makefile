@@ -96,6 +96,18 @@ freeze:  ## Update requirements-lock.txt
 health:  ## Run system health check
 	$(PY) scripts/health_check.py
 
+automate:  ## Full pre-flight automation (env + tests + config)
+	$(PY) automate.py
+
+automate-pipeline:  ## Full pre-flight + paper pipeline run
+	$(PY) automate.py --pipeline
+
+automate-commit:  ## Full pre-flight + git commit
+	$(PY) automate.py --commit --pipeline
+
+automate-deploy:  ## Full pre-flight + commit + push
+	$(PY) automate.py --commit --push --pipeline
+
 # ── Help ───────────────────────────────────────────────────────
 help:  ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \

@@ -1,0 +1,12 @@
+risk:
+  starting_equity: 5000.0
+
+  risk_per_trade_pct: 0.01          # 1% of equity per trade
+  max_daily_drawdown_pct: 0.04      # 4% daily drawdown limit
+  max_campaign_drawdown_pct: 0.20   # 20% campaign drawdown limit
+  max_open_positions: 2             # max concurrent positions
+  max_total_risk_pct: 0.02          # max combined risk across open trades
+
+  kill_switch:
+    consecutive_losses: 4           # trigger after N consecutive losses
+    cooldown_hours: 24              # pause duration after kill-switch
