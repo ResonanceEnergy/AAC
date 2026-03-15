@@ -6,13 +6,9 @@ Unit tests with ib_insync fully mocked — no TWS/Gateway required.
 """
 
 import pytest
-from unittest.mock import MagicMock, patch
-
-import sys
-from pathlib import Path
-
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(PROJECT_ROOT))
+from unittest.mock import MagicMock, AsyncMock, patch, PropertyMock
+from datetime import datetime
+from types import SimpleNamespace
 
 
 # ── Mock ib_insync before importing connector ──────────────────────────────────

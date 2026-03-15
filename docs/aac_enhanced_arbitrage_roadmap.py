@@ -249,7 +249,7 @@ def print_roadmap():
         api_keys = {
             'POLYGON_API_KEY': 'Polygon.io',
             'FINNHUB_API_KEY': 'Finnhub',
-            'ALPHA_VANTAGE_API_KEY': 'Alpha Vantage',
+            'ALPHAVANTAGE_API_KEY': 'Alpha Vantage',
             'COINGECKO_API_KEY': 'CoinGecko',
             'CURRENCYAPI_KEY': 'CurrencyAPI',
             'TWELVE_DATA_API_KEY': 'Twelve Data'

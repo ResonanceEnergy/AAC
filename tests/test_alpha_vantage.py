@@ -5,9 +5,11 @@ Tests the Alpha Vantage API key configuration
 """
 
 import os
+import pytest
 import requests
 from dotenv import load_dotenv
 
+@pytest.mark.api
 def test_alpha_vantage_api():
     """Test Alpha Vantage API connectivity"""
 

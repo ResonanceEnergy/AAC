@@ -7,6 +7,7 @@ import pytest
 import requests
 import json
 
+@pytest.mark.api
 @pytest.mark.slow
 @pytest.mark.timeout(30)
 def test_ecb_api():

@@ -5,13 +5,9 @@ Tests for Models A, B, C, D in the AAC Bake-Off Operating Standard
 """
 
 import asyncio
-import sys
 from pathlib import Path
 import numpy as np
 import logging
-
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(PROJECT_ROOT))
 
 from TradingExecution.execution_engine import ExecutionEngine
 

@@ -1,0 +1,18 @@
+# Trading costs (calibrate from live MT5/PU Prime observations)
+# Values are in price points (not pips)
+
+costs:
+  XAUUSD:
+    spread_points: 0.30     # typical spread in price (e.g., 30 cents on gold)
+    slippage_points: 0.20   # estimated slippage in price
+    commission_per_lot: 0.0
+
+  EURUSD:
+    spread_points: 0.00012  # ~1.2 pips expressed in price
+    slippage_points: 0.00008
+    commission_per_lot: 0.0
+
+  BTCUSD:
+    spread_points: 80.0     # typical BTC spread in USD
+    slippage_points: 50.0
+    commission_per_lot: 0.0

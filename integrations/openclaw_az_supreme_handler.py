@@ -404,11 +404,21 @@ class AZSupremeOpenClawHandler:
         )
 
     async def _handle_risk_query(self, message: OpenClawMessage) -> str:
-        """Route risk queries"""
+        """Route risk queries — pull live doctrine state when available."""
+        state = "NORMAL ✅"
+        try:
+            from aac.doctrine.doctrine_integration import DoctrineOrchestrator
+            orch = DoctrineOrchestrator()
+            if hasattr(orch, '_current_state') and orch._current_state:
+                s = orch._current_state.name if hasattr(orch._current_state, 'name') else str(orch._current_state)
+                emoji = {"NORMAL": "✅", "CAUTION": "⚠️", "SAFE_MODE": "🟠", "HALT": "🔴"}.get(s, "❓")
+                state = f"{s} {emoji}"
+        except Exception:
+            pass
         return (
             f"🛡️ **Risk Monitor** active.\n\n"
             f"**Query**: {message.content}\n"
-            f"**BARREN WUFFET State**: NORMAL ✅\n"
+            f"**BARREN WUFFET State**: {state}\n"
             f"**Doctrine Packs**: All 8 compliant\n\n"
             f"_Running comprehensive risk assessment across all departments..._"
         )
@@ -476,40 +486,87 @@ class AZSupremeOpenClawHandler:
     # ── Slash Command Handlers ───────────────────────────────────────────
 
     async def _cmd_status(self, args: str, msg: OpenClawMessage) -> str:
-        return RESPONSE_TEMPLATES["system_status"].format(
+        # Attempt to pull real data from production monitoring
+        status = self._get_live_system_status()
+        return RESPONSE_TEMPLATES["system_status"].format(**status)
+
+    def _get_live_system_status(self) -> Dict[str, Any]:
+        """Pull real metrics from AAC subsystems, fall back to safe defaults."""
+        defaults = dict(
             doctrine_state="NORMAL ✅",
             active_agents=80,
             active_strategies=50,
-            uptime="99.97% (30d)",
-            nav=125000.00,
+            uptime="N/A",
+            nav=0.0,
             pnl_sign="+",
-            pnl=2340.50,
-            pnl_pct=1.90,
-            trades_count=1247,
-            win_rate=67.3,
-            drawdown=1.23,
-            var=3200.00,
-            max_exposure=45000.00,
+            pnl=0.0,
+            pnl_pct=0.0,
+            trades_count=0,
+            win_rate=0.0,
+            drawdown=0.0,
+            var=0.0,
+            max_exposure=0.0,
         )
+        try:
+            from shared.production_monitoring import production_monitoring_system
+            monitor = production_monitoring_system
+            if monitor and hasattr(monitor, 'get_system_metrics'):
+                metrics = monitor.get_system_metrics()
+                if metrics:
+                    defaults.update({
+                        k: v for k, v in metrics.items() if k in defaults
+                    })
+        except Exception:
+            pass
+        try:
+            from aac.doctrine.doctrine_engine import BarrenWuffetState
+            from aac.doctrine.doctrine_integration import DoctrineOrchestrator
+            orch = DoctrineOrchestrator()
+            state = getattr(orch, '_current_state', None)
+            if state:
+                state_name = state.name if hasattr(state, 'name') else str(state)
+                emoji = {"NORMAL": "✅", "CAUTION": "⚠️", "SAFE_MODE": "🟠", "HALT": "🔴"}.get(state_name, "❓")
+                defaults["doctrine_state"] = f"{state_name} {emoji}"
+        except Exception:
+            pass
+        return defaults
 
     async def _cmd_briefing(self, args: str, msg: OpenClawMessage) -> str:
-        return RESPONSE_TEMPLATES["morning_briefing"].format(
+        # Attempt real market data, fall back to placeholders
+        data = self._get_briefing_data()
+        return RESPONSE_TEMPLATES["morning_briefing"].format(**data)
+
+    def _get_briefing_data(self) -> Dict[str, Any]:
+        """Collect real briefing metrics, fall back to safe placeholders."""
+        defaults = dict(
             date=datetime.now().strftime("%A, %B %d, %Y"),
             pnl_sign="+",
-            overnight_pnl=1250.00,
-            overnight_trades=342,
-            best_strategy="DEX Arbitrage",
-            best_pnl=580.00,
-            btc_price=67500.00,
-            btc_change=2.1,
-            eth_price=3420.00,
-            eth_change=-0.3,
-            gas_gwei=12,
-            funding_rate=0.0103,
+            overnight_pnl=0.0,
+            overnight_trades=0,
+            best_strategy="N/A",
+            best_pnl=0.0,
+            btc_price=0.0,
+            btc_change=0.0,
+            eth_price=0.0,
+            eth_change=0.0,
+            gas_gwei=0,
+            funding_rate=0.0,
             doctrine_state="NORMAL ✅",
-            signal_count=7,
-            risk_summary="All clear — drawdown 1.2%, VaR within limits",
+            signal_count=0,
+            risk_summary="No data",
         )
+        try:
+            from shared.production_monitoring import production_monitoring_system
+            monitor = production_monitoring_system
+            if monitor and hasattr(monitor, 'get_system_metrics'):
+                metrics = monitor.get_system_metrics()
+                if metrics:
+                    defaults.update({
+                        k: v for k, v in metrics.items() if k in defaults
+                    })
+        except Exception:
+            pass
+        return defaults
 
     async def _cmd_risk(self, args: str, msg: OpenClawMessage) -> str:
         return await self._handle_risk_query(msg)

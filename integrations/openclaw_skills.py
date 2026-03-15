@@ -33,8 +33,16 @@ Reference: https://docs.openclaw.ai/tools/skills
 
 import os
 import json
+import warnings
 from pathlib import Path
 from typing import Dict, List, Optional
+
+warnings.warn(
+    "integrations.openclaw_skills is deprecated — use "
+    "integrations.openclaw_barren_wuffet_skills instead",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 SKILLS_DIR = Path(os.path.expanduser("~/.openclaw/workspace/skills"))
 

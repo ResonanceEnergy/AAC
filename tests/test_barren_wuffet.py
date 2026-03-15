@@ -1,29 +1,27 @@
-"""Tests for AZ Prime state-machine transitions in the Doctrine orchestrator."""
+"""Tests for BARREN WUFFET State Machine transitions in the Doctrine orchestrator."""
 
-import asyncio
+import pytest
 from aac.doctrine.doctrine_integration import DoctrineOrchestrator
 
-async def test_barren_wuffet_transitions():
-    print('Testing BARREN WUFFET State Machine transitions...')
 
+@pytest.mark.asyncio
+async def test_barren_wuffet_compliance_check():
+    """DoctrineOrchestrator initializes and runs a compliance check."""
     orchestrator = DoctrineOrchestrator()
     await orchestrator.initialize()
 
-    # Test with metrics that should trigger CAUTION state
-    caution_metrics = {
-        'max_drawdown_pct': 6.0,  # Should trigger CAUTION (>5%)
-        'fill_rate': 100.0,
-        'time_to_fill_p95': 200.0,
-        'slippage_bps': 1.0,
-        'partial_fill_rate': 0.0,
-        'adverse_selection_cost': 0.5,
-        'market_impact_bps': 1.0,
-        'liquidity_available_pct': 600.0,
-    }
-
-    print('Testing CAUTION state trigger...')
     result = await orchestrator.run_compliance_check()
-    print(f'Compliance: {result["compliance_score"]}% | State: {result["barren_wuffet_state"]}')
+    assert 'compliance_score' in result
+    assert 'barren_wuffet_state' in result
+    assert 0 <= result['compliance_score'] <= 100
 
-if __name__ == "__main__":
-    asyncio.run(test_barren_wuffet_transitions())
+
+@pytest.mark.asyncio
+async def test_barren_wuffet_state_values():
+    """Verify BarrenWuffetState enum values are reachable."""
+    orchestrator = DoctrineOrchestrator()
+    await orchestrator.initialize()
+
+    result = await orchestrator.run_compliance_check()
+    valid_states = {'NORMAL', 'CAUTION', 'SAFE_MODE', 'HALT'}
+    assert result['barren_wuffet_state'] in valid_states

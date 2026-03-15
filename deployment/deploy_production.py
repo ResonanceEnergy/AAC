@@ -129,7 +129,7 @@ class AACProductionDeployer:
 
             # Required API keys based on mode
             required_keys = {
-                'ALPHA_VANTAGE_API_KEY': 'Alpha Vantage',
+                'ALPHAVANTAGE_API_KEY': 'Alpha Vantage',
                 'COINGECKO_API_KEY': 'CoinGecko',
                 'CURRENCY_API_KEY': 'CurrencyAPI',
                 'TWELVE_DATA_API_KEY': 'Twelve Data',
@@ -158,7 +158,7 @@ class AACProductionDeployer:
             self.log("🌐 Testing API connectivity...")
 
             # Test Alpha Vantage
-            alpha_key = os.getenv('ALPHA_VANTAGE_API_KEY')
+            alpha_key = os.getenv('ALPHAVANTAGE_API_KEY')
             if alpha_key:
                 try:
                     response = requests.get(

@@ -11,10 +11,8 @@ from unittest.mock import patch
 import pytest
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(PROJECT_ROOT))
-sys.path.insert(0, str(PROJECT_ROOT / "scripts"))
 
-import scripts.health_check as hc  # noqa: E402 — path setup above
+import scripts.health_check as hc
 
 
 class TestPythonVersion:

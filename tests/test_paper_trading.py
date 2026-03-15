@@ -6,13 +6,9 @@ Comprehensive testing for the paper trading environment.
 """
 
 import asyncio
-import sys
 import time
 from pathlib import Path
 from typing import List, Dict, Any
-
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(PROJECT_ROOT))
 
 from shared.paper_trading import (
     paper_trading_engine,

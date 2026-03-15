@@ -9,13 +9,9 @@ Run with: python -m pytest tests/integration_test.py -v -s
 
 import asyncio
 import pytest
-import sys
 import os
 from datetime import datetime
 from pathlib import Path
-
-# Add project root to path
-sys.path.insert(0, str(Path(__file__).parent.parent))
 
 
 class TestFullSystemIntegration:

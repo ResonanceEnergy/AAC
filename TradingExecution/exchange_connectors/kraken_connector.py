@@ -226,6 +226,28 @@ class KrakenConnector(BaseExchangeConnector):
         if not self._check_credentials():
             raise AuthenticationError("API credentials required for trading")
         
+        # Paper trading intercept — return simulated fill
+        if self.paper_trading:
+            import uuid
+            paper_id = f"PAPER_{uuid.uuid4().hex[:8]}"
+            fill_price = price if price else 0.0
+            self.logger.info(
+                f"[PAPER] Simulated {side} {order_type} {quantity} {symbol} @ {fill_price}"
+            )
+            return ExchangeOrder(
+                order_id=paper_id,
+                symbol=symbol,
+                side=side,
+                order_type=order_type,
+                quantity=quantity,
+                price=fill_price,
+                status='filled',
+                filled_quantity=quantity,
+                average_price=fill_price,
+                fee=0.0,
+                timestamp=datetime.now(),
+            )
+        
         await self._rate_limit_wait()
         
         try:

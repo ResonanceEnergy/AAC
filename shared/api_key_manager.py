@@ -18,10 +18,20 @@ from enum import Enum
 from pathlib import Path
 import sys
 import secrets
-import keyring
-from cryptography.fernet import Fernet
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+
+try:
+    import keyring
+except ImportError:
+    keyring = None
+
+try:
+    from cryptography.fernet import Fernet
+    from cryptography.hazmat.primitives import hashes
+    from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+    CRYPTO_AVAILABLE = True
+except ImportError:
+    Fernet = None
+    CRYPTO_AVAILABLE = False
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
@@ -83,15 +93,17 @@ class APIKeyManager:
         self.logger = logging.getLogger("APIKeyManager")
         self.audit_logger = get_audit_logger()
         self.keys: Dict[str, APIKey] = {}
+        self.key_store_path = PROJECT_ROOT / "config" / "api_keys.enc"
+        self._initialized = False
+
+        if not CRYPTO_AVAILABLE:
+            self.logger.warning("cryptography not installed — APIKeyManager disabled")
+            self.encryption_key = None
+            self.fernet = None
+            return
+
         self.encryption_key = self._get_or_create_encryption_key()
         self.fernet = Fernet(self.encryption_key)
-        self.key_store_path = PROJECT_ROOT / "config" / "api_keys.enc"
-
-        # Load existing keys (deferred to avoid requiring a running event loop at import time)
-        try:
-            asyncio.create_task(self._load_keys())
-        except RuntimeError:
-            pass  # No event loop; keys will be loaded on first use
 
     def _get_or_create_encryption_key(self) -> bytes:
         """Get or create encryption key for API keys"""
@@ -442,7 +454,7 @@ class APIKeyManager:
         env_mappings = {
             "binance": ["BINANCE_API_KEY", "BINANCE_API_SECRET"],
             "coinbase_pro": ["COINBASE_API_KEY", "COINBASE_API_SECRET", "COINBASE_PASSPHRASE"],
-            "alpha_vantage": ["ALPHA_VANTAGE_API_KEY"],
+            "alpha_vantage": ["ALPHAVANTAGE_API_KEY"],
             "polygon": ["POLYGON_API_KEY"],
             "finnhub": ["FINNHUB_API_KEY"],
             "iex_cloud": ["IEX_CLOUD_API_KEY"],
@@ -471,17 +483,26 @@ class APIKeyManager:
         return imported_count
 
 
-# Global API key manager instance
-api_key_manager = APIKeyManager()
+# Lazy singleton — only instantiated on first call to get_api_key_manager()
+_api_key_manager: Optional["APIKeyManager"] = None
+
+
+def get_api_key_manager() -> "APIKeyManager":
+    """Get or create the global APIKeyManager singleton."""
+    global _api_key_manager
+    if _api_key_manager is None:
+        _api_key_manager = APIKeyManager()
+    return _api_key_manager
 
 
 async def initialize_api_key_system():
     """Initialize the API key management system"""
-    await api_key_manager._load_keys()
-    await api_key_manager.cleanup_expired_keys()
+    mgr = get_api_key_manager()
+    await mgr._load_keys()
+    await mgr.cleanup_expired_keys()
 
     # Import keys from environment if available
-    imported = await api_key_manager.import_from_environment()
+    imported = await mgr.import_from_environment()
     if imported > 0:
         print(f"[OK] Imported {imported} API keys from environment")
 

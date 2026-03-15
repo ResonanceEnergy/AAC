@@ -195,6 +195,10 @@ class RiskConfig:
     max_open_positions: int = 10
     dry_run: bool = True
     paper_trading: bool = True
+    live_trading_confirmation: str = ''  # Must be "YES_I_UNDERSTAND" to go live
+    # Per-strategy allocation limits (percentage of total capital, 0-100)
+    strategy_max_allocation_pct: float = 25.0  # No single strategy gets >25%
+    max_daily_trades: int = 100  # Circuit-breaker on runaway strategies
 
 
 @dataclass 
@@ -210,13 +214,7 @@ class Config:
             'news_api_key', 'twitter_bearer', 'reddit_client_secret',
             'kyc_provider_key', 'telegram_token', 'slack_webhook',
             'discord_webhook', 'smtp_password',
-            'polygon_key', 'finnhub_key', 'twelve_data_key',
-            'iex_cloud_key', 'intrinio_key', 'eodhd_key', 'fred_key',
-            'etherscan_key', 'tradestie_key', 'wallstreetodds_key',
-            'openai_key', 'anthropic_key', 'google_ai_key', 'xai_key',
-            'polymarket_private_key',
-            'moomoo_trade_password',
-            'ndax_api_key', 'ndax_api_secret',
+            'openclaw_gateway_token', 'clawhub_api_key', 'aac_api_key',
         }),
 
         repr=False,
@@ -235,7 +233,45 @@ class Config:
     ibkr: IBKRConfig = field(default_factory=IBKRConfig)
     moomoo: MoomooConfig = field(default_factory=MoomooConfig)
     ndax: ExchangeConfig = field(default_factory=ExchangeConfig)
+    moomoo: ExchangeConfig = field(default_factory=ExchangeConfig)
+    metalx: ExchangeConfig = field(default_factory=ExchangeConfig)
     
+    # IBKR-specific
+    ibkr_host: str = '127.0.0.1'
+    ibkr_port: int = 7497
+    ibkr_client_id: int = 1
+    ibkr_account: str = ''
+    
+    # NDAX-specific
+    ndax_user_id: str = ''
+    ndax_account_id: str = ''
+    
+    # Moomoo-specific
+    moomoo_paper: bool = True
+    
+    # MT5 / Noxi Rise
+    mt5_path: str = ''
+    mt5_login: int = 0
+    mt5_password: str = field(default='', repr=False)
+    mt5_server: str = 'NoxiRise-Live'
+    
+    # Metal X / Metallicus
+    metalx_account_name: str = ''
+    metalx_private_key: str = field(default='', repr=False)
+    metal_blockchain_rpc_url: str = ''
+    xpr_rpc_url: str = ''
+    xpr_account_name: str = ''
+    xpr_private_key: str = field(default='', repr=False)
+    metalpay_api_key: str = field(default='', repr=False)
+    metalpay_api_secret: str = field(default='', repr=False)
+    webauth_app_id: str = 'aac_trading'
+    webauth_callback_url: str = ''
+    
+    # Foreign Exchange (Knightsbridge FX)
+    fx_api_key: str = field(default='', repr=False)
+    fx_spread_bps: float = 50.0
+    fx_poll_interval: int = 60
+
     # Web3
     eth_private_key: str = field(default='', repr=False)
     eth_rpc_url: str = ''
@@ -312,6 +348,14 @@ class Config:
     dashboard_url: str = 'http://localhost:3000'
     dashboard_secret: str = field(default='', repr=False)
     
+    # OpenClaw / ClawHub
+    openclaw_skills_dir: str = ''
+    openclaw_gateway_url: str = 'ws://127.0.0.1:18789'
+    openclaw_gateway_token: str = field(default='', repr=False)
+    openclaw_daily_spend_limit: float = 10.0
+    clawhub_api_key: str = field(default='', repr=False)
+    aac_api_key: str = field(default='', repr=False)
+    
     @classmethod
     def from_env(cls) -> 'Config':
         """Load configuration from environment variables"""
@@ -374,6 +418,45 @@ class Config:
                 testnet=get_env_bool('NDAX_TESTNET', True),
                 enabled=bool(get_env('NDAX_API_KEY')),
             ),
+            ndax_user_id=get_env('NDAX_USER_ID'),
+            ndax_account_id=get_env('NDAX_ACCOUNT_ID'),
+            
+            # Moomoo
+            moomoo=ExchangeConfig(
+                api_key=get_env('MOOMOO_API_KEY'),
+                api_secret=get_env('MOOMOO_API_SECRET'),
+                testnet=get_env_bool('MOOMOO_PAPER', True),
+                enabled=bool(get_env('MOOMOO_API_KEY')),
+            ),
+            moomoo_paper=get_env_bool('MOOMOO_PAPER', True),
+            
+            # Metal X
+            metalx=ExchangeConfig(
+                api_key=get_env('METALX_ACCOUNT_NAME'),
+                api_secret=get_env('METALX_PRIVATE_KEY'),
+                enabled=bool(get_env('METALX_ACCOUNT_NAME')),
+            ),
+            metalx_account_name=get_env('METALX_ACCOUNT_NAME'),
+            metalx_private_key=get_env('METALX_PRIVATE_KEY'),
+            metal_blockchain_rpc_url=get_env('METAL_BLOCKCHAIN_RPC_URL', ''),
+            xpr_rpc_url=get_env('XPR_RPC_URL', ''),
+            xpr_account_name=get_env('XPR_ACCOUNT_NAME'),
+            xpr_private_key=get_env('XPR_PRIVATE_KEY'),
+            metalpay_api_key=get_env('METALPAY_API_KEY'),
+            metalpay_api_secret=get_env('METALPAY_API_SECRET'),
+            webauth_app_id=get_env('WEBAUTH_APP_ID', 'aac_trading'),
+            webauth_callback_url=get_env('WEBAUTH_CALLBACK_URL'),
+            
+            # Foreign Exchange (Knightsbridge FX)
+            fx_api_key=get_env('FX_API_KEY'),
+            fx_spread_bps=get_env_float('FX_SPREAD_BPS', 50.0),
+            fx_poll_interval=get_env_int('FX_POLL_INTERVAL', 60),
+
+            # MT5 / Noxi Rise
+            mt5_path=get_env('MT5_PATH'),
+            mt5_login=get_env_int('MT5_LOGIN', 0),
+            mt5_password=get_env('MT5_PASSWORD'),
+            mt5_server=get_env('MT5_SERVER', 'NoxiRise-Live'),
             
             # Web3
             eth_private_key=get_env('ETH_PRIVATE_KEY'),
@@ -416,6 +499,9 @@ class Config:
                 max_open_positions=get_env_int('MAX_OPEN_POSITIONS', 10),
                 dry_run=get_env_bool('DRY_RUN', True),
                 paper_trading=get_env_bool('PAPER_TRADING', True),
+                live_trading_confirmation=get_env('LIVE_TRADING_CONFIRMATION', ''),
+                strategy_max_allocation_pct=get_env_float('STRATEGY_MAX_ALLOCATION_PCT', 25.0),
+                max_daily_trades=get_env_int('MAX_DAILY_TRADES', 100),
             ),
             
             # External APIs
@@ -468,6 +554,14 @@ class Config:
             # Dashboard
             dashboard_url=get_env('DASHBOARD_URL', 'http://localhost:3000'),
             dashboard_secret=get_env('DASHBOARD_SECRET_KEY'),
+            
+            # OpenClaw / ClawHub
+            openclaw_skills_dir=get_env('OPENCLAW_SKILLS_DIR'),
+            openclaw_gateway_url=get_env('OPENCLAW_GATEWAY_URL', 'ws://127.0.0.1:18789'),
+            openclaw_gateway_token=get_env('OPENCLAW_GATEWAY_TOKEN'),
+            openclaw_daily_spend_limit=get_env_float('OPENCLAW_DAILY_SPEND_LIMIT', 10.0),
+            clawhub_api_key=get_env('CLAWHUB_API_KEY'),
+            aac_api_key=get_env('AAC_API_KEY'),
         )
 
         # Post-load validation for risk config
@@ -493,8 +587,8 @@ class Config:
             exchanges['ibkr'] = self.ibkr
         if self.moomoo.is_configured():
             exchanges['moomoo'] = self.moomoo
-        if self.ndax.is_configured():
-            exchanges['ndax'] = self.ndax
+        if self.metalx.is_configured():
+            exchanges['metalx'] = self.metalx
         return exchanges
     
     def validate(self) -> Dict[str, Any]:
@@ -502,9 +596,17 @@ class Config:
         issues = []
         warnings = []
         
-        # Check exchanges
-        if not self.get_enabled_exchanges():
-            warnings.append("No exchange API keys configured - trading disabled")
+        enabled = self.get_enabled_exchanges()
+        paper = getattr(self, 'paper_trading', False) or self.risk.dry_run
+        
+        # Critical: no exchanges AND not paper trading = system does nothing
+        if not enabled and not paper:
+            issues.append(
+                "No exchange API keys configured and PAPER_TRADING/DRY_RUN not enabled. "
+                "Set at least one exchange API key or DRY_RUN=true in .env"
+            )
+        elif not enabled:
+            warnings.append("No exchange API keys configured - running in paper/dry-run mode only")
         
         # Check database
         if not self.database.url:
@@ -514,17 +616,37 @@ class Config:
         if self.risk.dry_run:
             warnings.append("DRY_RUN=true - no real trades will execute")
         
+        # Live trading safety guard
+        if not paper and not self.risk.dry_run:
+            if self.risk.live_trading_confirmation != 'YES_I_UNDERSTAND':
+                issues.append(
+                    "Live trading requires LIVE_TRADING_CONFIRMATION=YES_I_UNDERSTAND in .env. "
+                    "This confirms you accept the risk of real money trading."
+                )
+        
         # Check notifications
         if not (self.notifications.telegram_enabled() or 
                 self.notifications.slack_enabled() or 
                 self.notifications.email_enabled()):
             warnings.append("No notification channels configured")
         
+        # Check market data sources
+        has_market_data = any([
+            self.coingecko_key,
+            self.alphavantage_key,
+            self.finnhub_key,
+        ])
+        if not has_market_data:
+            warnings.append(
+                "No market data API keys configured (COINGECKO_API_KEY, ALPHAVANTAGE_API_KEY, FINNHUB_API_KEY). "
+                "Market data feeds will be limited"
+            )
+        
         return {
             'valid': len(issues) == 0,
             'issues': issues,
             'warnings': warnings,
-            'exchanges_configured': list(self.get_enabled_exchanges().keys()),
+            'exchanges_configured': list(enabled.keys()),
             'environment': self.environment,
             'dry_run': self.risk.dry_run,
         }
@@ -781,6 +903,41 @@ def validate_config(config: Optional['Config'] = None, strict: bool = False) -> 
         config = get_config()
     
     return ConfigSchema.validate(config, strict=strict)
+
+
+def validate_startup_requirements(config: Optional['Config'] = None) -> bool:
+    """
+    Run startup validation and log results.
+    
+    Returns True if config is valid for operation, False if fatal issues found.
+    Logs warnings for non-fatal issues.
+    """
+    if config is None:
+        config = get_config()
+    
+    result = config.validate()
+    
+    for warning in result.get('warnings', []):
+        logger.warning(f"[CONFIG] {warning}")
+    
+    for issue in result.get('issues', []):
+        logger.error(f"[CONFIG] {issue}")
+    
+    if result['valid']:
+        exchanges = result.get('exchanges_configured', [])
+        logger.info(
+            f"[CONFIG] Startup validation passed. "
+            f"Environment={result['environment']}, "
+            f"Exchanges={exchanges or 'none (paper mode)'}, "
+            f"DryRun={result['dry_run']}"
+        )
+    else:
+        logger.error(
+            f"[CONFIG] Startup validation FAILED with {len(result['issues'])} issue(s). "
+            f"Fix .env configuration before launching."
+        )
+    
+    return result['valid']
 
 
 # Global config instance - lazy loaded

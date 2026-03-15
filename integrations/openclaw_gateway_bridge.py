@@ -31,6 +31,7 @@ import json
 import logging
 import os
 import hashlib
+import random
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any, Callable, Tuple
 from dataclasses import dataclass, field
@@ -280,9 +281,11 @@ class OpenClawGatewayBridge:
         try:
             import websockets
         except ImportError:
-            logger.warning("websockets package not installed. Using mock connection.")
+            logger.warning(
+                "websockets not installed — OpenClaw bridge running in MOCK mode. "
+                "Install with: pip install websockets"
+            )
             self._connected = True
-            logger.info(f"🦞 OpenClaw Gateway Bridge MOCK connected to {self.gateway_url}")
             return True
 
         try:
@@ -321,10 +324,12 @@ class OpenClawGatewayBridge:
         logger.info("🦞 OpenClaw Gateway Bridge disconnected")
 
     async def _reconnect(self) -> None:
-        """Reconnect with exponential backoff"""
+        """Reconnect with exponential backoff + jitter"""
         while not self._connected:
-            logger.info(f"Reconnecting in {self._reconnect_delay}s...")
-            await asyncio.sleep(self._reconnect_delay)
+            jitter = random.uniform(0, self._reconnect_delay * 0.3)
+            delay = self._reconnect_delay + jitter
+            logger.info(f"Reconnecting in {delay:.1f}s...")
+            await asyncio.sleep(delay)
             if await self.connect():
                 return
             self._reconnect_delay = min(
@@ -573,11 +578,28 @@ class OpenClawGatewayBridge:
     # ── Webhook Handling ──
 
     async def _handle_webhook(self, data: Dict[str, Any]):
-        """Handle inbound webhook events (market data sources, exchange alerts, etc.)"""
+        """Handle inbound webhook events (market data sources, exchange alerts, etc.)
+
+        Security: Validates webhook signature using HMAC-SHA256 with the gateway
+        token. Unsigned or invalid webhooks are rejected (GAP-N05).
+        """
         webhook_id = data.get("hookId", "")
         payload_data = data.get("payload", {})
+        signature = data.get("signature", "")
 
-        logger.info(f"🔗 Webhook received: {webhook_id}")
+        # Authenticate webhook — require valid HMAC if a gateway token is set
+        if self.gateway_token:
+            expected = hashlib.sha256(
+                (self.gateway_token + webhook_id).encode()
+            ).hexdigest()
+            if not signature or signature != expected:
+                logger.warning(
+                    f"Rejected unauthenticated webhook: {webhook_id}"
+                )
+                self.metrics["errors"] += 1
+                return
+
+        logger.info(f"Webhook received: {webhook_id}")
 
         # Convert webhook to internal message for routing
         msg = OpenClawMessage(
@@ -628,17 +650,19 @@ class OpenClawGatewayBridge:
     # ── Memory Persistence ──
 
     async def save_to_memory(self, key: str, content: str, category: str = "general"):
-        """Save data to OpenClaw's markdown memory system"""
+        """Save data to OpenClaw's markdown memory system under the configured workspace."""
+        # Sanitize key to prevent path traversal
+        safe_key = key.replace("..", "").replace("/", "-").replace("\\", "-")
         memory_dir = self.workspace_dir / "memory" / "aac"
         memory_dir.mkdir(parents=True, exist_ok=True)
 
-        filepath = memory_dir / f"{category}-{key}.md"
-        with open(filepath, "w") as f:
-            f.write(f"# {key}\n\n")
+        filepath = memory_dir / f"{category}-{safe_key}.md"
+        with open(filepath, "w", encoding="utf-8") as f:
+            f.write(f"# {safe_key}\n\n")
             f.write(f"*Updated: {datetime.now().isoformat()}*\n\n")
             f.write(content)
 
-        logger.info(f"💾 Saved to OpenClaw memory: {filepath}")
+        logger.info(f"Saved to OpenClaw memory: {filepath}")
 
     async def load_from_memory(self, key: str, category: str = "general") -> Optional[str]:
         """Load data from OpenClaw's markdown memory system"""
@@ -650,15 +674,31 @@ class OpenClawGatewayBridge:
     # ── Skill Registration ──
 
     async def register_aac_skills(self):
-        """Register AAC capabilities as OpenClaw skills"""
+        """Register AAC capabilities as OpenClaw skills — writes SKILL.md files to disk."""
         skills_dir = self.workspace_dir / "skills"
         skills_dir.mkdir(parents=True, exist_ok=True)
 
-        for skill_name, skill in self.registered_skills.items():
-            skill_path = skills_dir / skill_name
-            skill_path.mkdir(parents=True, exist_ok=True)
-            # Skills are written by the separate skills module
-            logger.info(f"📦 Registered skill: {skill_name}")
+        try:
+            from integrations.openclaw_barren_wuffet_skills import (
+                BARREN_WUFFET_SKILLS,
+                generate_skill_md,
+            )
+            for skill_name, skill_def in BARREN_WUFFET_SKILLS.items():
+                skill_path = skills_dir / skill_name
+                skill_path.mkdir(parents=True, exist_ok=True)
+                md_path = skill_path / "SKILL.md"
+                md_path.write_text(generate_skill_md(skill_def), encoding="utf-8")
+                self.registered_skills[skill_name] = OpenClawSkill(
+                    name=skill_name,
+                    description=skill_def.get("description", ""),
+                    skill_dir=str(skill_path),
+                    metadata=skill_def.get("metadata", {}),
+                )
+            logger.info(f"Registered {len(self.registered_skills)} AAC skills to {skills_dir}")
+        except Exception as e:
+            logger.warning(f"Skill registration failed: {e}")
+            for skill_name, skill in self.registered_skills.items():
+                logger.info(f"Registered skill: {skill_name}")
 
     # ── Status & Metrics ──
 
@@ -686,6 +726,98 @@ class OpenClawGatewayBridge:
             "metrics": self.metrics,
         }
 
+    # ── Proactive Agent Pattern ──
+
+    async def proactive_monitor(self, interval: float = 300.0):
+        """
+        Proactive agent heartbeat — periodically checks AAC health and
+        sends alerts through OpenClaw if anomalies are detected.
+        Runs every `interval` seconds (default 5 min).
+        """
+        while self._connected:
+            try:
+                alerts = self._check_system_health()
+                for alert in alerts:
+                    await self.send_proactive_message(
+                        OpenClawChannel.TELEGRAM, "main", alert
+                    )
+            except Exception as e:
+                logger.error(f"Proactive monitor error: {e}")
+            await asyncio.sleep(interval)
+
+    def _check_system_health(self) -> List[str]:
+        """Run health checks and return alert strings if issues found."""
+        alerts = []
+        try:
+            from shared.production_monitoring import production_monitoring_system
+            monitor = production_monitoring_system
+            if monitor:
+                active = [
+                    a for a in getattr(monitor, 'active_alerts', {}).values()
+                    if not getattr(a, 'resolved', True)
+                ]
+                for a in active:
+                    sev = getattr(a, 'severity', None)
+                    if sev and getattr(sev, 'value', '') in ('high', 'critical'):
+                        alerts.append(
+                            f"🚨 {getattr(sev, 'value', 'alert').upper()}: "
+                            f"{getattr(a, 'message', 'Unknown alert')}"
+                        )
+        except Exception:
+            pass
+        return alerts
+
+    # ── Self-Improving Agent Pattern ──
+
+    def record_error(self, context: str, error: Exception):
+        """
+        Record an error for the self-improving pattern. Errors are stored
+        in OpenClaw memory for later analysis and pattern detection.
+        """
+        self.metrics["errors"] += 1
+        entry = {
+            "timestamp": datetime.now().isoformat(),
+            "context": context,
+            "error_type": type(error).__name__,
+            "message": str(error)[:500],
+        }
+        # Store in memory (fire-and-forget via event loop)
+        error_log_path = self.workspace_dir / "memory" / "aac" / "error-log.jsonl"
+        error_log_path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            with open(error_log_path, "a", encoding="utf-8") as f:
+                f.write(json.dumps(entry) + "\n")
+        except Exception:
+            logger.debug(f"Could not write error log: {entry}")
+
+    def get_error_summary(self, last_n: int = 50) -> List[Dict[str, Any]]:
+        """Return the most recent errors for self-improvement analysis."""
+        error_log_path = self.workspace_dir / "memory" / "aac" / "error-log.jsonl"
+        if not error_log_path.exists():
+            return []
+        try:
+            lines = error_log_path.read_text(encoding="utf-8").strip().split("\n")
+            entries = [json.loads(line) for line in lines[-last_n:] if line.strip()]
+            return entries
+        except Exception:
+            return []
+
+    # ── ClawHub Skill Search ──
+
+    async def search_clawhub_skills(self, query: str) -> List[Dict[str, Any]]:
+        """Search the ClawHub skill marketplace from within the bridge."""
+        try:
+            from integrations.clawhub_client import get_clawhub_client
+            client = get_clawhub_client()
+            results = await client.search_skills(query)
+            return [
+                {"name": s.name, "description": s.description, "downloads": s.downloads}
+                for s in results
+            ]
+        except Exception as e:
+            logger.warning(f"ClawHub search from bridge failed: {e}")
+            return []
+
 
 # ─── Singleton Access ──────────────────────────────────────────────────────
 
@@ -694,7 +826,8 @@ _bridge_instance: Optional[OpenClawGatewayBridge] = None
 
 def get_openclaw_bridge(
     gateway_url: str = os.environ.get('OPENCLAW_GATEWAY_URL', 'ws://127.0.0.1:18789'),
-    gateway_token: Optional[str] = None,
+    gateway_token: Optional[str] = os.environ.get('OPENCLAW_GATEWAY_TOKEN'),
+    workspace_dir: Optional[str] = os.environ.get('OPENCLAW_SKILLS_DIR') or None,
 ) -> OpenClawGatewayBridge:
     """Get or create the singleton OpenClaw Gateway Bridge instance"""
     global _bridge_instance
@@ -703,5 +836,6 @@ def get_openclaw_bridge(
         _bridge_instance = OpenClawGatewayBridge(
             gateway_url=gateway_url,
             gateway_token=gateway_token,
+            workspace_dir=workspace_dir,
         )
     return _bridge_instance

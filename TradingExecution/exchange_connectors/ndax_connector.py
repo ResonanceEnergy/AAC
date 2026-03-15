@@ -31,6 +31,16 @@ sys.path.insert(0, str(PROJECT_ROOT))
 from shared.config_loader import get_config, get_env, get_env_bool
 from shared.utils import with_circuit_breaker, CircuitOpenError
 
+try:
+    from shared.utils import with_circuit_breaker, CircuitOpenError
+except ImportError:
+    def with_circuit_breaker(*args, **kwargs):
+        def decorator(func):
+            return func
+        return decorator
+    class CircuitOpenError(Exception):
+        pass
+
 from .base_connector import (
     BaseExchangeConnector,
     Ticker,
@@ -163,7 +173,6 @@ class NDAXConnector(BaseExchangeConnector):
 
     @with_circuit_breaker("ndax_ticker", failure_threshold=5, timeout=30.0)
     async def _get_ticker_with_breaker(self, symbol: str) -> Ticker:
-        """Get ticker with circuit breaker."""
         try:
             ticker = await self._client.fetch_ticker(symbol)
             return Ticker(
@@ -189,7 +198,6 @@ class NDAXConnector(BaseExchangeConnector):
 
     @with_circuit_breaker("ndax_orderbook", failure_threshold=5, timeout=30.0)
     async def _get_orderbook_with_breaker(self, symbol: str, limit: int = 20) -> OrderBook:
-        """Get order book with circuit breaker."""
         try:
             book = await self._client.fetch_order_book(symbol, limit)
             return OrderBook(
@@ -254,6 +262,21 @@ class NDAXConnector(BaseExchangeConnector):
             raise AuthenticationError("API credentials required for trading")
 
         await self._rate_limit_wait()
+        return await self._create_order_with_breaker(
+            symbol, side, order_type, quantity, price, client_order_id
+        )
+
+    @with_circuit_breaker("ndax_order", failure_threshold=3, timeout=60.0)
+    async def _create_order_with_breaker(
+        self,
+        symbol: str,
+        side: str,
+        order_type: str,
+        quantity: float,
+        price: Optional[float] = None,
+        client_order_id: Optional[str] = None,
+    ) -> ExchangeOrder:
+        import time
         start_time = time.time()
 
         try:

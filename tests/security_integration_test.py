@@ -7,11 +7,7 @@ Comprehensive testing of all security components for production readiness.
 
 import asyncio
 import os
-import sys
 from pathlib import Path
-
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(PROJECT_ROOT))
 
 from shared.security_framework import (
     mfa, advanced_encryption, rbac, api_security, security_monitoring,

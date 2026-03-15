@@ -5,6 +5,7 @@ Central Accounting Database Schema and Migrations
 SQLite database schema for transactions, positions, and P&L tracking.
 """
 
+import asyncio
 import sqlite3
 import logging
 import threading
@@ -411,61 +412,79 @@ class AccountingDatabase:
 
     async def execute_async(self, query: str, params: Optional[tuple] = None):
         """
-        Execute a query asynchronously (wraps sync execution).
-        For use with async execution engine.
-        
-        Note: We call the sync method directly on the event loop thread
-        rather than using run_in_executor, because SQLite connections
-        cannot safely cross thread boundaries.
+        Execute a query asynchronously using a thread-safe pattern.
+        Creates a fresh SQLite connection inside the executor thread
+        so no connection crosses thread boundaries.
         """
-        return self._execute_sync(query, params)
+        return await asyncio.to_thread(self._execute_sync, query, params)
 
     def _execute_sync(self, query: str, params: Optional[tuple] = None):
-        """Synchronous query execution"""
-        conn = self.connect()
-        cursor = conn.cursor()
-        if params:
-            cursor.execute(query, params)
-        else:
-            cursor.execute(query)
-        conn.commit()
-        return cursor.lastrowid
+        """Synchronous query execution (thread-safe: opens own connection)"""
+        conn = sqlite3.connect(
+            self.db_path,
+            detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES,
+        )
+        conn.row_factory = sqlite3.Row
+        try:
+            cursor = conn.cursor()
+            if params:
+                cursor.execute(query, params)
+            else:
+                cursor.execute(query)
+            conn.commit()
+            return cursor.lastrowid
+        finally:
+            conn.close()
 
     async def fetch_all_async(self, query: str, params: Optional[tuple] = None) -> List[Dict]:
         """
-        Fetch all results asynchronously.
-        Returns list of dicts.
+        Fetch all results asynchronously using a thread-safe pattern.
+        Creates a fresh SQLite connection inside the executor thread
+        so no connection crosses thread boundaries.
         """
-        return self._fetch_all_sync(query, params)
+        return await asyncio.to_thread(self._fetch_all_sync, query, params)
 
     def _fetch_all_sync(self, query: str, params: Optional[tuple] = None) -> List[Dict]:
-        """Synchronous fetch all"""
-        conn = self.connect()
-        cursor = conn.cursor()
-        if params:
-            cursor.execute(query, params)
-        else:
-            cursor.execute(query)
-        rows = cursor.fetchall()
-        return [dict(row) for row in rows]
+        """Synchronous fetch all (thread-safe: opens own connection)"""
+        conn = sqlite3.connect(
+            self.db_path,
+            detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES,
+        )
+        conn.row_factory = sqlite3.Row
+        try:
+            cursor = conn.cursor()
+            if params:
+                cursor.execute(query, params)
+            else:
+                cursor.execute(query)
+            rows = cursor.fetchall()
+            return [dict(row) for row in rows]
+        finally:
+            conn.close()
 
     async def fetch_one_async(self, query: str, params: Optional[tuple] = None) -> Optional[Dict]:
         """
-        Fetch one result asynchronously.
-        Returns dict or None.
+        Fetch one result asynchronously using a thread-safe pattern.
         """
-        return self._fetch_one_sync(query, params)
+        return await asyncio.to_thread(self._fetch_one_sync, query, params)
 
     def _fetch_one_sync(self, query: str, params: Optional[tuple] = None) -> Optional[Dict]:
-        """Synchronous fetch one"""
-        conn = self.connect()
-        cursor = conn.cursor()
-        if params:
-            cursor.execute(query, params)
-        else:
-            cursor.execute(query)
-        row = cursor.fetchone()
-        return dict(row) if row else None
+        """Synchronous fetch one (thread-safe: opens own connection)"""
+        conn = sqlite3.connect(
+            self.db_path,
+            detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES,
+        )
+        conn.row_factory = sqlite3.Row
+        try:
+            cursor = conn.cursor()
+            if params:
+                cursor.execute(query, params)
+            else:
+                cursor.execute(query)
+            row = cursor.fetchone()
+            return dict(row) if row else None
+        finally:
+            conn.close()
 
     def initialize(self) -> bool:
         """

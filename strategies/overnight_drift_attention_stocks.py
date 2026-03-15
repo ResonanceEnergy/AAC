@@ -81,15 +81,18 @@ class OvernightDriftAttentionStocksStrategy(BaseArbitrageStrategy):
             if symbol in self.attention_universe:
                 self.attention_scores[symbol] = data.get('attention_score', 0)
         elif data_type == 'social_sentiment':
-            # Update attention based on sentiment
-            pass
+            symbol = data.get('symbol')
+            if symbol and symbol in self.attention_scores:
+                sentiment_score = data.get('sentiment_score', 0)
+                self.attention_scores[symbol] = (
+                    0.7 * self.attention_scores[symbol] + 0.3 * sentiment_score
+                )
         elif data_type in ['equity_price', 'equity_volume']:
             symbol = data.get('symbol')
             if symbol:
                 self.market_data[symbol] = data
         elif data_type == 'market_schedule':
-            # Handle market schedule
-            pass
+            self.market_schedule = data
 
     async def _handle_attention_data(self, data: Dict[str, Any]):
         """Handle incoming attention metrics data."""

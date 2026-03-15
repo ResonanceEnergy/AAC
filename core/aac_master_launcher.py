@@ -34,6 +34,9 @@ from dataclasses import dataclass, field
 # Add project root to path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
+# Ensure logs dir exists before FileHandler
+(PROJECT_ROOT / 'logs').mkdir(exist_ok=True)
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,

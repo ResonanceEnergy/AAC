@@ -2,7 +2,8 @@
 """
 Coinbase Exchange Connector
 ===========================
-Implementation of the exchange connector for Coinbase Pro.
+Implementation of the exchange connector for Coinbase (Advanced Trade API).
+Note: Updated from deprecated coinbasepro to coinbase exchange ID.
 """
 
 import asyncio
@@ -43,9 +44,9 @@ except ImportError:
 
 class CoinbaseConnector(BaseExchangeConnector):
     """
-    Coinbase Pro exchange connector using ccxt library.
+    Coinbase exchange connector using ccxt library (Advanced Trade API).
     
-    Note: Requires API key, secret, AND passphrase.
+    Note: Requires API key and secret. Passphrase is optional (legacy compat).
     """
 
     @property
@@ -97,9 +98,9 @@ class CoinbaseConnector(BaseExchangeConnector):
                 options['sandbox'] = True
                 self.logger.info("Connecting to Coinbase SANDBOX")
             else:
-                self.logger.info("Connecting to Coinbase Pro")
+                self.logger.info("Connecting to Coinbase Advanced Trade")
             
-            self._client = ccxt_async.coinbasepro(options)
+            self._client = ccxt_async.coinbase(options)
             
             # Test connection
             await self._client.load_markets()
@@ -220,6 +221,9 @@ class CoinbaseConnector(BaseExchangeConnector):
         
         await self._rate_limit_wait()
         
+        import time
+        start_time = time.time()
+        
         try:
             params = {}
             if client_order_id:
@@ -234,14 +238,28 @@ class CoinbaseConnector(BaseExchangeConnector):
                 params=params,
             )
             
-            return self._parse_order(order)
+            result = self._parse_order(order)
+            
+            # Audit successful order
+            duration_ms = (time.time() - start_time) * 1000
+            await self._audit_api_call("create_order", "POST", "success", duration_ms)
+            await self._audit_order(
+                symbol, side, order_type, quantity, price,
+                result.order_id, "created"
+            )
+            
+            return result
             
         except ccxt.InsufficientFunds as e:
+            await self._audit_order(symbol, side, order_type, quantity, price, None, "failed", str(e))
             raise InsufficientFundsError(str(e))
         except ccxt.InvalidOrder as e:
+            await self._audit_order(symbol, side, order_type, quantity, price, None, "failed", str(e))
             raise OrderError(str(e))
         except Exception as e:
             self.logger.error(f"Failed to create order: {e}")
+            duration_ms = (time.time() - start_time) * 1000
+            await self._audit_api_call("create_order", "POST", "failure", duration_ms, error_message=str(e))
             raise ExchangeError(str(e))
 
     async def cancel_order(self, order_id: str, symbol: str) -> bool:

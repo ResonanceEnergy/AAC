@@ -54,7 +54,8 @@ except ImportError:
             self.price = price
 
     class ExecutionEngine:
-        async def initialize(self): pass
+        async def initialize(self):
+            logging.getLogger(__name__).warning("Using fallback ExecutionEngine")
         async def submit_order(self, order): return True
         async def submit_paper_order(self, order): return True
 

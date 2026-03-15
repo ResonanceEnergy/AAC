@@ -1,6 +1,9 @@
 """
-AAC Configuration Loader — Centralized configuration management.
-═════════════════════════════════════════════════════════════════
+AAC Configuration Loader — DEPRECATED
+═══════════════════════════════════════
+
+**DEPRECATED:** Use ``shared.config_loader`` (``get_config()``) instead.
+This file is kept for backward compatibility only.
 
 Loads configuration from environment variables, .env files,
 and config files with validation and defaults.

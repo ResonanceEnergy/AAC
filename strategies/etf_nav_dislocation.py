@@ -78,47 +78,6 @@ class ETFNAVDIslocationStrategy(BaseArbitrageStrategy):
             'VWO': 'M6C' # MSCI Emerging Markets futures
         }
 
-    async def _initialize_strategy(self):
-        """Initialize ETF-NAV strategy components"""
-        logger.info("Initializing ETF-NAV Dislocation Strategy")
-
-        # Subscribe to ETF and constituent data
-        symbols_to_subscribe = list(self.etf_universe.keys())
-
-        # Add major index constituents for NAV calculation
-        major_holdings = [
-            'AAPL', 'MSFT', 'AMZN', 'GOOGL', 'META', 'TSLA', 'NVDA', 'JPM', 'JNJ', 'V', 'PG', 'UNH', 'HD', 'MA', 'PFE'
-        ]
-        symbols_to_subscribe.extend(major_holdings)
-
-        # Set market data subscriptions for the integration system
-        self.market_data_subscriptions = set(symbols_to_subscribe)
-
-        # Initialize NAV calculation components
-        self.nav_calculator = NAVCalculator(self.etf_universe)
-
-        logger.info(f"ETF-NAV strategy initialized for {len(self.etf_universe)} ETFs")
-
-    async def _generate_signals(self) -> List[TradingSignal]:
-        """Generate ETF-NAV arbitrage signals"""
-        signals = []
-
-        for etf_symbol, etf_info in self.etf_universe.items():
-            try:
-                signal = await self._analyze_etf_dislocation(etf_symbol, etf_info)
-                if signal:
-                    signals.append(signal)
-
-            except Exception as e:
-                logger.error(f"Error analyzing {etf_symbol}: {e}")
-                continue
-
-        # Check for position exits
-        exit_signals = await self._generate_exit_signals()
-        signals.extend(exit_signals)
-
-        return signals
-
     async def _analyze_etf_dislocation(self, etf_symbol: str, etf_info: Dict) -> Optional[TradingSignal]:
         """Analyze single ETF for NAV dislocations"""
         # Get current ETF price
@@ -297,9 +256,20 @@ class ETFNAVDIslocationStrategy(BaseArbitrageStrategy):
         """Initialize ETF-NAV strategy specific components."""
         logger.info("Initializing ETF-NAV Dislocation strategy")
 
+        # Subscribe to ETF and constituent data
+        symbols_to_subscribe = list(self.etf_universe.keys())
+        major_holdings = [
+            'AAPL', 'MSFT', 'AMZN', 'GOOGL', 'META', 'TSLA', 'NVDA', 'JPM', 'JNJ', 'V', 'PG', 'UNH', 'HD', 'MA', 'PFE'
+        ]
+        symbols_to_subscribe.extend(major_holdings)
+        self.market_data_subscriptions = set(symbols_to_subscribe)
+
         # Initialize NAV calculation requests for each ETF
         for etf in self.etf_universe:
             await self._request_nav_calculation(etf)
+
+        # Initialize NAV calculation components
+        self.nav_calculator = NAVCalculator(self.etf_universe)
 
         # Set up futures hedge mappings
         self.futures_mappings = {
@@ -312,17 +282,6 @@ class ETFNAVDIslocationStrategy(BaseArbitrageStrategy):
 
         logger.info(f"ETF-NAV strategy initialized for {len(self.etf_universe)} ETFs")
 
-    def _should_generate_signal(self) -> bool:
-        """Check if we have sufficient data to generate signals."""
-        # Check if we have both price and NAV data for any ETF
-        for etf_symbol in self.etf_universe:
-            has_price = etf_symbol in self.market_data
-            has_nav = etf_symbol in self.nav_cache
-            logger.info(f"ETF {etf_symbol}: price={has_price}, nav={has_nav}")
-            if has_price and has_nav:
-                return True
-        return False
-
     async def _generate_signals(self) -> List[TradingSignal]:
         """Generate trading signals based on NAV dislocations."""
         signals = []
@@ -334,6 +293,10 @@ class ETFNAVDIslocationStrategy(BaseArbitrageStrategy):
                 # Generate arbitrage signals
                 arb_signals = await self._generate_arbitrage_signals(etf_symbol, opportunity)
                 signals.extend(arb_signals)
+
+        # Check for position exits
+        exit_signals = await self._generate_exit_signals()
+        signals.extend(exit_signals)
 
         return signals
 

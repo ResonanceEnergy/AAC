@@ -7,11 +7,14 @@ Quick test to verify the Finnhub API key is working correctly.
 """
 
 import os
+import pytest
 import requests
 from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv()
+
+pytestmark = pytest.mark.api
 
 def test_finnhub_key():
     """Test the Finnhub API key configuration"""
