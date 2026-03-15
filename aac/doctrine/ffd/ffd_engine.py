@@ -157,6 +157,15 @@ class FFDMetrics:
     portfolio_drawdown_pct: float = 0.0         # Current drawdown from portfolio ATH (%)
     cycle_phase: str = "expansion"              # "accumulation", "expansion", "peak", "correction"
 
+    # No Limits Framework metrics (FFD-12)
+    leverage_utilization_pct: float = 0.0       # Current leverage used vs max allowed (%)
+    funding_rate_income_monthly: float = 0.0    # Monthly income from funding rate strategies (USD)
+    options_premium_income_monthly: float = 0.0  # Monthly income from options selling (USD)
+    defi_yield_monthly: float = 0.0             # Monthly DeFi yield income (USD)
+    active_account_count: int = 4               # Number of active trading accounts
+    active_jurisdiction: str = "Canada"         # Current operating jurisdiction
+    uruguay_relocation_days: int = 0            # Days until Uruguay relocation (countdown)
+
     evidence_level: EvidenceLevel = EvidenceLevel.E0_CONCEPTUAL
     phase: TransitionPhase = TransitionPhase.PHASE_1_INTELLIGENCE
 
@@ -298,6 +307,71 @@ FFD_DOCTRINE_PACK = {
         "legacy_to_new_arbitrage": {"min_pct": 20, "max_pct": 30},
         "cbdc_hedging": {"min_pct": 5, "max_pct": 10},
     },
+    # FFD-12: No Limits Framework — 50 new strategies (complement existing)
+    "no_limits_strategies": {
+        "leveraged_crypto_derivatives": [
+            "btc_perp_momentum_scalping",
+            "eth_perp_basis_trade",
+            "btc_options_event_straddle",
+            "funding_rate_arbitrage",
+            "btc_covered_call_income",
+            "btc_put_selling_bull",
+            "altcoin_perp_breakout",
+            "btc_gamma_scalping",
+            "crypto_vol_smile_arbitrage",
+            "cross_exchange_perp_arbitrage",
+        ],
+        "leveraged_equity": [
+            "mstr_call_options_btc_proxy",
+            "coin_earnings_strangle",
+            "leveraged_etf_momentum_swing",
+            "micro_futures_scalping",
+            "spy_0dte_morning_momentum",
+            "sector_rotation_options",
+            "cad_usd_weakness_hedge",
+            "miner_options_earnings_play",
+        ],
+        "defi_leverage_yield": [
+            "aave_recursive_lending",
+            "gmx_onchain_perps",
+            "dydx_perps_governance",
+            "pendle_yield_tokenization",
+            "eigenlayer_restaking_optimization",
+            "ethena_susde_yield",
+            "uniswap_concentrated_lp",
+            "morpho_optimized_lending",
+            "flash_loan_arbitrage_automated",
+        ],
+        "volatility_harvesting": [
+            "vix_term_structure_trading",
+            "crypto_iv_rv_vol_trade",
+            "weekend_gap_exploitation",
+            "earnings_iv_crush_systematic",
+            "halving_cycle_vol_enhancement",
+            "fx_vol_brics_events",
+            "crypto_weekend_vol_premium",
+            "correlation_breakdown_alpha",
+        ],
+        "cross_jurisdiction_arbitrage": [
+            "cad_usd_crypto_premium_arb",
+            "tfsa_uruguay_tax_double_shield",
+            "zona_franca_corporate_structure",
+            "multi_exchange_stablecoin_rate_arb",
+            "ndax_liquidity_latency_arb",
+            "el_salvador_btc_residency_arb",
+            "crypto_gold_fiat_rotation",
+        ],
+        "speed_automation": [
+            "ai_signal_multi_model_consensus",
+            "automated_grid_trading",
+            "copy_trading_network_intel",
+            "mev_protected_execution_capture",
+            "cross_dex_routing_optimization",
+            "automated_yield_farming_rotation",
+            "vol_adjusted_dca",
+            "capital_cockpit_dashboard",
+        ],
+    },
 }
 
 
@@ -325,7 +399,7 @@ DEPEG_HALT_THRESHOLD = 5.0      # Kill switch at 5% deviation (Tether-specific)
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# SEED CAPITAL — REAL ACCOUNTS (FFD-11 Master Plan v2.0)
+# SEED CAPITAL — REAL ACCOUNTS (FFD-11 Master Plan v3.0 — No Limits Edition)
 # ═══════════════════════════════════════════════════════════════════════════
 
 SEED_CAPITAL = {
@@ -336,14 +410,18 @@ SEED_CAPITAL = {
         "role": "PRIMARY crypto execution — BTC/ETH/XRP spot",
         "priority": "P0",
         "tax_status": "taxable",
+        "max_leverage": 1.0,
+        "jurisdiction": "Canada",
     },
     "IBKR": {
         "initial_usd": 1000.0,
         "currency": "CAD",
         "connector": "IBKRConnector",
-        "role": "Options plays, US equities, leveraged ETFs",
+        "role": "Options, futures, equities, FX, leveraged ETFs",
         "priority": "P0",
         "tax_status": "taxable",
+        "max_leverage": 5.0,
+        "jurisdiction": "Canada",
     },
     "Moomoo": {
         "initial_usd": 1000.0,
@@ -352,6 +430,8 @@ SEED_CAPITAL = {
         "role": "Crypto-adjacent equities — MSTR, COIN, RIOT",
         "priority": "P1",
         "tax_status": "taxable",
+        "max_leverage": 3.0,
+        "jurisdiction": "Canada",
     },
     "TFSA_Wealthsimple": {
         "initial_usd": 3000.0,
@@ -360,6 +440,38 @@ SEED_CAPITAL = {
         "role": "TAX-FREE high-growth — BTC/ETH ETFs (BTCC/ETHX)",
         "priority": "P1",
         "tax_status": "tax_free",
+        "max_leverage": 1.0,
+        "jurisdiction": "Canada",
+    },
+    "Deribit": {
+        "initial_usd": 0.0,
+        "currency": "BTC",
+        "connector": None,
+        "role": "BTC/ETH options + perpetual futures — primary derivatives",
+        "priority": "P0",
+        "tax_status": "taxable",
+        "max_leverage": 10.0,
+        "jurisdiction": "Netherlands",
+    },
+    "OKX": {
+        "initial_usd": 0.0,
+        "currency": "USD",
+        "connector": None,
+        "role": "Perps, options, earn, grid trading",
+        "priority": "P0",
+        "tax_status": "taxable",
+        "max_leverage": 10.0,
+        "jurisdiction": "Seychelles",
+    },
+    "Bybit": {
+        "initial_usd": 0.0,
+        "currency": "USD",
+        "connector": None,
+        "role": "Perps, copy trading, earn products",
+        "priority": "P1",
+        "tax_status": "taxable",
+        "max_leverage": 10.0,
+        "jurisdiction": "Dubai",
     },
 }
 
@@ -374,6 +486,59 @@ MILESTONES = {
     "M5_ACCELERATION": 250_000,
     "M6_ORBIT": 500_000,
     "M7_DESTINATION": 1_000_000,
+}
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# JURISDICTION CONFIGURATION — No Limits Framework (FFD-12)
+# ═══════════════════════════════════════════════════════════════════════════
+
+JURISDICTION_CONFIG = {
+    "Canada": {
+        "status": "current",
+        "capital_gains_inclusion": 0.50,  # 50% of gains taxable
+        "tfsa_available": True,
+        "notes": "Primary until Uruguay relocation (~8 months)",
+    },
+    "Uruguay": {
+        "status": "target_primary",
+        "capital_gains_inclusion": 0.0,  # Territorial taxation — foreign-sourced = 0%
+        "zona_franca_available": True,
+        "regulator": "BCU",
+        "regulation": "Circular 2377 (VASP)",
+        "dtc_with_canada": True,
+        "notes": "PRIMARY base after relocation — 0% tax on global trading income",
+    },
+    "El_Salvador": {
+        "status": "backup",
+        "capital_gains_btc": 0.0,  # reportedly still 0% on BTC transactions
+        "btc_legal_tender": False,  # RESCINDED Feb 2025 (IMF $1.4B loan conditions)
+        "residency_btc_threshold": 3.0,  # ₿3 for permanent residency
+        "notes": "Backup jurisdiction only — BTC legal tender rescinded Feb 2025",
+    },
+}
+
+# Leverage limits per account type (hard constraints from Section 10)
+LEVERAGE_LIMITS = {
+    "crypto_spot": 1.0,
+    "crypto_perps": 10.0,
+    "equity_options": None,  # Defined risk (premium = max loss)
+    "micro_futures": 5.0,
+    "fx_micro": 3.0,
+    "defi_recursive": 3.0,
+    "leveraged_etf": 3.0,  # Built-in, no additional margin
+}
+
+# Hard risk rules (never violated)
+RISK_HARD_RULES = {
+    "max_risk_per_trade_pct": 2.0,
+    "max_single_exchange_pct": 40.0,
+    "min_exchange_distribution": 3,
+    "portfolio_drawdown_halt_pct": 25.0,
+    "daily_loss_halt_pct": 5.0,
+    "weekly_loss_halt_pct": 10.0,
+    "isolated_margin_only": True,
+    "naked_options_allowed": False,
 }
 
 
@@ -843,6 +1008,8 @@ class FFDEngine:
                 "connector": config["connector"],
                 "role": config["role"],
                 "tax_status": config["tax_status"],
+                "max_leverage": config.get("max_leverage", 1.0),
+                "jurisdiction": config.get("jurisdiction", "Canada"),
             }
         summary["_total"] = {
             "initial": TOTAL_SEED_CAPITAL,
@@ -852,6 +1019,33 @@ class FFDEngine:
             "next_milestone": self.get_next_milestone(),
         }
         return summary
+
+    def get_jurisdiction_config(self, jurisdiction: str = "current") -> Dict[str, Any]:
+        """Return configuration for a specific jurisdiction or current operating jurisdiction."""
+        if jurisdiction == "current":
+            jurisdiction = self.metrics.active_jurisdiction
+        return JURISDICTION_CONFIG.get(jurisdiction, {})
+
+    def get_leverage_limit(self, account_type: str) -> float:
+        """Return max leverage allowed for a given account type."""
+        limit = LEVERAGE_LIMITS.get(account_type)
+        return limit if limit is not None else 1.0
+
+    def check_risk_hard_rules(self, trade_risk_pct: float, exchange_pct: float) -> Dict[str, bool]:
+        """Validate a proposed trade against hard risk rules."""
+        return {
+            "trade_risk_ok": trade_risk_pct <= RISK_HARD_RULES["max_risk_per_trade_pct"],
+            "exchange_concentration_ok": exchange_pct <= RISK_HARD_RULES["max_single_exchange_pct"],
+            "all_ok": (
+                trade_risk_pct <= RISK_HARD_RULES["max_risk_per_trade_pct"]
+                and exchange_pct <= RISK_HARD_RULES["max_single_exchange_pct"]
+            ),
+        }
+
+    def get_no_limits_strategy_count(self) -> int:
+        """Return total count of no-limits strategies defined in doctrine."""
+        nl = FFD_DOCTRINE_PACK.get("no_limits_strategies", {})
+        return sum(len(v) for v in nl.values())
 
 
 # ═══════════════════════════════════════════════════════════════════════════

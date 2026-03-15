@@ -461,9 +461,10 @@ functional components around FFD as the supreme doctrine.
 
 **Layer 1 — Per-Trade Risk**:
 - Max 2% of portfolio per trade
-- Stop loss: 5% for spot, 2% for leveraged (if ever used — leverage is DANGEROUS)
+- Stop loss: 5% for spot, 2% for leveraged positions
 - No single position > 25% of portfolio
 - No single stablecoin > 30% of stablecoin allocation
+- Leverage limits per account — see Section 10 (Leverage Policy)
 
 **Layer 2 — Strategy Risk**:
 - Max 4 concurrent active strategies
@@ -842,6 +843,112 @@ Before ANY $1B path activates, the following must be TRUE:
 
 ---
 
+## 9. INTERNATIONAL RELOCATION PLAN
+
+### 9.1 Uruguay — Primary Base (~8 Months)
+
+**Why Uruguay is the #1 jurisdiction for AAC**:
+- **Territorial taxation**: Foreign-sourced income is NOT taxed. Trading on global exchanges
+  (Deribit, OKX, Bybit, Binance) from Uruguay = all income is foreign-sourced = 0% tax
+- **Zona Franca**: Free trade zone entities pay 0% income tax, 0% VAT, 0% customs
+- **BCU Circular 2377**: VASP regulation exists — regulatory clarity, not restriction
+- **Canada-Uruguay DTC**: Double taxation convention prevents being taxed twice
+- **Stability**: BBB credit rating, high-income country ($26K GDP/capita), 11th on Democracy Index
+- **Banking**: "Switzerland of America" — strong banking sector, partially dollarized (60% USD)
+- **Infrastructure**: 98% renewable electricity, growing tech/software sector
+- **IBKR**: Account transfers internationally — no need to close/reopen
+- **Cost of living**: Significantly lower than Canada for similar quality of life
+
+**Timeline**:
+- Months 1-4: Research residency requirements, engage Uruguay immigration lawyer
+- Months 4-6: Prepare corporate structure (SA within Zona Franca), open bank accounts
+- Months 6-8: Execute relocation, establish tax residency, register with BCU if required
+- Month 8+: Full operations from Uruguay — all global trading income at 0% tax
+
+**Corporate Structure**:
+- Sociedad Anónima (SA) in Zona Franca → 0% income tax on zone activities
+- Route AAC trading P&L through SA entity
+- Maintain proper substance: office, local employees (even part-time), local bank accounts
+- Budget: $5,000-$10,000 for legal setup + first-year compliance
+
+### 9.2 El Salvador — Secondary Base (Optional)
+
+**Status Update (CRITICAL — Feb 2025)**:
+- ⚠️ Bitcoin is NO LONGER legal tender in El Salvador
+- IMF $1.4B loan conditions (Feb 2025): removed mandatory BTC acceptance from merchants,
+  stopped government accepting tax payments in BTC, winding down Chivo wallet
+- Government says it will "keep buying bitcoin despite IMF"
+- The Economist called the experiment a "failure" (March 2025)
+- BTC usage declined from 25.7% (2021) to 8.1% (2024)
+
+**What remains useful**:
+- Reportedly still no capital gains tax on Bitcoin transactions (verify before acting)
+- Permanent residency for ₿3+ Bitcoin investors
+- USD-denominated economy (no FX risk)
+- Lower cost of living than Canada or Uruguay
+- Crypto-friendly cultural ecosystem
+
+**Use case**: Backup jurisdiction, personal BTC cold storage location, cost of living
+arbitrage. NOT primary base — Uruguay is superior on all structural dimensions.
+
+### 9.3 TFSA Transition Plan
+
+- While Canadian tax resident: maximize TFSA contributions ($7,000/year 2026)
+- Before relocation: consult cross-border tax advisor on TFSA non-resident status
+- Key: TFSA gains while Canadian resident are NEVER retroactively taxed
+- If TFSA loses tax-free status: evaluate withdrawal timing vs Canada-Uruguay DTC treatment
+- NEVER withdraw prematurely — the tax-free compounding period is irreplaceable
+
+---
+
+## 10. LEVERAGE POLICY AND ACCOUNT LIMITS
+
+### 10.1 Leverage Framework
+
+Leverage is a tool. Used with discipline, it accelerates compounding.
+Used without discipline, it causes ruin. These limits are HARD CONSTRAINTS.
+
+| Account Type | Max Effective Leverage | Instrument | Rationale |
+|---|---|---|---|
+| NDAX (crypto spot) | 1x | Spot only | No margin available |
+| Deribit (crypto derivatives) | 10x | Perps + options (isolated margin) | 1% portfolio risk per trade |
+| OKX (crypto derivatives) | 10x | Perps + earn + grid | Isolated margin, never cross |
+| Bybit (crypto derivatives) | 10x | Perps + copy trade | Isolated margin, capped |
+| IBKR (equities/options) | Defined risk | Options premium = max loss | Spreads, covered positions only |
+| IBKR (micro futures) | 5x effective | /MES, /MNQ, /MBT | $100 max loss per trade |
+| IBKR (FX micro) | 3x effective | /6C, EUR/USD | 0.5% portfolio risk per FX trade |
+| DeFi (recursive lending) | 3x | Aave E-mode loops | Health factor > 1.5 always |
+| Leveraged ETFs | 3x (built-in) | TQQQ, SOXL, BITX | No additional margin on top |
+
+### 10.2 Hard Rules
+
+1. **NEVER cross margin** — one position's failure CANNOT liquidate another
+2. **NEVER sell naked options** — always covered or spread
+3. **NEVER exceed stated leverage** — the limits above are MAX, not targets
+4. **Max 2% portfolio risk per trade** — even on highest-conviction setups
+5. **Daily loss limit**: 5% of portfolio — stop all trading for 24h if hit
+6. **Weekly loss limit**: 10% of portfolio — stop all trading, review all positions
+7. **FFD kill switch overrides leverage** — if kill switch triggers, close ALL leveraged positions first
+
+### 10.3 New Account Architecture
+
+Total accounts expanded from 4 to 7-8:
+
+| # | Account | Status | Purpose |
+|---|---|---|---|
+| 1 | NDAX | Active | CAD crypto spot execution |
+| 2 | IBKR | Active | Options, futures, equities, FX |
+| 3 | Moomoo | Active | Canadian/US equities |
+| 4 | TFSA Wealthsimple | Active | Tax-free ETF compounding |
+| 5 | Deribit | **OPEN NOW** | BTC/ETH options + perpetual futures |
+| 6 | OKX | **OPEN NOW** | Perps, options, earn products |
+| 7 | Bybit | **OPEN NOW** | Perps, copy trading, earn |
+| 8 | DeFi wallets | **DEPLOY** | On-chain leverage, yield, flash loans |
+
+**See FFD-12 (12_fifty_strategies_no_limits.md) for 50 new strategies leveraging this expanded account architecture.**
+
+---
+
 ## RESEARCH LOG
 
 | Date | Finding | Evidence | Action |
@@ -853,10 +960,16 @@ Before ANY $1B path activates, the following must be TRUE:
 | 2026-03-15 | REAL CAPITAL INTEGRATED | E1 | $8,800 seed: NDAX $3,800, IBKR $1,000, Moomoo $1,000, TFSA $3,000 |
 | 2026-03-15 | Timeline shifted to AGGRESSIVE | E0 | Performance-based milestones (M1-M7), not calendar |
 | 2026-03-15 | 5 revenue streams defined | E0 | Halving momentum, equity amplifiers, yield, arb, catalysts |
+| 2026-03-15 | NO LIMITS FRAMEWORK ACTIVATED | E0 | 50 new strategies, 7-8 accounts, leverage, international |
+| 2026-03-15 | El Salvador BTC legal tender RESCINDED | E4 | Feb 2025 IMF conditions — downgraded to backup jurisdiction |
+| 2026-03-15 | Uruguay PRIMARY jurisdiction selected | E1 | Territorial tax 0%, Zona Franca, BCU regulated, stable democracy |
+| 2026-03-15 | FFD-12 doc created | E0 | 50 strategies across 6 categories + deployment priority matrix |
+| 2026-03-15 | Account expansion: +3 (Deribit/OKX/Bybit) | E0 | Crypto derivatives access for leverage strategies |
+| 2026-03-15 | Leverage policy formalized | E0 | Per-account limits, hard rules, kill switch integration |
 
 ---
 
 *This document is the FFD Prime Directive made operational.*
 *It will be updated with every market event, every strategy result,*
 *every evidence-level promotion, and every capital milestone.*
-*— FFD Master Plan, v2.0 — Real Capital Edition*
+*— FFD Master Plan, v3.0 — No Limits Edition*
