@@ -5,6 +5,7 @@ Tests for IBKR Exchange Connector
 Unit tests with ib_insync fully mocked — no TWS/Gateway required.
 """
 
+import sys
 import pytest
 from unittest.mock import MagicMock, AsyncMock, patch, PropertyMock
 from datetime import datetime
@@ -62,6 +63,7 @@ def mock_ib():
     ib.isConnected.return_value = True
     ib.managedAccounts.return_value = ['DU1234567']
     ib.connect.return_value = None
+    ib.connectAsync = AsyncMock(return_value=None)
     return ib
 
 

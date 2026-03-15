@@ -47,7 +47,7 @@ class TestEnums:
     def test_action_types_coverage(self):
         assert ActionType.A_STOP_EXECUTION.value == "A_STOP_EXECUTION"
         assert ActionType.A_ENTER_SAFE_MODE.value == "A_ENTER_SAFE_MODE"
-        assert len(ActionType) == 10
+        assert len(ActionType) == 14
 
 
 # ── Data Classes ───────────────────────────────────────────────────────────

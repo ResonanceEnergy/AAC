@@ -8,7 +8,7 @@ Loads from .env file and provides typed access to all config values.
 import os
 import logging
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Union
 from dataclasses import dataclass, field
 
 # Try to load python-dotenv, fall back gracefully if not installed
@@ -233,7 +233,6 @@ class Config:
     ibkr: IBKRConfig = field(default_factory=IBKRConfig)
     moomoo: MoomooConfig = field(default_factory=MoomooConfig)
     ndax: ExchangeConfig = field(default_factory=ExchangeConfig)
-    moomoo: ExchangeConfig = field(default_factory=ExchangeConfig)
     metalx: ExchangeConfig = field(default_factory=ExchangeConfig)
     
     # IBKR-specific
@@ -318,16 +317,7 @@ class Config:
     twelve_data_key: str = field(default='', repr=False)
     iex_cloud_key: str = field(default='', repr=False)
     intrinio_key: str = field(default='', repr=False)
-    
-    # Market Data APIs
-    polygon_key: str = field(default='', repr=False)
-    finnhub_key: str = field(default='', repr=False)
-    twelve_data_key: str = field(default='', repr=False)
-    iex_cloud_key: str = field(default='', repr=False)
-    intrinio_key: str = field(default='', repr=False)
     intrinio_username: str = ''
-    eodhd_key: str = field(default='', repr=False)
-    fred_key: str = field(default='', repr=False)
     etherscan_key: str = field(default='', repr=False)
     tradestie_key: str = field(default='', repr=False)
     wallstreetodds_key: str = field(default='', repr=False)
@@ -421,13 +411,6 @@ class Config:
             ndax_user_id=get_env('NDAX_USER_ID'),
             ndax_account_id=get_env('NDAX_ACCOUNT_ID'),
             
-            # Moomoo
-            moomoo=ExchangeConfig(
-                api_key=get_env('MOOMOO_API_KEY'),
-                api_secret=get_env('MOOMOO_API_SECRET'),
-                testnet=get_env_bool('MOOMOO_PAPER', True),
-                enabled=bool(get_env('MOOMOO_API_KEY')),
-            ),
             moomoo_paper=get_env_bool('MOOMOO_PAPER', True),
             
             # Metal X
@@ -526,16 +509,7 @@ class Config:
             twelve_data_key=get_env('TWELVE_DATA_API_KEY'),
             iex_cloud_key=get_env('IEX_CLOUD_API_KEY'),
             intrinio_key=get_env('INTRINIO_API_KEY'),
-            
-            # Market Data APIs
-            polygon_key=get_env('POLYGON_API_KEY'),
-            finnhub_key=get_env('FINNHUB_API_KEY'),
-            twelve_data_key=get_env('TWELVE_DATA_API_KEY'),
-            iex_cloud_key=get_env('IEX_CLOUD_API_KEY'),
-            intrinio_key=get_env('INTRINIO_API_KEY'),
             intrinio_username=get_env('INTRINIO_USERNAME'),
-            eodhd_key=get_env('EODHD_API_KEY'),
-            fred_key=get_env('FRED_API_KEY'),
             etherscan_key=get_env('ETHERSCAN_API_KEY'),
             tradestie_key=get_env('TRADESTIE_API_KEY'),
             wallstreetodds_key=get_env('WALLSTREETODDS_API_KEY'),
@@ -574,7 +548,7 @@ class Config:
 
         return config
     
-    def get_enabled_exchanges(self) -> Dict[str, ExchangeConfig]:
+    def get_enabled_exchanges(self) -> Dict[str, Union[ExchangeConfig, IBKRConfig, MoomooConfig]]:
         """Return dict of exchanges that have API keys configured"""
         exchanges = {}
         if self.binance.is_configured():
