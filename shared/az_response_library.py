@@ -220,6 +220,7 @@ class AACAZResponseLibrary:
         response = self.get_response(question_id)
 
         def speak():
+            """Speak."""
             try:
                 self.engine.say(response)
                 self.engine.runAndWait()

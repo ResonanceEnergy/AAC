@@ -212,6 +212,7 @@ async def run_custom_experiment(config_file: str, output_dir: str = "reports/rnd
 
 
 def main():
+    """Main."""
     parser = argparse.ArgumentParser(description="Strategy R&D Experiment Runner")
     parser.add_argument("experiment_type", choices=["quick", "comprehensive", "ab_test", "sensitivity", "custom"],
                        help="Type of R&D experiment to run")

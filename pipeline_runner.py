@@ -404,8 +404,8 @@ async def run_pipeline():
     finally:
         try:
             await coingecko.disconnect()
-        except Exception:
-            pass
+        except Exception as e:
+            logger.exception("Unexpected error: %s", e)
 
     if not market_data:
         print("\n  FAIL No market data available.")
@@ -593,8 +593,8 @@ async def run_pipeline():
                       f"{tx.get('quantity',0):.6f} {tx.get('asset','?')} "
                       f"@ ${tx.get('price',0):,.2f} "
                       f"(${tx.get('total_value',0):,.2f})")
-    except Exception:
-        pass
+    except Exception as e:
+        logger.exception("Unexpected error: %s", e)
 
     print(f"\n  Database: {db.db_path}")
     print(f"  Timestamp: {datetime.now().isoformat()}")

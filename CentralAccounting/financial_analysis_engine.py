@@ -395,6 +395,7 @@ def get_financial_analysis_engine_sync():
 if __name__ == "__main__":
     # Test the engine
     async def test():
+        """Test."""
         engine = await get_financial_analysis_engine()
 
         # Add some test positions
@@ -406,11 +407,11 @@ if __name__ == "__main__":
         metrics = await engine.get_doctrine_metrics()
         summary = await engine.get_portfolio_summary()
 
-        print("Financial Analysis Engine Test Results:")
-        print(f"Portfolio Value: ${summary['portfolio_value']:,.2f}")
-        print(f"Daily P&L: ${summary['daily_pnl']:,.2f} ({summary['daily_pnl_pct']:.2f}%)")
-        print(f"Positions: {summary['total_positions']}")
-        print(f"Max Drawdown: {metrics['max_drawdown_pct']:.2f}%")
-        print(f"Capital Utilization: {metrics['capital_utilization']:.1f}%")
+        logger.info("Financial Analysis Engine Test Results:")
+        logger.info(f"Portfolio Value: ${summary['portfolio_value']:,.2f}")
+        logger.info(f"Daily P&L: ${summary['daily_pnl']:,.2f} ({summary['daily_pnl_pct']:.2f}%)")
+        logger.info(f"Positions: {summary['total_positions']}")
+        logger.info(f"Max Drawdown: {metrics['max_drawdown_pct']:.2f}%")
+        logger.info(f"Capital Utilization: {metrics['capital_utilization']:.1f}%")
 
     asyncio.run(test())

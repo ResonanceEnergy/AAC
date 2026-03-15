@@ -33,6 +33,7 @@ logger = logging.getLogger(__name__)
 # ═══════════════════════════════════════════════════════════════════════════
 
 class FundingRegime(Enum):
+    """FundingRegime class."""
     EXTREME_LONG = "extreme_long"     # >0.1% / 8h — euphoric leveraged longs
     ELEVATED_LONG = "elevated_long"   # 0.03-0.1% / 8h
     NORMAL = "normal"                 # 0.005-0.03% / 8h
@@ -41,12 +42,14 @@ class FundingRegime(Enum):
     EXTREME_SHORT = "extreme_short"   # <-0.05% — massive short pressure
 
 class LiquidationType(Enum):
+    """LiquidationType class."""
     LONG_LIQUIDATION = "long_liquidation"
     SHORT_LIQUIDATION = "short_liquidation"
     CASCADE_LONG = "cascade_long"     # Chain reaction of long liqs
     CASCADE_SHORT = "cascade_short"   # Chain reaction of short liqs
 
 class TrendContext(Enum):
+    """TrendContext class."""
     STRONG_UPTREND = "strong_uptrend"
     UPTREND = "uptrend"
     SIDEWAYS = "sideways"
@@ -54,6 +57,7 @@ class TrendContext(Enum):
     STRONG_DOWNTREND = "strong_downtrend"
 
 class DominancePhase(Enum):
+    """DominancePhase class."""
     BTC_DOMINANCE = "btc_dominance"         # BTC.D rising, alt season far
     ETH_ROTATION = "eth_rotation"           # ETH/BTC rising, early alt
     LARGE_CAP_ALT = "large_cap_alt_season"  # Top 20 alts outperforming
@@ -568,8 +572,8 @@ class CryptoPatternDetector:
 # ═══════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
-    print("🐺 BARREN WUFFET — Crypto Technical Patterns Engine v2.7.0")
-    print("=" * 60)
+    logger.info("🐺 BARREN WUFFET — Crypto Technical Patterns Engine v2.7.0")
+    logger.info("=" * 60)
 
     # Funding Rate
     rates_30d = [0.0001 * (1 + i * 0.1) for i in range(90)]  # Simulated
@@ -580,11 +584,11 @@ if __name__ == "__main__":
         rates_30d=rates_30d,
         price_change_24h=2.5,
     )
-    print(f"\nFunding Rate: {fr.symbol}")
-    print(f"  Rate: {fr.current_rate*100:.4f}% per 8h ({fr.annualized_rate:.0f}% annualized)")
-    print(f"  Regime: {fr.regime.value}")
-    print(f"  Signal: {fr.signal}")
-    print(f"  Carry Trade: {fr.carry_trade_viable}")
+    logger.info(f"\nFunding Rate: {fr.symbol}")
+    logger.info(f"  Rate: {fr.current_rate*100:.4f}% per 8h ({fr.annualized_rate:.0f}% annualized)")
+    logger.info(f"  Regime: {fr.regime.value}")
+    logger.info(f"  Signal: {fr.signal}")
+    logger.info(f"  Carry Trade: {fr.carry_trade_viable}")
     for n in fr.notes: print(f"  → {n}")
 
     # Open Interest
@@ -597,10 +601,10 @@ if __name__ == "__main__":
         price_current=68000,
         price_24h_ago=66000,
     )
-    print(f"\nOpen Interest: {oi.symbol}")
-    print(f"  OI: ${oi.total_oi_usd/1e9:.1f}B | 24h: {oi.oi_change_24h_pct:+.1f}%")
-    print(f"  L/S Ratio: {oi.long_short_ratio}")
-    print(f"  Divergence: {oi.divergence_type}")
+    logger.info(f"\nOpen Interest: {oi.symbol}")
+    logger.info(f"  OI: ${oi.total_oi_usd/1e9:.1f}B | 24h: {oi.oi_change_24h_pct:+.1f}%")
+    logger.info(f"  L/S Ratio: {oi.long_short_ratio}")
+    logger.info(f"  Divergence: {oi.divergence_type}")
     for n in oi.notes: print(f"  → {n}")
 
     # Liquidation Cascade
@@ -614,11 +618,11 @@ if __name__ == "__main__":
         price_at_end=65000,
         duration_minutes=45,
     )
-    print(f"\nLiquidation Event: {liq.symbol}")
-    print(f"  Type: {liq.liq_type.value}")
-    print(f"  Volume: ${liq.total_volume_usd/1e6:.0f}M")
-    print(f"  Cascade: {liq.is_cascade}")
-    print(f"  Recovery Prob: {liq.recovery_probability}%")
+    logger.info(f"\nLiquidation Event: {liq.symbol}")
+    logger.info(f"  Type: {liq.liq_type.value}")
+    logger.info(f"  Volume: ${liq.total_volume_usd/1e6:.0f}M")
+    logger.info(f"  Cascade: {liq.is_cascade}")
+    logger.info(f"  Recovery Prob: {liq.recovery_probability}%")
     for n in liq.notes: print(f"  → {n}")
 
     # Dominance
@@ -627,9 +631,9 @@ if __name__ == "__main__":
         eth_btc=0.052, eth_btc_30d_ago=0.048,
         top10_avg_30d_return=15,
     )
-    print(f"\nDominance Analysis:")
-    print(f"  BTC.D: {dom.btc_dominance}% (30d: {dom.btc_d_30d_change:+.1f}%)")
-    print(f"  Phase: {dom.phase.value}")
-    print(f"  Alt Season Index: {dom.alt_season_index}/100")
-    print(f"  Rotation: {dom.rotation_targets}")
+    logger.info(f"\nDominance Analysis:")
+    logger.info(f"  BTC.D: {dom.btc_dominance}% (30d: {dom.btc_d_30d_change:+.1f}%)")
+    logger.info(f"  Phase: {dom.phase.value}")
+    logger.info(f"  Alt Season Index: {dom.alt_season_index}/100")
+    logger.info(f"  Rotation: {dom.rotation_targets}")
     for n in dom.notes: print(f"  → {n}")

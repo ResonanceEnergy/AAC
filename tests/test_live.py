@@ -4,6 +4,7 @@ import asyncio
 import logging
 
 async def main():
+    """Main."""
     print("Hello")
 
 if __name__ == "__main__":

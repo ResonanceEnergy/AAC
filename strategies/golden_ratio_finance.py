@@ -238,6 +238,7 @@ class FibonacciCalculator:
     ) -> Optional[str]:
         """Match ratio set against known harmonic patterns."""
         def near(val: float, target: float) -> bool:
+            """Near."""
             return abs(val - target) <= tol
 
         # Gartley: AB/XA ≈ 0.618, BC/AB ≈ 0.382-0.886, CD/BC ≈ 1.272-1.618

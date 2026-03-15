@@ -9,6 +9,7 @@ import sys
 from pathlib import Path
 
 def show_metrics():
+    """Show metrics."""
     print("ACC - Accelerated Arbitrage Corp")
     print("METRICS & DEEP DIVE ANALYSIS SYSTEM")
     print("=" * 50)

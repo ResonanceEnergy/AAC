@@ -35,10 +35,13 @@ except ImportError:
     CIRCUIT_BREAKER_AVAILABLE = False
     # No-op decorator fallback
     def with_circuit_breaker(*args, **kwargs):
+        """With circuit breaker."""
         def decorator(func):
+            """Decorator."""
             return func
         return decorator
     class CircuitOpenError(Exception):
+        """CircuitOpenError class."""
         pass
 
 logger = logging.getLogger(__name__)
@@ -110,6 +113,7 @@ class MetalXConnector(BaseExchangeConnector):
 
     @property
     def name(self) -> str:
+        """Name."""
         return "metalx"
 
     async def connect(self) -> bool:

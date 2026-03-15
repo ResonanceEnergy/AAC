@@ -12,6 +12,7 @@ from datetime import datetime
 from typing import Dict, List, Optional, Any
 import sys
 from pathlib import Path
+logger = logging.getLogger(__name__)
 
 # Add project root to path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -51,6 +52,7 @@ class CoinbaseConnector(BaseExchangeConnector):
 
     @property
     def name(self) -> str:
+        """Name."""
         return "coinbase"
 
     def __init__(
@@ -472,18 +474,19 @@ class CoinbaseConnector(BaseExchangeConnector):
 # Test the connector
 if __name__ == '__main__':
     async def test():
+        """Test."""
         connector = CoinbaseConnector(testnet=True)
         
         try:
             connected = await connector.connect()
-            print(f"Connected: {connected}")
+            logger.info(f"Connected: {connected}")
             
             if connected:
                 ticker = await connector.get_ticker('BTC/USD')
-                print(f"BTC/USD Ticker: bid={ticker.bid}, ask={ticker.ask}")
+                logger.info(f"BTC/USD Ticker: bid={ticker.bid}, ask={ticker.ask}")
                 
         except Exception as e:
-            print(f"Error: {e}")
+            logger.info(f"Error: {e}")
         finally:
             await connector.disconnect()
     

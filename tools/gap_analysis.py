@@ -9,6 +9,7 @@ from aac.doctrine.doctrine_integration import DoctrineOrchestrator
 from aac.doctrine.doctrine_engine import DOCTRINE_PACKS
 
 async def main():
+    """Main."""
     print("=" * 70)
     print("AAC DOCTRINE GAP ANALYSIS")
     print("=" * 70)

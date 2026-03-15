@@ -50,6 +50,7 @@ class StrategyConfig:
 
     @property
     def is_valid(self) -> bool:
+        """Is valid."""
         return self.status == StrategyStatus.VALID
 
 

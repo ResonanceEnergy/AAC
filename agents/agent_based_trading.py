@@ -624,4 +624,4 @@ async def run_trading_contest():
 if __name__ == "__main__":
     # Run the trading contest
     result = asyncio.run(run_trading_contest())
-    print("\n🎉 Contest Complete! Check reports/contest_report.json for full results!")
+    logger.info("\n🎉 Contest Complete! Check reports/contest_report.json for full results!")

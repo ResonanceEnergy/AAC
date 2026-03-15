@@ -7,6 +7,7 @@ from core.orchestrator import AAC2100Orchestrator
 import asyncio
 
 async def comprehensive_department_audit():
+    """Comprehensive department audit."""
     print('🔍 AAC 2100 DEPARTMENT AUDIT - FEBRUARY 4, 2026')
     print('=' * 60)
 

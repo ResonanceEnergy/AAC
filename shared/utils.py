@@ -86,6 +86,7 @@ def retry(
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         async def async_wrapper(*args, **kwargs):
+            """Async wrapper."""
             last_exception = None
             
             for attempt in range(1, config.max_attempts + 1):
@@ -115,6 +116,7 @@ def retry(
         
         @functools.wraps(func)
         def sync_wrapper(*args, **kwargs):
+            """Sync wrapper."""
             last_exception = None
             
             for attempt in range(1, config.max_attempts + 1):
@@ -273,6 +275,7 @@ def with_circuit_breaker(
             return await api_call()
     """
     def decorator(func: Callable) -> Callable:
+        """Decorator."""
         breaker = get_circuit_breaker(
             breaker_name,
             failure_threshold=failure_threshold,
@@ -282,6 +285,7 @@ def with_circuit_breaker(
         
         @functools.wraps(func)
         async def async_wrapper(*args, **kwargs):
+            """Async wrapper."""
             if not breaker.can_execute():
                 raise CircuitOpenError(
                     f"Circuit {breaker_name} is open - service unavailable"
@@ -296,6 +300,7 @@ def with_circuit_breaker(
         
         @functools.wraps(func)
         def sync_wrapper(*args, **kwargs):
+            """Sync wrapper."""
             if not breaker.can_execute():
                 raise CircuitOpenError(
                     f"Circuit {breaker_name} is open - service unavailable"
@@ -442,6 +447,7 @@ async def gather_with_concurrency(
     semaphore = asyncio.Semaphore(max_concurrent)
     
     async def bounded_task(task):
+        """Bounded task."""
         async with semaphore:
             return await task
     
@@ -588,6 +594,7 @@ class TradeLogger:
     
     def log_order(self, order_id: str, symbol: str, side: str, 
                   quantity: float, price: float, status: str):
+        """Log order."""
         self.logger.info(
             f"ORDER | {order_id} | {side.upper()} {quantity:.8f} {symbol} "
             f"@ ${price:,.2f} | Status: {status}"
@@ -595,6 +602,7 @@ class TradeLogger:
     
     def log_position_open(self, position_id: str, symbol: str, side: str,
                           quantity: float, entry_price: float):
+        """Log position open."""
         self.logger.info(
             f"POSITION OPEN | {position_id} | {side.upper()} {quantity:.8f} {symbol} "
             f"@ ${entry_price:,.2f}"
@@ -602,6 +610,7 @@ class TradeLogger:
     
     def log_position_close(self, position_id: str, symbol: str, 
                            pnl: float, pnl_pct: float):
+        """Log position close."""
         emoji = "🟢" if pnl >= 0 else "🔴"
         self.logger.info(
             f"POSITION CLOSE | {position_id} | {symbol} | "
@@ -610,6 +619,7 @@ class TradeLogger:
     
     def log_signal(self, signal_id: str, source: str, symbol: str,
                    direction: str, strength: float):
+        """Log signal."""
         self.logger.info(
             f"SIGNAL | {signal_id} | {source} | {direction.upper()} {symbol} "
             f"| Strength: {strength:.2f}"

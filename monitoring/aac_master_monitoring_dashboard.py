@@ -1143,6 +1143,7 @@ class AACMasterMonitoringDashboard:
         if CURSES_AVAILABLE and platform.system() != 'Windows':
             # Use curses on Unix-like systems
             def dashboard_thread():
+                """Dashboard thread."""
                 curses.wrapper(self._run_curses_dashboard)
 
             # Start dashboard in separate thread
@@ -1151,6 +1152,7 @@ class AACMasterMonitoringDashboard:
         else:
             # Use text-based dashboard on Windows or when curses unavailable
             def dashboard_thread():
+                """Dashboard thread."""
                 self._run_text_dashboard_loop()
 
             # Start dashboard in separate thread
@@ -1459,6 +1461,7 @@ class AACDashDashboard:
         )
         def update_metrics(strategy_id, timeframe, n_clicks):
             # This would implement real metrics updating
+            """Update metrics."""
             return html.Div("Metrics display coming soon..."), {}, {}
 
         @app.callback(
@@ -1467,6 +1470,7 @@ class AACDashDashboard:
             [State("strategy-selector", "value")]
         )
         def perform_deep_dive(n_clicks, strategy_id):
+            """Perform deep dive."""
             if n_clicks and strategy_id:
                 # This would implement deep dive analysis
                 return html.Div("Deep dive analysis coming soon...")
@@ -1598,6 +1602,7 @@ def play_audio_response(text: str):
         import threading
 
         def speak():
+            """Speak."""
             engine = pyttsx3.init()
             engine.setProperty('rate', 180)  # Speed of speech
             engine.setProperty('volume', 0.8)  # Volume level (0.0 to 1.0)

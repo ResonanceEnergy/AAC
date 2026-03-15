@@ -490,6 +490,7 @@ def print_registry(show_missing_only: bool = False, output_json: bool = False):
 
 
 def main():
+    """Main."""
     parser = argparse.ArgumentParser(
         description="AAC API Registry — list all APIs and their configuration status"
     )

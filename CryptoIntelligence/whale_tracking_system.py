@@ -30,6 +30,7 @@ logger = logging.getLogger(__name__)
 # ═══════════════════════════════════════════════════════════════════════════
 
 class WalletType(Enum):
+    """WalletType class."""
     WHALE = "whale"                   # >1000 BTC or >10K ETH
     INSTITUTION = "institution"        # Known institutional wallet
     EXCHANGE_HOT = "exchange_hot"      # Exchange hot wallet
@@ -42,6 +43,7 @@ class WalletType(Enum):
     DORMANT = "dormant"               # No activity in 1yr+
 
 class WalletActivity(Enum):
+    """WalletActivity class."""
     ACCUMULATING = "accumulating"      # Net inflows
     DISTRIBUTING = "distributing"      # Net outflows
     DORMANT = "dormant"               # No activity
@@ -49,6 +51,7 @@ class WalletActivity(Enum):
     AWAKENED = "awakened"             # First activity after long dormancy
 
 class FlowDirection(Enum):
+    """FlowDirection class."""
     TO_EXCHANGE = "to_exchange"        # Selling pressure
     FROM_EXCHANGE = "from_exchange"    # Accumulation
     TO_DEFI = "to_defi"              # DeFi participation
@@ -59,6 +62,7 @@ class FlowDirection(Enum):
     UNKNOWN = "unknown"
 
 class AlertPriority(Enum):
+    """AlertPriority class."""
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
@@ -442,8 +446,8 @@ class TokenUnlockTracker:
 # ═══════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
-    print("🐺 BARREN WUFFET — Whale Tracking System v2.7.0")
-    print("=" * 55)
+    logger.info("🐺 BARREN WUFFET — Whale Tracking System v2.7.0")
+    logger.info("=" * 55)
 
     # Classify a wallet
     w_type, w_activity, w_tags = WhaleClassifier.classify_wallet(
@@ -456,10 +460,10 @@ if __name__ == "__main__":
         last_active_days_ago=2,
         avg_hold_time_days=180,
     )
-    print(f"\nWallet Classification:")
-    print(f"  Type: {w_type.value}")
-    print(f"  Activity: {w_activity.value}")
-    print(f"  Tags: {w_tags}")
+    logger.info(f"\nWallet Classification:")
+    logger.info(f"  Type: {w_type.value}")
+    logger.info(f"  Activity: {w_activity.value}")
+    logger.info(f"  Tags: {w_tags}")
 
     # Flow detection
     direction, priority, notes = FlowDirectionDetector.detect_flow(
@@ -467,9 +471,9 @@ if __name__ == "__main__":
         to_label="Binance Hot Wallet",
         amount_usd=15_000_000,
     )
-    print(f"\nFlow Detection:")
-    print(f"  Direction: {direction.value}")
-    print(f"  Priority: {priority.value}")
+    logger.info(f"\nFlow Detection:")
+    logger.info(f"  Direction: {direction.value}")
+    logger.info(f"  Priority: {priority.value}")
     for n in notes: print(f"  → {n}")
 
     # Token unlock
@@ -481,8 +485,8 @@ if __name__ == "__main__":
         unlock_type="cliff",
         recipient="vc",
     )
-    print(f"\nToken Unlock:")
-    print(f"  Impact: {unlock['impact']}")
-    print(f"  Supply %: {unlock['supply_percentage']}%")
-    print(f"  Value: ${unlock['value_usd']:,.0f}")
+    logger.info(f"\nToken Unlock:")
+    logger.info(f"  Impact: {unlock['impact']}")
+    logger.info(f"  Supply %: {unlock['supply_percentage']}%")
+    logger.info(f"  Value: ${unlock['value_usd']:,.0f}")
     for n in unlock["notes"]: print(f"  → {n}")

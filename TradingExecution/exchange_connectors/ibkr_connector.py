@@ -128,6 +128,7 @@ class IBKRConnector(BaseExchangeConnector):
 
     @property
     def name(self) -> str:
+        """Name."""
         return "ibkr"
 
     def __init__(

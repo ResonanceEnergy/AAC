@@ -6,6 +6,7 @@ Fix the malformed JSON in sample_reddit_data.json
 import json
 
 def fix_json_file():
+    """Fix json file."""
     with open('sample_reddit_data.json', 'r') as f:
         content = f.read()
 

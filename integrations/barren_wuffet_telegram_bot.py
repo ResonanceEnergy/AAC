@@ -43,6 +43,7 @@ TELEGRAM_API_BASE = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}"
 
 
 class MessagePriority(Enum):
+    """MessagePriority class."""
     INFO = "info"
     WARNING = "warning"
     CRITICAL = "critical"
@@ -254,6 +255,7 @@ class BarrenWuffetTelegramBot:
     def _create_handler(self, skill_name: str):
         """Create a handler closure for a specific skill."""
         async def handler(message: TelegramMessage, args: Dict) -> BotResponse:
+            """Handler."""
             from integrations.openclaw_barren_wuffet_skills import get_skill_definition
             skill = get_skill_definition(skill_name)
             if not skill:

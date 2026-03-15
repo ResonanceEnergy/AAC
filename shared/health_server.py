@@ -418,8 +418,8 @@ class HealthServer:
                 for exchange, status in feed_status.items():
                     connected = 1 if status.get('connected', False) else 0
                     lines.append(f'acc_websocket_connected{{exchange="{exchange}"}} {connected}')
-            except Exception:
-                pass
+            except Exception as e:
+                logger.exception("Unexpected error: %s", e)
         
         return web.Response(
             text='\n'.join(lines) + '\n',

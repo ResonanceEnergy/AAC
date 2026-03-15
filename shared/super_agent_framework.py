@@ -29,15 +29,19 @@ except ImportError:
     TORCH_AVAILABLE = False
     # Mock torch classes for when torch is not available
     class MockTorch:
+        """MockTorch class."""
+
         @staticmethod
         def randn(*args):
+            """Randn."""
             return np.random.randn(*args)
 
         class no_grad:
+            """no_grad class."""
             def __enter__(self):
                 return self
             def __exit__(self, *args):
-                pass
+                logger.debug("__exit__ called")
 
     torch = MockTorch()
     nn = None
@@ -135,6 +139,7 @@ class NeuralNetworkModule:
         return self.forward(x)
 
     def forward(self, x):
+        """Forward."""
         if not TORCH_AVAILABLE:
             # Mock forward pass when torch is not available
             # Simple feedforward with ReLU activations

@@ -23,6 +23,7 @@ from ..strategy.risk_controls import (
 
 @dataclass
 class TradeRecord:
+    """TradeRecord class."""
     symbol: str
     side: str  # "long" or "short"
     entry_time: Any

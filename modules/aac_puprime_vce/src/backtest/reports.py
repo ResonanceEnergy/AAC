@@ -78,6 +78,7 @@ def save_report(
 
 
 def save_equity_curve_csv(eq: pd.Series, out_dir: str | Path, symbol: str) -> Path:
+    """Save equity curve csv."""
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     path = out_dir / f"equity_{symbol}.csv"

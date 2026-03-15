@@ -26,6 +26,7 @@ logger = logging.getLogger(__name__)
 # ═══════════════════════════════════════════════════════════════════════════
 
 class VolatilityRegime(Enum):
+    """VolatilityRegime class."""
     SUPPRESSED = "suppressed"      # Dealers long gamma → stabilizing
     AMPLIFIED = "amplified"        # Dealers short gamma → destabilizing
     TRANSITIONAL = "transitional"  # Near GEX flip point
@@ -49,10 +50,12 @@ class OptionOI:
 
     @property
     def total_oi(self) -> int:
+        """Total oi."""
         return self.call_oi + self.put_oi
 
     @property
     def put_call_ratio(self) -> float:
+        """Put call ratio."""
         return self.put_oi / self.call_oi if self.call_oi > 0 else float("inf")
 
 
@@ -66,6 +69,7 @@ class GEXLevel:
 
     @property
     def is_positive(self) -> bool:
+        """Is positive."""
         return self.net_gex > 0
 
 
@@ -84,6 +88,7 @@ class GEXProfile:
     call_wall: float = 0.0
 
     def to_dict(self) -> Dict:
+        """To dict."""
         return {
             "symbol": self.symbol,
             "underlying_price": self.underlying_price,

@@ -89,6 +89,7 @@ class ClawHubClient:
     _http_client: Any = field(default=None, repr=False)
 
     def is_configured(self) -> bool:
+        """Is configured."""
         return bool(self.api_key)
 
     async def _get_http_client(self):

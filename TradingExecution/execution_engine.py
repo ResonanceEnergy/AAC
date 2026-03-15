@@ -2020,14 +2020,15 @@ class AAC2100ExecutionEngine(ExecutionEngine):
 # CLI for testing
 if __name__ == "__main__":
     async def test():
-        print("=== Execution Engine Test ===\n")
+        """Test."""
+        logger.info("=== Execution Engine Test ===\n")
         
         engine = ExecutionEngine()
         
-        print(f"Paper Trading: {engine.paper_trading}")
-        print(f"Dry Run: {engine.dry_run}")
+        logger.info(f"Paper Trading: {engine.paper_trading}")
+        logger.info(f"Dry Run: {engine.dry_run}")
         
-        print("\n1. Opening position...")
+        logger.info("\n1. Opening position...")
         position = await engine.open_position(
             symbol="BTC/USDT",
             side=OrderSide.BUY,
@@ -2037,28 +2038,28 @@ if __name__ == "__main__":
         )
         
         if position:
-            print(f"   Position ID: {position.position_id}")
-            print(f"   Entry: ${position.entry_price:,.2f}")
-            print(f"   Stop Loss: ${position.stop_loss:,.2f}")
-            print(f"   Take Profit: ${position.take_profit:,.2f}")
+            logger.info(f"   Position ID: {position.position_id}")
+            logger.info(f"   Entry: ${position.entry_price:,.2f}")
+            logger.info(f"   Stop Loss: ${position.stop_loss:,.2f}")
+            logger.info(f"   Take Profit: ${position.take_profit:,.2f}")
         
-        print("\n2. Simulating price update...")
+        logger.info("\n2. Simulating price update...")
         await engine.update_positions({"BTC/USDT": 46000.0})
         
         open_positions = engine.get_open_positions()
         for pos in open_positions:
-            print(f"   {pos.symbol}: ${pos.current_price:,.2f} | P&L: ${pos.unrealized_pnl:.2f}")
+            logger.info(f"   {pos.symbol}: ${pos.current_price:,.2f} | P&L: ${pos.unrealized_pnl:.2f}")
         
-        print("\n3. Closing position...")
+        logger.info("\n3. Closing position...")
         if position:
             await engine.close_position(position.position_id, price=46000.0)
         
-        print("\n4. Final state:")
+        logger.info("\n4. Final state:")
         state = engine.export_state()
-        print(f"   Orders: {len(state['orders'])}")
-        print(f"   Positions: {len(state['positions'])}")
-        print(f"   Daily P&L: ${state['daily_pnl']:.2f}")
+        logger.info(f"   Orders: {len(state['orders'])}")
+        logger.info(f"   Positions: {len(state['positions'])}")
+        logger.info(f"   Daily P&L: ${state['daily_pnl']:.2f}")
         
-        print("\n=== Test Complete ===")
+        logger.info("\n=== Test Complete ===")
 
     asyncio.run(test())

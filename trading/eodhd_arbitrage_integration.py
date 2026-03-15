@@ -37,6 +37,7 @@ class EODHDConfig:
     realtime_url: str = "https://ws.eodhistoricaldata.com/ws"
 
     def is_configured(self) -> bool:
+        """Is configured."""
         return bool(self.api_key)
 
 class EODHDClient:

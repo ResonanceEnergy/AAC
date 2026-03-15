@@ -11,6 +11,7 @@ from datetime import datetime
 from typing import Dict, List, Optional, Any
 import sys
 from pathlib import Path
+logger = logging.getLogger(__name__)
 
 # Add project root to path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -50,6 +51,7 @@ class BinanceConnector(BaseExchangeConnector):
 
     @property
     def name(self) -> str:
+        """Name."""
         return "binance"
 
     def __init__(
@@ -588,24 +590,25 @@ class BinanceConnector(BaseExchangeConnector):
 # Test the connector
 if __name__ == '__main__':
     async def test():
+        """Test."""
         connector = BinanceConnector(testnet=True)
         
         try:
             # Connect (will work without credentials for public data)
             connected = await connector.connect()
-            print(f"Connected: {connected}")
+            logger.info(f"Connected: {connected}")
             
             if connected:
                 # Get ticker
                 ticker = await connector.get_ticker('BTC/USDT')
-                print(f"BTC/USDT Ticker: bid={ticker.bid}, ask={ticker.ask}, spread={ticker.spread_pct:.4f}%")
+                logger.info(f"BTC/USDT Ticker: bid={ticker.bid}, ask={ticker.ask}, spread={ticker.spread_pct:.4f}%")
                 
                 # Get orderbook
                 book = await connector.get_orderbook('BTC/USDT', 5)
-                print(f"Orderbook: {len(book.bids)} bids, {len(book.asks)} asks, mid={book.mid_price}")
+                logger.info(f"Orderbook: {len(book.bids)} bids, {len(book.asks)} asks, mid={book.mid_price}")
                 
         except Exception as e:
-            print(f"Error: {e}")
+            logger.info(f"Error: {e}")
         finally:
             await connector.disconnect()
     

@@ -42,6 +42,7 @@ class IntelligenceSignal:
         return datetime.now() < self.expires_at
     
     def to_dict(self) -> Dict:
+        """To dict."""
         return {
             'signal_id': self.signal_id,
             'source': self.source,
@@ -73,10 +74,12 @@ class ArbitrageOpportunity:
     
     @property
     def is_profitable(self) -> bool:
+        """Is profitable."""
         return self.spread_pct > 0.1  # > 0.1% spread
     
     @property
     def is_valid(self) -> bool:
+        """Is valid."""
         return datetime.now() < self.valid_until
 
 
@@ -481,6 +484,7 @@ def get_integration() -> CryptoBigBrainIntegration:
 # CLI test
 if __name__ == '__main__':
     async def test():
+        """Test."""
         integration = get_integration()
         await integration.start()
         
@@ -507,18 +511,18 @@ if __name__ == '__main__':
         }
         opportunities = integration.detect_cross_exchange_arbitrage(prices)
         
-        print("\n=== Integration Status ===")
+        logger.info("\n=== Integration Status ===")
         status = integration.get_integration_status()
-        print(json.dumps(status, indent=2))
+        logger.info(json.dumps(status, indent=2))
         
-        print("\n=== Active Opportunities ===")
+        logger.info("\n=== Active Opportunities ===")
         opps = integration.get_active_opportunities()
         for opp in opps:
-            print(f"  {opp['symbol']}: {opp['buy_exchange']} -> {opp['sell_exchange']} ({opp['spread_pct']:.3f}%)")
+            logger.info(f"  {opp['symbol']}: {opp['buy_exchange']} -> {opp['sell_exchange']} ({opp['spread_pct']:.3f}%)")
         
-        print("\n=== BTC/USDT Sentiment ===")
+        logger.info("\n=== BTC/USDT Sentiment ===")
         sentiment = integration.get_market_sentiment('BTC/USDT')
-        print(f"  Overall: {sentiment['overall_sentiment']} (conf={sentiment['confidence']:.2f})")
+        logger.info(f"  Overall: {sentiment['overall_sentiment']} (conf={sentiment['confidence']:.2f})")
         
         await integration.stop()
     

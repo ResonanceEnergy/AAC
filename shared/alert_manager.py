@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 class AlertSeverity(Enum):
+    """AlertSeverity class."""
     INFO = "info"
     WARNING = "warning"
     ERROR = "error"
@@ -22,6 +23,7 @@ class AlertSeverity(Enum):
 
 
 class AlertStatus(Enum):
+    """AlertStatus class."""
     ACTIVE = "active"
     ACKNOWLEDGED = "acknowledged"
     RESOLVED = "resolved"
@@ -30,6 +32,7 @@ class AlertStatus(Enum):
 
 @dataclass
 class Alert:
+    """Alert class."""
     alert_id: str
     title: str
     message: str
@@ -119,9 +122,11 @@ class AlertManager:
         return False
 
     def get_active_alerts(self) -> List[Alert]:
+        """Get active alerts."""
         return [a for a in self.alerts.values() if a.status == AlertStatus.ACTIVE]
 
     def get_metrics(self) -> Dict[str, Any]:
+        """Get metrics."""
         total = len(self.alerts)
         active = len(self.get_active_alerts())
         return {

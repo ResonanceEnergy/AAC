@@ -212,6 +212,7 @@ class StrategyMetricsDashboard:
              Input("refresh-btn", "n_clicks")]
         )
         def update_dashboard(strategy_id, timeframe, n_clicks):
+            """Update dashboard."""
             if not strategy_id:
                 return [], {}, {}, ""
 
@@ -233,6 +234,7 @@ class StrategyMetricsDashboard:
             [State("strategy-selector", "value")]
         )
         def show_deep_dive(n_clicks, strategy_id):
+            """Show deep dive."""
             if not n_clicks or not strategy_id:
                 return {"display": "none"}, ""
 

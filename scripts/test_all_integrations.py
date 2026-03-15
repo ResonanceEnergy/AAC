@@ -13,6 +13,7 @@ W = 70
 
 
 def port_open(host, port, timeout=2):
+    """Port open."""
     try:
         with socket.create_connection((host, port), timeout=timeout):
             return True
@@ -21,6 +22,7 @@ def port_open(host, port, timeout=2):
 
 
 async def main():
+    """Main."""
     print("=" * W)
     print("  AAC — LIVE READINESS TEST: ALL 5 INTEGRATIONS")
     print("=" * W)
@@ -172,8 +174,8 @@ async def main():
             print(f"  Connection:     OFFLINE - {str(e)[:80]}")
             try:
                 await client.disconnect()
-            except Exception:
-                pass
+            except Exception as e:
+                logger.exception("Unexpected error: %s", e)
     except Exception as e:
         print(f"  ERROR: {e}")
 

@@ -25,6 +25,7 @@ class HealthHandler(BaseHTTPRequestHandler):
     """Handle /health and /ready endpoints."""
 
     def do_GET(self):
+        """Do get."""
         if self.path == '/health':
             self._respond_health()
         elif self.path == '/ready':
@@ -80,7 +81,7 @@ class HealthHandler(BaseHTTPRequestHandler):
 
     def log_message(self, fmt, *args):
         """Suppress default access logs."""
-        pass
+        logger.debug("log_message called")
 
 
 def start_health_server(port: int = 8080, background: bool = True):

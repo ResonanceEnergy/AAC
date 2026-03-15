@@ -32,6 +32,7 @@ logger = logging.getLogger(__name__)
 # ═══════════════════════════════════════════════════════════════════════════
 
 class YieldSource(Enum):
+    """YieldSource class."""
     TRADING_FEES = "trading_fees"         # DEX swap fees
     LENDING_INTEREST = "lending_interest"   # Borrow/lend interest
     TOKEN_EMISSIONS = "token_emissions"     # Inflationary rewards
@@ -42,6 +43,7 @@ class YieldSource(Enum):
     LIQUIDATION_FEES = "liquidation_fees"   # Keeper fees
 
 class ProtocolRisk(Enum):
+    """ProtocolRisk class."""
     MINIMAL = "minimal"       # Top-tier, audited, battle-tested
     LOW = "low"               # Multiple audits, >$1B TVL, 1yr+ track record
     MEDIUM = "medium"         # Audited, moderate TVL, <1yr
@@ -49,6 +51,7 @@ class ProtocolRisk(Enum):
     EXTREME = "extreme"       # Unaudited, unknown team, suspicious patterns
 
 class YieldSustainability(Enum):
+    """YieldSustainability class."""
     SUSTAINABLE = "sustainable"     # Fees > emissions
     MOSTLY = "mostly_sustainable"   # Fees cover >50% of yield
     MIXED = "mixed"                 # Fees cover 20-50%
@@ -529,26 +532,26 @@ class DeFiOpportunityScreener:
 # ═══════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
-    print("🐺 BARREN WUFFET — DeFi Yield Analyzer v2.7.0")
-    print("=" * 55)
+    logger.info("🐺 BARREN WUFFET — DeFi Yield Analyzer v2.7.0")
+    logger.info("=" * 55)
 
     # Impermanent Loss: standard
     il = ImpermanentLossCalculator.calculate_standard(
         initial_price=2000, final_price=4000, initial_deposit=10000,
     )
-    print(f"\nImpermanent Loss (2x price move):")
-    print(f"  IL: {il.il_percentage:.2f}%")
-    print(f"  LP Value: ${il.lp_value:,.2f}")
-    print(f"  HODL Value: ${il.hodl_value:,.2f}")
-    print(f"  Loss: ${il.loss_usd:,.2f}")
+    logger.info(f"\nImpermanent Loss (2x price move):")
+    logger.info(f"  IL: {il.il_percentage:.2f}%")
+    logger.info(f"  LP Value: ${il.lp_value:,.2f}")
+    logger.info(f"  HODL Value: ${il.hodl_value:,.2f}")
+    logger.info(f"  Loss: ${il.loss_usd:,.2f}")
 
     # Concentrated IL
     il_conc = ImpermanentLossCalculator.calculate_concentrated(
         initial_price=2000, final_price=4000, initial_deposit=10000,
         lower_tick=1500, upper_tick=3000,
     )
-    print(f"\nConcentrated IL (same move, tight range):")
-    print(f"  IL: {il_conc.il_percentage:.2f}%")
+    logger.info(f"\nConcentrated IL (same move, tight range):")
+    logger.info(f"  IL: {il_conc.il_percentage:.2f}%")
     for n in il_conc.notes: print(f"  → {n}")
 
     # Yield Sustainability
@@ -556,9 +559,9 @@ if __name__ == "__main__":
         protocol="Aave V3", pool="USDC Lending",
         total_apy=4.5, fee_apy=4.2, emission_apy=0.3,
     )
-    print(f"\nYield Analysis: {yield_info.protocol} — {yield_info.pool}")
-    print(f"  Total APY: {yield_info.total_apy}% | Real: {yield_info.real_yield_apy}%")
-    print(f"  Sustainability: {yield_info.sustainability.value}")
+    logger.info(f"\nYield Analysis: {yield_info.protocol} — {yield_info.pool}")
+    logger.info(f"  Total APY: {yield_info.total_apy}% | Real: {yield_info.real_yield_apy}%")
+    logger.info(f"  Sustainability: {yield_info.sustainability.value}")
     for n in yield_info.notes: print(f"  → {n}")
 
     # Ponzi yield
@@ -567,9 +570,9 @@ if __name__ == "__main__":
         total_apy=2000, fee_apy=5, emission_apy=1995,
         tvl_30d_change_pct=-45, emission_token_price_30d_change=-70,
     )
-    print(f"\n⚠️  {ponzi.protocol} — {ponzi.pool}:")
-    print(f"  Total APY: {ponzi.total_apy}% | Real: {ponzi.real_yield_apy}%")
-    print(f"  Sustainability: {ponzi.sustainability.value}")
+    logger.info(f"\n⚠️  {ponzi.protocol} — {ponzi.pool}:")
+    logger.info(f"  Total APY: {ponzi.total_apy}% | Real: {ponzi.real_yield_apy}%")
+    logger.info(f"  Sustainability: {ponzi.sustainability.value}")
     for n in ponzi.notes: print(f"  → {n}")
 
     # Protocol Risk
@@ -578,6 +581,6 @@ if __name__ == "__main__":
         tvl_usd=5_000_000_000, audit_count=5, age_months=36,
         has_bug_bounty=True, is_upgradeable=False, admin_keys="dao",
     )
-    print(f"\nProtocol Risk: {risk.protocol}")
-    print(f"  Risk: {risk.risk_level.value} (score: {risk.risk_score})")
-    print(f"  Safety: {', '.join(risk.safety_factors)}")
+    logger.info(f"\nProtocol Risk: {risk.protocol}")
+    logger.info(f"  Risk: {risk.risk_level.value} (score: {risk.risk_score})")
+    logger.info(f"  Safety: {', '.join(risk.safety_factors)}")

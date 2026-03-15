@@ -16,6 +16,7 @@ from collections import deque
 logger = logging.getLogger(__name__)
 
 class IncidentType(Enum):
+    """IncidentType class."""
     LATENCY_SPIKE = "latency_spike"
     ERROR_RATE_SPIKE = "error_rate_spike"
     MEMORY_LEAK = "memory_leak"
@@ -26,6 +27,7 @@ class IncidentType(Enum):
     AI_MODEL_DRIFT = "ai_model_drift"
 
 class IncidentSeverity(Enum):
+    """IncidentSeverity class."""
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"

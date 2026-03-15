@@ -27,11 +27,13 @@ logger = logging.getLogger(__name__)
 # ═══════════════════════════════════════════════════════════════════════════
 
 class WheelPhase(Enum):
+    """WheelPhase class."""
     CSP = "cash_secured_put"       # Selling puts to enter
     COVERED_CALL = "covered_call"  # Assigned → selling calls
     IDLE = "idle"                  # Between cycles
 
 class ManagementAction(Enum):
+    """ManagementAction class."""
     HOLD = "hold"
     CLOSE = "close"
     ROLL_OUT = "roll_out"
@@ -134,14 +136,17 @@ class IncomePortfolio:
 
     @property
     def total_credits(self) -> float:
+        """Total credits."""
         return sum(p.credit_received * p.quantity * 100 for p in self.positions if p.status == "open")
 
     @property
     def total_pnl(self) -> float:
+        """Total pnl."""
         return sum(p.pnl * p.quantity for p in self.positions if p.status == "open")
 
     @property
     def positions_count(self) -> int:
+        """Positions count."""
         return sum(1 for p in self.positions if p.status == "open")
 
     @property
@@ -162,6 +167,7 @@ class IncomePortfolio:
 
     @property
     def capital_utilization(self) -> float:
+        """Capital utilization."""
         if self.total_capital == 0:
             return 0
         return self.capital_deployed / self.total_capital * 100

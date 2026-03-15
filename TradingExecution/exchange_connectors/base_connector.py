@@ -65,10 +65,12 @@ class Ticker:
     
     @property
     def spread(self) -> float:
+        """Spread."""
         return self.ask - self.bid
     
     @property
     def spread_pct(self) -> float:
+        """Spread pct."""
         return (self.spread / self.bid) * 100 if self.bid > 0 else 0
 
 
@@ -82,14 +84,17 @@ class OrderBook:
     
     @property
     def best_bid(self) -> Optional[tuple]:
+        """Best bid."""
         return self.bids[0] if self.bids else None
     
     @property
     def best_ask(self) -> Optional[tuple]:
+        """Best ask."""
         return self.asks[0] if self.asks else None
     
     @property
     def mid_price(self) -> float:
+        """Mid price."""
         if self.best_bid and self.best_ask:
             return (self.best_bid[0] + self.best_ask[0]) / 2
         return 0.0
@@ -104,6 +109,7 @@ class Balance:
     
     @property
     def total(self) -> float:
+        """Total."""
         return self.free + self.locked
 
 
@@ -167,6 +173,7 @@ class BaseExchangeConnector(ABC):
 
     @property
     def is_connected(self) -> bool:
+        """Is connected."""
         return self._connected
 
     @abstractmethod
@@ -243,7 +250,7 @@ class BaseExchangeConnector(ABC):
         Returns:
             ExchangeOrder object
         """
-        pass
+        logger.debug("create_order called")
 
     @abstractmethod
     async def cancel_order(self, order_id: str, symbol: str) -> bool:

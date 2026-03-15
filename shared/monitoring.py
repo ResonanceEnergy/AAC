@@ -63,6 +63,7 @@ class TelegramNotifier:
     
     @property
     def enabled(self) -> bool:
+        """Enabled."""
         return self._enabled
     
     async def send_message(self, text: str, parse_mode: str = "HTML") -> bool:
@@ -134,6 +135,7 @@ class SlackNotifier:
     
     @property
     def enabled(self) -> bool:
+        """Enabled."""
         return self._enabled
     
     async def send_message(self, text: str, blocks: Optional[List] = None) -> bool:
@@ -211,6 +213,7 @@ class HealthCheckResult:
     timestamp: datetime = field(default_factory=datetime.now)
     
     def to_dict(self) -> Dict:
+        """To dict."""
         return {
             'name': self.name,
             'status': self.status.value,
@@ -234,6 +237,7 @@ class SystemMetrics:
     timestamp: datetime = field(default_factory=datetime.now)
     
     def to_dict(self) -> Dict:
+        """To dict."""
         return asdict(self)
 
 
@@ -250,6 +254,7 @@ class Alert:
     created_at: datetime = field(default_factory=datetime.now)
     
     def to_dict(self) -> Dict:
+        """To dict."""
         return {
             'alert_id': self.alert_id,
             'severity': self.severity,
@@ -774,6 +779,7 @@ async def shutdown_monitoring():
 # CLI for testing
 if __name__ == '__main__':
     async def test():
+        """Test."""
         print("=== ACC Monitoring System Test ===\n")
         
         # Create service

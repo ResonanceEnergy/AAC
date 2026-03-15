@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
 
 
 class AgentStatus(Enum):
+    """AgentStatus class."""
     PENDING = "pending"
     RUNNING = "running"
     COMPLETED = "completed"

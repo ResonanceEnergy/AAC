@@ -48,6 +48,7 @@ def _make_market(
 # ─── PredictionMarket Tests ──────────────────────────────────────────────
 
 class TestPredictionMarket:
+    """TestPredictionMarket class."""
     def test_cheapest_outcome(self):
         m = _make_market(prices={"Yes": 0.005, "No": 0.995})
         assert m.cheapest_outcome == "Yes"
@@ -71,6 +72,7 @@ class TestPredictionMarket:
 # ─── HarvesterStats Tests ────────────────────────────────────────────────
 
 class TestHarvesterStats:
+    """TestHarvesterStats class."""
     def test_empty_stats(self):
         s = HarvesterStats()
         assert s.net_profit == 0.0
@@ -94,6 +96,7 @@ class TestHarvesterStats:
 # ─── PlanktonBet Tests ───────────────────────────────────────────────────
 
 class TestPlanktonBet:
+    """TestPlanktonBet class."""
     def test_roi_calculation(self):
         bet = PlanktonBet(
             bet_id="test_001",
@@ -115,6 +118,7 @@ class TestPlanktonBet:
 # ─── Simulator Tests ─────────────────────────────────────────────────────
 
 class TestPlanktonXDSimulator:
+    """TestPlanktonXDSimulator class."""
     def test_single_simulation_runs(self):
         sim = PlanktonXDSimulator(
             starting_bankroll=1000.0,

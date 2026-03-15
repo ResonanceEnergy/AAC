@@ -135,6 +135,7 @@ class SystemMonitor:
             print("\n  System Monitor stopped.\n")
 
     def stop(self) -> None:
+        """Stop."""
         self._running = False
 
 
@@ -154,6 +155,7 @@ async def _async_main() -> None:
 
 
 def main() -> None:
+    """Main."""
     asyncio.run(_async_main())
 
 

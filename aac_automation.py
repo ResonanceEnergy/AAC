@@ -178,16 +178,16 @@ failed_imports = []
 for module in modules_to_check:
     try:
         __import__(module)
-        print(f"✅ {module}")
+        logger.info(f"✅ {module}")
     except ImportError as e:
         failed_imports.append((module, str(e)))
-        print(f"❌ {module}: {e}")
+        logger.info(f"❌ {module}: {e}")
 
 if failed_imports:
-    print(f"\\n❌ {len(failed_imports)} import failures")
+    logger.info(f"\\n❌ {len(failed_imports)} import failures")
     sys.exit(1)
 else:
-    print("\\n✅ All imports successful")
+    logger.info("\\n✅ All imports successful")
 """
 
             result = subprocess.run([self.python_exe, '-c', import_check_script],
@@ -219,7 +219,7 @@ async def run_basic_tests():
     try:
         from monitoring.aac_master_monitoring_dashboard import get_master_dashboard, DisplayMode
         results['passed'] += 1
-        print("✅ Dashboard import test passed")
+        logger.info("✅ Dashboard import test passed")
     except Exception as e:
         results['failed'] += 1
         results['errors'].append(f"Dashboard import: {e}")
@@ -230,7 +230,7 @@ async def run_basic_tests():
         doctrine = get_doctrine_integration()
         await doctrine.initialize()
         results['passed'] += 1
-        print("✅ Doctrine integration test passed")
+        logger.info("✅ Doctrine integration test passed")
     except Exception as e:
         results['failed'] += 1
         results['errors'].append(f"Doctrine integration: {e}")
@@ -240,7 +240,7 @@ async def run_basic_tests():
         from shared.config_loader import get_config
         config = get_config()
         results['passed'] += 1
-        print("✅ Configuration test passed")
+        logger.info("✅ Configuration test passed")
     except Exception as e:
         results['failed'] += 1
         results['errors'].append(f"Configuration: {e}")
@@ -249,11 +249,11 @@ async def run_basic_tests():
 
 # Run tests
 results = asyncio.run(run_basic_tests())
-print(f"\\nTest Results: {results['passed']} passed, {results['failed']} failed")
+logger.info(f"\\nTest Results: {results['passed']} passed, {results['failed']} failed")
 if results['errors']:
-    print("Errors:")
+    logger.info("Errors:")
     for error in results['errors']:
-        print(f"  - {error}")
+        logger.info(f"  - {error}")
 """
 
             result = subprocess.run([self.python_exe, '-c', test_script],

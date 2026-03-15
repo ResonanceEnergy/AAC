@@ -15,6 +15,7 @@ import numpy as np
 logger = logging.getLogger(__name__)
 
 class ArbitrageType(Enum):
+    """ArbitrageType class."""
     SPATIAL = "spatial"          # Same time, different exchanges
     TEMPORAL = "temporal"         # Different times, same exchange
     CROSS_TEMPORAL = "cross_temporal"  # Different times, different exchanges

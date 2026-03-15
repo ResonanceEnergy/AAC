@@ -4,6 +4,7 @@ import asyncio
 from aac.doctrine.doctrine_integration import get_doctrine_integration
 
 async def check_departments():
+    """Check departments."""
     print('🔍 Checking Department Connections...')
 
     doctrine = get_doctrine_integration()

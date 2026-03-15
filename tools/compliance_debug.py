@@ -4,6 +4,7 @@ import asyncio
 from aac.doctrine.doctrine_integration import DoctrineOrchestrator
 
 async def main():
+    """Main."""
     orch = DoctrineOrchestrator()
     result = await orch.run_compliance_check()
     print("\n=== WARNING METRICS ===")

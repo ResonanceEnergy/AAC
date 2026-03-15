@@ -1278,44 +1278,44 @@ async def _async_cli():
                 dashboard = get_master_dashboard(DisplayMode.TERMINAL)
                 await dashboard.start_monitoring()
             else:
-                print("❌ Monitoring dashboard module not available")
+                logger.info("❌ Monitoring dashboard module not available")
                 sys.exit(1)
         elif args.mode == "interactive":
-            print("🎮 AAC Command Center — Interactive Mode")
-            print("Type 'help' for commands, 'quit' to exit\n")
+            logger.info("🎮 AAC Command Center — Interactive Mode")
+            logger.info("Type 'help' for commands, 'quit' to exit\n")
             while True:
                 try:
                     cmd = input("AZ> ").strip()
                     if cmd.lower() in ("quit", "exit", "q"):
                         break
                     if cmd.lower() == "help":
-                        print("  status   — System status overview")
-                        print("  supreme  — Talk to AZ Supreme")
-                        print("  helix    — Talk to AX Helix")
-                        print("  quit     — Exit")
+                        logger.info("  status   — System status overview")
+                        logger.info("  supreme  — Talk to AZ Supreme")
+                        logger.info("  helix    — Talk to AX Helix")
+                        logger.info("  quit     — Exit")
                         continue
                     if cmd.lower() == "status":
                         status = await cc.get_system_overview()
-                        print(json.dumps(status, indent=2, default=str))
+                        logger.info(json.dumps(status, indent=2, default=str))
                     elif cmd.lower().startswith("supreme "):
                         resp = await cc.interact_with_avatar("supreme", cmd[8:])
-                        print(f"AZ-SUPREME: {resp}")
+                        logger.info(f"AZ-SUPREME: {resp}")
                     elif cmd.lower().startswith("helix "):
                         resp = await cc.interact_with_avatar("helix", cmd[6:])
-                        print(f"AX-HELIX: {resp}")
+                        logger.info(f"AX-HELIX: {resp}")
                     else:
-                        print(f"Unknown command: {cmd}. Type 'help'.")
+                        logger.info(f"Unknown command: {cmd}. Type 'help'.")
                 except EOFError:
                     break
         else:
             # Default monitoring mode
-            print("📡 AAC Command Center — Monitoring Mode")
-            print("Press Ctrl+C to stop\n")
+            logger.info("📡 AAC Command Center — Monitoring Mode")
+            logger.info("Press Ctrl+C to stop\n")
             status = await cc.get_system_overview()
-            print(json.dumps(status, indent=2, default=str))
+            logger.info(json.dumps(status, indent=2, default=str))
 
     except KeyboardInterrupt:
-        print("\n🛑 Shutting down command center...")
+        logger.info("\n🛑 Shutting down command center...")
     finally:
         await cc.shutdown_command_center()
 

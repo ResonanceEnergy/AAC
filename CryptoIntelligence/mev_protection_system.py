@@ -32,6 +32,7 @@ logger = logging.getLogger(__name__)
 # ═══════════════════════════════════════════════════════════════════════════
 
 class MEVAttackType(Enum):
+    """MEVAttackType class."""
     SANDWICH = "sandwich"               # Frontrun + backrun victim swap
     FRONTRUN = "frontrun"               # Copy victim tx with higher gas
     BACKRUN = "backrun"                 # Arbitrage after victim tx
@@ -42,6 +43,7 @@ class MEVAttackType(Enum):
     LONG_TAIL = "long_tail"             # Niche/unique MEV opportunities
 
 class ProtectionLevel(Enum):
+    """ProtectionLevel class."""
     NONE = "none"                       # Raw mempool, fully exposed
     BASIC = "basic"                     # Reasonable slippage settings
     PRIVATE_RPC = "private_rpc"         # Private tx submission
@@ -50,6 +52,7 @@ class ProtectionLevel(Enum):
     MAXIMUM = "maximum"                 # All protections + TWAP
 
 class RiskLevel(Enum):
+    """RiskLevel class."""
     SAFE = "safe"
     LOW = "low"
     MEDIUM = "medium"
@@ -505,8 +508,8 @@ class MEVAwareDEXRouter:
 # ═══════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
-    print("🐺 BARREN WUFFET — MEV Protection & Detection System v2.7.0")
-    print("=" * 60)
+    logger.info("🐺 BARREN WUFFET — MEV Protection & Detection System v2.7.0")
+    logger.info("=" * 60)
 
     # Transaction Protection Assessment
     plan = TransactionProtectionEngine.assess_risk(
@@ -516,22 +519,22 @@ if __name__ == "__main__":
         pool_liquidity=5_000_000,
         is_mempool_public=True,
     )
-    print(f"\nMEV Risk Assessment:")
-    print(f"  Risk Level: {plan.risk_level.value}")
-    print(f"  Vulnerability: {plan.vulnerability_score}/100")
-    print(f"  Protection: {plan.recommended_protection.value}")
-    print(f"  Recommended Slippage: {plan.recommended_slippage}%")
-    print(f"  Split Trades: {plan.split_trades} ({plan.num_splits} splits)")
-    print(f"  Use TWAP: {plan.use_twap} ({plan.twap_duration_minutes} min)")
-    print(f"  Estimated Savings: ${plan.estimated_savings_usd:,.2f}")
+    logger.info(f"\nMEV Risk Assessment:")
+    logger.info(f"  Risk Level: {plan.risk_level.value}")
+    logger.info(f"  Vulnerability: {plan.vulnerability_score}/100")
+    logger.info(f"  Protection: {plan.recommended_protection.value}")
+    logger.info(f"  Recommended Slippage: {plan.recommended_slippage}%")
+    logger.info(f"  Split Trades: {plan.split_trades} ({plan.num_splits} splits)")
+    logger.info(f"  Use TWAP: {plan.use_twap} ({plan.twap_duration_minutes} min)")
+    logger.info(f"  Estimated Savings: ${plan.estimated_savings_usd:,.2f}")
     for note in plan.notes:
-        print(f"  → {note}")
+        logger.info(f"  → {note}")
 
     # Flashbots config
     config = FlashbotsGuide.get_protection_config("ethereum")
-    print(f"\nFlashbots Config:")
+    logger.info(f"\nFlashbots Config:")
     for k, v in config.items():
-        print(f"  {k}: {v}")
+        logger.info(f"  {k}: {v}")
 
     # DEX Routing
     pools = [
@@ -541,9 +544,9 @@ if __name__ == "__main__":
         {"name": "WETH/USDC Stable", "liquidity": 15_000_000, "fee_tier": "0.01%", "dex": "Curve"},
     ]
     route = MEVAwareDEXRouter.compute_optimal_route(50_000, pools)
-    print(f"\nOptimal Route ({route['num_splits']} splits):")
+    logger.info(f"\nOptimal Route ({route['num_splits']} splits):")
     for split in route["splits"]:
         print(f"  → {split['dex']} {split['pool']}: ${split['allocation_usd']:,.0f} "
               f"({split['allocation_pct']}%) impact: {split['estimated_impact']:.3f}%")
-    print(f"  Total Impact: {route['total_estimated_impact']:.3f}%")
-    print(f"  Recommended Slippage: {route['recommended_slippage']}%")
+    logger.info(f"  Total Impact: {route['total_estimated_impact']:.3f}%")
+    logger.info(f"  Recommended Slippage: {route['recommended_slippage']}%")

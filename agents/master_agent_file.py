@@ -259,44 +259,45 @@ async def get_agent_status_report() -> Dict[str, Any]:
 # CLI interface for testing
 if __name__ == '__main__':
     async def main():
-        print("=== AAC MASTER AGENT SYSTEM ===")
-        print()
+        """Main."""
+        logger.info("=== AAC MASTER AGENT SYSTEM ===")
+        logger.debug("")
 
         # Initialize system
-        print("Initializing agent system...")
+        logger.info("Initializing agent system...")
         success = await initialize_agent_system()
         if not success:
-            print("Failed to initialize agent system")
+            logger.info("Failed to initialize agent system")
             return
 
         # Get agent inventory
         agents = get_all_agents()
-        print(f"Research Agents: {agents['total_research']}")
-        print(f"Super Agents: {agents['total_super']}")
-        print(f"Total Agents: {agents['total_overall']}")
-        print()
+        logger.info(f"Research Agents: {agents['total_research']}")
+        logger.info(f"Super Agents: {agents['total_super']}")
+        logger.info(f"Total Agents: {agents['total_overall']}")
+        logger.debug("")
 
         # Get status report
-        print("Getting system status...")
+        logger.info("Getting system status...")
         status = await get_agent_status_report()
-        print(f"System Status: {status['status']}")
-        print(f"Agent Counts: {status['agent_counts']}")
-        print()
+        logger.info(f"System Status: {status['status']}")
+        logger.info(f"Agent Counts: {status['agent_counts']}")
+        logger.debug("")
 
         # List research agents
-        print("Research Agents:")
+        logger.info("Research Agents:")
         for agent_id in agents['research_agents']:
-            print(f"  - {agent_id}")
-        print()
+            logger.info(f"  - {agent_id}")
+        logger.debug("")
 
         # List super agents
-        print("Super Agents by Department:")
+        logger.info("Super Agents by Department:")
         for dept, dept_agents in agents['super_agents'].items():
-            print(f"  {dept}:")
+            logger.info(f"  {dept}:")
             for agent in dept_agents:
-                print(f"    - {agent}")
-        print()
+                logger.info(f"    - {agent}")
+        logger.debug("")
 
-        print("=== AGENT SYSTEM READY ===")
+        logger.info("=== AGENT SYSTEM READY ===")
 
     asyncio.run(main())

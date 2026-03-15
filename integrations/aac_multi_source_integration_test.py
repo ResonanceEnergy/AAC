@@ -134,6 +134,7 @@ def test_algotrading101_integration():
 
         # Simple mock strategy
         def mock_strategy(prices, positions):
+            """Mock strategy."""
             signals = []
             if 'AAPL' in prices and 'MSFT' in prices:
                 if prices['AAPL']['close'] > prices['MSFT']['close']:

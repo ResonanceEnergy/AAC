@@ -74,6 +74,7 @@ def deploy(target_dir: Path, dry_run: bool = False) -> int:
 
 
 def main():
+    """Main."""
     parser = argparse.ArgumentParser(
         description="Deploy BARREN WUFFET SKILL.md files to OpenClaw workspace"
     )

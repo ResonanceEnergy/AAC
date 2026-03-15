@@ -319,8 +319,8 @@ class ConnectionPool:
             # Pool full — close the surplus connection to prevent leak
             try:
                 conn.close()
-            except Exception:
-                pass
+            except Exception as e:
+                logger.exception("Unexpected error: %s", e)
     
     @contextmanager
     def connection(self) -> Generator[sqlite3.Connection, None, None]:
@@ -337,8 +337,8 @@ class ConnectionPool:
             try:
                 conn = self._pool.get_nowait()
                 conn.close()
-            except Exception:
-                pass
+            except Exception as e:
+                logger.exception("Unexpected error: %s", e)
         self._initialized = False
         self.logger.info("All pool connections closed")
 
@@ -928,17 +928,17 @@ def init_database():
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
     
-    print("Initializing Accounting Database...")
+    logger.info("Initializing Accounting Database...")
     db = AccountingDatabase()
     
     if db.initialize():
-        print(f"Database created at: {db.db_path}")
+        logger.info(f"Database created at: {db.db_path}")
         
         # Show accounts
         accounts = db.get_accounts()
-        print(f"\nAccounts ({len(accounts)}):")
+        logger.info(f"\nAccounts ({len(accounts)}):")
         for acc in accounts:
-            print(f"  - {acc['name']} ({acc['account_type']})")
+            logger.info(f"  - {acc['name']} ({acc['account_type']})")
         
         # Test creating a transaction
         if accounts:
@@ -949,9 +949,9 @@ if __name__ == '__main__':
                 quantity=10000,
                 notes='Initial paper trading balance'
             )
-            print(f"\nCreated test transaction: {tx_id}")
+            logger.info(f"\nCreated test transaction: {tx_id}")
         
         db.close()
-        print("\nDatabase initialization complete!")
+        logger.info("\nDatabase initialization complete!")
     else:
-        print("Database initialization failed!")
+        logger.info("Database initialization failed!")

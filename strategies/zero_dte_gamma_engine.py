@@ -28,6 +28,7 @@ logger = logging.getLogger(__name__)
 # ═══════════════════════════════════════════════════════════════════════════
 
 class SessionPhase(Enum):
+    """SessionPhase class."""
     PRE_MARKET = "pre_market"          # Before 9:30
     OPENING_RANGE = "opening_range"    # 9:30 - 10:00
     MORNING = "morning"                # 10:00 - 11:30
@@ -38,6 +39,7 @@ class SessionPhase(Enum):
     AFTER_HOURS = "after_hours"
 
 class ZeroDTEStrategy(Enum):
+    """ZeroDTEStrategy class."""
     SCALP_GAMMA = "scalp_gamma"            # Buy ATM, scalp delta moves
     SELL_IRON_CONDOR = "sell_iron_condor"   # Sell OTM spreads, let decay
     SELL_BUTTERFLY = "sell_butterfly"       # Sell wings for theta
@@ -47,6 +49,7 @@ class ZeroDTEStrategy(Enum):
     FADE_OPENING = "fade_opening_range"     # Fade the OR expansion
 
 class RiskMode(Enum):
+    """RiskMode class."""
     CONSERVATIVE = "conservative"  # Max 0.5% risk per trade
     MODERATE = "moderate"          # Max 1% risk per trade
     AGGRESSIVE = "aggressive"      # Max 2% risk per trade

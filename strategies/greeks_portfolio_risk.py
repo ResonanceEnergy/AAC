@@ -28,6 +28,7 @@ logger = logging.getLogger(__name__)
 # ═══════════════════════════════════════════════════════════════════════════
 
 class RiskLevel(Enum):
+    """RiskLevel class."""
     LOW = "low"
     MODERATE = "moderate"
     ELEVATED = "elevated"
@@ -101,6 +102,7 @@ class PortfolioRiskSnapshot:
     beta_weighted_delta: float = 0.0
 
     def to_dict(self) -> Dict:
+        """To dict."""
         return {
             "timestamp": self.timestamp,
             "delta": round(self.total_delta, 2),

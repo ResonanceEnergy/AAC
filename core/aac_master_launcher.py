@@ -356,7 +356,7 @@ class AACMasterLauncher:
         all_passed = True
         for check, passed in checks.items():
             status = "✅" if passed else "❌"
-            print(f"  {status} {check}")
+            logger.info(f"  {status} {check}")
             if not passed:
                 all_passed = False
 
@@ -462,6 +462,7 @@ class AACMasterLauncher:
                 
                 # Function to open browser after a short delay
                 def open_browser():
+                    """Open browser."""
                     time.sleep(3)  # Wait for server to start
                     try:
                         webbrowser.open('http://localhost:8080')
@@ -542,7 +543,7 @@ class AACMasterLauncher:
                                                                               |
 ================================================================================
 """
-        print(banner)
+        logger.info(banner)
 
 
 def print_deprecated_warning():
@@ -636,18 +637,18 @@ async def _async_main():
             success = await launcher.launch_complete_system()
 
         if success:
-            print("\n[SUCCESS] AAC MASTER LAUNCHER - SUCCESS")
-            print("═" * 60)
+            logger.info("\n[SUCCESS] AAC MASTER LAUNCHER - SUCCESS")
+            logger.info("═" * 60)
         else:
-            print("\n💥 AAC MASTER LAUNCHER - FAILED")
-            print("═" * 60)
+            logger.info("\n💥 AAC MASTER LAUNCHER - FAILED")
+            logger.info("═" * 60)
             sys.exit(1)
 
     except KeyboardInterrupt:
-        print("\n⏹️  Shutdown requested by user")
+        logger.info("\n⏹️  Shutdown requested by user")
         await launcher._emergency_shutdown()
     except Exception as e:
-        print(f"\n💥 Launch failed: {e}")
+        logger.info(f"\n💥 Launch failed: {e}")
         await launcher._emergency_shutdown()
         sys.exit(1)
 

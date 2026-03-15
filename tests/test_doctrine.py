@@ -119,7 +119,8 @@ class TestDoctrineEngine:
         engine = DoctrineEngine()
 
         def mock_handler():
-            pass
+            """Mock handler."""
+            logger.debug("mock_handler called")
 
         engine.register_action_handler(ActionType.A_STOP_EXECUTION, mock_handler)
         assert ActionType.A_STOP_EXECUTION in engine.action_handlers

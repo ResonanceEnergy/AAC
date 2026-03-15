@@ -37,14 +37,17 @@ class PriceTick:
     
     @property
     def mid(self) -> float:
+        """Mid."""
         return (self.bid + self.ask) / 2
     
     @property
     def spread(self) -> float:
+        """Spread."""
         return self.ask - self.bid
     
     @property
     def spread_pct(self) -> float:
+        """Spread pct."""
         return (self.spread / self.bid) * 100 if self.bid > 0 else 0
 
 
@@ -104,6 +107,7 @@ class ReconnectionPolicy:
     
     @property
     def attempts(self) -> int:
+        """Attempts."""
         return self._attempt
 
 
@@ -139,10 +143,12 @@ class BaseWebSocketFeed(ABC):
     
     @property
     def state(self) -> FeedState:
+        """State."""
         return self._state
     
     @property
     def is_connected(self) -> bool:
+        """Is connected."""
         return self._state == FeedState.CONNECTED
     
     @property
@@ -176,10 +182,12 @@ class BaseWebSocketFeed(ABC):
     
     @property
     def state(self) -> FeedState:
+        """State."""
         return self._state
     
     @property
     def is_connected(self) -> bool:
+        """Is connected."""
         return self._state == FeedState.CONNECTED
     
     @property
@@ -340,6 +348,7 @@ class BinanceWebSocketFeed(BaseWebSocketFeed):
     
     @property
     def websocket_url(self) -> str:
+        """Websocket url."""
         if self.testnet:
             return "wss://testnet.binance.vision/ws"
         return "wss://stream.binance.com:9443/ws"
@@ -466,6 +475,7 @@ class CoinbaseWebSocketFeed(BaseWebSocketFeed):
     
     @property
     def websocket_url(self) -> str:
+        """Websocket url."""
         return "wss://ws-feed.exchange.coinbase.com"
     
     async def _connect(self) -> bool:
@@ -542,6 +552,7 @@ class KrakenWebSocketFeed(BaseWebSocketFeed):
     
     @property
     def websocket_url(self) -> str:
+        """Websocket url."""
         return "wss://ws.kraken.com"
     
     async def _connect(self) -> bool:

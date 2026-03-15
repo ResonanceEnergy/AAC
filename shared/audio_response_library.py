@@ -139,6 +139,7 @@ class AACAudioResponseLibrary:
         response = self.get_response(query)
 
         def speak():
+            """Speak."""
             try:
                 self.engine.say(response)
                 self.engine.runAndWait()

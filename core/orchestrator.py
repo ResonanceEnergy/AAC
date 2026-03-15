@@ -191,6 +191,7 @@ except ImportError:
 
 
 class OrchestratorState(Enum):
+    """OrchestratorState class."""
     STOPPED = "stopped"
     STARTING = "starting"
     RUNNING = "running"
@@ -1729,14 +1730,14 @@ async def _orchestrator_main():
     if args.status:
         await orchestrator.initialize()
         status = orchestrator.get_status()
-        print(json.dumps(status, indent=2, default=str))
+        logger.info(json.dumps(status, indent=2, default=str))
         await orchestrator.shutdown()
     else:
-        print("=== AAC 2100 Quantum-Enhanced Orchestrator Starting ===")
-        print("Quantum Advantage: ENABLED" if not args.disable_quantum else "DISABLED")
-        print("AI Autonomy: ENABLED" if not args.disable_ai else "DISABLED")
-        print("Cross-Temporal Ops: ENABLED" if not args.disable_temporal else "DISABLED")
-        print("Press Ctrl+C to stop")
+        logger.info("=== AAC 2100 Quantum-Enhanced Orchestrator Starting ===")
+        logger.info("Quantum Advantage: ENABLED" if not args.disable_quantum else "DISABLED")
+        logger.info("AI Autonomy: ENABLED" if not args.disable_ai else "DISABLED")
+        logger.info("Cross-Temporal Ops: ENABLED" if not args.disable_temporal else "DISABLED")
+        logger.info("Press Ctrl+C to stop")
         await orchestrator.run()
 
 
@@ -1745,7 +1746,7 @@ def main():
     try:
         asyncio.run(_orchestrator_main())
     except KeyboardInterrupt:
-        print("\nAAC 2100 Shutdown requested...")
+        logger.info("\nAAC 2100 Shutdown requested...")
 
 
 if __name__ == "__main__":

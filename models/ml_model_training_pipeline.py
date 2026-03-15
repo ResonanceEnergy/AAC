@@ -1044,6 +1044,7 @@ async def initialize_ml_training_pipeline():
 if __name__ == "__main__":
     # Example usage
     async def main():
+        """Main."""
         logging.basicConfig(level=logging.INFO)
 
         # Initialize pipeline

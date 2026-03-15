@@ -22,6 +22,7 @@ _STUB_WARNING = (
 
 
 class OrderStatus(Enum):
+    """OrderStatus class."""
     PENDING = "pending"
     VALIDATED = "validated"
     REJECTED = "rejected"
@@ -66,12 +67,14 @@ class OrderGenerator:
 
     def generate_order(self, symbol: str, side: str, quantity: float,
                        price: float = 0.0, **kwargs: Any) -> ValidatedOrder:
+        """Generate order."""
         self._warn_once()
         return ValidatedOrder(
             symbol=symbol, side=side, quantity=quantity, price=price
         )
 
     def validate_order(self, order: ValidatedOrder) -> OrderValidationResult:
+        """Validate order."""
         self._warn_once()
         return OrderValidationResult(is_valid=True)
 

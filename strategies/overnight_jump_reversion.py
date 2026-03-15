@@ -361,8 +361,8 @@ class OvernightJumpReversionStrategy(BaseArbitrageStrategy):
                 portfolio = await self.communication.request('portfolio.value', {})
                 if portfolio and 'total_value' in portfolio:
                     return float(portfolio['total_value'])
-            except Exception:
-                pass
+            except Exception as e:
+                logger.exception("Unexpected error: %s", e)
         return self.config.risk_envelope.get('portfolio_value', 10_000_000)
 
     async def _is_market_open_time(self, timestamp: datetime) -> bool:

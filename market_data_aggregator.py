@@ -49,20 +49,25 @@ class MarketDataAggregator:
             self._warned = True
 
     def get_aggregated_data(self, symbol: str) -> AggregatedMarketData:
+        """Get aggregated data."""
         self._warn_once()
         return AggregatedMarketData(symbol=symbol)
 
     def get_price(self, symbol: str) -> float:
+        """Get price."""
         self._warn_once()
         return 0.0
 
     def get_available_sources(self) -> List[str]:
+        """Get available sources."""
         return self.sources
 
     def start(self) -> None:
+        """Start."""
         self._warn_once()
 
     def stop(self) -> None:
+        """Stop."""
         self.sources.clear()
         self.logger.info("MarketDataAggregator stopped")
 

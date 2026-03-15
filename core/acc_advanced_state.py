@@ -25,6 +25,7 @@ logger = logging.getLogger('ACC_AdvancedState')
 
 @dataclass
 class ThreatAssessment:
+    """ThreatAssessment class."""
     threat_type: str
     severity: float  # 0.0 to 1.0
     confidence: float
@@ -33,6 +34,7 @@ class ThreatAssessment:
 
 @dataclass
 class ResilienceLayer:
+    """ResilienceLayer class."""
     name: str
     status: str  # 'active', 'degraded', 'failed'
     last_test: datetime
@@ -495,6 +497,7 @@ class OperationalRhythmEngine:
 
 # Placeholder classes for components that would be fully implemented
 class DoctrineComplianceEngine:
+    """DoctrineComplianceEngine class."""
     def __init__(self):
         self._logger = logging.getLogger('DoctrineComplianceEngine')
         self._scores: dict = {}

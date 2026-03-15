@@ -496,6 +496,7 @@ async def main():
         if args.monitor:
             # Monitor price updates
             async def price_callback(data: MarketData):
+                """Price callback."""
                 print(f"📈 {data.symbol}: ${data.price:.2f} (Bid: ${data.bid:.2f}, Ask: ${data.ask:.2f})")
 
             await feed.subscribe_to_price_updates(args.symbol, price_callback)
