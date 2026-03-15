@@ -77,13 +77,13 @@ def check_core_imports() -> int:
     """Try importing core modules. Returns count of failures."""
     modules = [
         ("shared.audit_logger", "AuditLogger"),
-        ("shared.market_data_connector", "MarketDataConnector"),
+        ("shared.market_data_connector", "BaseMarketDataConnector"),
         ("shared.monitoring", None),
-        ("core.orchestrator", "AACOrchestrator"),
+        ("core.orchestrator", "AAC2100Orchestrator"),
         ("TradingExecution.execution_engine", "ExecutionEngine"),
         ("BigBrainIntelligence.agents", None),
         ("CentralAccounting.database", None),
-        ("CryptoIntelligence.crypto_intelligence", None),
+        ("CryptoIntelligence.crypto_intelligence_engine", None),
     ]
     failures = 0
     for mod_name, attr in modules:
