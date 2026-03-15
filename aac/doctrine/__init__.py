@@ -20,6 +20,7 @@ from .doctrine_integration import (
     CryptoIntelligenceDoctrineAdapter,
     SharedInfraDoctrineAdapter,
     StrategicDoctrineAdapter,
+    FFDDoctrineAdapter,
 )
 
 from .strategic_doctrine import (

@@ -377,6 +377,55 @@ class StrategicDoctrineAdapter:
         return False
 
 
+class FFDDoctrineAdapter:
+    """Integrates Future Financial Doctrine (Pack 11) with the Doctrine Engine."""
+
+    def __init__(self):
+        self._engine = None
+
+    def _get_engine(self):
+        if self._engine is None:
+            from aac.doctrine.ffd import get_ffd_engine
+            self._engine = get_ffd_engine()
+        return self._engine
+
+    async def get_metrics(self) -> Dict[str, float]:
+        """Collect Pack 11 (FFD) metrics."""
+        try:
+            return self._get_engine().get_metrics()
+        except Exception as e:
+            logger.error(f"Failed to get FFD metrics: {e}")
+            return {
+                "stablecoin_peg_health": 100.0,
+                "monetary_transition_index": 20.0,
+                "regulatory_shock_score": 0.0,
+                "capital_flight_signal": 0.0,
+                "cross_chain_settlement_score": 80.0,
+                "defi_yield_sustainability": 70.0,
+            }
+
+    async def execute_action(self, action: ActionType, context: Dict) -> bool:
+        """Execute FFD-triggered actions."""
+        engine = self._get_engine()
+        state_change = engine.should_trigger_state_change()
+        if state_change:
+            logger.warning(f"[FFD] State change recommended: {state_change}")
+        if action == ActionType.A_ENTER_SAFE_MODE:
+            logger.warning("[FFD] Entering safe mode — stablecoin/regulatory crisis")
+            return True
+        elif action == ActionType.A_STOP_EXECUTION:
+            logger.critical("[FFD] HALT — systemic stablecoin depeg detected")
+            return True
+        elif action == ActionType.A_THROTTLE_RISK:
+            logger.warning("[FFD] Throttling risk — regulatory shock detected")
+            return True
+        return False
+
+    def get_status_report(self) -> Dict[str, Any]:
+        """Full FFD status report."""
+        return self._get_engine().get_status_report()
+
+
 # ═══════════════════════════════════════════════════════════════════════════
 # INTEGRATED DOCTRINE ORCHESTRATOR
 # ═══════════════════════════════════════════════════════════════════════════
@@ -410,6 +459,9 @@ class DoctrineOrchestrator:
         
         # Strategic doctrine adapter (Art of War + 48 Laws — Packs 9 & 10)
         self.strategic_adapter = StrategicDoctrineAdapter()
+        
+        # FFD adapter (Future Financial Doctrine — Pack 11)
+        self.ffd_adapter = FFDDoctrineAdapter()
         
         # State
         self.current_state = BarrenWuffetState.NORMAL
@@ -509,6 +561,14 @@ class DoctrineOrchestrator:
             logger.debug(f"Collected {len(strategic_metrics)} strategic doctrine metrics")
         except Exception as e:
             logger.error(f"Failed to collect strategic doctrine metrics: {e}")
+
+        # Collect FFD metrics (Pack 11)
+        try:
+            ffd_metrics = await self.ffd_adapter.get_metrics()
+            all_metrics.update(ffd_metrics)
+            logger.debug(f"Collected {len(ffd_metrics)} FFD metrics")
+        except Exception as e:
+            logger.error(f"Failed to collect FFD metrics: {e}")
         
         return all_metrics
     
