@@ -131,6 +131,20 @@ class FFDMetrics:
     halving_cycle_position: float = 0.0         # 0-1 normalized position in BTC halving cycle
     regulatory_convergence_score: float = 0.0   # 0-100 major-economy regulatory alignment
 
+    # Expanded metrics (50-topic research integration)
+    pqc_migration_urgency: float = 0.0          # 0-100 post-quantum crypto migration urgency
+    brics_dedollarization_index: float = 0.0    # 0-100 BRICS de-dollarization progress
+    cbdc_retail_active_count: int = 0            # Active retail CBDCs globally
+    gold_btc_ratio: float = 0.0                 # Gold price / BTC price (oz/$)
+    usd_reserve_share: float = 57.0             # USD share of global reserves (%)
+    l2_fee_index: float = 0.0                   # Average L2 tx fee in cents
+    mev_extraction_daily: float = 0.0           # Est daily MEV extraction (USD)
+    restaking_tvl: float = 0.0                  # EigenLayer + restaking TVL (USD)
+    tokenized_treasury_aum: float = 0.0         # Tokenized gov securities AUM (USD)
+    prediction_market_volume: float = 0.0       # Daily prediction market volume (USD)
+    global_debt_gdp_ratio: float = 0.0          # Global debt-to-GDP percentage
+    micar_compliance_score: float = 0.0         # 0-100 AAC MiCAR readiness
+
     evidence_level: EvidenceLevel = EvidenceLevel.E0_CONCEPTUAL
     phase: TransitionPhase = TransitionPhase.PHASE_1_INTELLIGENCE
 
@@ -157,6 +171,13 @@ FFD_DOCTRINE_PACK = {
         "halving_cycle_position",
         "regulatory_convergence_score",
         "political_token_risk",
+        "pqc_migration_urgency",
+        "brics_dedollarization_index",
+        "gold_btc_ratio",
+        "usd_reserve_share",
+        "tokenized_treasury_aum",
+        "global_debt_gdp_ratio",
+        "micar_compliance_score",
     ],
     "required_metrics": [
         {
@@ -197,6 +218,12 @@ FFD_DOCTRINE_PACK = {
         "etf_redemption_spiral",
         "ai_flash_crash_amplification",
         "cross_chain_bridge_hack",
+        "brics_payment_system_fragmentation",
+        "mev_sandwich_attack_losses",
+        "restaking_cascade_slashing",
+        "synthetic_stablecoin_depeg",
+        "l2_sequencer_centralization_failure",
+        "tokenized_treasury_liquidity_crisis",
     ],
     "strategies": {
         "track_1_decentralized": [
@@ -236,6 +263,14 @@ FFD_DOCTRINE_PACK = {
             "geopolitical_bloc_divergence_arb",
             "tokenized_securities_early_mover",
             "ai_market_consensus_contrarian",
+            "gold_btc_ratio_mean_reversion",
+            "brics_dedollarization_hedge",
+            "pqc_migration_risk_monitoring",
+            "l2_fee_arbitrage_venue_selection",
+            "mev_protected_execution",
+            "restaking_yield_optimization",
+            "prediction_market_signal_integration",
+            "debt_cycle_hard_asset_allocation",
         ],
     },
     "allocation_guidance": {
@@ -259,6 +294,9 @@ MONITORED_STABLECOINS = {
     "EURC": {"issuer": "Circle", "peg": 1.0, "tier": "emerging"},    # EUR peg
     "BUSD": {"issuer": "Paxos", "peg": 1.0, "tier": "legacy"},
     "USD1": {"issuer": "WLFI", "peg": 1.0, "tier": "political"},
+    "PYUSD": {"issuer": "PayPal/Paxos", "peg": 1.0, "tier": "emerging"},
+    "USDe": {"issuer": "Ethena", "peg": 1.0, "tier": "synthetic"},
+    "FDUSD": {"issuer": "FirstDigital", "peg": 1.0, "tier": "caution"},
 }
 
 # Kill switch thresholds
@@ -418,6 +456,36 @@ class FFDEngine:
                 status="enforced",
                 impact_tracks=[FFDTrack.PRIVATE_DIGITAL],
             ),
+            RegulatoryEvent(
+                jurisdiction="EU",
+                legislation="Digital_Euro_Legislation",
+                status="proposed",
+                impact_tracks=[FFDTrack.SOVEREIGN_DIGITAL],
+            ),
+            RegulatoryEvent(
+                jurisdiction="US",
+                legislation="DTCC_Tokenized_Equities_NoAction",
+                status="enforced",
+                impact_tracks=[FFDTrack.PRIVATE_DIGITAL],
+            ),
+            RegulatoryEvent(
+                jurisdiction="US",
+                legislation="FedNow_Launch",
+                status="enforced",
+                impact_tracks=[FFDTrack.SOVEREIGN_DIGITAL],
+            ),
+            RegulatoryEvent(
+                jurisdiction="India",
+                legislation="Digital_Rupee_Pilot",
+                status="enforced",
+                impact_tracks=[FFDTrack.SOVEREIGN_DIGITAL],
+            ),
+            RegulatoryEvent(
+                jurisdiction="Brazil",
+                legislation="DREX_CBDC_Pilot",
+                status="committee",
+                impact_tracks=[FFDTrack.SOVEREIGN_DIGITAL],
+            ),
         ]
         self.regulatory_events.extend(baseline_events)
 
@@ -509,6 +577,19 @@ class FFDEngine:
             "x_platform_sentiment": self.metrics.x_platform_sentiment,
             "halving_cycle_position": self.metrics.halving_cycle_position,
             "regulatory_convergence_score": self.metrics.regulatory_convergence_score,
+            # 50-topic research metrics
+            "pqc_migration_urgency": self.metrics.pqc_migration_urgency,
+            "brics_dedollarization_index": self.metrics.brics_dedollarization_index,
+            "cbdc_retail_active_count": float(self.metrics.cbdc_retail_active_count),
+            "gold_btc_ratio": self.metrics.gold_btc_ratio,
+            "usd_reserve_share": self.metrics.usd_reserve_share,
+            "l2_fee_index": self.metrics.l2_fee_index,
+            "mev_extraction_daily": self.metrics.mev_extraction_daily,
+            "restaking_tvl": self.metrics.restaking_tvl,
+            "tokenized_treasury_aum": self.metrics.tokenized_treasury_aum,
+            "prediction_market_volume": self.metrics.prediction_market_volume,
+            "global_debt_gdp_ratio": self.metrics.global_debt_gdp_ratio,
+            "micar_compliance_score": self.metrics.micar_compliance_score,
         }
 
     def get_active_strategies(self) -> Dict[str, List[str]]:
