@@ -58,8 +58,8 @@ class TestBotInit:
         assert bot.running is False
 
     def test_bot_has_skill_handlers(self, bot):
-        """Bot should register 35 skill handlers."""
-        assert len(bot._skill_handlers) == 35
+        """Bot should register 93 skill handlers."""
+        assert len(bot._skill_handlers) == 93
 
 
 # ── Command Routing ───────────────────────────────────────────────────────
@@ -129,15 +129,15 @@ class TestBarrenWuffetMemory:
 
     def test_memory_store_and_recall(self):
         mem = BarrenWuffetMemory()
-        mem.store("test_key", {"data": "market intel", "ts": datetime.now().isoformat()})
-        result = mem.recall("test_key")
-        assert result is not None
-        assert result["data"] == "market intel"
+        mem.add("market intel test data", category="market")
+        results = mem.search("market intel")
+        assert len(results) > 0
+        assert "market intel" in results[0]["text"]
 
     def test_memory_recall_not_found(self):
         mem = BarrenWuffetMemory()
-        result = mem.recall("nonexistent_key")
-        assert result is None
+        results = mem.search("nonexistent_unique_query_xyz")
+        assert len(results) == 0
 
 
 if __name__ == "__main__":

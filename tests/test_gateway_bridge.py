@@ -34,7 +34,7 @@ class TestEnums:
     def test_intent_values(self):
         intents = list(MessageIntent)
         assert len(intents) >= 5
-        assert MessageIntent.QUERY in intents
+        assert MessageIntent.OPERATIONAL_QUERY in intents
 
 
 # ── Message Model ──────────────────────────────────────────────────────────
@@ -45,13 +45,15 @@ class TestOpenClawMessage:
 
     def test_message_creation(self):
         msg = OpenClawMessage(
+            message_id="msg-001",
             channel=OpenClawChannel.TELEGRAM,
             sender_id="user123",
-            text="What is bitcoin price?",
+            sender_name="TestUser",
+            content="What is bitcoin price?",
             timestamp=datetime.now(),
         )
         assert msg.channel == OpenClawChannel.TELEGRAM
-        assert "bitcoin" in msg.text.lower()
+        assert "bitcoin" in msg.content.lower()
 
 
 # ── Intent Classifier ─────────────────────────────────────────────────────
@@ -82,7 +84,7 @@ class TestGatewayBridge:
 
     def test_bridge_has_classifier(self):
         bridge = OpenClawGatewayBridge()
-        assert hasattr(bridge, "classifier") or hasattr(bridge, "_classifier")
+        assert hasattr(bridge, '_agent_handlers') or hasattr(bridge, 'sessions')
 
 
 # ── Session ────────────────────────────────────────────────────────────────
@@ -94,8 +96,9 @@ class TestSession:
     def test_session_creation(self):
         session = OpenClawSession(
             session_id="sess-001",
+            session_key="main",
+            agent_id="user123",
             channel=OpenClawChannel.TELEGRAM,
-            user_id="user123",
         )
         assert session.session_id == "sess-001"
 

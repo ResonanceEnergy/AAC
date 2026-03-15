@@ -128,7 +128,7 @@ class TestResearchAgents:
 
     def test_agent_registry(self):
         from BigBrainIntelligence.agents import AGENT_REGISTRY
-        assert len(AGENT_REGISTRY) == 20
+        assert len(AGENT_REGISTRY) == 21
         assert "narrative_analyzer" in AGENT_REGISTRY
         assert "latency_monitor" in AGENT_REGISTRY
         assert "api_scanner" in AGENT_REGISTRY

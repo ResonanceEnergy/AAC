@@ -1585,20 +1585,22 @@ AGENT_REGISTRY = {
 def get_agent(agent_id: str) -> Optional[BaseResearchAgent]:
     """Get an agent instance by ID"""
     agent_class = AGENT_REGISTRY.get(agent_id)
-    if agent_class:
+    if agent_class and callable(agent_class):
         return agent_class()
     return None
 
 
 def get_all_agents() -> List[BaseResearchAgent]:
     """Get instances of all agents"""
-    return [cls() for cls in AGENT_REGISTRY.values()]
+    return [cls() for cls in AGENT_REGISTRY.values() if callable(cls)]
 
 
 def get_agents_by_theater(theater: str) -> List[BaseResearchAgent]:
     """Get all agents for a specific theater"""
     agents = []
     for cls in AGENT_REGISTRY.values():
+        if not callable(cls):
+            continue
         agent = cls()
         if agent.theater == theater:
             agents.append(agent)
@@ -1612,6 +1614,9 @@ if __name__ == '__main__':
         
         print("Available Agents:")
         for agent_id, cls in AGENT_REGISTRY.items():
+            if not callable(cls):
+                print(f"  - {agent_id} (lazy-import, skipped)")
+                continue
             agent = cls()
             print(f"  - {agent_id} ({agent.theater})")
         
