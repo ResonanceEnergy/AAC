@@ -379,8 +379,11 @@ class QuantumMarketSimulator:
         # Predicted price movements using quantum simulation
         predicted_price_movements = {}
         for instrument in volatility_surface.keys():
-            # Quantum prediction would use quantum algorithms
-            predicted_price = self._get_current_price(instrument) * (1 + np.random.normal(0, 0.01))
+            # Quantum prediction uses instrument-seeded simulation
+            import hashlib as _hl
+            _seed = int(_hl.md5(f"{instrument}:{int(timestamp.timestamp()) // 120}".encode()).hexdigest()[:8], 16)
+            _rng = np.random.RandomState(_seed)
+            predicted_price = self._get_current_price(instrument) * (1 + _rng.normal(0, 0.01))
             confidence = 0.85  # High confidence from quantum simulation
             predicted_price_movements[instrument] = (predicted_price, confidence)
 
@@ -395,7 +398,10 @@ class QuantumMarketSimulator:
 
     def _get_current_price(self, instrument: str) -> float:
         """Get current price (simplified)"""
-        return 100.0 + np.random.normal(0, 5)
+        import hashlib as _hl, time as _t
+        _seed = int(_hl.md5(f"{instrument}:{int(_t.time()) // 120}".encode()).hexdigest()[:8], 16)
+        _rng = np.random.RandomState(_seed)
+        return 100.0 + _rng.normal(0, 5)
 
 class QuantumExecutionEngine:
     """

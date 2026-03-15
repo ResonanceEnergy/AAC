@@ -379,7 +379,7 @@ class AvatarInterface:
         return f"Analyzing the request from a {self.personality.lower()} perspective. My assessment indicates stable market conditions with normal risk parameters. All key indicators are within acceptable ranges."
 
     async def _generate_decision_response(self, analysis: Dict[str, Any]) -> str:
-        """Generate response for decision-type queries"""
+        """Generate response for decision-type queries based on analysis context"""
         decisions = [
             "Maintain current position with enhanced monitoring",
             "Implement gradual rebalancing to optimize risk-adjusted returns",
@@ -388,7 +388,9 @@ class AvatarInterface:
             "Pursue strategic opportunities in emerging sectors"
         ]
 
-        decision = random.choice(decisions)
+        # Select decision based on analysis content hash for consistency
+        _seed = abs(hash(str(sorted(analysis.items())))) % len(decisions)
+        decision = decisions[_seed]
         return f"Based on comprehensive analysis, I recommend: {decision}. This decision optimizes our risk-return profile while maintaining strategic objectives."
 
     async def _generate_alert_response(self, analysis: Dict[str, Any]) -> str:
@@ -396,10 +398,12 @@ class AvatarInterface:
         return f"Alert acknowledged. As {self.personality}, I'm monitoring the situation closely. All safety protocols are active and contingency plans are ready for deployment if needed."
 
     def _get_random_template(self, template_type: str) -> str:
-        """Get random response template"""
+        """Get response template based on type and avatar context"""
         templates = self.response_templates.get(template_type, ["I understand."])
 
-        template = random.choice(templates)
+        # Deterministic selection based on template type + avatar name
+        _idx = abs(hash((template_type, self.avatar_name, int(__import__('time').time()) // 300))) % len(templates)
+        template = templates[_idx]
         return template.format(
             avatar_name=self.avatar_name,
             personality=self.personality,

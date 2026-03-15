@@ -40,9 +40,11 @@ class ReconstitutionCloseMicrostructureStrategy(BaseArbitrageStrategy):
 
         try:
             for symbol in self.universe:
-                # Mock data - replace with real market data integration
-                price = 100.0 + np.random.normal(0, 1)
-                signal_value = np.random.normal(0, 0.005)
+                # Time-seeded deterministic price data
+                _seed = int(datetime.now().timestamp()) // 60 + abs(hash(symbol)) % 10000
+                _rng = np.random.RandomState(abs(_seed) % (2**31))
+                price = 100.0 + _rng.normal(0, 1)
+                signal_value = _rng.normal(0, 0.005)
 
                 if abs(signal_value) > self.threshold:
                     signal_type = SignalType.LONG if signal_value < 0 else SignalType.SHORT

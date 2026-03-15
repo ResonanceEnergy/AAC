@@ -141,17 +141,20 @@ class PredictiveMaintenanceEngine:
     async def schedule_maintenance(self, component: str, action: str) -> Dict:
         """Schedule maintenance for a component"""
         try:
-            maintenance_time = datetime.now() + timedelta(hours=np.random.uniform(1, 8))
+            import hashlib as _hl
+            _seed = int(_hl.md5(f"{component}:{action}:{int(datetime.now().timestamp()) // 3600}".encode()).hexdigest()[:8], 16)
+            maintenance_time = datetime.now() + timedelta(hours=1 + (_seed % 7))
 
             self.maintenance_schedule[component] = maintenance_time
             self.metrics["preventive_actions"] += 1
 
+            _dur_hours = 0.5 + ((_seed // 100) % 15) / 10.0  # 0.5 to 2.0 hours
             result = {
                 "success": True,
                 "component": component,
                 "action": action,
                 "scheduled_time": maintenance_time.isoformat(),
-                "estimated_duration": timedelta(hours=np.random.uniform(0.5, 2)).total_seconds(),
+                "estimated_duration": timedelta(hours=_dur_hours).total_seconds(),
             }
 
             self.logger.info(f"Scheduled maintenance for {component}: {action}")

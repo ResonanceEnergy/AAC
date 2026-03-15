@@ -550,20 +550,21 @@ def run_aac_algotrading101_demo():
     try:
         # Create sample price data
         dates = pd.date_range('2024-01-01', '2024-01-31', freq='D')
+        _rng = np.random.RandomState(42)  # Fixed seed for reproducible demo data
         sample_data = {
             'AAPL': pd.DataFrame({
-                'open': np.random.uniform(180, 200, len(dates)),
-                'high': np.random.uniform(185, 205, len(dates)),
-                'low': np.random.uniform(175, 195, len(dates)),
-                'close': np.random.uniform(180, 200, len(dates)),
-                'volume': np.random.uniform(50000000, 100000000, len(dates))
+                'open': _rng.uniform(180, 200, len(dates)),
+                'high': _rng.uniform(185, 205, len(dates)),
+                'low': _rng.uniform(175, 195, len(dates)),
+                'close': _rng.uniform(180, 200, len(dates)),
+                'volume': _rng.uniform(50000000, 100000000, len(dates))
             }, index=dates),
             'MSFT': pd.DataFrame({
-                'open': np.random.uniform(350, 400, len(dates)),
-                'high': np.random.uniform(355, 405, len(dates)),
-                'low': np.random.uniform(345, 395, len(dates)),
-                'close': np.random.uniform(350, 400, len(dates)),
-                'volume': np.random.uniform(20000000, 40000000, len(dates))
+                'open': _rng.uniform(350, 400, len(dates)),
+                'high': _rng.uniform(355, 405, len(dates)),
+                'low': _rng.uniform(345, 395, len(dates)),
+                'close': _rng.uniform(350, 400, len(dates)),
+                'volume': _rng.uniform(20000000, 40000000, len(dates))
             }, index=dates)
         }
 

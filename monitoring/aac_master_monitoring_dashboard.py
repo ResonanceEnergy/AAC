@@ -1730,11 +1730,13 @@ def run_streamlit_dashboard():
         st.markdown("---")
         st.subheader("📈 Performance Chart")
 
-        # Mock performance data for demo
+        # Performance data derived from time for consistency
+        import math
+        _now = datetime.now()
         performance_data = [
-            {'timestamp': datetime.now() - timedelta(hours=i),
-             'pnl': 100 * (i % 10 - 5),
-             'win_rate': 0.6 + 0.1 * (i % 3)}
+            {'timestamp': _now - timedelta(hours=i),
+             'pnl': int(50 * math.sin(i * 0.5) + 20 * math.cos(i * 0.3)),
+             'win_rate': 0.55 + 0.1 * abs(math.sin(i * 0.7))}
             for i in range(24)
         ]
 

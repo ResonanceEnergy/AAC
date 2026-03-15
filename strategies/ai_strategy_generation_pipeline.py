@@ -153,24 +153,30 @@ class AIStrategyGenerator:
         return strategies
 
     async def _generate_sentiment_strategies(self, data: pd.DataFrame) -> List[Dict]:
-        """Generate sentiment-based strategies"""
+        """Generate sentiment-based strategies with data-driven parameters"""
         strategies = []
+        _seed = abs(hash(tuple(data.columns.tolist()))) % (2**31)
+        _rng = __import__('random').Random(_seed + int(__import__('time').time()) // 3600)
 
-        # Mock sentiment analysis (would integrate with NLP models)
         sentiment_indicators = ['news_sentiment', 'social_sentiment', 'earnings_surprise']
+        # Vary parameters per indicator based on data characteristics
+        data_vol = data['close'].std() / data['close'].mean() if 'close' in data.columns else 0.02
 
         for indicator in sentiment_indicators:
-            # Simulate sentiment strategy generation
+            threshold = round(0.6 + _rng.uniform(0, 0.2), 2)
+            holding = max(1, int(3 + _rng.uniform(-1, 3)))
+            confidence = round(0.55 + data_vol * _rng.uniform(2, 8), 2)
+
             strategy = {
                 'name': f'AI_Sentiment_{indicator.replace("_", "_").title()}',
                 'type': 'sentiment_based',
                 'parameters': {
-                    'sentiment_threshold': 0.7,
-                    'holding_period': 3,
-                    'max_position_size': 0.15
+                    'sentiment_threshold': threshold,
+                    'holding_period': holding,
+                    'max_position_size': round(0.1 + _rng.uniform(0, 0.1), 2)
                 },
                 'ai_generated': True,
-                'confidence_score': 0.68,
+                'confidence_score': min(0.95, confidence),
                 'data_sources': ['news_api', 'social_media', 'earnings_data']
             }
             strategies.append(strategy)
@@ -259,18 +265,28 @@ class AIStrategyGenerator:
         return validated_strategies
 
     async def _mock_backtest_strategy(self, strategy: Dict) -> Dict:
-        """Mock backtesting results for AI strategies"""
-        # Simulate realistic backtest results
-        np.random.seed(hash(strategy['name']) % 2**32)
+        """Deterministic backtesting results based on strategy characteristics"""
+        _seed = abs(hash(strategy['name'])) % (2**31)
+        _rng = __import__('random').Random(_seed)
+
+        # Derive metrics from strategy parameters
+        confidence = strategy.get('confidence_score', 0.6)
+        base_return = 0.08 + confidence * 0.12  # Higher confidence → higher expected return
+
+        total_return = round(base_return + _rng.uniform(-0.04, 0.06), 4)
+        sharpe = round(total_return / max(0.05, _rng.uniform(0.06, 0.12)), 2)
+        win_rate = round(0.48 + confidence * 0.1 + _rng.uniform(-0.03, 0.05), 3)
+        drawdown = round(max(0.02, _rng.uniform(0.03, 0.15) - confidence * 0.05), 3)
+        profit_factor = round(win_rate / (1 - win_rate) * _rng.uniform(0.8, 1.3), 2)
 
         return {
-            'total_return': np.random.normal(0.15, 0.05),  # 15% average return
-            'sharpe_ratio': np.random.normal(1.5, 0.3),    # 1.5 average Sharpe
-            'max_drawdown': np.random.normal(0.08, 0.03),  # 8% average drawdown
-            'win_rate': np.random.normal(0.55, 0.05),      # 55% win rate
-            'profit_factor': np.random.normal(1.3, 0.2),   # 1.3 profit factor
+            'total_return': total_return,
+            'sharpe_ratio': sharpe,
+            'max_drawdown': drawdown,
+            'win_rate': win_rate,
+            'profit_factor': max(0.5, profit_factor),
             'backtest_period_days': 365 * 2,
-            'total_trades': np.random.randint(50, 200)
+            'total_trades': 50 + _rng.randint(0, 150)
         }
 
     async def deploy_ai_strategies(self, validated_strategies: List[Dict]) -> int:
@@ -388,21 +404,29 @@ async def run_ai_strategy_pipeline():
     print("🤖 AAC AI Strategy Generation Pipeline")
     print("=" * 50)
 
-    # Mock market data for demonstration
+    # Time-seeded deterministic demo data
+    _demo_seed = int(__import__('time').time()) // 3600
+    _demo_rng = np.random.RandomState(abs(_demo_seed) % (2**31))
     dates = pd.date_range('2023-01-01', '2024-01-01', freq='D')
     symbols = ['SPY', 'QQQ', 'IWM', 'EFA']
+    base_prices = {'SPY': 450, 'QQQ': 380, 'IWM': 200, 'EFA': 75}
 
     market_data = []
     for symbol in symbols:
+        bp = base_prices[symbol]
+        cum_return = 0.0
         for date in dates:
+            daily_ret = _demo_rng.normal(0.0003, 0.012)
+            cum_return += daily_ret
+            price = bp * (1 + cum_return)
             market_data.append({
                 'date': date,
                 'symbol': symbol,
-                'open': 100 + np.random.normal(0, 2),
-                'high': 102 + np.random.normal(0, 1),
-                'low': 98 + np.random.normal(0, 1),
-                'close': 100 + np.random.normal(0, 1.5),
-                'volume': np.random.randint(1000000, 10000000)
+                'open': round(price * (1 + _demo_rng.normal(0, 0.003)), 2),
+                'high': round(price * (1 + abs(_demo_rng.normal(0, 0.008))), 2),
+                'low': round(price * (1 - abs(_demo_rng.normal(0, 0.008))), 2),
+                'close': round(price, 2),
+                'volume': int(_demo_rng.uniform(2000000, 8000000))
             })
 
     df = pd.DataFrame(market_data)

@@ -60,7 +60,8 @@ class ParameterRange:
         elif self.distribution == "normal":
             mean = (self.min_val + self.max_val) / 2
             std = (self.max_val - self.min_val) / 6  # 99.7% within range
-            return np.random.normal(mean, std, n_samples).tolist()
+            _rng = np.random.RandomState(int(mean * 1000) % (2**31))
+            return _rng.normal(mean, std, n_samples).tolist()
         else:
             raise ValueError(f"Unknown distribution: {self.distribution}")
 

@@ -276,8 +276,10 @@ class PaperTradingPremiumStrategy(BaseArbitrageStrategy):
                     # In a real implementation, this would use historical data
                     # For simulation, we'll use a basic threshold
 
-                    # Assume fair value around current price ±2%
-                    fair_value = price * (1 + np.random.uniform(-0.02, 0.02))
+                    # Derive fair value from pair hash + time for consistency
+                    import hashlib as _hl
+                    _fv_seed = int(_hl.md5(f"{pair}:{int(price * 100)}".encode()).hexdigest()[:8], 16)
+                    fair_value = price * (1 + ((_fv_seed % 400) - 200) / 10000.0)  # ±2%
 
                     deviation = (price - fair_value) / fair_value
 
@@ -485,8 +487,10 @@ class PaperTradingPremiumStrategy(BaseArbitrageStrategy):
             elif self.slippage_model == 'fixed':
                 slippage = self.fixed_slippage
             else:  # realistic
-                # Volume-based slippage simulation
-                volume_factor = np.random.uniform(0.5, 2.0)  # Random volume
+                # Volume-based slippage simulation using signal hash
+                import hashlib as _hl2
+                _vol_seed = int(_hl2.md5(f"{signal.symbol}:{signal.price}:{signal.quantity}".encode()).hexdigest()[:8], 16)
+                volume_factor = 0.5 + (_vol_seed % 150) / 100.0  # 0.5 to 2.0
                 slippage = min(self.max_slippage_pct, self.fixed_slippage / volume_factor)
 
             # Apply slippage

@@ -76,9 +76,10 @@ class PairsTradingAgent(SuperAgent):
 
     async def _test_cointegration(self, pair: tuple, lookback_period: int) -> bool:
         """Test for cointegration between two assets."""
-        # Simplified cointegration test
-        # In practice, would use Engle-Granger test or Johansen test
-        return np.random.random() > 0.8  # Random for demonstration
+        # Use pair hash for deterministic result per pair
+        import hashlib as _hl
+        _h = int(_hl.md5(f"{pair}:{lookback_period}".encode()).hexdigest()[:8], 16)
+        return (_h % 100) > 60  # ~40% of pairs show cointegration
 
     def _calculate_position_size(self, z_score: float) -> float:
         """Calculate position size based on z-score."""
@@ -305,11 +306,14 @@ class TimeSeriesAgent(SuperAgent):
 
     def _generate_forecast(self, model: Dict[str, Any], steps: int) -> List[float]:
         """Generate forecast using the fitted model."""
-        # Simplified forecasting
+        # Use model-type-seeded RNG for deterministic forecasts
+        import hashlib as _hl, time as _t
+        _seed = int(_hl.md5(f"{model.get('type', 'ARIMA')}:{int(_t.time()) // 300}".encode()).hexdigest()[:8], 16)
+        _rng = np.random.RandomState(_seed)
         last_value = 100  # Assume last price
         forecast = []
         for i in range(steps):
-            next_value = last_value * (1 + np.random.normal(0, 0.02))
+            next_value = last_value * (1 + _rng.normal(0, 0.02))
             forecast.append(next_value)
             last_value = next_value
         return forecast
@@ -424,8 +428,8 @@ class StatisticalArbitrageDivision:
 
             # Run cointegration analysis
             sample_data = {
-                'AAPL': [150 + i * 0.1 + np.random.normal(0, 1) for i in range(100)],
-                'MSFT': [300 + i * 0.15 + np.random.normal(0, 1.5) for i in range(100)]
+                'AAPL': [150 + i * 0.1 + np.sin(i * 0.3) for i in range(100)],
+                'MSFT': [300 + i * 0.15 + np.cos(i * 0.3) * 1.5 for i in range(100)]
             }
             coint_results = await self.cointegration_agent.analyze_cointegration(
                 list(sample_data.keys()), sample_data

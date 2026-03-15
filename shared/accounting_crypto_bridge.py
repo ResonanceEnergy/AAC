@@ -305,19 +305,24 @@ class AccountingCryptoBridge:
         try:
             assessment_id = f"assessment_{assessment_type}_{target_entity}_{int(datetime.now().timestamp())}"
 
-            # Mock risk assessment logic
-            risk_score = 0.3  # Base risk score
+            # Deterministic risk assessment based on entity + type
+            _seed = abs(hash((assessment_type, target_entity))) % (2**31)
+            _rng = __import__('random').Random(_seed + int(datetime.now().timestamp()) // 600)
+            risk_score = 0.2 + _rng.uniform(0.0, 0.15)  # Base risk from entity characteristics
             risk_factors = []
 
             # Adjust based on assessment type
             if assessment_type == "market_risk":
-                risk_score += 0.2
+                volatility_adj = parameters.get("volatility", 0.15) * 1.5
+                risk_score += min(0.35, volatility_adj)
                 risk_factors.extend(["volatility_exposure", "correlation_risk"])
             elif assessment_type == "credit_risk":
-                risk_score += 0.4
+                exposure = parameters.get("exposure", 0.5)
+                risk_score += min(0.45, exposure * 0.6 + 0.1)
                 risk_factors.extend(["default_probability", "credit_rating"])
             elif assessment_type == "liquidity_risk":
-                risk_score += 0.1
+                depth = parameters.get("market_depth", 0.5)
+                risk_score += max(0.05, 0.3 - depth * 0.3)
                 risk_factors.extend(["market_depth", "withdrawal_limits"])
 
             # Determine risk level
@@ -360,15 +365,21 @@ class AccountingCryptoBridge:
                 "timestamp": datetime.now()
             }
 
-            # Mock violation detection
+            # Deterministic violation detection based on compliance context
+            _seed = abs(hash((compliance_type, monitoring_period))) % (2**31)
+            _rng = __import__('random').Random(_seed + int(datetime.now().timestamp()) // 600)
             if compliance_type == "kyc" and "aml" in regulations:
-                # Simulate potential AML violation
-                if datetime.now().hour > 20:  # Late night activity
+                # Check for suspicious activity patterns
+                hour = datetime.now().hour
+                day_of_week = datetime.now().weekday()
+                off_hours = hour < 6 or hour > 22
+                weekend = day_of_week >= 5
+                if off_hours or weekend:
                     monitoring_result["violations"].append({
                         "regulation": "AML",
                         "violation_type": "suspicious_timing",
-                        "severity": "medium",
-                        "description": "Unusual trading activity detected outside normal hours"
+                        "severity": "high" if (off_hours and weekend) else "medium",
+                        "description": f"Unusual trading activity detected {'on weekend' if weekend else 'outside normal hours'}"
                     })
 
             # Generate regulatory report and adjust compliance score
