@@ -26,7 +26,7 @@ try:
     CURSES_AVAILABLE = True
 except ImportError:
     CURSES_AVAILABLE = False
-    print("Warning: curses module not available. Using text-based interface.")
+    logger.info("Warning: curses module not available. Using text-based interface.")
 
 # Add project root
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -57,7 +57,7 @@ class CommandCenterInterface:
 
     async def initialize(self):
         """Initialize the command center interface"""
-        print("[DEPLOY] Initializing AAC Command Center Interface...")
+        logger.info("[DEPLOY] Initializing AAC Command Center Interface...")
 
         # Initialize command center
         self.command_center = await get_command_center()
@@ -72,7 +72,7 @@ class CommandCenterInterface:
         # Start background tasks
         self.running = True
 
-        print("✅ Command Center Interface initialized")
+        logger.info("✅ Command Center Interface initialized")
 
     async def run_interface(self):
         """Run the command center interface"""
@@ -82,15 +82,16 @@ class CommandCenterInterface:
             else:
                 await self._run_curses_interface()
         except KeyboardInterrupt:
-            print("\n🛑 Shutting down Command Center Interface...")
+            logger.info("\n🛑 Shutting down Command Center Interface...")
         except Exception as e:
-            print(f"[CROSS] Interface error: {e}")
+            logger.info(f"[CROSS] Interface error: {e}")
         finally:
             await self._shutdown()
 
     async def _run_curses_interface(self):
         """Run curses-based interface (Unix/Linux/Mac)"""
         def curses_main(stdscr):
+            """Curses main."""
             asyncio.run(self._curses_loop(stdscr))
 
         curses.wrapper(curses_main)
@@ -329,8 +330,8 @@ class CommandCenterInterface:
 
     async def _run_text_interface(self):
         """Run text-based interface (Windows/fallback)"""
-        print("AAC 2100 Command & Control Center")
-        print("=" * 50)
+        logger.info("AAC 2100 Command & Control Center")
+        logger.info("=" * 50)
 
         while self.running:
             try:
@@ -345,10 +346,10 @@ class CommandCenterInterface:
                     await self._display_text_executive()
 
                 # Menu
-                print("\nCommands:")
-                print("1: Dashboard  2: Avatars  3: Alerts  4: Executive")
-                print("Q: Quit  R: Refresh")
-                print("-" * 50)
+                logger.info("\nCommands:")
+                logger.info("1: Dashboard  2: Avatars  3: Alerts  4: Executive")
+                logger.info("Q: Quit  R: Refresh")
+                logger.info("-" * 50)
 
                 # Get input
                 try:
@@ -376,90 +377,90 @@ class CommandCenterInterface:
                     await self._handle_executive_command(cmd)
 
                 # Clear screen for next iteration (ANSI escape — no shell injection risk)
-                print("\033[2J\033[H", end="", flush=True)
+                logger.info("\033[2J\033[H", end="", flush=True)
 
             except Exception as e:
-                print(f"Interface error: {e}")
+                logger.info(f"Interface error: {e}")
                 await asyncio.sleep(2)
 
     async def _display_text_dashboard(self):
         """Display text-based dashboard"""
         status = await self.command_center.get_command_center_status()
 
-        print("🖥️  SYSTEM HEALTH")
+        logger.info("🖥️  SYSTEM HEALTH")
         system_health = status.get("real_time_metrics", {}).get("system_health", {})
-        print(f"  CPU: {system_health.get('cpu_usage', 0):.1f}%")
-        print(f"  Memory: {system_health.get('memory_usage', 0):.1f}%")
-        print(f"  Network: {system_health.get('network_latency', 0):.1f}ms")
+        logger.info(f"  CPU: {system_health.get('cpu_usage', 0):.1f}%")
+        logger.info(f"  Memory: {system_health.get('memory_usage', 0):.1f}%")
+        logger.info(f"  Network: {system_health.get('network_latency', 0):.1f}ms")
 
-        print("\n[MONEY] FINANCIAL OVERVIEW")
+        logger.info("\n[MONEY] FINANCIAL OVERVIEW")
         financial = status.get("real_time_metrics", {}).get("financial", {})
-        print(f"  Total Equity: ${financial.get('total_equity', 0):,.0f}")
-        print(f"  Daily P&L: ${financial.get('daily_pnl', 0):,.0f}")
-        print(f"  Unrealized P&L: ${financial.get('unrealized_pnl', 0):,.0f}")
+        logger.info(f"  Total Equity: ${financial.get('total_equity', 0):,.0f}")
+        logger.info(f"  Daily P&L: ${financial.get('daily_pnl', 0):,.0f}")
+        logger.info(f"  Unrealized P&L: ${financial.get('unrealized_pnl', 0):,.0f}")
 
-        print("\n🔗 INTEGRATIONS")
+        logger.info("\n🔗 INTEGRATIONS")
         integrations = status.get("integrations", {})
         gln_status = "✅ Active" if integrations.get("gln_active") else "[CROSS] Inactive"
         gta_status = "✅ Active" if integrations.get("gta_active") else "[CROSS] Inactive"
-        print(f"  GLN: {gln_status}  GTA: {gta_status}")
-        print(f"  Critical Hiring Needs: {integrations.get('critical_hiring_needs', 0)}")
+        logger.info(f"  GLN: {gln_status}  GTA: {gta_status}")
+        logger.info(f"  Critical Hiring Needs: {integrations.get('critical_hiring_needs', 0)}")
 
-        print("\n[AI] AVATARS")
+        logger.info("\n[AI] AVATARS")
         avatars = status.get("avatar_status", {})
         for avatar_name, avatar_data in avatars.items():
-            print(f"  {avatar_data.get('name')}: {avatar_data.get('mood')}")
+            logger.info(f"  {avatar_data.get('name')}: {avatar_data.get('mood')}")
 
     async def _display_text_avatars(self):
         """Display text-based avatar interface"""
-        print("[AI] AI AVATAR INTERACTIONS")
-        print("S: Select AZ SUPREME  H: Select AX HELIX")
+        logger.info("[AI] AI AVATAR INTERACTIONS")
+        logger.info("S: Select AZ SUPREME  H: Select AX HELIX")
 
         if self.selected_avatar:
             avatar = self.avatars.get(self.selected_avatar)
             if avatar:
                 status = await avatar.get_avatar_status()
-                print(f"\nCurrent Avatar: {status['name']}")
-                print(f"Emotion: {status['current_emotion']}")
-                print(f"Confidence: {status['confidence_level']:.2f}")
-                print(f"Interactions: {status['interaction_count']}")
+                logger.info(f"\nCurrent Avatar: {status['name']}")
+                logger.info(f"Emotion: {status['current_emotion']}")
+                logger.info(f"Confidence: {status['confidence_level']:.2f}")
+                logger.info(f"Interactions: {status['interaction_count']}")
 
-                print("\nType your message to the avatar (or 'back' to return):")
+                logger.info("\nType your message to the avatar (or 'back' to return):")
 
     async def _display_text_alerts(self):
         """Display text-based alerts"""
-        print("[ALERT] SYSTEM ALERTS")
+        logger.info("[ALERT] SYSTEM ALERTS")
 
         alerts = self.alerts[-10:] if self.alerts else []
         if not alerts:
-            print("No active alerts")
+            logger.info("No active alerts")
         else:
             for alert in alerts:
                 severity = alert.get("severity", "unknown")
                 message = alert.get("message", "Unknown alert")
-                print(f"[{severity.upper()}] {message}")
+                logger.info(f"[{severity.upper()}] {message}")
 
     async def _display_text_executive(self):
         """Display text-based executive interface"""
-        print("👑 EXECUTIVE OVERSIGHT")
+        logger.info("👑 EXECUTIVE OVERSIGHT")
 
         status = await self.command_center.get_command_center_status()
         executive = status.get("executive", {})
 
-        print("Executive Agents:")
+        logger.info("Executive Agents:")
         supreme_status = "✅ Active" if executive.get("supreme_active") else "[CROSS] Inactive"
         helix_status = "✅ Active" if executive.get("helix_active") else "[CROSS] Inactive"
-        print(f"  AZ SUPREME: {supreme_status}")
-        print(f"  AX HELIX: {helix_status}")
+        logger.info(f"  AZ SUPREME: {supreme_status}")
+        logger.info(f"  AX HELIX: {helix_status}")
 
-        print("\nPerformance Metrics:")
-        print(f"  Strategic Decisions: {executive.get('strategic_decisions', 0)}")
-        print(f"  Operations Optimized: {executive.get('operations_optimized', 0)}")
-        print(f"  Integrations Completed: {executive.get('integrations_completed', 0)}")
+        logger.info("\nPerformance Metrics:")
+        logger.info(f"  Strategic Decisions: {executive.get('strategic_decisions', 0)}")
+        logger.info(f"  Operations Optimized: {executive.get('operations_optimized', 0)}")
+        logger.info(f"  Integrations Completed: {executive.get('integrations_completed', 0)}")
 
-        print("\nCommands:")
-        print("A: Strategic Analysis  O: Operational Review")
-        print("R: Risk Assessment     P: Performance Report")
+        logger.info("\nCommands:")
+        logger.info("A: Strategic Analysis  O: Operational Review")
+        logger.info("R: Risk Assessment     P: Performance Report")
 
     async def _handle_avatar_interaction(self):
         """Handle avatar interaction in text mode"""
@@ -488,14 +489,14 @@ class CommandCenterInterface:
                     "timestamp": datetime.now().isoformat()
                 })
 
-                print(f"\n{avatar.avatar_name}: {response.text}")
+                logger.info(f"\n{avatar.avatar_name}: {response.text}")
 
                 # Trigger speech if available
                 if hasattr(response, 'speech_config'):
                     await avatar._synthesize_speech(response.text, response.speech_config)
 
         except Exception as e:
-            print(f"Avatar interaction error: {e}")
+            logger.info(f"Avatar interaction error: {e}")
 
     async def _handle_executive_command(self, cmd: str):
         """Handle executive commands"""
@@ -503,57 +504,57 @@ class CommandCenterInterface:
             if cmd == 'a':
                 # Strategic analysis
                 response = await self.command_center.interact_with_avatar("supreme", "Provide a strategic analysis of current market conditions and system performance.")
-                print(f"AZ SUPREME: {response}")
+                logger.info(f"AZ SUPREME: {response}")
             elif cmd == 'o':
                 # Operational review
                 response = await self.command_center.interact_with_avatar("helix", "Provide an operational review of system efficiency and integration status.")
-                print(f"AX HELIX: {response}")
+                logger.info(f"AX HELIX: {response}")
             elif cmd == 'r':
                 # Risk assessment
                 response = await self.command_center.interact_with_avatar("supreme", "Conduct a comprehensive risk assessment across all departments.")
-                print(f"AZ SUPREME: {response}")
+                logger.info(f"AZ SUPREME: {response}")
             elif cmd == 'p':
                 # Performance report
                 response = await self.command_center.interact_with_avatar("helix", "Generate a performance report with key metrics and optimization recommendations.")
-                print(f"AX HELIX: {response}")
+                logger.info(f"AX HELIX: {response}")
 
         except Exception as e:
-            print(f"Executive command error: {e}")
+            logger.info(f"Executive command error: {e}")
 
     async def _run_text_interface(self):
         """Run enhanced text-based interface"""
-        print("\n" + "═"*80)
-        print("🎛️  AAC COMMAND CENTER - EXECUTIVE CONTROL INTERFACE")
-        print("═"*80)
-        print("Accelerated Arbitrage Corp - Real-time Operations & Intelligence Hub")
-        print("═"*80)
+        logger.info("\n" + "═"*80)
+        logger.info("🎛️  AAC COMMAND CENTER - EXECUTIVE CONTROL INTERFACE")
+        logger.info("═"*80)
+        logger.info("Accelerated Arbitrage Corp - Real-time Operations & Intelligence Hub")
+        logger.info("═"*80)
 
         while self.running:
             try:
                 # Display status header
                 status = await self._get_status_summary()
                 now = datetime.now()
-                print(f"\n📅 {now.strftime('%H:%M:%S')} | {status}")
-                print("─" * 80)
+                logger.info(f"\n📅 {now.strftime('%H:%M:%S')} | {status}")
+                logger.info("─" * 80)
 
                 # Main command menu
-                print("⚡ COMMAND CENTER OPERATIONS")
-                print("─" * 80)
-                print("┌─────────────────────────────────────────────────────────────────────────────┐")
-                print("│  1. 📊 Executive Dashboard     2. 🤖 AI Avatar Interactions                 │")
-                print("│  3. 👑 Executive Oversight     4. 🔧 System Diagnostics                    │")
-                print("│  5. 💰 Financial Analytics     6. ⚠️  Risk Management                      │")
-                print("│  7. 🎯 Start Agent Contest     8. 🛑 Emergency Stop                        │")
-                print("│                                                                             │")
-                print("│  0. 🚪 Exit Command Center                                                │")
-                print("└─────────────────────────────────────────────────────────────────────────────┘")
-                print()
+                logger.info("⚡ COMMAND CENTER OPERATIONS")
+                logger.info("─" * 80)
+                logger.info("┌─────────────────────────────────────────────────────────────────────────────┐")
+                logger.info("│  1. 📊 Executive Dashboard     2. 🤖 AI Avatar Interactions                 │")
+                logger.info("│  3. 👑 Executive Oversight     4. 🔧 System Diagnostics                    │")
+                logger.info("│  5. 💰 Financial Analytics     6. ⚠️  Risk Management                      │")
+                logger.info("│  7. 🎯 Start Agent Contest     8. 🛑 Emergency Stop                        │")
+                logger.info("│                                                                             │")
+                logger.info("│  0. 🚪 Exit Command Center                                                │")
+                logger.info("└─────────────────────────────────────────────────────────────────────────────┘")
+                logger.debug("")
 
                 # Get user input
                 cmd = input("🎯 Select operation (0-8): ").strip()
 
                 if cmd == '0':
-                    print("\n🔄 Shutting down AAC Command Center...")
+                    logger.info("\n🔄 Shutting down AAC Command Center...")
                     self.running = False
                 elif cmd == '1':
                     await self._show_dashboard()
@@ -571,15 +572,15 @@ class CommandCenterInterface:
                     await self._show_financial_insights()
                     input("\n⏎ Press Enter to return to main menu...")
                 elif cmd == '6':
-                    print("\n⚠️  Risk Management - Feature coming soon...")
+                    logger.info("\n⚠️  Risk Management - Feature coming soon...")
                     await asyncio.sleep(1)
                 elif cmd == '7':
-                    print("\n🎯 Starting Agent Contest...")
+                    logger.info("\n🎯 Starting Agent Contest...")
                     logger.info("Agent contest feature not yet available")
-                    print("\u2139\ufe0f  Agent contest feature not yet available.")
+                    logger.info("\u2139\ufe0f  Agent contest feature not yet available.")
                     await asyncio.sleep(1)
                 elif cmd == '8':
-                    print("\n\U0001f6d1 EMERGENCY STOP - All operations halted!")
+                    logger.info("\n\U0001f6d1 EMERGENCY STOP - All operations halted!")
                     try:
                         self.running = False
                         if self.command_center:
@@ -589,29 +590,29 @@ class CommandCenterInterface:
                         logger.error(f"Emergency stop error: {e}")
                     await asyncio.sleep(2)
                 else:
-                    print("❌ Invalid command. Please select 0-8.")
+                    logger.info("❌ Invalid command. Please select 0-8.")
 
                 # Clear screen effect
-                print("\n" * 2)
+                logger.info("\n" * 2)
 
             except KeyboardInterrupt:
-                print("\n\n🛑 Emergency shutdown initiated...")
+                logger.info("\n\n🛑 Emergency shutdown initiated...")
                 self.running = False
             except Exception as e:
-                print(f"\n❌ Interface error: {e}")
+                logger.info(f"\n❌ Interface error: {e}")
                 await asyncio.sleep(2)
 
             except KeyboardInterrupt:
                 self.running = False
             except Exception as e:
-                print(f"Interface error: {e}")
+                logger.info(f"Interface error: {e}")
                 await asyncio.sleep(1)
 
     async def _show_dashboard(self):
         """Show enhanced dashboard view with comprehensive metrics"""
-        print("\n" + "═"*80)
-        print("🏛️  AAC COMMAND CENTER - EXECUTIVE DASHBOARD")
-        print("═"*80)
+        logger.info("\n" + "═"*80)
+        logger.info("🏛️  AAC COMMAND CENTER - EXECUTIVE DASHBOARD")
+        logger.info("═"*80)
 
         try:
             status = await self.command_center.get_command_center_status()
@@ -619,12 +620,12 @@ class CommandCenterInterface:
             # System timestamp and mode
             now = datetime.now()
             mode = status.get("mode", "unknown").replace("_", " ").title()
-            print(f"📅 {now.strftime('%Y-%m-%d %H:%M:%S')} | Mode: {mode}")
-            print()
+            logger.info(f"📅 {now.strftime('%Y-%m-%d %H:%M:%S')} | Mode: {mode}")
+            logger.debug("")
 
             # Executive Summary
-            print("📈 EXECUTIVE SUMMARY")
-            print("─" * 40)
+            logger.info("📈 EXECUTIVE SUMMARY")
+            logger.info("─" * 40)
 
             # System Health
             system_health = status.get("system_health", {})
@@ -633,7 +634,7 @@ class CommandCenterInterface:
             health_score = system_health.get('health_score', 85)  # Default if not available
 
             health_icon = "🟢" if health_score > 80 else "🟡" if health_score > 60 else "🔴"
-            print(f"System Health: {health_icon} {health_score:.1f}/100")
+            logger.info(f"System Health: {health_icon} {health_score:.1f}/100")
 
             # Financial Metrics
             financial = status.get("real_time_metrics", {}).get("financial", {})
@@ -641,96 +642,96 @@ class CommandCenterInterface:
             daily_pnl = financial.get('daily_pnl', 0)
             unrealized_pnl = financial.get('unrealized_pnl', 0)
 
-            print(f"Total Equity:   ${equity:,.0f}")
-            print(f"Daily P&L:      ${daily_pnl:+,.0f}")
-            print(f"Unrealized P&L: ${unrealized_pnl:+,.0f}")
-            print()
+            logger.info(f"Total Equity:   ${equity:,.0f}")
+            logger.info(f"Daily P&L:      ${daily_pnl:+,.0f}")
+            logger.info(f"Unrealized P&L: ${unrealized_pnl:+,.0f}")
+            logger.debug("")
 
             # Core Metrics Grid
-            print("📊 CORE METRICS")
-            print("─" * 40)
+            logger.info("📊 CORE METRICS")
+            logger.info("─" * 40)
 
             # System Resources
-            print("System Resources:")
-            print(f"  CPU Usage:     {self._progress_bar(cpu)} {cpu:.1f}%")
-            print(f"  Memory Usage:  {self._progress_bar(mem)} {mem:.1f}%")
-            print(f"  Uptime:        {self._format_uptime(system_health.get('uptime_seconds', 0))}")
-            print()
+            logger.info("System Resources:")
+            logger.info(f"  CPU Usage:     {self._progress_bar(cpu)} {cpu:.1f}%")
+            logger.info(f"  Memory Usage:  {self._progress_bar(mem)} {mem:.1f}%")
+            logger.info(f"  Uptime:        {self._format_uptime(system_health.get('uptime_seconds', 0))}")
+            logger.debug("")
 
             # Trading Activity
-            print("Trading Activity:")
+            logger.info("Trading Activity:")
             trading = status.get("trading_metrics", {})
             active_trades = trading.get('active_trades', 0)
             today_trades = trading.get('today_trades', 0)
             win_rate = financial.get('win_rate', 0)
 
-            print(f"  Active Trades: {active_trades}")
-            print(f"  Today's Trades: {today_trades}")
-            print(f"  Win Rate:      {win_rate:.1%}")
-            print()
+            logger.info(f"  Active Trades: {active_trades}")
+            logger.info(f"  Today's Trades: {today_trades}")
+            logger.info(f"  Win Rate:      {win_rate:.1%}")
+            logger.debug("")
 
             # Integrations Status
-            print("🔗 INTEGRATIONS")
-            print("─" * 40)
+            logger.info("🔗 INTEGRATIONS")
+            logger.info("─" * 40)
 
             integrations = status.get("integrations", {})
             gln_status = "✅ Active" if integrations.get("gln_active") else "❌ Inactive"
             gta_status = "✅ Active" if integrations.get("gta_active") else "❌ Inactive"
 
-            print(f"Global Logistics Network: {gln_status}")
-            print(f"Global Talent Analytics:   {gta_status}")
-            print(f"Critical Hiring Needs:     {integrations.get('critical_hiring_needs', 0)}")
-            print()
+            logger.info(f"Global Logistics Network: {gln_status}")
+            logger.info(f"Global Talent Analytics:   {gta_status}")
+            logger.info(f"Critical Hiring Needs:     {integrations.get('critical_hiring_needs', 0)}")
+            logger.debug("")
 
             # AI Avatars Status
-            print("[AI] AI AVATARS")
-            print("─" * 40)
+            logger.info("[AI] AI AVATARS")
+            logger.info("─" * 40)
 
             avatars = status.get("avatar_status", {})
             if avatars:
                 for avatar_name, avatar_data in avatars.items():
                     emotion = avatar_data.get("mood", "unknown")
                     confidence = avatar_data.get("confidence", 0.0)
-                    print(f"  {avatar_data.get('name', avatar_name)}: {emotion} (Confidence: {confidence:.2f})")
+                    logger.info(f"  {avatar_data.get('name', avatar_name)}: {emotion} (Confidence: {confidence:.2f})")
             else:
-                print("  No avatars currently active")
-            print()
+                logger.info("  No avatars currently active")
+            logger.debug("")
 
             # Agent Contest Status
-            print("🤖 AGENT CONTEST")
-            print("─" * 40)
+            logger.info("🤖 AGENT CONTEST")
+            logger.info("─" * 40)
 
             contest = status.get("agent_contest", {})
             if contest.get("status") == "active":
-                print(f"Status:          🟢 ACTIVE")
-                print(f"Active Agents:   {contest.get('active_agents', 0)}")
-                print(f"Total Agents:    {contest.get('total_agents', 0)}")
-                print(f"Rounds:          {contest.get('rounds_completed', 0)}")
+                logger.info(f"Status:          🟢 ACTIVE")
+                logger.info(f"Active Agents:   {contest.get('active_agents', 0)}")
+                logger.info(f"Total Agents:    {contest.get('total_agents', 0)}")
+                logger.info(f"Rounds:          {contest.get('rounds_completed', 0)}")
 
                 leaderboard = contest.get('leaderboard', [])
                 if leaderboard:
-                    print("Top Performers:")
+                    logger.info("Top Performers:")
                     for i, agent in enumerate(leaderboard[:3], 1):
                         agent_id = agent.get('agent_id', 'Unknown')
                         value = agent.get('portfolio_value', 0)
-                        print(f"  {i}. {agent_id}: ${value:,.0f}")
+                        logger.info(f"  {i}. {agent_id}: ${value:,.0f}")
             else:
-                print(f"Status:          🔴 {contest.get('status', 'inactive').upper()}")
-            print()
+                logger.info(f"Status:          🔴 {contest.get('status', 'inactive').upper()}")
+            logger.debug("")
 
             # Quick Actions
-            print("⚡ QUICK ACTIONS")
-            print("─" * 40)
-            print("1: View Detailed Metrics    2: Avatar Interactions")
-            print("3: Executive Commands       4: System Diagnostics")
-            print("5: Financial Insights      6: Risk Management")
-            print("7: Start Agent Contest     8: Stop All Operations")
-            print("0: Exit Command Center")
-            print()
+            logger.info("⚡ QUICK ACTIONS")
+            logger.info("─" * 40)
+            logger.info("1: View Detailed Metrics    2: Avatar Interactions")
+            logger.info("3: Executive Commands       4: System Diagnostics")
+            logger.info("5: Financial Insights      6: Risk Management")
+            logger.info("7: Start Agent Contest     8: Stop All Operations")
+            logger.info("0: Exit Command Center")
+            logger.debug("")
 
         except Exception as e:
-            print(f"❌ Error retrieving dashboard data: {e}")
-            print()
+            logger.info(f"❌ Error retrieving dashboard data: {e}")
+            logger.debug("")
 
     def _progress_bar(self, percentage: float, width: int = 20) -> str:
         """Create a visual progress bar"""
@@ -758,12 +759,12 @@ class CommandCenterInterface:
 
     async def _show_avatars(self):
         """Show avatar interactions"""
-        print("\n[AI] AI AVATAR INTERACTIONS")
-        print("-" * 25)
+        logger.info("\n[AI] AI AVATAR INTERACTIONS")
+        logger.info("-" * 25)
 
-        print("Available Avatars:")
-        print("S: AZ SUPREME (Strategic Advisor)")
-        print("H: AX HELIX (Operations Commander)")
+        logger.info("Available Avatars:")
+        logger.info("S: AZ SUPREME (Strategic Advisor)")
+        logger.info("H: AX HELIX (Operations Commander)")
 
         avatar_choice = input("\nSelect avatar (S/H): ").strip().upper()
 
@@ -775,87 +776,87 @@ class CommandCenterInterface:
             if query.strip():
                 try:
                     response = await self.command_center.interact_with_avatar(avatar_name, query)
-                    print(f"\n{avatar_display}: {response}")
+                    logger.info(f"\n{avatar_display}: {response}")
                 except Exception as e:
-                    print(f"Error communicating with avatar: {e}")
+                    logger.info(f"Error communicating with avatar: {e}")
         else:
-            print("Invalid selection.")
+            logger.info("Invalid selection.")
 
     async def _show_executive_commands(self):
         """Show executive command menu"""
-        print("\n👑 EXECUTIVE COMMANDS")
-        print("-" * 20)
+        logger.info("\n👑 EXECUTIVE COMMANDS")
+        logger.info("-" * 20)
 
-        print("Available Commands:")
-        print("A: Strategic Analysis")
-        print("O: Operational Review")
-        print("R: Risk Assessment")
-        print("P: Performance Report")
+        logger.info("Available Commands:")
+        logger.info("A: Strategic Analysis")
+        logger.info("O: Operational Review")
+        logger.info("R: Risk Assessment")
+        logger.info("P: Performance Report")
 
         cmd = input("\nEnter command: ").strip().lower()
 
         try:
             if cmd == 'a':
                 response = await self.command_center.interact_with_avatar("supreme", "Provide a strategic analysis of current market conditions and system performance.")
-                print(f"\nAZ SUPREME: {response}")
+                logger.info(f"\nAZ SUPREME: {response}")
             elif cmd == 'o':
                 response = await self.command_center.interact_with_avatar("helix", "Provide an operational review of system efficiency and integration status.")
-                print(f"\nAX HELIX: {response}")
+                logger.info(f"\nAX HELIX: {response}")
             elif cmd == 'r':
                 response = await self.command_center.interact_with_avatar("supreme", "Conduct a comprehensive risk assessment across all departments.")
-                print(f"\nAZ SUPREME: {response}")
+                logger.info(f"\nAZ SUPREME: {response}")
             elif cmd == 'p':
                 response = await self.command_center.interact_with_avatar("helix", "Generate a performance report with key metrics and optimization recommendations.")
-                print(f"\nAX HELIX: {response}")
+                logger.info(f"\nAX HELIX: {response}")
             else:
-                print("Invalid command.")
+                logger.info("Invalid command.")
         except Exception as e:
-            print(f"Executive command error: {e}")
+            logger.info(f"Executive command error: {e}")
 
     async def _show_system_status(self):
         """Show detailed system status"""
-        print("\n🔧 SYSTEM STATUS")
-        print("-" * 15)
+        logger.info("\n🔧 SYSTEM STATUS")
+        logger.info("-" * 15)
 
         try:
             status = await self.command_center.get_command_center_status()
 
-            print(f"Operational Readiness: {'✅ Yes' if status.get('operational_readiness') else '[CROSS] No'}")
-            print(f"Mode: {status.get('mode', 'unknown').replace('_', ' ').title()}")
+            logger.info(f"Operational Readiness: {'✅ Yes' if status.get('operational_readiness') else '[CROSS] No'}")
+            logger.info(f"Mode: {status.get('mode', 'unknown').replace('_', ' ').title()}")
 
             # Executive Branch
             executive = status.get("executive", {})
-            print(f"AZ SUPREME: {'✅ Active' if executive.get('supreme_active') else '[CROSS] Inactive'}")
-            print(f"AX HELIX: {'✅ Active' if executive.get('helix_active') else '[CROSS] Inactive'}")
+            logger.info(f"AZ SUPREME: {'✅ Active' if executive.get('supreme_active') else '[CROSS] Inactive'}")
+            logger.info(f"AX HELIX: {'✅ Active' if executive.get('helix_active') else '[CROSS] Inactive'}")
 
             # Department Status
             departments = status.get("departments", {})
-            print("\nDepartment Status:")
+            logger.info("\nDepartment Status:")
             for dept, dept_status in departments.items():
                 active = "✅" if dept_status.get("active") else "[CROSS]"
-                print(f"  {dept}: {active}")
+                logger.info(f"  {dept}: {active}")
 
         except Exception as e:
-            print(f"Error retrieving system status: {e}")
+            logger.info(f"Error retrieving system status: {e}")
 
     async def _show_financial_insights(self):
         """Show financial insights"""
-        print("\n[MONEY] FINANCIAL INSIGHTS")
-        print("-" * 20)
+        logger.info("\n[MONEY] FINANCIAL INSIGHTS")
+        logger.info("-" * 20)
 
         try:
             insights = await self.command_center.get_financial_insights()
-            print(f"Total Insights Available: {len(insights)}")
+            logger.info(f"Total Insights Available: {len(insights)}")
 
             # Show first 10 insights
             for i, insight in enumerate(insights[:10]):
-                print(f"{i+1}. {insight.get('category', 'Unknown')}: {insight.get('insight', 'No details')}")
+                logger.info(f"{i+1}. {insight.get('category', 'Unknown')}: {insight.get('insight', 'No details')}")
 
             if len(insights) > 10:
-                print(f"... and {len(insights) - 10} more insights available")
+                logger.info(f"... and {len(insights) - 10} more insights available")
 
         except Exception as e:
-            print(f"Error retrieving financial insights: {e}")
+            logger.info(f"Error retrieving financial insights: {e}")
 
     async def _get_status_summary(self) -> str:
         """Get status summary string"""
@@ -877,7 +878,7 @@ class CommandCenterInterface:
         if self.command_center:
             await self.command_center.shutdown_command_center()
 
-        print("Command Center Interface shutdown complete")
+        logger.info("Command Center Interface shutdown complete")
 
 async def main():
     """Main entry point"""
@@ -887,9 +888,9 @@ async def main():
         await interface.initialize()
         await interface.run_interface()
     except KeyboardInterrupt:
-        print("\nShutting down...")
+        logger.info("\nShutting down...")
     except Exception as e:
-        print(f"Critical error: {e}")
+        logger.info(f"Critical error: {e}")
         import traceback
         traceback.print_exc()
     finally:

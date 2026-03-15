@@ -76,6 +76,7 @@ logger = logging.getLogger("AutonomousEngine")
 # ════════════════════════════════════════════════════════════════════════
 
 class DoctrineState(Enum):
+    """DoctrineState class."""
     NORMAL = "NORMAL"         # Full operations
     CAUTION = "CAUTION"       # Drawdown 5-10%, reduce risk
     SAFE_MODE = "SAFE_MODE"   # Drawdown 10-15%, stop new positions
@@ -84,6 +85,7 @@ class DoctrineState(Enum):
 
 @dataclass
 class DoctrineStatus:
+    """DoctrineStatus class."""
     state: DoctrineState = DoctrineState.NORMAL
     daily_pnl: float = 0.0
     drawdown_pct: float = 0.0
@@ -135,14 +137,17 @@ class DoctrineStatus:
 
     @property
     def can_open_new_positions(self) -> bool:
+        """Can open new positions."""
         return self.state in (DoctrineState.NORMAL, DoctrineState.CAUTION)
 
     @property
     def should_reduce_risk(self) -> bool:
+        """Should reduce risk."""
         return self.state in (DoctrineState.CAUTION, DoctrineState.SAFE_MODE)
 
     @property
     def is_halted(self) -> bool:
+        """Is halted."""
         return self.state == DoctrineState.HALT
 
 
@@ -151,6 +156,7 @@ class DoctrineStatus:
 # ════════════════════════════════════════════════════════════════════════
 
 class ComponentHealth(Enum):
+    """ComponentHealth class."""
     HEALTHY = "HEALTHY"
     DEGRADED = "DEGRADED"
     DOWN = "DOWN"
@@ -159,6 +165,7 @@ class ComponentHealth(Enum):
 
 @dataclass
 class ComponentStatus:
+    """ComponentStatus class."""
     name: str
     health: ComponentHealth = ComponentHealth.UNKNOWN
     last_check: Optional[datetime] = None
@@ -169,6 +176,7 @@ class ComponentStatus:
     latency_ms: float = 0.0
 
     def record_success(self, latency_ms: float = 0.0):
+        """Record success."""
         now = datetime.now(timezone.utc)
         self.health = ComponentHealth.HEALTHY
         self.last_check = now
@@ -177,6 +185,7 @@ class ComponentStatus:
         self.latency_ms = latency_ms
 
     def record_failure(self, error: str):
+        """Record failure."""
         self.last_check = datetime.now(timezone.utc)
         self.error_count += 1
         self.consecutive_failures += 1
@@ -192,6 +201,7 @@ class ComponentStatus:
 # ════════════════════════════════════════════════════════════════════════
 
 class SignalAction(Enum):
+    """SignalAction class."""
     BUY = "BUY"
     SELL = "SELL"
     HOLD = "HOLD"
@@ -199,6 +209,7 @@ class SignalAction(Enum):
 
 @dataclass
 class TradingSignal:
+    """TradingSignal class."""
     strategy_name: str
     symbol: str
     action: SignalAction
@@ -211,6 +222,7 @@ class TradingSignal:
 
 @dataclass
 class AggregatedSignal:
+    """AggregatedSignal class."""
     symbol: str
     action: SignalAction
     consensus_score: float  # -1.0 (all sell) to +1.0 (all buy)
@@ -225,6 +237,7 @@ class AggregatedSignal:
 
 @dataclass
 class ScheduledTask:
+    """ScheduledTask class."""
     name: str
     interval_seconds: float
     callback: Callable[..., Coroutine]
@@ -237,6 +250,7 @@ class ScheduledTask:
     critical: bool = False  # if True, failure halts the engine
 
     def is_due(self) -> bool:
+        """Is due."""
         if not self.enabled:
             return False
         if self.next_run is None:
@@ -244,6 +258,7 @@ class ScheduledTask:
         return datetime.now(timezone.utc) >= self.next_run
 
     def mark_run(self):
+        """Mark run."""
         now = datetime.now(timezone.utc)
         self.last_run = now
         self.next_run = now + timedelta(seconds=self.interval_seconds)
@@ -255,6 +270,7 @@ class ScheduledTask:
 # ════════════════════════════════════════════════════════════════════════
 
 class GapSeverity(Enum):
+    """GapSeverity class."""
     INFO = "INFO"
     LOW = "LOW"
     MEDIUM = "MEDIUM"
@@ -264,6 +280,7 @@ class GapSeverity(Enum):
 
 @dataclass
 class SystemGap:
+    """SystemGap class."""
     gap_id: str
     component: str
     description: str
@@ -505,6 +522,7 @@ class AutonomousEngine:
         self.register_task("gap_analysis", 600.0, self._task_gap_analysis)
 
     def register_task(self, name: str, interval: float, callback, critical: bool = False):
+        """Register task."""
         self.tasks[name] = ScheduledTask(
             name=name, interval_seconds=interval,
             callback=callback, critical=critical,
@@ -550,8 +568,8 @@ class AutonomousEngine:
         if self._coingecko and hasattr(self._coingecko, 'disconnect'):
             try:
                 await self._coingecko.disconnect()
-            except Exception:
-                pass
+            except Exception as e:
+                logger.exception("Unexpected error: %s", e)
 
     async def _bootstrap(self):
         """Initialize everything. Failures are logged but don't block startup."""
@@ -605,8 +623,8 @@ class AutonomousEngine:
                     f"components={healthy}/{total} healthy | "
                     f"errors={self.error_count}"
                 )
-            except Exception:
-                pass
+            except Exception as e:
+                logger.exception("Unexpected error: %s", e)
             await asyncio.sleep(self.HEARTBEAT_INTERVAL)
 
     # ── Scheduler ─────────────────────────────────────────────────────
@@ -767,8 +785,8 @@ class AutonomousEngine:
                                 source="ndax",
                                 timestamp=datetime.now(timezone.utc),
                             )
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        logger.exception("Unexpected error: %s", e)
                 self.components["ndax"].record_success()
             except Exception as e:
                 self.components["ndax"].record_failure(str(e))
@@ -1342,6 +1360,7 @@ class AutonomousEngine:
 
 @dataclass
 class MarketDataSnapshot:
+    """MarketDataSnapshot class."""
     symbol: str
     price: float
     bid: float = 0.0
@@ -1368,12 +1387,14 @@ def _port_open(host: str, port: int, timeout: float = 1.0) -> bool:
 # ════════════════════════════════════════════════════════════════════════
 
 async def main():
+    """Main."""
     engine = AutonomousEngine()
 
     # Handle graceful shutdown
     import signal as sig
 
     def handle_shutdown(signum, frame):
+        """Handle shutdown."""
         logger.info(f"Received signal {signum} — initiating shutdown")
         asyncio.get_event_loop().create_task(engine.stop())
 

@@ -13,11 +13,13 @@ from enum import Enum
 logger = logging.getLogger(__name__)
 
 class CircuitState(Enum):
+    """CircuitState class."""
     CLOSED = "closed"      # Normal operation
     OPEN = "open"         # Circuit broken, failing fast
     HALF_OPEN = "half_open"  # Testing recovery
 
 class FailureType(Enum):
+    """FailureType class."""
     LATENCY_SPIKE = "latency_spike"
     ERROR_RATE = "error_rate"
     SLIPPAGE = "slippage"

@@ -909,6 +909,7 @@ async def get_live_trading_infrastructure() -> LiveTradingInfrastructure:
 if __name__ == "__main__":
     # Example usage and testing
     async def main():
+        """Main."""
         infrastructure = await get_live_trading_infrastructure()
 
         print("🚀 Starting AAC Live Trading Infrastructure...")

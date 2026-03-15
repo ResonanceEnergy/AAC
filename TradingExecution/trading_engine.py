@@ -36,11 +36,13 @@ except ImportError:
 
 
 class OrderSide(Enum):
+    """OrderSide class."""
     BUY = "buy"
     SELL = "sell"
 
 
 class OrderType(Enum):
+    """OrderType class."""
     MARKET = "market"
     LIMIT = "limit"
     STOP_LOSS = "stop_loss"
@@ -48,6 +50,7 @@ class OrderType(Enum):
 
 
 class OrderStatus(Enum):
+    """OrderStatus class."""
     PENDING = "pending"
     OPEN = "open"
     FILLED = "filled"
@@ -452,6 +455,7 @@ class TradingEngine:
 # CLI for testing
 if __name__ == '__main__':
     async def main():
+        """Main."""
         engine = TradingEngine()
         await engine.start()
         
@@ -465,10 +469,10 @@ if __name__ == '__main__':
         )
         
         if order:
-            print(f"Order created: {order.order_id}, Status: {order.status.value}")
+            logger.info(f"Order created: {order.order_id}, Status: {order.status.value}")
         
         balance = await engine.get_account_balance('binance')
-        print(f"Account balance: {balance}")
+        logger.info(f"Account balance: {balance}")
         
         await engine.stop()
     

@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 # ═══════════════════════════════════════════════════════════════════════════
 
 class VolRegime(Enum):
+    """VolRegime class."""
     LOW = "low_vol"                    # VIX < 13
     NORMAL = "normal_vol"              # VIX 13-20
     ELEVATED = "elevated_vol"          # VIX 20-30
@@ -32,11 +33,13 @@ class VolRegime(Enum):
     EXTREME = "extreme_vol"            # VIX > 40
 
 class TermStructure(Enum):
+    """TermStructure class."""
     CONTANGO = "contango"              # Front < back (normal)
     FLAT = "flat"                      # ~equal
     BACKWARDATION = "backwardation"    # Front > back (fear)
 
 class SkewRegime(Enum):
+    """SkewRegime class."""
     NORMAL = "normal"                  # Moderate put skew
     STEEP = "steep"                    # Elevated put skew (fear)
     FLAT = "flat"                      # Low skew (complacency)

@@ -158,6 +158,7 @@ async def run_parameter_sensitivity_analysis(strategy_type: str,
 
 
 def main():
+    """Main."""
     parser = argparse.ArgumentParser(description="Strategy Parameter Optimization Runner")
     parser.add_argument("command", choices=["optimize", "compare", "sensitivity"],
                        help="Command to run")

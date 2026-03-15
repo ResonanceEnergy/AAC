@@ -76,6 +76,7 @@ class FundingTransfer:
     estimated_arrival: str = ""
 
     def to_dict(self) -> Dict[str, Any]:
+        """To dict."""
         return asdict(self)
 
 

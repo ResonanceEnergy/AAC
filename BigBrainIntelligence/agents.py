@@ -45,6 +45,7 @@ class ResearchFinding:
     expires_at: Optional[datetime] = None
     
     def to_dict(self) -> Dict:
+        """To dict."""
         return {
             'finding_id': self.finding_id,
             'agent_id': self.agent_id,
@@ -147,7 +148,7 @@ class BaseResearchAgent(ABC):
 
     async def cleanup(self):
         """Cleanup resources - override in subclasses with sessions"""
-        pass
+        logger.debug("cleanup called")
 
     def get_recent_findings(self, hours: int = 24) -> List[ResearchFinding]:
         """Get findings from the last N hours"""
@@ -187,6 +188,7 @@ class NarrativeAnalyzerAgent(BaseResearchAgent):
         return self._session
 
     async def scan(self) -> List[ResearchFinding]:
+        """Scan."""
         findings = []
         
         try:
@@ -317,6 +319,7 @@ class EngagementPredictorAgent(BaseResearchAgent):
         return self._session
 
     async def scan(self) -> List[ResearchFinding]:
+        """Scan."""
         findings = []
         
         try:
@@ -444,6 +447,7 @@ class ContentOptimizerAgent(BaseResearchAgent):
         super().__init__('content_optimizer', 'theater_b')
 
     async def scan(self) -> List[ResearchFinding]:
+        """Scan."""
         findings = []
         
         # Analyze content performance
@@ -510,6 +514,7 @@ class LatencyMonitorAgent(BaseResearchAgent):
         return self._session
 
     async def scan(self) -> List[ResearchFinding]:
+        """Scan."""
         findings = []
         
         try:
@@ -614,6 +619,7 @@ class BridgeAnalyzerAgent(BaseResearchAgent):
         ]
 
     async def scan(self) -> List[ResearchFinding]:
+        """Scan."""
         findings = []
         
         for bridge in self.bridges:
@@ -695,6 +701,7 @@ class GasOptimizerAgent(BaseResearchAgent):
         return self._session
 
     async def scan(self) -> List[ResearchFinding]:
+        """Scan."""
         findings = []
         
         try:
@@ -833,6 +840,7 @@ class LiquidityTrackerAgent(BaseResearchAgent):
         self.cexs = ['binance', 'coinbase', 'kraken']
 
     async def scan(self) -> List[ResearchFinding]:
+        """Scan."""
         findings = []
         
         liquidity_data = await self._analyze_liquidity()
@@ -918,6 +926,7 @@ class APIScannerAgent(BaseResearchAgent):
         return self._session
 
     async def scan(self) -> List[ResearchFinding]:
+        """Scan."""
         findings = []
         
         try:
@@ -1071,6 +1080,7 @@ class DataGapFinderAgent(BaseResearchAgent):
         super().__init__('data_gap_finder', 'theater_d')
 
     async def scan(self) -> List[ResearchFinding]:
+        """Scan."""
         findings = []
         
         gaps = await self._identify_gaps()
@@ -1117,6 +1127,7 @@ class AccessArbitrageAgent(BaseResearchAgent):
         super().__init__('access_arbitrage', 'theater_d')
 
     async def scan(self) -> List[ResearchFinding]:
+        """Scan."""
         findings = []
         
         opportunities = await self._find_access_opportunities()
@@ -1165,6 +1176,7 @@ class NetworkMapperAgent(BaseResearchAgent):
         self.relationship_graph = {}
 
     async def scan(self) -> List[ResearchFinding]:
+        """Scan."""
         findings = []
         
         network_changes = await self._analyze_network()
@@ -1219,6 +1231,7 @@ class ReconciliationAgent(BaseResearchAgent):
         self.reconciliation_history = []
 
     async def scan(self) -> List[ResearchFinding]:
+        """Scan."""
         findings = []
 
         # Check for reconciliation discrepancies
@@ -1264,6 +1277,7 @@ class RiskMonitorAgent(BaseResearchAgent):
         self.risk_alerts = []
 
     async def scan(self) -> List[ResearchFinding]:
+        """Scan."""
         findings = []
 
         risk_breaches = await self._check_risk_breaches()
@@ -1308,6 +1322,7 @@ class PLCalculationAgent(BaseResearchAgent):
         self.unrealized_gains = {}
 
     async def scan(self) -> List[ResearchFinding]:
+        """Scan."""
         findings = []
 
         pl_updates = await self._calculate_pl()
@@ -1351,6 +1366,7 @@ class VenueHealthAgent(BaseResearchAgent):
         self.performance_history = []
 
     async def scan(self) -> List[ResearchFinding]:
+        """Scan."""
         findings = []
 
         health_issues = await self._check_venue_health()
@@ -1395,6 +1411,7 @@ class WithdrawalRiskAgent(BaseResearchAgent):
         self.compliance_flags = []
 
     async def scan(self) -> List[ResearchFinding]:
+        """Scan."""
         findings = []
 
         risk_patterns = await self._analyze_withdrawal_risks()
@@ -1439,6 +1456,7 @@ class RoutingOptimizationAgent(BaseResearchAgent):
         self.optimization_history = []
 
     async def scan(self) -> List[ResearchFinding]:
+        """Scan."""
         findings = []
 
         routing_opportunities = await self._find_routing_opportunities()
@@ -1483,6 +1501,7 @@ class IncidentPostmortemAutomation(BaseResearchAgent):
         self.lessons_learned = []
 
     async def scan(self) -> List[ResearchFinding]:
+        """Scan."""
         findings = []
 
         recent_incidents = await self._analyze_recent_incidents()
@@ -1526,6 +1545,7 @@ class AuditGapMonitor(BaseResearchAgent):
         self.gap_analysis = []
 
     async def scan(self) -> List[ResearchFinding]:
+        """Scan."""
         findings = []
 
         audit_gaps = await self._find_audit_gaps()
@@ -1570,6 +1590,7 @@ class SecurityScannerAgent(BaseResearchAgent):
         self.security_alerts = []
 
     async def scan(self) -> List[ResearchFinding]:
+        """Scan."""
         findings = []
 
         security_issues = await self._scan_for_threats()
@@ -1666,27 +1687,28 @@ def get_agents_by_theater(theater: str) -> List[BaseResearchAgent]:
 # CLI for testing
 if __name__ == '__main__':
     async def test():
-        print("=== BigBrain Research Agents ===\n")
+        """Test."""
+        logger.info("=== BigBrain Research Agents ===\n")
         
-        print("Available Agents:")
+        logger.info("Available Agents:")
         for agent_id, cls in AGENT_REGISTRY.items():
             if not callable(cls):
-                print(f"  - {agent_id} (lazy-import, skipped)")
+                logger.info(f"  - {agent_id} (lazy-import, skipped)")
                 continue
             agent = cls()
-            print(f"  - {agent_id} ({agent.theater})")
+            logger.info(f"  - {agent_id} ({agent.theater})")
         
-        print("\n--- Running Test Scans ---\n")
+        logger.info("\n--- Running Test Scans ---\n")
         
         # Test each agent
         for agent_id in ['narrative_analyzer', 'latency_monitor', 'api_scanner']:
             agent = get_agent(agent_id)
             if agent:
-                print(f"Testing {agent_id}...")
+                logger.info(f"Testing {agent_id}...")
                 findings = await agent.run_scan()
-                print(f"  Found: {len(findings)} findings")
+                logger.info(f"  Found: {len(findings)} findings")
         
-        print("\n=== Test Complete ===")
+        logger.info("\n=== Test Complete ===")
     
     asyncio.run(test())
 

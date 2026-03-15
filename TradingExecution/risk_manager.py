@@ -261,7 +261,7 @@ class RiskManager:
                     'active_principles_count': len(directive.active_principles),
                     'warnings': directive.warnings,
                 }
-        except Exception:
-            pass
+        except Exception as e:
+            logger.exception("Unexpected error: %s", e)
 
         return report

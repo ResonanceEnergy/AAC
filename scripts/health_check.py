@@ -29,20 +29,24 @@ BOLD = "\033[1m"
 
 
 def ok(msg: str) -> None:
+    """Ok."""
     print(f"  {GREEN}[OK]{RESET} {msg}")
 
 
 def fail(msg: str) -> None:
+    """Fail."""
     print(f"  {RED}[FAIL]{RESET} {msg}")
 
 
 def warn(msg: str) -> None:
+    """Warn."""
     print(f"  {YELLOW}[WARN]{RESET} {msg}")
 
 
 # ── Checks ────────────────────────────────────────────────────────────────────
 
 def check_python_version() -> bool:
+    """Check python version."""
     v = sys.version_info
     if v >= (3, 9):
         ok(f"Python {v.major}.{v.minor}.{v.micro}")
@@ -52,6 +56,7 @@ def check_python_version() -> bool:
 
 
 def check_env_file() -> bool:
+    """Check env file."""
     env_path = PROJECT_ROOT / ".env"
     if env_path.exists():
         ok(".env file present")
@@ -65,6 +70,7 @@ def check_env_file() -> bool:
 
 
 def check_venv() -> bool:
+    """Check venv."""
     venv = PROJECT_ROOT / ".venv"
     if venv.is_dir():
         ok(f".venv exists ({sys.executable})")
@@ -171,6 +177,7 @@ def check_env_vars() -> None:
 
 def main() -> int:
     # Enable ANSI colors on Windows 10+
+    """Main."""
     if platform.system() == "Windows":
         os.system("")
 

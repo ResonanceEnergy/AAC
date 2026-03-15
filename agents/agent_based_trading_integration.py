@@ -421,4 +421,4 @@ if __name__ == "__main__":
 
     # Run integrated contest
     result = asyncio.run(run_integrated_contest())
-    print("\n🎉 Integrated Contest Complete! Check reports/contest_report.json for full results!")
+    logger.info("\n🎉 Integrated Contest Complete! Check reports/contest_report.json for full results!")

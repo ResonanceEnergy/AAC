@@ -468,6 +468,7 @@ async def main():
 
         # Set up graceful shutdown
         def signal_handler(signum, frame):
+            """Signal handler."""
             logger.info("Shutdown signal received. Initiating graceful shutdown...")
             asyncio.create_task(deployment_manager._emergency_shutdown())
 

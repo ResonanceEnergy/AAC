@@ -47,6 +47,7 @@ def _bold(t): return f"\033[1m{t}\033[0m" if sys.stdout.isatty() else t
 
 
 def banner():
+    """Banner."""
     print(_cyan(r"""
   ╔══════════════════════════════════════════════════╗
   ║   AAC — Unified Machine Setup                    ║
@@ -127,8 +128,8 @@ def _get_python_version(python_path):
         )
         if result.returncode == 0:
             return eval(result.stdout.strip())
-    except Exception:
-        pass
+    except Exception as e:
+        logger.exception("Unexpected error: %s", e)
     return None
 
 
@@ -381,6 +382,7 @@ def print_report(machine_info, venv_info, syntax_errors, import_results, state):
 
 
 def main():
+    """Main."""
     import argparse
     parser = argparse.ArgumentParser(
         prog="setup_machine",

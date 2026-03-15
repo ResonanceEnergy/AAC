@@ -11,6 +11,7 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 def audit_missing_components():
+    """Audit missing components."""
     config = get_config()
 
     print('🔍 AAC 2100 MISSING COMPONENTS AUDIT')

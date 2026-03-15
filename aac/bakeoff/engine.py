@@ -222,6 +222,7 @@ class BakeoffEngine:
         """Evaluate value against threshold expressions"""
         # Parse threshold expressions like ">= 1.5" or "< 5%"
         def check_threshold(threshold_str: str, value: float) -> bool:
+            """Check threshold."""
             if not threshold_str:
                 return False
             
@@ -653,8 +654,8 @@ if __name__ == "__main__":
     
     elif args.summary:
         summary = engine.generate_weekly_summary()
-        print(json.dumps(summary, indent=2, default=str))
+        logger.info(json.dumps(summary, indent=2, default=str))
     
     else:
-        print("AAC Bake-Off Engine")
-        print("Use --help for usage information")
+        logger.info("AAC Bake-Off Engine")
+        logger.info("Use --help for usage information")

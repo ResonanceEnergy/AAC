@@ -37,14 +37,17 @@ except ImportError:
     EXECUTION_ENGINE_AVAILABLE = False
     # Fallback definitions
     class OrderSide:
+        """OrderSide class."""
         BUY = "buy"
         SELL = "sell"
 
     class OrderType:
+        """OrderType class."""
         MARKET = "market"
         LIMIT = "limit"
 
     class Order:
+        """Order class."""
         def __init__(self, order_id, symbol, side, order_type, quantity, price=None):
             self.order_id = order_id
             self.symbol = symbol
@@ -54,16 +57,20 @@ except ImportError:
             self.price = price
 
     class ExecutionEngine:
+        """ExecutionEngine class."""
         def __init__(self):
             self._logger = logging.getLogger('FallbackExecutionEngine')
             self._orders: list = []
         async def initialize(self):
+            """Initialize."""
             self._logger.warning("Using fallback ExecutionEngine")
         async def submit_order(self, order):
+            """Submit order."""
             self._orders.append({'order': order, 'type': 'live', 'ts': __import__('time').time()})
             self._logger.info(f"Fallback engine: live order submitted ({getattr(order, 'symbol', '?')})")
             return True
         async def submit_paper_order(self, order):
+            """Submit paper order."""
             self._orders.append({'order': order, 'type': 'paper', 'ts': __import__('time').time()})
             self._logger.info(f"Fallback engine: paper order submitted ({getattr(order, 'symbol', '?')})")
             return True

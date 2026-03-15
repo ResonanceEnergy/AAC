@@ -155,6 +155,7 @@ class PaperTradingEngine:
 
                 # Convert string dates back to datetime recursively
                 def convert_datetimes(obj):
+                    """Convert datetimes."""
                     if isinstance(obj, dict):
                         for key, value in obj.items():
                             if isinstance(value, str) and 'T' in value:

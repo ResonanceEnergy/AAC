@@ -18,6 +18,8 @@ from datetime import datetime
 from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
 from dotenv import load_dotenv
+import logging
+logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
@@ -69,7 +71,7 @@ class MultiSourceArbitrageDemo:
                         timestamp=datetime.fromtimestamp(result['t'] / 1000)
                     )
         except Exception as e:
-            print(f"   Polygon error for {symbol}: {e}")
+            logger.info(f"   Polygon error for {symbol}: {e}")
         return None
 
     def collect_finnhub_data(self, symbol: str) -> Optional[MarketData]:
@@ -93,7 +95,7 @@ class MultiSourceArbitrageDemo:
                         timestamp=datetime.now()
                     )
         except Exception as e:
-            print(f"   Finnhub error for {symbol}: {e}")
+            logger.info(f"   Finnhub error for {symbol}: {e}")
         return None
 
     def collect_alpha_vantage_data(self, symbol: str) -> Optional[MarketData]:
@@ -124,18 +126,18 @@ class MultiSourceArbitrageDemo:
                             timestamp=datetime.now()
                         )
         except Exception as e:
-            print(f"   Alpha Vantage error for {symbol}: {e}")
+            logger.info(f"   Alpha Vantage error for {symbol}: {e}")
         return None
 
     def collect_multi_source_data(self, symbols: List[str]) -> Dict[str, List[MarketData]]:
         """Collect data from multiple sources for given symbols"""
-        print("📊 Collecting Multi-Source Data...")
-        print("-" * 40)
+        logger.info("📊 Collecting Multi-Source Data...")
+        logger.info("-" * 40)
 
         all_data = {}
 
         for symbol in symbols:
-            print(f"🔍 Processing {symbol}...")
+            logger.info(f"🔍 Processing {symbol}...")
             all_data[symbol] = []
 
             # Collect from each source
@@ -149,9 +151,9 @@ class MultiSourceArbitrageDemo:
                 data = collector(symbol)
                 if data:
                     all_data[symbol].append(data)
-                    print(f"   ✅ {symbol} from {source_name}: ${data.price:.2f}")
+                    logger.info(f"   ✅ {symbol} from {source_name}: ${data.price:.2f}")
                 else:
-                    print(f"   ❌ {symbol} from {source_name}")
+                    logger.info(f"   ❌ {symbol} from {source_name}")
 
         return all_data
 
@@ -217,53 +219,53 @@ class MultiSourceArbitrageDemo:
 
     def run_arbitrage_analysis(self):
         """Run complete arbitrage analysis"""
-        print("🚀 AAC Multi-Source Arbitrage Analysis")
-        print("=" * 50)
+        logger.info("🚀 AAC Multi-Source Arbitrage Analysis")
+        logger.info("=" * 50)
 
         # Define test symbols
         symbols = ['AAPL', 'GOOGL', 'MSFT', 'TSLA']
 
         # Phase 1: Collect data
-        print(f"\n📊 Phase 1: Collecting Data from {len(symbols)} Symbols")
+        logger.info(f"\n📊 Phase 1: Collecting Data from {len(symbols)} Symbols")
         multi_source_data = self.collect_multi_source_data(symbols)
 
         # Phase 2: Analyze opportunities
-        print("\n🎯 Phase 2: Analyzing Arbitrage Opportunities")
-        print("-" * 50)
+        logger.info("\n🎯 Phase 2: Analyzing Arbitrage Opportunities")
+        logger.info("-" * 50)
 
         # Price discrepancies
-        print("\n🔄 Cross-Source Price Discrepancies:")
+        logger.info("\n🔄 Cross-Source Price Discrepancies:")
         price_opportunities = self.analyze_price_discrepancies(multi_source_data)
 
         for opp in price_opportunities:
-            print(f"   🎯 {opp.symbol}: {opp.description}")
-            print(f"      Expected Return: {opp.expected_return:.1%}")
-            print(f"      Sources: {', '.join(opp.data_sources)}")
+            logger.info(f"   🎯 {opp.symbol}: {opp.description}")
+            logger.info(f"      Expected Return: {opp.expected_return:.1%}")
+            logger.info(f"      Sources: {', '.join(opp.data_sources)}")
 
         # Momentum signals
-        print("\n📈 Momentum-Based Opportunities:")
+        logger.info("\n📈 Momentum-Based Opportunities:")
         momentum_opportunities = self.analyze_momentum_signals(multi_source_data)
 
         for opp in momentum_opportunities:
-            print(f"   📊 {opp.symbol}: {opp.description}")
-            print(f"      Expected Return: {opp.expected_return:.1%}")
-            print(f"      Sources: {', '.join(opp.data_sources)}")
+            logger.info(f"   📊 {opp.symbol}: {opp.description}")
+            logger.info(f"      Expected Return: {opp.expected_return:.1%}")
+            logger.info(f"      Sources: {', '.join(opp.data_sources)}")
 
         # Summary
         all_opportunities = price_opportunities + momentum_opportunities
 
-        print("\n📈 Summary:")
-        print(f"   Total opportunities found: {len(all_opportunities)}")
-        print(f"   Price discrepancies: {len(price_opportunities)}")
-        print(f"   Momentum signals: {len(momentum_opportunities)}")
+        logger.info("\n📈 Summary:")
+        logger.info(f"   Total opportunities found: {len(all_opportunities)}")
+        logger.info(f"   Price discrepancies: {len(price_opportunities)}")
+        logger.info(f"   Momentum signals: {len(momentum_opportunities)}")
 
         # Data source coverage
-        print("\n📊 Data Source Coverage:")
+        logger.info("\n📊 Data Source Coverage:")
         total_requests = len(symbols) * 3  # 3 sources per symbol
         successful_requests = sum(len(data) for data in multi_source_data.values())
         coverage = successful_requests / total_requests * 100
 
-        print(f"   Coverage: {coverage:.1f}% ({successful_requests}/{total_requests} requests)")
+        logger.info(f"   Coverage: {coverage:.1f}% ({successful_requests}/{total_requests} requests)")
 
         # Source breakdown
         sources_used = set()
@@ -271,21 +273,21 @@ class MultiSourceArbitrageDemo:
             for dp in data_list:
                 sources_used.add(dp.source)
 
-        print(f"   Active sources: {', '.join(sorted(sources_used))}")
+        logger.info(f"   Active sources: {', '.join(sorted(sources_used))}")
 
-        print("\n💡 Key Insights:")
-        print("   • Polygon.io provides high-quality US market data")
-        print("   • Finnhub offers real-time quotes with low latency")
-        print("   • Alpha Vantage provides global market coverage")
-        print("   • Cross-validation reduces false signals")
-        print("   • Multiple sources enable sophisticated arbitrage strategies")
+        logger.info("\n💡 Key Insights:")
+        logger.info("   • Polygon.io provides high-quality US market data")
+        logger.info("   • Finnhub offers real-time quotes with low latency")
+        logger.info("   • Alpha Vantage provides global market coverage")
+        logger.info("   • Cross-validation reduces false signals")
+        logger.info("   • Multiple sources enable sophisticated arbitrage strategies")
 
-        print("\n🎯 Next Steps:")
-        print("   1. Add more data sources (options, economic data)")
-        print("   2. Implement real-time monitoring")
-        print("   3. Add risk management rules")
-        print("   4. Test with paper trading")
-        print("   5. Scale to premium APIs for higher limits")
+        logger.info("\n🎯 Next Steps:")
+        logger.info("   1. Add more data sources (options, economic data)")
+        logger.info("   2. Implement real-time monitoring")
+        logger.info("   3. Add risk management rules")
+        logger.info("   4. Test with paper trading")
+        logger.info("   5. Scale to premium APIs for higher limits")
 
 if __name__ == "__main__":
     demo = MultiSourceArbitrageDemo()

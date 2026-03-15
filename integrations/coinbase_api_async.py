@@ -44,6 +44,7 @@ class CoinbaseAPI:
         }
 
     async def request(self, method: str, path: str, params: Dict[str, Any] = None, data: Dict[str, Any] = None) -> Any:
+        """Request."""
         url = self.base_url + path
         body = '' if not data else json.dumps(data)
         headers = self._sign(method, path, body)
@@ -52,12 +53,15 @@ class CoinbaseAPI:
             return await resp.json()
 
     async def get_accounts(self):
+        """Get accounts."""
         return await self.request('GET', '/accounts')
 
     async def get_fills(self, product_id: str):
+        """Get fills."""
         return await self.request('GET', f'/fills', params={'product_id': product_id})
 
     async def place_order(self, product_id: str, side: str, size: str, order_type: str = 'market', price: str = None):
+        """Place order."""
         data = {
             'product_id': product_id,
             'side': side,

@@ -763,8 +763,8 @@ class OpenClawGatewayBridge:
                             f"🚨 {getattr(sev, 'value', 'alert').upper()}: "
                             f"{getattr(a, 'message', 'Unknown alert')}"
                         )
-        except Exception:
-            pass
+        except Exception as e:
+            logger.exception("Unexpected error: %s", e)
         return alerts
 
     # ── Self-Improving Agent Pattern ──

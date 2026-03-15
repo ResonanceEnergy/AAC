@@ -64,6 +64,7 @@ class PolymarketEvent:
 
     @classmethod
     def from_api(cls, data: Dict[str, Any]) -> "PolymarketEvent":
+        """From api."""
         return cls(
             event_id=str(data.get("id", "")),
             slug=data.get("slug", ""),
@@ -97,6 +98,7 @@ class PolymarketMarket:
 
     @classmethod
     def from_api(cls, data: Dict[str, Any]) -> "PolymarketMarket":
+        """From api."""
         tokens = data.get("clobTokenIds", "") or data.get("tokens", "")
         yes_id, no_id = "", ""
         if isinstance(tokens, list) and len(tokens) >= 2:
@@ -174,6 +176,7 @@ class PolymarketAgent:
         return self._session
 
     async def close(self):
+        """Close."""
         if self._session and not self._session.closed:
             await self._session.close()
 
@@ -539,23 +542,23 @@ async def _self_test():
     """Quick self-test: fetch trending events + scan for arb."""
     agent = PolymarketAgent()
     try:
-        print("=" * 60)
-        print("  POLYMARKET AGENT — SELF TEST")
-        print("=" * 60)
+        logger.info("=" * 60)
+        logger.info("  POLYMARKET AGENT — SELF TEST")
+        logger.info("=" * 60)
 
         # 1 — Status
         status = await agent.get_status()
-        print(f"\nTrading enabled: {status['trading_enabled']}")
-        print(f"SDK installed:   {status['sdk_installed']}")
+        logger.info(f"\nTrading enabled: {status['trading_enabled']}")
+        logger.info(f"SDK installed:   {status['sdk_installed']}")
 
         # 2 — Trending events
-        print("\n--- Top 10 Trending Events ---")
+        logger.info("\n--- Top 10 Trending Events ---")
         events = await agent.get_trending_events(limit=10)
         for i, ev in enumerate(events, 1):
-            print(f"  {i}. {ev.title[:60]:<60}  vol_24h=${ev.volume_24hr:,.0f}")
+            logger.info(f"  {i}. {ev.title[:60]:<60}  vol_24h=${ev.volume_24hr:,.0f}")
 
         # 3 — Arbitrage scan
-        print("\n--- Arbitrage Scan ---")
+        logger.info("\n--- Arbitrage Scan ---")
         opps = await agent.scan_for_arbitrage(min_edge_pct=0.1)
         if opps:
             for opp in opps[:5]:
@@ -565,18 +568,18 @@ async def _self_test():
                     f"edge={opp.estimated_edge_pct:.2f}%"
                 )
         else:
-            print("  No arbitrage opportunities found at 0.1% threshold")
+            logger.info("  No arbitrage opportunities found at 0.1% threshold")
 
         # 4 — Tags
         tags = await agent.get_tags()
-        print(f"\n--- Available Tags ({len(tags)}) ---")
+        logger.info(f"\n--- Available Tags ({len(tags)}) ---")
         for tag in tags[:10]:
             label = tag.get("label", tag) if isinstance(tag, dict) else str(tag)
-            print(f"  - {label}")
+            logger.info(f"  - {label}")
 
-        print("\n[OK] Polymarket agent self-test complete")
+        logger.info("\n[OK] Polymarket agent self-test complete")
     except Exception as e:
-        print(f"\n[FAIL] Self-test error: {e}")
+        logger.info(f"\n[FAIL] Self-test error: {e}")
     finally:
         await agent.close()
 

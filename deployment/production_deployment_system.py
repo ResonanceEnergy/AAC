@@ -604,8 +604,8 @@ class ProductionDeploymentManager:
                             ver = line.split('=', 1)[1].strip().strip('"').strip("'")
                             if ver and ver[0].isdigit():
                                 return ver
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.exception("Unexpected error: %s", e)
         return "1.0.0"
 
     async def _run_post_deployment_validation(self, environment: str) -> Dict[str, Any]:

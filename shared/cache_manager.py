@@ -25,6 +25,7 @@ class CacheEntry:
     
     @property
     def is_expired(self) -> bool:
+        """Is expired."""
         if self.expires_at is None:
             return False
         return datetime.now() > self.expires_at
@@ -39,6 +40,7 @@ class LocalCache:
         self.logger = logging.getLogger("LocalCache")
     
     async def get(self, key: str) -> Optional[Any]:
+        """Get."""
         entry = self._cache.get(key)
         if entry is None:
             return None
@@ -57,6 +59,7 @@ class LocalCache:
         ttl_seconds: Optional[int] = None,
     ) -> bool:
         # Evict if at capacity
+        """Set."""
         if len(self._cache) >= self._max_size:
             self._evict_oldest()
         
@@ -73,12 +76,14 @@ class LocalCache:
         return True
     
     async def delete(self, key: str) -> bool:
+        """Delete."""
         if key in self._cache:
             del self._cache[key]
             return True
         return False
     
     async def exists(self, key: str) -> bool:
+        """Exists."""
         entry = self._cache.get(key)
         if entry is None:
             return False
@@ -88,6 +93,7 @@ class LocalCache:
         return True
     
     async def clear(self) -> int:
+        """Clear."""
         count = len(self._cache)
         self._cache.clear()
         return count

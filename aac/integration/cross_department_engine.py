@@ -50,6 +50,7 @@ class DepartmentMetric:
     is_healthy: bool = True
     
     def to_dict(self) -> Dict[str, Any]:
+        """To dict."""
         return {
             "name": self.name,
             "department": self.department.value,
@@ -71,6 +72,7 @@ class CrossDepartmentEvent:
     timestamp: datetime = field(default_factory=datetime.now)
     
     def to_dict(self) -> Dict[str, Any]:
+        """To dict."""
         return {
             "event_type": self.event_type,
             "source": self.source_department.value,
@@ -236,6 +238,7 @@ class BigBrainIntelligenceAdapter(DepartmentAdapter):
             return False
             
     async def disconnect(self) -> None:
+        """Disconnect."""
         self.is_connected = False
         logger.info("BigBrainIntelligence: Disconnected")
         
@@ -278,6 +281,7 @@ class BigBrainIntelligenceAdapter(DepartmentAdapter):
         ]
         
     async def send_event(self, event: CrossDepartmentEvent) -> bool:
+        """Send event."""
         handlers = self._event_handlers.get(event.event_type, [])
         for handler in handlers:
             try:
@@ -324,6 +328,7 @@ class CentralAccountingAdapter(DepartmentAdapter):
         self.pnl_cache: Dict[str, float] = {}
         
     async def connect(self) -> bool:
+        """Connect."""
         try:
             logger.info("CentralAccounting: Connecting to accounting systems...")
             self.is_connected = True
@@ -333,6 +338,7 @@ class CentralAccountingAdapter(DepartmentAdapter):
             return False
             
     async def disconnect(self) -> None:
+        """Disconnect."""
         self.is_connected = False
         logger.info("CentralAccounting: Disconnected")
         
@@ -383,6 +389,7 @@ class CentralAccountingAdapter(DepartmentAdapter):
         ]
         
     async def send_event(self, event: CrossDepartmentEvent) -> bool:
+        """Send event."""
         handlers = self._event_handlers.get(event.event_type, [])
         for handler in handlers:
             try:
@@ -431,6 +438,7 @@ class CryptoIntelligenceAdapter(DepartmentAdapter):
         self.venue_health: Dict[str, float] = {}
         
     async def connect(self) -> bool:
+        """Connect."""
         try:
             logger.info("CryptoIntelligence: Connecting to venue systems...")
             self.is_connected = True
@@ -440,6 +448,7 @@ class CryptoIntelligenceAdapter(DepartmentAdapter):
             return False
             
     async def disconnect(self) -> None:
+        """Disconnect."""
         self.is_connected = False
         logger.info("CryptoIntelligence: Disconnected")
         
@@ -482,6 +491,7 @@ class CryptoIntelligenceAdapter(DepartmentAdapter):
         ]
         
     async def send_event(self, event: CrossDepartmentEvent) -> bool:
+        """Send event."""
         handlers = self._event_handlers.get(event.event_type, [])
         for handler in handlers:
             try:
@@ -921,36 +931,36 @@ async def main():
     
     # Get unified health status
     health = await engine.get_unified_health_status()
-    print("\n=== UNIFIED HEALTH STATUS ===")
-    print(f"Overall: {health['overall_health']}")
-    print(f"Departments: {health['departments_connected']}/{health['total_departments']}")
-    print(f"Metrics: {health['metric_count']}")
-    print(f"Alerts: {len(health['alerts'])}")
+    logger.info("\n=== UNIFIED HEALTH STATUS ===")
+    logger.info(f"Overall: {health['overall_health']}")
+    logger.info(f"Departments: {health['departments_connected']}/{health['total_departments']}")
+    logger.info(f"Metrics: {health['metric_count']}")
+    logger.info(f"Alerts: {len(health['alerts'])}")
     
     # Get all metrics
     metrics = engine.get_all_metrics()
-    print("\n=== ALL METRICS ===")
+    logger.info("\n=== ALL METRICS ===")
     for key, metric in metrics.items():
-        print(f"  {key}: {metric.value} {metric.unit}")
+        logger.info(f"  {key}: {metric.value} {metric.unit}")
     
     # Test bake-off integration
     bakeoff = BakeoffIntegration(engine)
     
-    print("\n=== BAKE-OFF METRICS ===")
+    logger.info("\n=== BAKE-OFF METRICS ===")
     bakeoff_metrics = await bakeoff.get_strategy_metrics_for_bakeoff("s01_etf_nav")
     for key, value in bakeoff_metrics.items():
-        print(f"  {key}: {value}")
+        logger.info(f"  {key}: {value}")
     
-    print("\n=== GATE CHECK ===")
+    logger.info("\n=== GATE CHECK ===")
     gate_result = await bakeoff.check_gate_requirements("s01_etf_nav", "PAPER")
-    print(f"Gate: {gate_result['gate']}")
-    print(f"Passed: {gate_result['passed']}")
+    logger.info(f"Gate: {gate_result['gate']}")
+    logger.info(f"Passed: {gate_result['passed']}")
     for check, result in gate_result['checks'].items():
         status = "[OK]" if result else "✗"
-        print(f"  {status} {check}")
+        logger.info(f"  {status} {check}")
     
     # Test safety action
-    print("\n=== SAFETY ACTION TEST ===")
+    logger.info("\n=== SAFETY ACTION TEST ===")
     await engine.execute_safety_action("A_THROTTLE_RISK")
     
     # Stop engine

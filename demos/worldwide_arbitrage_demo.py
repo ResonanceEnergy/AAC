@@ -9,6 +9,8 @@ import time
 from typing import Dict, List
 
 from dotenv import load_dotenv
+import logging
+logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
@@ -36,46 +38,46 @@ class WorldwideArbitrageDemo:
     def show_capabilities(self):
         """Show what worldwide arbitrage is possible with all configured APIs"""
 
-        print("🌍 AAC WORLDWIDE ARBITRAGE CAPABILITIES")
-        print("=" * 50)
-        print()
+        logger.info("🌍 AAC WORLDWIDE ARBITRAGE CAPABILITIES")
+        logger.info("=" * 50)
+        logger.debug("")
 
         # Show individual API status
         if self.alpha_vantage_configured:
-            print("[SUCCESS] Alpha Vantage API: Configured and Ready")
-            print(f"[KEY] Alpha Vantage Key: {self.alpha_vantage_key[:8]}...{self.alpha_vantage_key[-4:]}")
+            logger.info("[SUCCESS] Alpha Vantage API: Configured and Ready")
+            logger.info(f"[KEY] Alpha Vantage Key: {self.alpha_vantage_key[:8]}...{self.alpha_vantage_key[-4:]}")
         else:
-            print("[ERROR] Alpha Vantage API: Not configured")
+            logger.info("[ERROR] Alpha Vantage API: Not configured")
             
         if self.coingecko_configured:
-            print("[SUCCESS] CoinGecko API: Configured and Ready")
-            print(f"[KEY] CoinGecko Key: {self.coingecko_key[:8]}...{self.coingecko_key[-4:]}")
+            logger.info("[SUCCESS] CoinGecko API: Configured and Ready")
+            logger.info(f"[KEY] CoinGecko Key: {self.coingecko_key[:8]}...{self.coingecko_key[-4:]}")
         else:
-            print("[ERROR] CoinGecko API: Not configured")
+            logger.info("[ERROR] CoinGecko API: Not configured")
             
         if self.currencyapi_configured:
-            print("[SUCCESS] CurrencyAPI: Configured and Ready")
-            print(f"[KEY] CurrencyAPI Key: {self.currencyapi_key[:12]}...{self.currencyapi_key[-6:]}")
+            logger.info("[SUCCESS] CurrencyAPI: Configured and Ready")
+            logger.info(f"[KEY] CurrencyAPI Key: {self.currencyapi_key[:12]}...{self.currencyapi_key[-6:]}")
         else:
-            print("[ERROR] CurrencyAPI: Not configured")
+            logger.info("[ERROR] CurrencyAPI: Not configured")
             
         if self.twelve_data_configured:
-            print("[SUCCESS] Twelve Data API: Configured and Ready")
-            print(f"[KEY] Twelve Data Key: {self.twelve_data_key[:8]}...{self.twelve_data_key[-4:]}")
+            logger.info("[SUCCESS] Twelve Data API: Configured and Ready")
+            logger.info(f"[KEY] Twelve Data Key: {self.twelve_data_key[:8]}...{self.twelve_data_key[-4:]}")
         else:
-            print("[ERROR] Twelve Data API: Not configured")
+            logger.info("[ERROR] Twelve Data API: Not configured")
             
-        print("[SUCCESS] ECB (European Central Bank) API: Available (Free, No Key Required)")
-        print("   [DATA] 200+ datasets with economic and financial indicators")
+        logger.info("[SUCCESS] ECB (European Central Bank) API: Available (Free, No Key Required)")
+        logger.info("   [DATA] 200+ datasets with economic and financial indicators")
             
-        print()
+        logger.debug("")
 
         if not self.all_configured:
-            print("[INFO] Run setup_free_apis.py to configure missing API keys")
+            logger.info("[INFO] Run setup_free_apis.py to configure missing API keys")
             return
 
-        print("[TARGET] GLOBAL MARKET COVERAGE (50+ Exchanges)")
-        print("-" * 40)
+        logger.info("[TARGET] GLOBAL MARKET COVERAGE (50+ Exchanges)")
+        logger.info("-" * 40)
 
         global_markets = {
             "🇺🇸 US Markets": ["NYSE", "NASDAQ", "AMEX"],
@@ -103,35 +105,35 @@ class WorldwideArbitrageDemo:
         }
 
         for region, exchanges in global_markets.items():
-            print(f"{region}: {', '.join(exchanges)}")
+            logger.info(f"{region}: {', '.join(exchanges)}")
 
-        print()
-        print("💱 FOREX & CURRENCY ARBITRAGE")
-        print("-" * 30)
-        print("• 170+ Currency Pairs")
-        print("• Real-time Exchange Rates")
-        print("• Triangular Arbitrage Detection")
-        print("• Cross-border Currency Opportunities")
-        print()
+        logger.debug("")
+        logger.info("💱 FOREX & CURRENCY ARBITRAGE")
+        logger.info("-" * 30)
+        logger.info("• 170+ Currency Pairs")
+        logger.info("• Real-time Exchange Rates")
+        logger.info("• Triangular Arbitrage Detection")
+        logger.info("• Cross-border Currency Opportunities")
+        logger.debug("")
 
-        print("₿ CRYPTOCURRENCY MARKETS")
-        print("-" * 25)
-        print("• Major Crypto Exchanges")
-        print("• BTC, ETH, and Altcoins")
-        print("• Cross-exchange Price Differences")
-        print("• Crypto-Fiat Arbitrage")
-        print()
+        logger.info("₿ CRYPTOCURRENCY MARKETS")
+        logger.info("-" * 25)
+        logger.info("• Major Crypto Exchanges")
+        logger.info("• BTC, ETH, and Altcoins")
+        logger.info("• Cross-exchange Price Differences")
+        logger.info("• Crypto-Fiat Arbitrage")
+        logger.debug("")
 
-        print("[DATA] TECHNICAL INDICATORS")
-        print("-" * 25)
-        print("• RSI, MACD, Moving Averages")
-        print("• Bollinger Bands")
-        print("• Stochastic Oscillators")
-        print("• Volume Analysis")
-        print()
+        logger.info("[DATA] TECHNICAL INDICATORS")
+        logger.info("-" * 25)
+        logger.info("• RSI, MACD, Moving Averages")
+        logger.info("• Bollinger Bands")
+        logger.info("• Stochastic Oscillators")
+        logger.info("• Volume Analysis")
+        logger.debug("")
 
-        print("🎪 ARBITRAGE STRATEGIES ENABLED")
-        print("-" * 32)
+        logger.info("🎪 ARBITRAGE STRATEGIES ENABLED")
+        logger.info("-" * 32)
 
         strategies = [
             "1. Cross-Exchange Stock Arbitrage",
@@ -147,47 +149,47 @@ class WorldwideArbitrageDemo:
         ]
 
         for strategy in strategies:
-            print(f"   {strategy}")
+            logger.info(f"   {strategy}")
 
-        print()
-        print("⚡ FREE TIER LIMITATIONS & WORKAROUNDS")
-        print("-" * 40)
-        print("• 25 API calls per day")
-        print("• 5 calls per minute")
-        print("• Use caching for repeated data")
-        print("• Combine with other free APIs")
-        print("• Focus on high-value opportunities")
-        print()
+        logger.debug("")
+        logger.info("⚡ FREE TIER LIMITATIONS & WORKAROUNDS")
+        logger.info("-" * 40)
+        logger.info("• 25 API calls per day")
+        logger.info("• 5 calls per minute")
+        logger.info("• Use caching for repeated data")
+        logger.info("• Combine with other free APIs")
+        logger.info("• Focus on high-value opportunities")
+        logger.debug("")
 
-        print("🚀 IMPLEMENTATION STATUS")
-        print("-" * 25)
-        print("[SUCCESS] Alpha Vantage API integration")
-        print("[SUCCESS] CoinGecko API integration")
-        print("[SUCCESS] CurrencyAPI integration")
-        print("[SUCCESS] Twelve Data API integration")
-        print("[SUCCESS] Global market data access")
-        print("[SUCCESS] Cryptocurrency market data access")
-        print("[SUCCESS] Forex market data access")
-        print("[SUCCESS] Arbitrage opportunity detection")
-        print("[SUCCESS] Risk management framework")
-        print("[SUCCESS] Paper trading environment")
-        print("[LOADING] Real-time execution (requires premium)")
-        print()
+        logger.info("🚀 IMPLEMENTATION STATUS")
+        logger.info("-" * 25)
+        logger.info("[SUCCESS] Alpha Vantage API integration")
+        logger.info("[SUCCESS] CoinGecko API integration")
+        logger.info("[SUCCESS] CurrencyAPI integration")
+        logger.info("[SUCCESS] Twelve Data API integration")
+        logger.info("[SUCCESS] Global market data access")
+        logger.info("[SUCCESS] Cryptocurrency market data access")
+        logger.info("[SUCCESS] Forex market data access")
+        logger.info("[SUCCESS] Arbitrage opportunity detection")
+        logger.info("[SUCCESS] Risk management framework")
+        logger.info("[SUCCESS] Paper trading environment")
+        logger.info("[LOADING] Real-time execution (requires premium)")
+        logger.debug("")
 
-        print("[INFO] NEXT STEPS FOR WORLDWIDE ARBITRAGE")
-        print("-" * 40)
-        print("1. [SUCCESS] Configure additional free APIs (CoinGecko, CurrencyAPI, Twelve Data, ECB configured!)")
-        print("2. Implement real-time monitoring")
-        print("3. Add risk management rules")
-        print("4. Test with paper trading")
-        print("5. Scale to premium APIs for higher limits")
-        print()
+        logger.info("[INFO] NEXT STEPS FOR WORLDWIDE ARBITRAGE")
+        logger.info("-" * 40)
+        logger.info("1. [SUCCESS] Configure additional free APIs (CoinGecko, CurrencyAPI, Twelve Data, ECB configured!)")
+        logger.info("2. Implement real-time monitoring")
+        logger.info("3. Add risk management rules")
+        logger.info("4. Test with paper trading")
+        logger.info("5. Scale to premium APIs for higher limits")
+        logger.debug("")
 
     def simulate_arbitrage_scan(self):
         """Simulate a worldwide arbitrage opportunity scan"""
 
-        print("\n🔍 SIMULATED WORLDWIDE ARBITRAGE SCAN")
-        print("=" * 45)
+        logger.info("\n🔍 SIMULATED WORLDWIDE ARBITRAGE SCAN")
+        logger.info("=" * 45)
 
         # Simulated opportunities (in real implementation, these would come from API)
         opportunities = [
@@ -224,17 +226,17 @@ class WorldwideArbitrageDemo:
         ]
 
         for i, opp in enumerate(opportunities, 1):
-            print(f"\n{i}. {opp['type']}: {opp['symbol']}")
-            print(f"   Buy:  {opp['buy_exchange']} @ ${opp['buy_price']}")
-            print(f"   Sell: {opp['sell_exchange']} @ ${opp['sell_price']}")
-            print(f"   Spread: {opp['spread_pct']:.2f}%")
-            print(f"   Profit: ${opp['potential_profit']:.2f}")
+            logger.info(f"\n{i}. {opp['type']}: {opp['symbol']}")
+            logger.info(f"   Buy:  {opp['buy_exchange']} @ ${opp['buy_price']}")
+            logger.info(f"   Sell: {opp['sell_exchange']} @ ${opp['sell_price']}")
+            logger.info(f"   Spread: {opp['spread_pct']:.2f}%")
+            logger.info(f"   Profit: ${opp['potential_profit']:.2f}")
 
-        print("[INFO] These are simulated opportunities. Real implementation would:")
-        print("   • Fetch live prices from Alpha Vantage API")
-        print("   • Calculate real spreads and transaction costs")
-        print("   • Filter by minimum profit thresholds")
-        print("   • Execute trades automatically (with safeguards)")
+        logger.info("[INFO] These are simulated opportunities. Real implementation would:")
+        logger.info("   • Fetch live prices from Alpha Vantage API")
+        logger.info("   • Calculate real spreads and transaction costs")
+        logger.info("   • Filter by minimum profit thresholds")
+        logger.info("   • Execute trades automatically (with safeguards)")
 
 
 def main():
@@ -243,16 +245,16 @@ def main():
     demo.show_capabilities()
     demo.simulate_arbitrage_scan()
 
-    print("\n[TARGET] SUMMARY")
-    print("-" * 10)
-    print("[SUCCESS] Alpha Vantage API successfully configured")
-    print("[SUCCESS] CoinGecko API successfully configured")
-    print("[SUCCESS] CurrencyAPI successfully configured")
-    print("[SUCCESS] Twelve Data API successfully configured")
-    print("[SUCCESS] ECB (European Central Bank) API available")
-    print("🌍 Worldwide arbitrage infrastructure ready")
-    print("🚀 Ready to implement global trading strategies")
-    print("💰 Potential for profitable arbitrage opportunities")
+    logger.info("\n[TARGET] SUMMARY")
+    logger.info("-" * 10)
+    logger.info("[SUCCESS] Alpha Vantage API successfully configured")
+    logger.info("[SUCCESS] CoinGecko API successfully configured")
+    logger.info("[SUCCESS] CurrencyAPI successfully configured")
+    logger.info("[SUCCESS] Twelve Data API successfully configured")
+    logger.info("[SUCCESS] ECB (European Central Bank) API available")
+    logger.info("🌍 Worldwide arbitrage infrastructure ready")
+    logger.info("🚀 Ready to implement global trading strategies")
+    logger.info("💰 Potential for profitable arbitrage opportunities")
 
 
 if __name__ == "__main__":

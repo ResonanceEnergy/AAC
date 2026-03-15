@@ -130,16 +130,19 @@ class CoinGeckoClient(BaseDataSource):
 
     @property
     def tier_name(self) -> str:
+        """Tier name."""
         return "Pro" if self._is_pro else "Free"
 
     async def connect(self):
         # Use ThreadedResolver to avoid aiodns/pycares DNS failures on some systems
+        """Connect."""
         connector = aiohttp.TCPConnector(resolver=aiohttp.resolver.ThreadedResolver())
         self.session = aiohttp.ClientSession(connector=connector, headers=self._get_headers())
         self.is_connected = True
         self.logger.info(f"CoinGecko client connected ({self.tier_name} tier)")
 
     async def disconnect(self):
+        """Disconnect."""
         if self.session:
             await self.session.close()
         self.is_connected = False
@@ -362,12 +365,14 @@ class BinanceWebSocket(BaseDataSource):
         self._last_message_time: Optional[datetime] = None
 
     async def connect(self):
+        """Connect."""
         self.session = aiohttp.ClientSession()
         self.is_connected = True
         self._reconnect_attempts = 0
         self.logger.info("Binance WebSocket client ready")
 
     async def disconnect(self):
+        """Disconnect."""
         self._running = False
         if self.ws:
             await self.ws.close()
@@ -485,12 +490,14 @@ class RedditClient(BaseDataSource):
         self.subreddits = ["cryptocurrency", "bitcoin", "ethereum", "defi", "altcoin"]
 
     async def connect(self):
+        """Connect."""
         headers = {"User-Agent": "ACC-Research-Agent/1.0"}
         self.session = aiohttp.ClientSession(headers=headers)
         self.is_connected = True
         self.logger.info("Reddit client connected")
 
     async def disconnect(self):
+        """Disconnect."""
         if self.session:
             await self.session.close()
         self.is_connected = False
@@ -564,6 +571,7 @@ class TwitterClient(BaseDataSource):
 
     async def connect(self):
         # Get bearer token from environment variable directly
+        """Connect."""
         self.bearer_token = os.environ.get("TWITTER_BEARER_TOKEN", "")
         
         if self.bearer_token:
@@ -575,6 +583,7 @@ class TwitterClient(BaseDataSource):
             self.logger.warning("Twitter bearer token not configured")
 
     async def disconnect(self):
+        """Disconnect."""
         if self.session:
             await self.session.close()
         self.is_connected = False
@@ -607,12 +616,14 @@ class EtherscanClient(BaseDataSource):
 
     async def connect(self):
         # Get API key from environment variable directly
+        """Connect."""
         self.api_key = os.environ.get("ETHERSCAN_API_KEY", "")
         self.session = aiohttp.ClientSession()
         self.is_connected = True
         self.logger.info("Etherscan client connected")
 
     async def disconnect(self):
+        """Disconnect."""
         if self.session:
             await self.session.close()
         self.is_connected = False
@@ -742,12 +753,14 @@ class MetalBlockchainSource(BaseDataSource):
         self._rpc_url = self.config.metal_blockchain_rpc_url if hasattr(self.config, 'metal_blockchain_rpc_url') and self.config.metal_blockchain_rpc_url else self.DEFAULT_RPC
 
     async def connect(self):
+        """Connect."""
         connector = aiohttp.TCPConnector(resolver=aiohttp.resolver.ThreadedResolver())
         self.session = aiohttp.ClientSession(connector=connector)
         self.is_connected = True
         self.logger.info(f"Metal Blockchain source connected ({self._rpc_url})")
 
     async def disconnect(self):
+        """Disconnect."""
         if self.session:
             await self.session.close()
         self.is_connected = False
@@ -1045,6 +1058,7 @@ class DataAggregator:
 # CLI for testing
 if __name__ == "__main__":
     async def test():
+        """Test."""
         print("=== Data Sources Test ===\n")
         
         aggregator = DataAggregator()

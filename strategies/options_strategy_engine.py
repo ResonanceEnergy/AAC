@@ -23,20 +23,24 @@ logger = logging.getLogger(__name__)
 # ═══════════════════════════════════════════════════════════════════════════
 
 class OptionType(Enum):
+    """OptionType class."""
     CALL = "call"
     PUT = "put"
 
 class Direction(Enum):
+    """Direction class."""
     LONG = "long"
     SHORT = "short"
 
 class StrategyOutlook(Enum):
+    """StrategyOutlook class."""
     BULLISH = "bullish"
     BEARISH = "bearish"
     NEUTRAL = "neutral"
     VOLATILE = "volatile"
 
 class RiskProfile(Enum):
+    """RiskProfile class."""
     DEFINED = "defined"
     UNDEFINED = "undefined"
     SEMI_DEFINED = "semi_defined"
@@ -63,6 +67,7 @@ class OptionLeg:
 
     @property
     def is_long(self) -> bool:
+        """Is long."""
         return self.direction == Direction.LONG
 
     @property
@@ -135,9 +140,11 @@ class OptionsStrategy:
 
     @property
     def leg_count(self) -> int:
+        """Leg count."""
         return len(self.legs)
 
     def to_dict(self) -> Dict:
+        """To dict."""
         return {
             "name": self.name,
             "outlook": self.outlook.value,

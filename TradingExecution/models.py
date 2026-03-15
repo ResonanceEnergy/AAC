@@ -13,11 +13,13 @@ from typing import Any, Dict, Optional
 
 
 class OrderSide(Enum):
+    """OrderSide class."""
     BUY = "buy"
     SELL = "sell"
 
 
 class OrderType(Enum):
+    """OrderType class."""
     MARKET = "market"
     LIMIT = "limit"
     STOP_LOSS = "stop_loss"
@@ -26,6 +28,7 @@ class OrderType(Enum):
 
 
 class OrderStatus(Enum):
+    """OrderStatus class."""
     PENDING = "pending"
     SUBMITTED = "submitted"
     PARTIAL = "partial"
@@ -36,6 +39,7 @@ class OrderStatus(Enum):
 
 
 class PositionStatus(Enum):
+    """PositionStatus class."""
     OPEN = "open"
     CLOSING = "closing"
     CLOSED = "closed"
@@ -67,6 +71,7 @@ class Order:
         self.remaining_quantity = self.quantity - self.filled_quantity
 
     def to_dict(self) -> dict[str, Any]:
+        """To dict."""
         return {
             "order_id": self.order_id,
             "symbol": self.symbol,
@@ -107,6 +112,7 @@ class Position:
 
     @property
     def unrealized_pnl(self) -> float:
+        """Unrealized pnl."""
         if self.side == OrderSide.BUY:
             return (self.current_price - self.entry_price) * self.quantity
         else:
@@ -114,6 +120,7 @@ class Position:
 
     @property
     def unrealized_pnl_pct(self) -> float:
+        """Unrealized pnl pct."""
         if self.entry_price == 0:
             return 0.0
         if self.side == OrderSide.BUY:
@@ -122,6 +129,7 @@ class Position:
             return ((self.entry_price - self.current_price) / self.entry_price) * 100
 
     def should_stop_loss(self) -> bool:
+        """Should stop loss."""
         if self.stop_loss is None:
             return False
         if self.side == OrderSide.BUY:
@@ -130,6 +138,7 @@ class Position:
             return self.current_price >= self.stop_loss
 
     def should_take_profit(self) -> bool:
+        """Should take profit."""
         if self.take_profit is None:
             return False
         if self.side == OrderSide.BUY:
@@ -138,6 +147,7 @@ class Position:
             return self.current_price <= self.take_profit
 
     def to_dict(self) -> dict[str, Any]:
+        """To dict."""
         return {
             "position_id": self.position_id,
             "symbol": self.symbol,

@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 class HealthStatus(Enum):
+    """HealthStatus class."""
     HEALTHY = "healthy"
     DEGRADED = "degraded"
     UNHEALTHY = "unhealthy"
@@ -25,6 +26,7 @@ class HealthStatus(Enum):
 
 @dataclass
 class ComponentHealth:
+    """ComponentHealth class."""
     name: str
     status: HealthStatus
     latency_ms: float = 0.0

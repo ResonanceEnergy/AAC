@@ -518,6 +518,7 @@ def get_crypto_intelligence_engine_sync():
 if __name__ == "__main__":
     # Test the engine
     async def test():
+        """Test."""
         engine = await get_crypto_intelligence_engine()
 
         # Start monitoring in background
@@ -528,19 +529,19 @@ if __name__ == "__main__":
 
         # Test venue selection
         best_venue = await engine.select_best_venue("trade")
-        print(f"Best trading venue: {best_venue}")
+        logger.info(f"Best trading venue: {best_venue}")
 
         # Test counterparty assessment
         counterparty = await engine.assess_counterparty_risk("TestExchange")
-        print(f"Counterparty {counterparty.name}: Credit Score {counterparty.credit_score:.1f}, Risk {counterparty.risk_rating}")
+        logger.info(f"Counterparty {counterparty.name}: Credit Score {counterparty.credit_score:.1f}, Risk {counterparty.risk_rating}")
 
         # Test withdrawal safety
         safety_check = await engine.check_withdrawal_safety("binance", 50000)
-        print(f"Withdrawal safety: {safety_check}")
+        logger.info(f"Withdrawal safety: {safety_check}")
 
         # Get metrics
         metrics = await engine.get_doctrine_metrics()
-        print(f"Doctrine metrics: Venue Health {metrics['venue_health_score']:.3f}")
+        logger.info(f"Doctrine metrics: Venue Health {metrics['venue_health_score']:.3f}")
 
         # Stop monitoring
         engine.stop_monitoring()

@@ -47,6 +47,7 @@ class ModePreset:
     custom_params: Dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
+        """To dict."""
         return {
             "mode": self.mode.value,
             "name": self.name,

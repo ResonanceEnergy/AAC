@@ -13,6 +13,7 @@ from CryptoIntelligence.mev_protection_system import (
 
 
 class TestSandwichDetector:
+    """TestSandwichDetector class."""
     def _make_txs(self, front_addr="0xbot", victim_addr="0xvictim"):
         """Create a classic sandwich attack pattern."""
         return [
@@ -70,6 +71,7 @@ class TestSandwichDetector:
 
 
 class TestDataclasses:
+    """TestDataclasses class."""
     def test_mev_alert(self):
         alert = MEVAlert(
             attack_type=MEVAttackType.SANDWICH,
@@ -105,6 +107,7 @@ class TestDataclasses:
 
 
 class TestEnums:
+    """TestEnums class."""
     def test_attack_types(self):
         assert MEVAttackType.SANDWICH.value == "sandwich"
         assert MEVAttackType.FRONTRUN.value == "frontrun"

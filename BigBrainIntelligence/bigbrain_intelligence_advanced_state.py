@@ -15,6 +15,7 @@ logger = logging.getLogger('BigBrainIntelligence_AdvancedState')
 
 @dataclass
 class ResearchFinding:
+    """ResearchFinding class."""
     id: str
     hypothesis: str
     confidence: float
@@ -24,6 +25,7 @@ class ResearchFinding:
 
 @dataclass
 class ExperimentResult:
+    """ExperimentResult class."""
     experiment_id: str
     strategy_id: str
     performance_metrics: Dict[str, float]
@@ -457,17 +459,20 @@ class BigBrainIntelligenceState:
 
 # Placeholder classes for components
 class AgentOrchestrator:
+    """AgentOrchestrator class."""
     def __init__(self):
         self.agents: Dict[str, Dict] = {}
         self.scheduler_running = False
         self._logger = logging.getLogger('AgentOrchestrator')
 
     async def deploy_agent_infrastructure(self):
+        """Deploy agent infrastructure."""
         self._logger.info("Deploying agent infrastructure")
         self.agents = {}
         self.scheduler_running = False
 
     async def initialize_agent(self, agent_name: str):
+        """Initialize agent."""
         self._logger.info(f"Initializing agent: {agent_name}")
         self.agents[agent_name] = {
             'status': 'initialized',
@@ -476,21 +481,25 @@ class AgentOrchestrator:
         }
 
     async def start_agent_scheduler(self):
+        """Start agent scheduler."""
         self._logger.info("Starting agent scheduler")
         self.scheduler_running = True
 
     async def execute_agent_cycle(self, agent_name: str) -> List[ResearchFinding]:
+        """Execute agent cycle."""
         if agent_name in self.agents:
             self.agents[agent_name]['cycles'] += 1
         return []  # Findings produced by concrete agent implementations
 
     async def pause_all_agents(self):
+        """Pause all agents."""
         self._logger.info(f"Pausing all agents ({len(self.agents)} active)")
         self.scheduler_running = False
         for agent in self.agents.values():
             agent['status'] = 'paused'
 
     async def shutdown_all_agents(self):
+        """Shutdown all agents."""
         self._logger.info(f"Shutting down all agents ({len(self.agents)} active)")
         self.scheduler_running = False
         for agent in self.agents.values():
@@ -498,6 +507,7 @@ class AgentOrchestrator:
         self.agents.clear()
 
 class QuantumSignalGenerator:
+    """QuantumSignalGenerator class."""
     def __init__(self):
         self._logger = logging.getLogger('QuantumSignalGenerator')
         self._signal_history: List[Dict] = []
@@ -533,6 +543,7 @@ class QuantumSignalGenerator:
         return signals
 
 class AI_DataValidator:
+    """AI_DataValidator class."""
     def __init__(self):
         self._logger = logging.getLogger('AI_DataValidator')
 
@@ -547,27 +558,33 @@ class AI_DataValidator:
         return True
 
 class DistributedBacktestEngine:
+    """DistributedBacktestEngine class."""
     def __init__(self):
         self.initialized = False
         self.quantum_enabled = False
         self._logger = logging.getLogger('DistributedBacktestEngine')
 
     async def initialize_distributed_backtesting(self):
+        """Initialize distributed backtesting."""
         self._logger.info("Initializing distributed backtesting engine")
         self.initialized = True
 
     async def enable_quantum_simulation(self):
+        """Enable quantum simulation."""
         self._logger.info("Enabling quantum simulation mode")
         self.quantum_enabled = True
 
 class ExperimentManager:
+    """ExperimentManager class."""
     def __init__(self):
         self._logger = logging.getLogger('ExperimentManager')
 
     async def create_experiment(self, finding: ResearchFinding) -> Dict:
+        """Create experiment."""
         return {'id': f"exp_{finding.id}", 'strategy_id': finding.id}
 
     async def start_experiment(self, exp_id: str):
+        """Start experiment."""
         self._logger.info(f"Starting experiment: {exp_id}")
         if not hasattr(self, '_active_experiments'):
             self._active_experiments: Dict[str, Dict] = {}
@@ -577,22 +594,27 @@ class ExperimentManager:
         }
 
     async def get_experiment_status(self, exp_id: str) -> Dict:
+        """Get experiment status."""
         return {'completed': False, 'failed': False}
 
     async def get_experiment_result(self, exp_id: str) -> ExperimentResult:
+        """Get experiment result."""
         return ExperimentResult(exp_id, "strategy_1", {}, 0.95, datetime.now(), "promote")
 
     async def pause_all_experiments(self):
+        """Pause all experiments."""
         self._logger.info("Pausing all experiments")
         if hasattr(self, '_active_experiments'):
             for exp in self._active_experiments.values():
                 exp['status'] = 'paused'
 
 class StrategyLifecycleManager:
+    """StrategyLifecycleManager class."""
     def __init__(self):
         self._logger = logging.getLogger('StrategyLifecycleManager')
 
     async def promote_to_paper_trading(self, strategy_id: str):
+        """Promote to paper trading."""
         self._logger.info(f"Promoting strategy {strategy_id} to paper trading")
         if not hasattr(self, '_lifecycle_log'):
             self._lifecycle_log: list = []
@@ -630,6 +652,7 @@ class StrategyLifecycleManager:
         return {'sharpe_ratio': 2.5, 'max_drawdown': 0.03, 'days_active': max(days_active, 1)}
 
     async def promote_strategy(self, strategy_id: str, phase: str):
+        """Promote strategy."""
         self._logger.info(f"Promoting strategy {strategy_id} to phase: {phase}")
         if not hasattr(self, '_lifecycle_log'):
             self._lifecycle_log: list = []
@@ -640,6 +663,7 @@ class StrategyLifecycleManager:
         })
 
     async def retire_strategy(self, strategy_id: str, reason: str):
+        """Retire strategy."""
         self._logger.info(f"Retiring strategy {strategy_id}: {reason}")
         if not hasattr(self, '_lifecycle_log'):
             self._lifecycle_log: list = []

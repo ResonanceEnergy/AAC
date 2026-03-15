@@ -262,8 +262,8 @@ class SuperResearchAgent(BaseResearchAgent):
                             fgi = int(fng.get("value", 50))
                             sentiment["fear_greed_index"] = fgi
                             sentiment["overall_sentiment"] = fgi / 100.0
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.exception("Unexpected error: %s", e)
 
                 # TradeStie WSB sentiment (free, no auth)
                 try:
@@ -282,8 +282,8 @@ class SuperResearchAgent(BaseResearchAgent):
                                     sentiment["social_media_score"] = round(
                                         (sum(sentiments) / len(sentiments) + 1) / 2, 3
                                     )
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.exception("Unexpected error: %s", e)
 
         except Exception as e:
             logger.warning(f"Sentiment data fetch failed, using defaults: {e}")
@@ -441,6 +441,7 @@ class SuperResearchAgent(BaseResearchAgent):
 
         # Sort by confidence and urgency
         def sort_key(finding):
+            """Sort key."""
             urgency_scores = {"low": 1, "medium": 2, "high": 3, "critical": 4}
             return (finding.confidence * urgency_scores.get(finding.urgency, 1), finding.confidence)
 

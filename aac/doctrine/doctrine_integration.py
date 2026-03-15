@@ -723,10 +723,10 @@ def get_doctrine_integration() -> DoctrineIntegration:
 async def main():
     """Main entry point for integrated doctrine system."""
 
-    print("\n" + "█" * 80)
-    print("  AAC DOCTRINE INTEGRATION")
-    print("  Connecting 8 Doctrine Packs to 5 Departments")
-    print("█" * 80)
+    logger.info("\n" + "█" * 80)
+    logger.info("  AAC DOCTRINE INTEGRATION")
+    logger.info("  Connecting 8 Doctrine Packs to 5 Departments")
+    logger.info("█" * 80)
 
     # Create orchestrator
     orchestrator = DoctrineOrchestrator()
@@ -735,37 +735,37 @@ async def main():
     await orchestrator.initialize()
 
     # Run compliance check
-    print("\n🔍 Running Integrated Compliance Check...")
-    print("─" * 80)
+    logger.info("\n🔍 Running Integrated Compliance Check...")
+    logger.info("─" * 80)
 
     result = await orchestrator.run_compliance_check()
 
-    print(f"\n[MONITOR] INTEGRATION RESULTS")
-    print(f"   Timestamp: {result['timestamp']}")
-    print(f"   BARREN WUFFET State: {result['barren_wuffet_state']}")
-    print(f"   Compliance Score: {result['compliance_score']}%")
-    print(f"   Metrics Checked: {result['metrics_checked']}")
-    print(f"   ✅ Compliant: {result['compliant']}")
-    print(f"   [WARN]️  Warnings: {result['warnings']}")
-    print(f"   [CROSS] Violations: {result['violations']}")
+    logger.info(f"\n[MONITOR] INTEGRATION RESULTS")
+    logger.info(f"   Timestamp: {result['timestamp']}")
+    logger.info(f"   BARREN WUFFET State: {result['barren_wuffet_state']}")
+    logger.info(f"   Compliance Score: {result['compliance_score']}%")
+    logger.info(f"   Metrics Checked: {result['metrics_checked']}")
+    logger.info(f"   ✅ Compliant: {result['compliant']}")
+    logger.info(f"   [WARN]️  Warnings: {result['warnings']}")
+    logger.info(f"   [CROSS] Violations: {result['violations']}")
 
     # Department status
-    print("\n\n📋 DEPARTMENT INTEGRATION STATUS")
-    print("─" * 80)
+    logger.info("\n\n📋 DEPARTMENT INTEGRATION STATUS")
+    logger.info("─" * 80)
 
     status = orchestrator.get_system_status()
 
     for dept_name, dept_info in status['departments'].items():
         packs = dept_info.get('doctrine_packs', [])
         if packs:
-            print(f"\n🏢 {dept_name}")
+            logger.info(f"\n🏢 {dept_name}")
             for pack in packs:
-                print(f"   [OK] Pack {pack['pack_id']}: {pack['name']}")
-                print(f"     Metrics: {len(pack['metrics'])} | Failure Modes: {len(pack['failure_modes'])}")
+                logger.info(f"   [OK] Pack {pack['pack_id']}: {pack['name']}")
+                logger.info(f"     Metrics: {len(pack['metrics'])} | Failure Modes: {len(pack['failure_modes'])}")
 
-    print("\n" + "═" * 80)
-    print("✅ Doctrine Integration Complete - All Systems Connected")
-    print("═" * 80 + "\n")
+    logger.info("\n" + "═" * 80)
+    logger.info("✅ Doctrine Integration Complete - All Systems Connected")
+    logger.info("═" * 80 + "\n")
 
     return orchestrator
 

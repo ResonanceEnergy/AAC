@@ -11,6 +11,8 @@ from dataclasses import dataclass
 from datetime import datetime
 import os
 from dotenv import load_dotenv
+import logging
+logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
@@ -91,10 +93,10 @@ class AACRedditHotPostsDemo:
                 posts.append(post)
 
                 # Print using user's format
-                print("{} -- {}".format(submission.id, submission.title))
+                logger.info("{} -- {}".format(submission.id, submission.title))
 
         except Exception as e:
-            print(f"Error fetching posts: {e}")
+            logger.info(f"Error fetching posts: {e}")
             return []
 
         return posts
@@ -156,121 +158,121 @@ class AACRedditHotPostsDemo:
 
 def run_aac_reddit_demo():
     """Run the AAC Reddit hot posts demo"""
-    print("AAC Reddit Hot Posts Demo")
-    print("=" * 40)
-    print("Using user's PRAW pattern integrated with AAC arbitrage system")
-    print()
+    logger.info("AAC Reddit Hot Posts Demo")
+    logger.info("=" * 40)
+    logger.info("Using user's PRAW pattern integrated with AAC arbitrage system")
+    logger.debug("")
 
     try:
         # Initialize demo client
         demo = AACRedditHotPostsDemo()
 
         if not demo.credentials_available:
-            print("⚠️  Reddit API credentials not found!")
-            print()
-            print("To run this demo, you need to set up Reddit API credentials:")
-            print()
-            print("1. Go to https://www.reddit.com/prefs/apps")
-            print("2. Create a new application (type: script)")
-            print("3. Copy the client_id and client_secret")
-            print("4. Add to your .env file:")
-            print()
-            print("   REDDIT_CLIENT_ID=your_client_id_here")
-            print("   REDDIT_CLIENT_SECRET=your_client_secret_here")
-            print("   REDDIT_USER_AGENT=AAC-Arbitrage-Bot/1.0")
-            print("   REDDIT_USERNAME=your_reddit_username (optional)")
-            print("   REDDIT_PASSWORD=your_reddit_password (optional)")
-            print()
-            print("For more details, see: reddit_api_setup.py")
-            print()
-            print("🔧 Showing code pattern demonstration instead...")
-            print()
+            logger.info("⚠️  Reddit API credentials not found!")
+            logger.debug("")
+            logger.info("To run this demo, you need to set up Reddit API credentials:")
+            logger.debug("")
+            logger.info("1. Go to https://www.reddit.com/prefs/apps")
+            logger.info("2. Create a new application (type: script)")
+            logger.info("3. Copy the client_id and client_secret")
+            logger.info("4. Add to your .env file:")
+            logger.debug("")
+            logger.info("   REDDIT_CLIENT_ID=your_client_id_here")
+            logger.info("   REDDIT_CLIENT_SECRET=your_client_secret_here")
+            logger.info("   REDDIT_USER_AGENT=AAC-Arbitrage-Bot/1.0")
+            logger.info("   REDDIT_USERNAME=your_reddit_username (optional)")
+            logger.info("   REDDIT_PASSWORD=your_reddit_password (optional)")
+            logger.debug("")
+            logger.info("For more details, see: reddit_api_setup.py")
+            logger.debug("")
+            logger.info("🔧 Showing code pattern demonstration instead...")
+            logger.debug("")
             show_code_pattern_demo()
             return
 
-        print("✅ Reddit client initialized successfully")
-        print()
+        logger.info("✅ Reddit client initialized successfully")
+        logger.debug("")
 
         # Fetch hot posts using user's pattern
-        print("Fetching hot posts from r/wallstreetbets...")
-        print("(Using user's code pattern: reddit.subreddit().hot())")
-        print()
+        logger.info("Fetching hot posts from r/wallstreetbets...")
+        logger.info("(Using user's code pattern: reddit.subreddit().hot())")
+        logger.debug("")
 
         posts = demo.fetch_hot_posts(limit=15)
 
-        print()
-        print(f"📊 Retrieved {len(posts)} hot posts")
-        print()
+        logger.debug("")
+        logger.info(f"📊 Retrieved {len(posts)} hot posts")
+        logger.debug("")
 
         # Analyze ticker mentions
-        print("🔍 Analyzing ticker mentions...")
+        logger.info("🔍 Analyzing ticker mentions...")
         ticker_analysis = demo.analyze_ticker_mentions(posts)
 
-        print("Top mentioned tickers:")
+        logger.info("Top mentioned tickers:")
         for ticker, count in list(ticker_analysis.items())[:10]:
-            print(f"  ${ticker}: {count} mentions")
-        print()
+            logger.info(f"  ${ticker}: {count} mentions")
+        logger.debug("")
 
         # Generate arbitrage signals
-        print("📈 Generating arbitrage signals...")
+        logger.info("📈 Generating arbitrage signals...")
         signals = demo.generate_arbitrage_signals(ticker_analysis, min_mentions=2)
 
-        print(f"Generated {len(signals)} arbitrage signals:")
+        logger.info(f"Generated {len(signals)} arbitrage signals:")
         for signal in signals[:5]:  # Show top 5
-            print(f"  🚀 {signal['ticker']}: {signal['confidence']:.1%} confidence")
-            print(f"     {signal['description']}")
-            print()
+            logger.info(f"  🚀 {signal['ticker']}: {signal['confidence']:.1%} confidence")
+            logger.info(f"     {signal['description']}")
+            logger.debug("")
 
         # Show post details
-        print("📝 Recent post details:")
+        logger.info("📝 Recent post details:")
         for i, post in enumerate(posts[:3], 1):
-            print(f"{i}. {post.title[:60]}...")
-            print(f"   Score: {post.score} | Comments: {post.num_comments}")
-            print(f"   Age: {post.age_hours:.1f} hours ago")
-            print()
+            logger.info(f"{i}. {post.title[:60]}...")
+            logger.info(f"   Score: {post.score} | Comments: {post.num_comments}")
+            logger.info(f"   Age: {post.age_hours:.1f} hours ago")
+            logger.debug("")
 
     except Exception as e:
-        print(f"❌ Demo failed: {e}")
-        print("Make sure your Reddit API credentials are set in .env file")
+        logger.info(f"❌ Demo failed: {e}")
+        logger.info("Make sure your Reddit API credentials are set in .env file")
 
 
 def show_code_pattern_demo():
     """Show the user's code pattern without actually connecting to Reddit"""
-    print("📝 User's PRAW Code Pattern:")
-    print()
-    print("```python")
-    print("import praw")
-    print()
-    print("# Initialize Reddit client")
+    logger.info("📝 User's PRAW Code Pattern:")
+    logger.debug("")
+    logger.info("```python")
+    logger.info("import praw")
+    logger.debug("")
+    logger.info("# Initialize Reddit client")
     print("reddit = praw.Reddit(")
-    print("    client_id=config.client_id,")
-    print("    client_secret=config.client_secret,")
-    print("    user_agent=config.user_agent,")
-    print("    username=config.username,")
-    print("    password=config.password")
+    logger.info("    client_id=config.client_id,")
+    logger.info("    client_secret=config.client_secret,")
+    logger.info("    user_agent=config.user_agent,")
+    logger.info("    username=config.username,")
+    logger.info("    password=config.password")
     print(")")
-    print()
-    print("# Get subreddit and fetch hot posts")
-    print('subreddit = reddit.subreddit("wallstreetbets")')
-    print("for submission in subreddit.hot():")
-    print('    print("{} -- {}".format(submission.id, submission.title))')
-    print("```")
-    print()
-    print("🔧 AAC Integration Features:")
-    print("  • Automatic ticker extraction from post titles")
-    print("  • Sentiment analysis for arbitrage signals")
-    print("  • Rate limit management (600 requests/10min)")
-    print("  • Market hours detection for timing")
-    print("  • Integration with multi-source arbitrage engine")
-    print()
-    print("📊 Expected Output Format:")
-    print("  abc123 -- $AAPL to the moon! 🚀🚀🚀")
-    print("  def456 -- TSLA earnings beat expectations")
-    print("  ghi789 -- Why $NVDA is undervalued")
-    print()
-    print("🚀 Arbitrage Signal Generation:")
-    print("  Based on mention frequency, post engagement, and market timing")
-    print("  Signals integrated with World Bank data and other sources")
+    logger.debug("")
+    logger.info("# Get subreddit and fetch hot posts")
+    logger.info('subreddit = reddit.subreddit("wallstreetbets")')
+    logger.info("for submission in subreddit.hot():")
+    logger.info('    print("{} -- {}".format(submission.id, submission.title))')
+    logger.info("```")
+    logger.debug("")
+    logger.info("🔧 AAC Integration Features:")
+    logger.info("  • Automatic ticker extraction from post titles")
+    logger.info("  • Sentiment analysis for arbitrage signals")
+    logger.info("  • Rate limit management (600 requests/10min)")
+    logger.info("  • Market hours detection for timing")
+    logger.info("  • Integration with multi-source arbitrage engine")
+    logger.debug("")
+    logger.info("📊 Expected Output Format:")
+    logger.info("  abc123 -- $AAPL to the moon! 🚀🚀🚀")
+    logger.info("  def456 -- TSLA earnings beat expectations")
+    logger.info("  ghi789 -- Why $NVDA is undervalued")
+    logger.debug("")
+    logger.info("🚀 Arbitrage Signal Generation:")
+    logger.info("  Based on mention frequency, post engagement, and market timing")
+    logger.info("  Signals integrated with World Bank data and other sources")
 
 
 if __name__ == "__main__":

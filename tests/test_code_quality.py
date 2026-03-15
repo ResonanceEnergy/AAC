@@ -14,9 +14,11 @@ async def test_code_quality():
 
         # Mock dependencies
         class MockAuditLogger:
+            """MockAuditLogger class."""
             pass
 
         class MockCommunication:
+            """MockCommunication class."""
             pass
 
         analyzer = CodeQualityAnalyzer(MockAuditLogger(), MockCommunication())

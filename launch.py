@@ -451,6 +451,7 @@ MODE_DISPATCH = {
 # ── CLI ─────────────────────────────────────────────────────────────────────
 
 def main() -> int:
+    """Main."""
     parser = argparse.ArgumentParser(
         prog="launch",
         description="BARREN WUFFET — Unified Launcher",

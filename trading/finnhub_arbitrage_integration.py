@@ -36,6 +36,7 @@ class FinnhubConfig:
     timeout: int = 30
 
     def is_configured(self) -> bool:
+        """Is configured."""
         return bool(self.api_key)
 
 @dataclass

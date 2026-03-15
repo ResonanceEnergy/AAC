@@ -35,10 +35,13 @@ try:
     from shared.utils import with_circuit_breaker, CircuitOpenError
 except ImportError:
     def with_circuit_breaker(*args, **kwargs):
+        """With circuit breaker."""
         def decorator(func):
+            """Decorator."""
             return func
         return decorator
     class CircuitOpenError(Exception):
+        """CircuitOpenError class."""
         pass
 
 from .base_connector import (
@@ -73,6 +76,7 @@ class NDAXConnector(BaseExchangeConnector):
 
     @property
     def name(self) -> str:
+        """Name."""
         return "ndax"
 
     def __init__(
@@ -480,8 +484,8 @@ class NDAXConnector(BaseExchangeConnector):
                     'maker': float(fee.get('maker', 0.002)),
                     'taker': float(fee.get('taker', 0.002)),
                 }
-        except Exception:
-            pass
+        except Exception as e:
+            logger.exception("Unexpected error: %s", e)
         # NDAX default fees: 0.20% maker/taker
         return {'maker': 0.002, 'taker': 0.002}
 

@@ -16,21 +16,25 @@ from shared.production_safeguards import (
 
 @pytest.fixture
 def cb_config():
+    """Cb config."""
     return CircuitBreakerConfig(failure_threshold=3, recovery_timeout=0.5)
 
 
 @pytest.fixture
 def cb(cb_config):
+    """Cb."""
     return CircuitBreaker(config=cb_config)
 
 
 @pytest.fixture
 def rate_config():
+    """Rate config."""
     return RateLimitConfig(requests_per_minute=60, burst_size=5, window_size=60.0)
 
 
 @pytest.fixture
 def rl(rate_config):
+    """Rl."""
     return RateLimiter(config=rate_config)
 
 
@@ -38,6 +42,8 @@ def rl(rate_config):
 
 
 class TestCircuitBreaker:
+    """TestCircuitBreaker class."""
+
     @pytest.mark.asyncio
     async def test_starts_closed(self, cb):
         assert cb.state == CircuitBreakerState.CLOSED
@@ -88,6 +94,8 @@ class TestCircuitBreaker:
 
 
 class TestRateLimiter:
+    """TestRateLimiter class."""
+
     @pytest.mark.asyncio
     async def test_allows_burst(self, rl):
         results = [await rl.acquire() for _ in range(5)]
@@ -112,6 +120,7 @@ class TestRateLimiter:
 
 
 class TestExchangeSafeguards:
+    """TestExchangeSafeguards class."""
     def test_create_factory(self):
         sg = ExchangeSafeguards.create(
             "binance",

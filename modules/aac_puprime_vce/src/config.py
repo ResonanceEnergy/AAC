@@ -15,16 +15,20 @@ def _load(name: str) -> dict[str, Any]:
 
 
 def load_instruments() -> dict[str, Any]:
+    """Load instruments."""
     return _load("instruments")["instruments"]
 
 
 def load_strategy() -> dict[str, Any]:
+    """Load strategy."""
     return _load("strategy")["strategy"]
 
 
 def load_risk() -> dict[str, Any]:
+    """Load risk."""
     return _load("risk")["risk"]
 
 
 def load_costs() -> dict[str, Any]:
+    """Load costs."""
     return _load("costs")["costs"]

@@ -23,12 +23,14 @@ class ManualMT5Adapter(BrokerAdapter):
         self.plans_dir.mkdir(parents=True, exist_ok=True)
 
     def get_account_info(self) -> dict[str, Any]:
+        """Get account info."""
         return {"mode": "manual", "note": "Check MT5 terminal for live account info"}
 
     def place_order(
         self, symbol: str, side: str, size: float,
         stop: float, take_profit: float,
     ) -> dict[str, Any]:
+        """Place order."""
         plan = {
             "action": "OPEN",
             "symbol": symbol,
@@ -50,6 +52,7 @@ class ManualMT5Adapter(BrokerAdapter):
         return plan
 
     def close_position(self, symbol: str) -> dict[str, Any]:
+        """Close position."""
         plan = {
             "action": "CLOSE",
             "symbol": symbol,
@@ -63,4 +66,5 @@ class ManualMT5Adapter(BrokerAdapter):
         return plan
 
     def get_open_positions(self) -> list[dict[str, Any]]:
+        """Get open positions."""
         return [{"mode": "manual", "note": "Check MT5 terminal for open positions"}]

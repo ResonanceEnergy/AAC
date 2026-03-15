@@ -15,6 +15,9 @@ from tools.aac_timestamp_converter import (
 from dataclasses import dataclass
 from typing import Dict, List, Optional
 import time
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -93,8 +96,8 @@ class AACArbitrageEngine:
 
 def demonstrate_timestamp_integration():
     """Demonstrate AAC timestamp converter integration."""
-    print("AAC Timestamp Integration Demo")
-    print("=" * 50)
+    logger.info("AAC Timestamp Integration Demo")
+    logger.info("=" * 50)
 
     # Initialize arbitrage engine
     engine = AACArbitrageEngine()
@@ -107,32 +110,32 @@ def demonstrate_timestamp_integration():
         ("MSFT", 1.5, 0.88, "world_bank_integration")
     ]
 
-    print("\nGenerating Arbitrage Signals:")
-    print("-" * 30)
+    logger.info("\nGenerating Arbitrage Signals:")
+    logger.info("-" * 30)
 
     for symbol, ret, conf, source in signals_data:
         signal = engine.generate_signal(symbol, ret, conf, source)
-        print(f"📊 {signal.symbol}: {signal.expected_return:.1f}% return")
-        print(f"   Confidence: {signal.confidence_score:.1%}")
-        print(f"   Time: {signal.timestamp_arbitrage_format}")
-        print(f"   Source: {signal.source}")
-        print()
+        logger.info(f"📊 {signal.symbol}: {signal.expected_return:.1f}% return")
+        logger.info(f"   Confidence: {signal.confidence_score:.1%}")
+        logger.info(f"   Time: {signal.timestamp_arbitrage_format}")
+        logger.info(f"   Source: {signal.source}")
+        logger.debug("")
 
         # Simulate time passing
         time.sleep(0.1)
 
     # Show summary
-    print("Signal Summary:")
-    print("-" * 20)
+    logger.info("Signal Summary:")
+    logger.info("-" * 20)
     summary = engine.get_signal_summary()
     for key, value in summary.items():
-        print(f"{key.replace('_', ' ').title()}: {value}")
+        logger.info(f"{key.replace('_', ' ').title()}: {value}")
 
-    print(f"\nNext Market Open: {epoch_to_human(AACTimestampConverter.datetime_to_epoch(AACArbitrageTiming.get_next_market_open()))}")
+    logger.info(f"\nNext Market Open: {epoch_to_human(AACTimestampConverter.datetime_to_epoch(AACArbitrageTiming.get_next_market_open()))}")
 
     # Demonstrate timestamp conversions
-    print("\nTimestamp Conversion Examples:")
-    print("-" * 35)
+    logger.info("\nTimestamp Conversion Examples:")
+    logger.info("-" * 35)
 
     test_timestamps = [
         current_epoch(),  # Current time
@@ -144,9 +147,9 @@ def demonstrate_timestamp_integration():
     for ts in test_timestamps:
         precision = AACTimestampConverter.detect_precision(ts)
         human_readable = epoch_to_human(ts)
-        print(f"Epoch: {ts} ({precision}x precision)")
-        print(f"Human: {human_readable}")
-        print()
+        logger.info(f"Epoch: {ts} ({precision}x precision)")
+        logger.info(f"Human: {human_readable}")
+        logger.debug("")
 
 
 if __name__ == "__main__":

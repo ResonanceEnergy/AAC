@@ -18,6 +18,7 @@ import numpy as np
 logger = logging.getLogger(__name__)
 
 class AdvancementMetric(Enum):
+    """AdvancementMetric class."""
     LATENCY = "latency"                    # End-to-end latency in microseconds
     THROUGHPUT = "throughput"              # Operations per second
     UPTIME = "uptime"                      # System availability percentage

@@ -87,6 +87,7 @@ class TokenLegitimacyReport:
 
     @property
     def is_safe(self) -> bool:
+        """Is safe."""
         return self.overall_score >= 70 and self.risk_level in (RiskLevel.SAFE, RiskLevel.LOW)
 
 

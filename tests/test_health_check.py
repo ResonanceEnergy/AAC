@@ -16,6 +16,7 @@ import scripts.health_check as hc
 
 
 class TestPythonVersion:
+    """TestPythonVersion class."""
     def test_current_python_passes(self):
         assert hc.check_python_version() is True
 
@@ -29,6 +30,7 @@ class TestPythonVersion:
 
 
 class TestEnvFile:
+    """TestEnvFile class."""
     def test_env_present(self, tmp_path, monkeypatch):
         (tmp_path / ".env").write_text("KEY=val\n")
         monkeypatch.setattr(hc, "PROJECT_ROOT", tmp_path)
@@ -40,12 +42,14 @@ class TestEnvFile:
 
 
 class TestVenv:
+    """TestVenv class."""
     def test_venv_exists(self, monkeypatch):
         monkeypatch.setattr(hc, "PROJECT_ROOT", PROJECT_ROOT)
         assert hc.check_venv() is True
 
 
 class TestCoreImports:
+    """TestCoreImports class."""
     def test_no_crashes(self):
         """check_core_imports should complete without raising."""
         failures = hc.check_core_imports()
@@ -53,12 +57,14 @@ class TestCoreImports:
 
 
 class TestRequiredPackages:
+    """TestRequiredPackages class."""
     def test_no_crashes(self):
         failures = hc.check_required_packages()
         assert isinstance(failures, int)
 
 
 class TestDirectoryStructure:
+    """TestDirectoryStructure class."""
     def test_key_dirs_exist(self):
         failures = hc.check_directory_structure()
         # strategies, tests, shared must exist
@@ -66,6 +72,7 @@ class TestDirectoryStructure:
 
 
 class TestMain:
+    """TestMain class."""
     def test_main_returns_int(self):
         rc = hc.main()
         assert rc in (0, 1)

@@ -64,6 +64,7 @@ def save_env_file(env_data):
         f.writelines(updated_lines)
 
 def main():
+    """Main."""
     print("🚀 AAC Premium API Key Configuration Helper")
     print("=" * 50)
 

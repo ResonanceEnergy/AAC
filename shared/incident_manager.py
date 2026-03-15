@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 class IncidentSeverity(Enum):
+    """IncidentSeverity class."""
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
@@ -22,6 +23,7 @@ class IncidentSeverity(Enum):
 
 
 class IncidentStatus(Enum):
+    """IncidentStatus class."""
     OPEN = "open"
     INVESTIGATING = "investigating"
     MITIGATING = "mitigating"
@@ -30,6 +32,7 @@ class IncidentStatus(Enum):
 
 @dataclass
 class Incident:
+    """Incident class."""
     incident_id: str
     title: str
     description: str
@@ -104,6 +107,7 @@ class IncidentManager:
         return [i for i in self.incidents.values() if i.status != IncidentStatus.RESOLVED]
 
     def get_incident(self, incident_id: str) -> Optional[Incident]:
+        """Get incident."""
         return self.incidents.get(incident_id)
 
     def get_metrics(self) -> Dict[str, Any]:

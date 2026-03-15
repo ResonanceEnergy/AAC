@@ -25,6 +25,8 @@ from datetime import datetime
 
 # Import our mapping system
 from strategies.strategy_agent_master_mapping import get_strategy_agent_mapper, validate_all_assignments
+import logging
+logger = logging.getLogger(__name__)
 
 class AACAgentConsolidation:
     """
@@ -474,33 +476,33 @@ def generate_master_agent_report() -> str:
 
 # CLI interface
 if __name__ == "__main__":
-    print("AAC COMPREHENSIVE AGENT CONSOLIDATION")
-    print("=" * 60)
+    logger.info("AAC COMPREHENSIVE AGENT CONSOLIDATION")
+    logger.info("=" * 60)
 
     consolidation = get_agent_consolidation()
 
     # Show summary
     totals = consolidation.agent_inventory["totals"]
-    print(f"Total Agents: {totals['grand_total']}")
-    print(f"- Trading Agents: {totals['trading_agents']}")
-    print(f"- Executive Assistants: {totals['executive_assistants']}")
-    print(f"- Research Agents: {totals['research_agents']}")
-    print(f"- Super Agents: {totals['super_agents']}")
-    print(f"- Contest Agents: {totals['contest_agents']}")
+    logger.info(f"Total Agents: {totals['grand_total']}")
+    logger.info(f"- Trading Agents: {totals['trading_agents']}")
+    logger.info(f"- Executive Assistants: {totals['executive_assistants']}")
+    logger.info(f"- Research Agents: {totals['research_agents']}")
+    logger.info(f"- Super Agents: {totals['super_agents']}")
+    logger.info(f"- Contest Agents: {totals['contest_agents']}")
 
     gaps = consolidation.gap_analysis
-    print(f"\nStrategy Coverage: {gaps['strategy_coverage']['coverage_rate']:.1f}%")
-    print(f"Missing Implementations: {len(gaps['missing_implementations'])}")
+    logger.info(f"\nStrategy Coverage: {gaps['strategy_coverage']['coverage_rate']:.1f}%")
+    logger.info(f"Missing Implementations: {len(gaps['missing_implementations'])}")
 
     # Export data
     consolidation.export_consolidated_data("aac_agent_consolidation.json")
-    print("\nExported consolidated data to: aac_agent_consolidation.json")
+    logger.info("\nExported consolidated data to: aac_agent_consolidation.json")
 
     # Generate report
     report = consolidation.generate_master_report()
     with open("AAC_AGENT_CONSOLIDATION_REPORT.md", "w") as f:
         f.write(report)
-    print("Generated master report: AAC_AGENT_CONSOLIDATION_REPORT.md")
+    logger.info("Generated master report: AAC_AGENT_CONSOLIDATION_REPORT.md")
 
-    print("\n[SUCCESS] AAC Agent Consolidation Complete!")
-    print("All gaps identified and resolved. System ready for operation.")
+    logger.info("\n[SUCCESS] AAC Agent Consolidation Complete!")
+    logger.info("All gaps identified and resolved. System ready for operation.")

@@ -329,7 +329,7 @@ class PaperAccountManager:
                     self.accounts[account.account_id] = account
 
             except Exception as e:
-                print(f"Error loading accounts: {e}")
+                logger.info(f"Error loading accounts: {e}")
 
     async def _save_accounts(self):
         """Save accounts to file"""
@@ -650,24 +650,24 @@ class OrderSimulator:
             json.dump(report, f, indent=2)
 
         # Print summary
-        print("\n" + "="*80)
-        print("🎉 AAC AUTOMATION ENGINE COMPLETION REPORT")
-        print("="*80)
-        print(f"📅 Execution Time: {duration}")
-        print(f"📈 Strategies Implemented: {self.progress['strategies_implemented']}/50")
-        print(f"🔗 Market Data Connected: {'✅' if self.progress['market_data_connected'] else '❌'}")
-        print(f"📈 Paper Trading Enabled: {'✅' if self.progress['paper_trading_enabled'] else '❌'}")
-        print(f"📚 Doctrine Compliance: {self.progress['doctrine_compliance']:.2f}%")
+        logger.info("\n" + "="*80)
+        logger.info("🎉 AAC AUTOMATION ENGINE COMPLETION REPORT")
+        logger.info("="*80)
+        logger.info(f"📅 Execution Time: {duration}")
+        logger.info(f"📈 Strategies Implemented: {self.progress['strategies_implemented']}/50")
+        logger.info(f"🔗 Market Data Connected: {'✅' if self.progress['market_data_connected'] else '❌'}")
+        logger.info(f"📈 Paper Trading Enabled: {'✅' if self.progress['paper_trading_enabled'] else '❌'}")
+        logger.info(f"📚 Doctrine Compliance: {self.progress['doctrine_compliance']:.2f}%")
 
         if self.progress['errors']:
-            print(f"\n❌ ERRORS ({len(self.progress['errors'])}):")
+            logger.info(f"\n❌ ERRORS ({len(self.progress['errors'])}):")
             for error in self.progress['errors'][:5]:  # Show first 5
-                print(f"   • {error}")
+                logger.info(f"   • {error}")
 
         if self.progress['warnings']:
-            print(f"\n⚠️ WARNINGS ({len(self.progress['warnings'])}):")
+            logger.info(f"\n⚠️ WARNINGS ({len(self.progress['warnings'])}):")
             for warning in self.progress['warnings'][:5]:  # Show first 5
-                print(f"   • {warning}")
+                logger.info(f"   • {warning}")
 
         success_rate = (
             (self.progress['strategies_implemented'] >= 50) +
@@ -676,17 +676,17 @@ class OrderSimulator:
             (self.progress['doctrine_compliance'] >= 100.0)
         ) / 4 * 100
 
-        print(f"\n🎯 OVERALL SUCCESS RATE: {success_rate:.1f}%")
+        logger.info(f"\n🎯 OVERALL SUCCESS RATE: {success_rate:.1f}%")
 
         if success_rate >= 90:
-            print("🏆 MISSION ACCOMPLISHED: AAC system ready for revenue generation!")
+            logger.info("🏆 MISSION ACCOMPLISHED: AAC system ready for revenue generation!")
         elif success_rate >= 75:
-            print("✅ MAJOR SUCCESS: Core gaps resolved, minor issues remain")
+            logger.info("✅ MAJOR SUCCESS: Core gaps resolved, minor issues remain")
         else:
-            print("⚠️ PARTIAL SUCCESS: Additional work needed")
+            logger.info("⚠️ PARTIAL SUCCESS: Additional work needed")
 
-        print(f"\n📄 Detailed report saved to: {report_file}")
-        print("="*80)
+        logger.info(f"\n📄 Detailed report saved to: {report_file}")
+        logger.info("="*80)
 
 
 async def main():

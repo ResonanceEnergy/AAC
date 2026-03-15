@@ -30,10 +30,13 @@ try:
     from shared.utils import with_circuit_breaker, CircuitOpenError
 except ImportError:
     def with_circuit_breaker(*args, **kwargs):
+        """With circuit breaker."""
         def decorator(func):
+            """Decorator."""
             return func
         return decorator
     class CircuitOpenError(Exception):
+        """CircuitOpenError class."""
         pass
 
 from .base_connector import (
@@ -66,6 +69,7 @@ class NoxiRiseConnector(BaseExchangeConnector):
 
     @property
     def name(self) -> str:
+        """Name."""
         return "noxi_rise"
 
     def __init__(

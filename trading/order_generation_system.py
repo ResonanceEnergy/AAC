@@ -33,11 +33,13 @@ from shared.audit_logger import get_audit_logger
 
 # Define enums locally to avoid circular imports
 class StrategyExecutionMode(Enum):
+    """StrategyExecutionMode class."""
     PAPER_TRADING = "paper_trading"
     LIVE_TRADING = "live_trading"
     SIMULATION = "simulation"
 
 class StrategySignal(Enum):
+    """StrategySignal class."""
     BUY = "buy"
     SELL = "sell"
     HOLD = "hold"

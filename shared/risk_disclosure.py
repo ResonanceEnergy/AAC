@@ -572,6 +572,7 @@ risk_disclosure_framework = RiskDisclosureFramework()
 
 if __name__ == "__main__":
     async def main():
+        """Main."""
         risk_disclosure_framework = RiskDisclosureFramework()
         await risk_disclosure_framework.initialize_risk_disclosure()
 

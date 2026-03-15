@@ -199,6 +199,7 @@ class AACAvatarSystem:
     def start_speaking_animation(self, text: str):
         """Start speaking animation in background thread"""
         def animate():
+            """Animate."""
             self.speak_with_animation(text)
 
         thread = threading.Thread(target=animate, daemon=True)

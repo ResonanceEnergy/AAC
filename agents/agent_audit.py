@@ -11,6 +11,8 @@ import asyncio
 import sys
 from pathlib import Path
 from typing import Dict, List, Any
+import logging
+logger = logging.getLogger(__name__)
 
 # Add project root to path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -23,16 +25,16 @@ from BigBrainIntelligence.agents import (
 async def audit_agents():
     """Comprehensive audit of all research agents"""
 
-    print("🔍 AAC RESEARCH AGENTS AUDIT")
-    print("=" * 80)
+    logger.info("🔍 AAC RESEARCH AGENTS AUDIT")
+    logger.info("=" * 80)
 
     # Get all agents
     agents = get_all_agents()
     total_agents = len(agents)
 
-    print(f"[MONITOR] Total Agents: {total_agents}")
-    print(f"📂 Agent Registry: {len(AGENT_REGISTRY)} registered types")
-    print()
+    logger.info(f"[MONITOR] Total Agents: {total_agents}")
+    logger.info(f"📂 Agent Registry: {len(AGENT_REGISTRY)} registered types")
+    logger.debug("")
 
     # Group by theater
     theater_counts = {}
@@ -40,14 +42,14 @@ async def audit_agents():
         theater = agent.theater
         theater_counts[theater] = theater_counts.get(theater, 0) + 1
 
-    print("🏢 AGENTS BY THEATER:")
+    logger.info("🏢 AGENTS BY THEATER:")
     for theater, count in theater_counts.items():
-        print(f"  • {theater.upper()}: {count} agents")
-    print()
+        logger.info(f"  • {theater.upper()}: {count} agents")
+    logger.debug("")
 
     # Detailed agent audit
-    print("👥 INDIVIDUAL AGENT AUDIT:")
-    print("-" * 80)
+    logger.info("👥 INDIVIDUAL AGENT AUDIT:")
+    logger.info("-" * 80)
 
     agent_details = {
         # Theater B - Attention/Narrative
@@ -457,29 +459,29 @@ async def audit_agents():
 
     # Display detailed agent information
     for agent_id, details in agent_details.items():
-        print(f"[AI] {agent_id.upper().replace('_', ' ')}")
-        print(f"   Role: {details['role']}")
-        print(f"   Theater: {agent_id.split('_')[-1] if '_' in agent_id else 'operational'}")
-        print(f"   Risk Level: {details['risk_level']}")
-        print(f"   Output Frequency: {details['output_frequency']}")
-        print()
-        print("   📋 Responsibilities:")
+        logger.info(f"[AI] {agent_id.upper().replace('_', ' ')}")
+        logger.info(f"   Role: {details['role']}")
+        logger.info(f"   Theater: {agent_id.split('_')[-1] if '_' in agent_id else 'operational'}")
+        logger.info(f"   Risk Level: {details['risk_level']}")
+        logger.info(f"   Output Frequency: {details['output_frequency']}")
+        logger.debug("")
+        logger.info("   📋 Responsibilities:")
         for resp in details['responsibilities']:
-            print(f"     • {resp}")
-        print()
-        print("   💎 Value Added:")
+            logger.info(f"     • {resp}")
+        logger.debug("")
+        logger.info("   💎 Value Added:")
         for value in details['value_add']:
-            print(f"     • {value}")
-        print()
-        print("   [MONITOR] Data Sources:")
+            logger.info(f"     • {value}")
+        logger.debug("")
+        logger.info("   [MONITOR] Data Sources:")
         for source in details['data_sources']:
-            print(f"     • {source}")
-        print()
-        print("-" * 80)
+            logger.info(f"     • {source}")
+        logger.debug("")
+        logger.info("-" * 80)
 
     # Summary statistics
-    print("📈 AGENT PORTFOLIO SUMMARY:")
-    print("-" * 80)
+    logger.info("📈 AGENT PORTFOLIO SUMMARY:")
+    logger.info("-" * 80)
 
     risk_levels = {'Low': 0, 'Medium': 0, 'High': 0}
     theaters = {'theater_b': 0, 'theater_c': 0, 'theater_d': 0, 'operational': 0}
@@ -497,13 +499,13 @@ async def audit_agents():
         else:
             theaters['operational'] += 1
 
-    print(f"[TARGET] Risk Distribution:")
+    logger.info(f"[TARGET] Risk Distribution:")
     for level, count in risk_levels.items():
         pct = (count / total_agents) * 100
-        print(f"   {level}: {count} agents ({pct:.1f}%)")
+        logger.info(f"   {level}: {count} agents ({pct:.1f}%)")
 
-    print()
-    print("🏢 Theater Distribution:")
+    logger.debug("")
+    logger.info("🏢 Theater Distribution:")
     for theater, count in theaters.items():
         pct = (count / total_agents) * 100
         theater_name = {
@@ -512,20 +514,20 @@ async def audit_agents():
             'theater_d': 'Information Asymmetry',
             'operational': 'Core Operations'
         }[theater]
-        print(f"   {theater_name}: {count} agents ({pct:.1f}%)")
+        logger.info(f"   {theater_name}: {count} agents ({pct:.1f}%)")
 
-    print()
-    print("[MONEY] VALUE PROPOSITION SUMMARY:")
-    print("   • Institutional-grade research capabilities")
-    print("   • Real-time market intelligence generation")
-    print("   • Automated opportunity identification")
-    print("   • Risk management and compliance automation")
-    print("   • Competitive advantage through information asymmetry")
-    print("   • Continuous learning and adaptation")
-    print("   • Enterprise-scale operational reliability")
+    logger.debug("")
+    logger.info("[MONEY] VALUE PROPOSITION SUMMARY:")
+    logger.info("   • Institutional-grade research capabilities")
+    logger.info("   • Real-time market intelligence generation")
+    logger.info("   • Automated opportunity identification")
+    logger.info("   • Risk management and compliance automation")
+    logger.info("   • Competitive advantage through information asymmetry")
+    logger.info("   • Continuous learning and adaptation")
+    logger.info("   • Enterprise-scale operational reliability")
 
-    print()
-    print("✅ AUDIT COMPLETE - All agents operational and value-generating")
+    logger.debug("")
+    logger.info("✅ AUDIT COMPLETE - All agents operational and value-generating")
 
 if __name__ == "__main__":
     asyncio.run(audit_agents())

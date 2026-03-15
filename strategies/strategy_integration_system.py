@@ -131,6 +131,7 @@ class StrategyIntegrationSystem:
             # Create a wrapper callback that formats data correctly for the strategy
             async def strategy_callback(symbol, data_type, data):
                 # Format data as expected by strategy.process_market_data
+                """Strategy callback."""
                 formatted_data = {
                     'symbol': symbol,
                     'type': data_type,

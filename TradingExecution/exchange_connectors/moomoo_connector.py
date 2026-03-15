@@ -112,6 +112,7 @@ class MoomooConnector(BaseExchangeConnector):
 
     @property
     def name(self) -> str:
+        """Name."""
         return "moomoo"
 
     def __init__(

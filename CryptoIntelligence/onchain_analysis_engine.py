@@ -31,6 +31,7 @@ logger = logging.getLogger(__name__)
 # ═══════════════════════════════════════════════════════════════════════════
 
 class MarketCyclePhase(Enum):
+    """MarketCyclePhase class."""
     ACCUMULATION = "accumulation"       # Bottom forming, smart money buys
     EARLY_BULL = "early_bull"           # Breakout confirmed, momentum building
     MID_BULL = "mid_bull"               # Mainstream adoption, strong trend
@@ -41,6 +42,7 @@ class MarketCyclePhase(Enum):
     CAPITULATION = "capitulation"       # Panic selling, max fear
 
 class OnChainSignalStrength(Enum):
+    """OnChainSignalStrength class."""
     SCREAMING_BUY = "screaming_buy"
     BUY = "buy"
     LEAN_BUY = "lean_buy"
@@ -606,14 +608,14 @@ class NVTAnalyzer:
 # ═══════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
-    print("🐺 BARREN WUFFET — On-Chain Analysis Engine v2.7.0")
-    print("=" * 55)
+    logger.info("🐺 BARREN WUFFET — On-Chain Analysis Engine v2.7.0")
+    logger.info("=" * 55)
 
     # MVRV Analysis
     mvrv = MVRVAnalyzer.analyze(market_cap=900e9, realized_cap=400e9)
-    print(f"\nMVRV Ratio: {mvrv.mvrv_ratio}")
-    print(f"  Z-Score: {mvrv.mvrv_z_score}")
-    print(f"  Signal: {mvrv.signal.value}")
+    logger.info(f"\nMVRV Ratio: {mvrv.mvrv_ratio}")
+    logger.info(f"  Z-Score: {mvrv.mvrv_z_score}")
+    logger.info(f"  Signal: {mvrv.signal.value}")
     for n in mvrv.notes: print(f"  → {n}")
 
     # SOPR Analysis
@@ -621,14 +623,14 @@ if __name__ == "__main__":
         sopr=1.02, adjusted_sopr=1.01, entity_sopr=1.005,
         sth_sopr=0.98, lth_sopr=1.35, market_trend="bull",
     )
-    print(f"\nSOPR: {sopr.adjusted_sopr}")
-    print(f"  Signal: {sopr.signal.value}")
+    logger.info(f"\nSOPR: {sopr.adjusted_sopr}")
+    logger.info(f"  Signal: {sopr.signal.value}")
     for n in sopr.notes: print(f"  → {n}")
 
     # NUPL
     nupl = NUPLAnalyzer.analyze(market_cap=900e9, realized_cap=400e9)
-    print(f"\nNUPL: {nupl.nupl}")
-    print(f"  Phase: {nupl.phase} | Signal: {nupl.signal.value}")
+    logger.info(f"\nNUPL: {nupl.nupl}")
+    logger.info(f"  Phase: {nupl.phase} | Signal: {nupl.signal.value}")
 
     # Exchange Flows
     flows = ExchangeFlowAnalyzer.analyze(
@@ -637,16 +639,16 @@ if __name__ == "__main__":
         inflows_30d=160000, outflows_30d=200000,
         exchange_balance=2_400_000, total_supply=19_500_000,
     )
-    print(f"\nExchange Flows:")
-    print(f"  Net 24h: {flows.net_flow_24h:,.0f} | 7d: {flows.net_flow_7d:,.0f}")
-    print(f"  Balance: {flows.exchange_balance_pct:.1f}% | Trend: {flows.trend}")
-    print(f"  Signal: {flows.signal.value}")
+    logger.info(f"\nExchange Flows:")
+    logger.info(f"  Net 24h: {flows.net_flow_24h:,.0f} | 7d: {flows.net_flow_7d:,.0f}")
+    logger.info(f"  Balance: {flows.exchange_balance_pct:.1f}% | Trend: {flows.trend}")
+    logger.info(f"  Signal: {flows.signal.value}")
 
     # Cycle Detection
     phase, score, sig = CyclePhaseDetector.detect(
         mvrv.signal, sopr.signal, nupl.signal, flows.signal,
         OnChainSignalStrength.BUY,
     )
-    print(f"\nCycle Phase: {phase.value}")
-    print(f"  Composite Score: {score}")
-    print(f"  Composite Signal: {sig.value}")
+    logger.info(f"\nCycle Phase: {phase.value}")
+    logger.info(f"  Composite Score: {score}")
+    logger.info(f"  Composite Signal: {sig.value}")

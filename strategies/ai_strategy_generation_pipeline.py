@@ -316,12 +316,14 @@ class AIStrategyGenerator:
 
         # Create dynamic class
         class AIStrategy(BaseArbitrageStrategy):
+            """AIStrategy class."""
             def __init__(self, config, communication, audit_logger):
                 super().__init__(config, communication, audit_logger)
                 self.strategy_config = strategy_config
                 self.parameters = strategy_config['parameters']
 
             async def generate_signals(self):
+                """Generate signals."""
                 signals = []
                 # Mock signal generation based on strategy type
                 if strategy_config['type'] == 'mean_reversion':
@@ -340,9 +342,11 @@ class AIStrategyGenerator:
                 return signals
 
             async def validate_signal(self, signal):
+                """Validate signal."""
                 return signal.confidence > 0.5
 
             async def calculate_position_size(self, signal):
+                """Calculate position size."""
                 return min(signal.quantity, 50000)
 
         AIStrategy.__name__ = class_name

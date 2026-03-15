@@ -43,9 +43,11 @@ class BinanceConfig:
 
     @property
     def base_url(self) -> str:
+        """Base url."""
         return "https://testnet.binance.vision" if self.testnet else "https://api.binance.com"
 
     def is_configured(self) -> bool:
+        """Is configured."""
         return bool(self.api_key and self.api_secret)
 
 @dataclass

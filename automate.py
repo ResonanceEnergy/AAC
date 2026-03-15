@@ -44,6 +44,8 @@ import time
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Tuple
+import logging
+logger = logging.getLogger(__name__)
 
 # ── UTF-8 stdout fix for Windows Task Scheduler ────────────────────────────
 if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
@@ -87,7 +89,7 @@ BANNER = r"""
 
 def phase1_environment() -> bool:
     """Validate Python version, venv, and basic env."""
-    print(_bold("\n[Phase 1] Environment Validation"))
+    logger.info(_bold("\n[Phase 1] Environment Validation"))
     ok = True
 
     # Python version
@@ -209,7 +211,7 @@ def _read_env_keys(env_path: Path) -> Dict[str, str]:
 
 def phase2_env_completeness() -> int:
     """Ensure all required .env keys exist.  Returns count of keys added."""
-    print(_bold("\n[Phase 2] .env Completeness Audit"))
+    logger.info(_bold("\n[Phase 2] .env Completeness Audit"))
     env_path = PROJECT_ROOT / ".env"
     existing = _read_env_keys(env_path)
     added = 0
@@ -244,7 +246,7 @@ def phase2_env_completeness() -> int:
         ("BINANCE_API_KEY", "Binance (crypto)", False),
         ("NDAX_API_KEY", "NDAX (crypto/CA)", False),
     ]
-    print()
+    logger.debug("")
     configured_count = 0
     for key, name, important in api_keys_to_check:
         val = existing.get(key, "")
@@ -256,7 +258,7 @@ def phase2_env_completeness() -> int:
         else:
             _info(f"{name} — not configured (optional)")
 
-    print(f"\n  API keys configured: {configured_count}/{len(api_keys_to_check)}")
+    logger.info(f"\n  API keys configured: {configured_count}/{len(api_keys_to_check)}")
     return added
 
 
@@ -266,7 +268,7 @@ def phase2_env_completeness() -> int:
 
 def phase3_config_validation() -> bool:
     """Load Config.from_env() and run validate()."""
-    print(_bold("\n[Phase 3] Config Validation"))
+    logger.info(_bold("\n[Phase 3] Config Validation"))
     try:
         from shared.config_loader import Config
         config = Config.from_env()
@@ -320,7 +322,7 @@ CORE_MODULES = [
 
 def phase4_imports() -> Tuple[int, int]:
     """Import core modules.  Returns (passed, failed)."""
-    print(_bold("\n[Phase 4] Core Import Smoke Test"))
+    logger.info(_bold("\n[Phase 4] Core Import Smoke Test"))
     passed = failed = 0
     for mod_name in CORE_MODULES:
         try:
@@ -330,7 +332,7 @@ def phase4_imports() -> Tuple[int, int]:
         except Exception as exc:
             _fail(f"import {mod_name}: {exc.__class__.__name__}: {exc}")
             failed += 1
-    print(f"\n  Imports: {passed} passed, {failed} failed")
+    logger.info(f"\n  Imports: {passed} passed, {failed} failed")
     return passed, failed
 
 
@@ -340,7 +342,7 @@ def phase4_imports() -> Tuple[int, int]:
 
 def phase5_tests() -> Tuple[int, bool]:
     """Run the full pytest suite.  Returns (exit_code, passed)."""
-    print(_bold("\n[Phase 5] Test Suite"))
+    logger.info(_bold("\n[Phase 5] Test Suite"))
     cmd = [
         sys.executable, "-m", "pytest",
         "--timeout=30", "-q", "--tb=short",
@@ -365,7 +367,7 @@ def phase5_tests() -> Tuple[int, bool]:
 
 def phase6_pipeline() -> bool:
     """Run pipeline_runner.py in paper mode."""
-    print(_bold("\n[Phase 6] Paper Pipeline Run"))
+    logger.info(_bold("\n[Phase 6] Paper Pipeline Run"))
     cmd = [sys.executable, "pipeline_runner.py"]
     _info(f"Running: {' '.join(cmd)}")
     result = subprocess.run(cmd, cwd=str(PROJECT_ROOT), timeout=120)
@@ -383,7 +385,7 @@ def phase6_pipeline() -> bool:
 
 def phase7_git(commit: bool = False, push: bool = False) -> bool:
     """Git status, optional commit and push."""
-    print(_bold("\n[Phase 7] Git Operations"))
+    logger.info(_bold("\n[Phase 7] Git Operations"))
     git_dir = PROJECT_ROOT / ".git"
     if not git_dir.is_dir():
         _warn("Not a git repo — skipping")
@@ -491,7 +493,7 @@ TASK_XML_TEMPLATE = r"""<?xml version="1.0" encoding="UTF-16"?>
 
 def phase8_schedule() -> bool:
     """Create a Windows Task Scheduler job."""
-    print(_bold("\n[Phase 8] Windows Task Scheduler Setup"))
+    logger.info(_bold("\n[Phase 8] Windows Task Scheduler Setup"))
     if platform.system() != "Windows":
         _warn("Task Scheduler is Windows-only — create a cron job manually")
         return True
@@ -536,11 +538,11 @@ def phase8_schedule() -> bool:
 
 def go_live() -> bool:
     """Switch .env from paper to live trading.  DANGEROUS."""
-    print(_bold(_red("\n[GO LIVE] Switching to production mode")))
-    print(_red("  ╔═══════════════════════════════════════════════╗"))
-    print(_red("  ║  WARNING: This enables REAL MONEY trading!   ║"))
-    print(_red("  ║  Make sure ALL paper tests pass first!       ║"))
-    print(_red("  ╚═══════════════════════════════════════════════╝"))
+    logger.info(_bold(_red("\n[GO LIVE] Switching to production mode")))
+    logger.info(_red("  ╔═══════════════════════════════════════════════╗"))
+    logger.info(_red("  ║  WARNING: This enables REAL MONEY trading!   ║"))
+    logger.info(_red("  ║  Make sure ALL paper tests pass first!       ║"))
+    logger.info(_red("  ╚═══════════════════════════════════════════════╝"))
 
     env_path = PROJECT_ROOT / ".env"
     if not env_path.exists():
@@ -580,12 +582,12 @@ def go_live() -> bool:
 
 def print_summary(results: Dict[str, bool | str | int]) -> None:
     """Print a final roll-up of all phases."""
-    print(_bold("\n" + "=" * 60))
-    print(_bold("  AAC AUTOMATION SUMMARY"))
-    print("=" * 60)
+    logger.info(_bold("\n" + "=" * 60))
+    logger.info(_bold("  AAC AUTOMATION SUMMARY"))
+    logger.info("=" * 60)
     ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print(f"  Timestamp: {ts}")
-    print()
+    logger.info(f"  Timestamp: {ts}")
+    logger.debug("")
 
     all_ok = True
     for phase, status in results.items():
@@ -595,15 +597,15 @@ def print_summary(results: Dict[str, bool | str | int]) -> None:
                 all_ok = False
         else:
             icon = str(status)
-        print(f"  {phase:<35} {icon}")
+        logger.info(f"  {phase:<35} {icon}")
 
-    print()
+    logger.debug("")
     if all_ok:
-        print(_green("  ALL PHASES PASSED — system is launch-ready"))
+        logger.info(_green("  ALL PHASES PASSED — system is launch-ready"))
     else:
-        print(_yellow("  Some phases had warnings/failures — review above"))
+        logger.info(_yellow("  Some phases had warnings/failures — review above"))
 
-    print("=" * 60)
+    logger.info("=" * 60)
 
 
 # ════════════════════════════════════════════════════════════════════════
@@ -611,6 +613,7 @@ def print_summary(results: Dict[str, bool | str | int]) -> None:
 # ════════════════════════════════════════════════════════════════════════
 
 def main() -> int:
+    """Main."""
     parser = argparse.ArgumentParser(
         prog="automate",
         description="AAC Full Automation — pre-flight checks, tests, pipeline, deploy",
@@ -623,7 +626,7 @@ def main() -> int:
     parser.add_argument("--skip-tests", action="store_true", help="Skip pytest (faster iteration)")
     args = parser.parse_args()
 
-    print(BANNER)
+    logger.info(BANNER)
     start = time.monotonic()
     results: Dict[str, bool | str | int] = {}
 

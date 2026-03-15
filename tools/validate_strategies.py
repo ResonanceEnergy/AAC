@@ -408,6 +408,7 @@ class StrategyValidator:
 
 
 def main():
+    """Main."""
     parser = argparse.ArgumentParser(description="ACC Strategy Validation Tool")
     subparsers = parser.add_subparsers(dest='command', help='Available commands')
 

@@ -106,6 +106,7 @@ class AACIntegrationTest(unittest.TestCase):
     def test_01_component_initialization(self):
         """Test all core components initialize properly"""
         async def run_test():
+            """Run test."""
             logger.info("Testing component initialization...")
 
             # Test communication framework
@@ -124,6 +125,7 @@ class AACIntegrationTest(unittest.TestCase):
     def test_02_market_data_aggregator(self):
         """Test market data aggregator functionality"""
         async def run_test():
+            """Run test."""
             logger.info("Testing market data aggregator...")
 
             # Get aggregator instance
@@ -160,6 +162,7 @@ class AACIntegrationTest(unittest.TestCase):
     def test_03_strategy_factory(self):
         """Test strategy implementation factory"""
         async def run_test():
+            """Run test."""
             logger.info("Testing strategy factory...")
 
             # Get factory instance
@@ -191,6 +194,7 @@ class AACIntegrationTest(unittest.TestCase):
     def test_04_strategy_integration_system(self):
         """Test complete strategy integration system"""
         async def run_test():
+            """Run test."""
             logger.info("Testing strategy integration system...")
 
             # Get market data aggregator (correct type for strategy integration system)
@@ -227,6 +231,7 @@ class AACIntegrationTest(unittest.TestCase):
     def test_05_paper_trading_simulation(self):
         """Test paper trading functionality"""
         async def run_test():
+            """Run test."""
             logger.info("Testing paper trading simulation...")
 
             # Initialize minimal system
@@ -262,6 +267,7 @@ class AACIntegrationTest(unittest.TestCase):
     def test_06_etf_nav_strategy_execution(self):
         """Test ETF-NAV dislocation strategy execution"""
         async def run_test():
+            """Run test."""
             logger.info("Testing ETF-NAV strategy execution...")
 
             # Import the strategy
@@ -299,6 +305,7 @@ class AACIntegrationTest(unittest.TestCase):
     def test_07_index_reconstitution_strategy_execution(self):
         """Test index reconstitution strategy execution"""
         async def run_test():
+            """Run test."""
             logger.info("Testing index reconstitution strategy execution...")
 
             # Import the strategy
@@ -336,6 +343,7 @@ class AACIntegrationTest(unittest.TestCase):
     def test_08_risk_management(self):
         """Test risk management functionality"""
         async def run_test():
+            """Run test."""
             logger.info("Testing risk management...")
 
             system = get_strategy_integration_system(
@@ -360,6 +368,7 @@ class AACIntegrationTest(unittest.TestCase):
     def test_09_performance_monitoring(self):
         """Test performance monitoring functionality"""
         async def run_test():
+            """Run test."""
             logger.info("Testing performance monitoring...")
 
             system = get_strategy_integration_system(
@@ -393,6 +402,7 @@ class AACIntegrationTest(unittest.TestCase):
     def test_10_full_system_integration(self):
         """Test full system integration end-to-end"""
         async def run_test():
+            """Run test."""
             logger.info("Testing full system integration...")
 
             # Initialize all components
@@ -436,15 +446,18 @@ class PerformanceBenchmarkTest(unittest.TestCase):
     """Performance benchmarking tests"""
 
     def setUp(self):
+        """Setup."""
         self.loop = asyncio.new_event_loop()
         asyncio.set_event_loop(self.loop)
 
     def tearDown(self):
+        """Teardown."""
         self.loop.close()
 
     def test_strategy_initialization_performance(self):
         """Test strategy initialization performance"""
         async def run_test():
+            """Run test."""
             logger.info("Testing strategy initialization performance...")
 
             start_time = time.time()
@@ -475,6 +488,7 @@ class PerformanceBenchmarkTest(unittest.TestCase):
     def test_market_data_latency(self):
         """Test market data retrieval latency"""
         async def run_test():
+            """Run test."""
             logger.info("Testing market data latency...")
 
             communication = CommunicationFramework()

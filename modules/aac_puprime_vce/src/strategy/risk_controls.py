@@ -18,6 +18,7 @@ class RiskState:
     cooldown_until: datetime | None = None
 
     def record_trade(self, pnl: float) -> None:
+        """Record trade."""
         self.equity += pnl
         if pnl < 0:
             self.consecutive_losses += 1
@@ -27,14 +28,17 @@ class RiskState:
             self.peak_equity = self.equity
 
     def new_day(self) -> None:
+        """New day."""
         self.day_start_equity = self.equity
 
 
 def daily_drawdown_ok(state: RiskState, max_dd_pct: float) -> bool:
+    """Daily drawdown ok."""
     return state.equity >= state.day_start_equity * (1.0 - max_dd_pct)
 
 
 def campaign_drawdown_ok(state: RiskState, max_dd_pct: float) -> bool:
+    """Campaign drawdown ok."""
     return state.equity >= state.peak_equity * (1.0 - max_dd_pct)
 
 
@@ -76,6 +80,7 @@ def can_open_position(
 
 
 def make_initial_state(starting_equity: float) -> RiskState:
+    """Make initial state."""
     return RiskState(
         equity=starting_equity,
         peak_equity=starting_equity,

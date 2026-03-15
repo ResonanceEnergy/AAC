@@ -413,8 +413,8 @@ class AZSupremeOpenClawHandler:
                 s = orch._current_state.name if hasattr(orch._current_state, 'name') else str(orch._current_state)
                 emoji = {"NORMAL": "✅", "CAUTION": "⚠️", "SAFE_MODE": "🟠", "HALT": "🔴"}.get(s, "❓")
                 state = f"{s} {emoji}"
-        except Exception:
-            pass
+        except Exception as e:
+            logger.exception("Unexpected error: %s", e)
         return (
             f"🛡️ **Risk Monitor** active.\n\n"
             f"**Query**: {message.content}\n"
@@ -516,8 +516,8 @@ class AZSupremeOpenClawHandler:
                     defaults.update({
                         k: v for k, v in metrics.items() if k in defaults
                     })
-        except Exception:
-            pass
+        except Exception as e:
+            logger.exception("Unexpected error: %s", e)
         try:
             from aac.doctrine.doctrine_engine import BarrenWuffetState
             from aac.doctrine.doctrine_integration import DoctrineOrchestrator
@@ -527,8 +527,8 @@ class AZSupremeOpenClawHandler:
                 state_name = state.name if hasattr(state, 'name') else str(state)
                 emoji = {"NORMAL": "✅", "CAUTION": "⚠️", "SAFE_MODE": "🟠", "HALT": "🔴"}.get(state_name, "❓")
                 defaults["doctrine_state"] = f"{state_name} {emoji}"
-        except Exception:
-            pass
+        except Exception as e:
+            logger.exception("Unexpected error: %s", e)
         return defaults
 
     async def _cmd_briefing(self, args: str, msg: OpenClawMessage) -> str:
@@ -564,8 +564,8 @@ class AZSupremeOpenClawHandler:
                     defaults.update({
                         k: v for k, v in metrics.items() if k in defaults
                     })
-        except Exception:
-            pass
+        except Exception as e:
+            logger.exception("Unexpected error: %s", e)
         return defaults
 
     async def _cmd_risk(self, args: str, msg: OpenClawMessage) -> str:

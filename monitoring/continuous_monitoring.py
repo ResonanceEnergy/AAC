@@ -319,8 +319,8 @@ class ContinuousMonitoringService:
                 status = await og.get_portfolio_status()
                 active_positions = status.get('total_positions', 0)
                 pending_orders = status.get('pending_orders', 0)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.exception("Unexpected error: %s", e)
         return {
             'active_positions': active_positions,
             'pending_orders': pending_orders,

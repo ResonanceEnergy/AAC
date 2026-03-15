@@ -578,8 +578,8 @@ class DoctrineEngine:
                 # Default to warning if no thresholds matched
                 else:
                     return ComplianceState.WARNING
-        except Exception:
-            pass
+        except Exception as e:
+            logger.exception("Unexpected error: %s", e)
         return ComplianceState.UNKNOWN
     
     def _check_threshold(self, value: float, threshold_str: str) -> bool:
@@ -893,6 +893,7 @@ class DoctrineApplicationService:
             self._incident_log = []
 
         def create_incident(ctx):
+            """Create incident."""
             logger.warning(f"[INCIDENT] Creating incident: {ctx}")
             incident = {
                 'type': 'incident',
@@ -904,6 +905,7 @@ class DoctrineApplicationService:
             return True
 
         def page_oncall(ctx):
+            """Page oncall."""
             logger.critical(f"[PAGE] Paging on-call: {ctx}")
             self._incident_log.append({
                 'type': 'page_oncall',
@@ -914,6 +916,7 @@ class DoctrineApplicationService:
             return True
 
         def throttle_risk(ctx):
+            """Throttle risk."""
             logger.warning(f"[RISK] Throttling risk: {ctx}")
             metrics = ctx.get('metrics', {}) if isinstance(ctx, dict) else {}
             for v in self.engine.metric_values.values():
@@ -923,12 +926,14 @@ class DoctrineApplicationService:
             return True
 
         def stop_execution(ctx):
+            """Stop execution."""
             logger.critical(f"[EXEC] Stopping execution: {ctx}")
             self.engine.current_az_state = BarrenWuffetState.LOCKDOWN
             self._incident_log.append({'type': 'stop_execution', 'timestamp': datetime.now().isoformat(), 'context': str(ctx)})
             return True
 
         def enter_safe_mode(ctx):
+            """Enter safe mode."""
             logger.critical(f"[SAFE_MODE] Entering safe mode: {ctx}")
             if self.engine._state_severity(self.engine.current_az_state) < self.engine._state_severity(BarrenWuffetState.DEFENSIVE):
                 self.engine.current_az_state = BarrenWuffetState.DEFENSIVE
@@ -936,12 +941,14 @@ class DoctrineApplicationService:
             return True
 
         def freeze_strategy(ctx):
+            """Freeze strategy."""
             logger.warning(f"[STRATEGY] Freezing strategy: {ctx}")
             strategy_id = ctx.get('strategy_id', 'unknown') if isinstance(ctx, dict) else 'unknown'
             self._incident_log.append({'type': 'freeze_strategy', 'timestamp': datetime.now().isoformat(), 'strategy_id': strategy_id, 'context': str(ctx)})
             return True
 
         def route_failover(ctx):
+            """Route failover."""
             logger.warning(f"[ROUTING] Initiating failover: {ctx}")
             source = ctx.get('source', 'unknown') if isinstance(ctx, dict) else 'unknown'
             target = ctx.get('target', 'backup') if isinstance(ctx, dict) else 'backup'
@@ -949,22 +956,26 @@ class DoctrineApplicationService:
             return True
 
         def lock_keys(ctx):
+            """Lock keys."""
             logger.critical(f"[SECURITY] Locking keys: {ctx}")
             self._incident_log.append({'type': 'lock_keys', 'timestamp': datetime.now().isoformat(), 'context': str(ctx), 'severity': 'critical'})
             return True
 
         def quarantine_source(ctx):
+            """Quarantine source."""
             logger.warning(f"[DATA] Quarantining source: {ctx}")
             source_name = ctx.get('source', 'unknown') if isinstance(ctx, dict) else 'unknown'
             self._incident_log.append({'type': 'quarantine_source', 'timestamp': datetime.now().isoformat(), 'source': source_name})
             return True
 
         def force_recon(ctx):
+            """Force recon."""
             logger.warning(f"[RECON] Forcing reconciliation: {ctx}")
             self._incident_log.append({'type': 'force_recon', 'timestamp': datetime.now().isoformat(), 'context': str(ctx)})
             return True
 
         def tactical_retreat(ctx):
+            """Tactical retreat."""
             logger.warning(f"[STRATEGIC] Tactical retreat — reducing exposure: {ctx}")
             if self.engine._state_severity(self.engine.current_az_state) < self.engine._state_severity(BarrenWuffetState.DEFENSIVE):
                 self.engine.current_az_state = BarrenWuffetState.DEFENSIVE
@@ -972,16 +983,19 @@ class DoctrineApplicationService:
             return True
 
         def concentrate_force(ctx):
+            """Concentrate force."""
             logger.info(f"[STRATEGIC] Concentrating capital on top setups: {ctx}")
             self._incident_log.append({'type': 'concentrate_force', 'timestamp': datetime.now().isoformat(), 'context': str(ctx)})
             return True
 
         def conceal_position(ctx):
+            """Conceal position."""
             logger.warning(f"[STRATEGIC] Concealing positions — switching to iceberg orders: {ctx}")
             self._incident_log.append({'type': 'conceal_position', 'timestamp': datetime.now().isoformat(), 'context': str(ctx)})
             return True
 
         def exploit_weakness(ctx):
+            """Exploit weakness."""
             logger.info(f"[STRATEGIC] Exploiting detected market weakness: {ctx}")
             self._incident_log.append({'type': 'exploit_weakness', 'timestamp': datetime.now().isoformat(), 'context': str(ctx)})
             return True
@@ -1108,9 +1122,9 @@ class DoctrineApplicationService:
     
     def print_doctrine_summary(self) -> None:
         """Print a summary of all doctrine packs."""
-        print("\n" + "═" * 80)
-        print("AAC DOCTRINE PACKS SUMMARY")
-        print("═" * 80)
+        logger.info("\n" + "═" * 80)
+        logger.info("AAC DOCTRINE PACKS SUMMARY")
+        logger.info("═" * 80)
         
         total_metrics = 0
         total_failure_modes = 0
@@ -1126,13 +1140,13 @@ class DoctrineApplicationService:
             total_failure_modes += failures
             total_triggers += triggers
             
-            print(f"\n📦 Pack {pack_id}: {pack['name']}")
-            print(f"   Owner: {pack['owner'].value}")
-            print(f"   Metrics: {metrics} | Failure Modes: {failures} | AZ Triggers: {triggers}")
+            logger.info(f"\n📦 Pack {pack_id}: {pack['name']}")
+            logger.info(f"   Owner: {pack['owner'].value}")
+            logger.info(f"   Metrics: {metrics} | Failure Modes: {failures} | AZ Triggers: {triggers}")
         
-        print("\n" + "─" * 80)
-        print(f"TOTALS: {total_metrics} metrics | {total_failure_modes} failure modes | {total_triggers} AZ triggers")
-        print("═" * 80 + "\n")
+        logger.info("\n" + "─" * 80)
+        logger.info(f"TOTALS: {total_metrics} metrics | {total_failure_modes} failure modes | {total_triggers} AZ triggers")
+        logger.info("═" * 80 + "\n")
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -1143,10 +1157,10 @@ async def main(quiet_mode: bool = False):
     """Main entry point for doctrine engine demonstration."""
     
     import time
-    print("\n" + "█" * 80)
-    print("  AAC DOCTRINE APPLICATION ENGINE")
-    print("  Analyzing and Applying 8 Doctrine Packs")
-    print("█" * 80)
+    logger.info("\n" + "█" * 80)
+    logger.info("  AAC DOCTRINE APPLICATION ENGINE")
+    logger.info("  Analyzing and Applying 8 Doctrine Packs")
+    logger.info("█" * 80)
 
     # Initialize engine and service
     engine = DoctrineEngine()
@@ -1157,34 +1171,34 @@ async def main(quiet_mode: bool = False):
     service.print_doctrine_summary()
 
     if quiet_mode:
-        print("\n📊 Doctrine engine running in quiet mode.")
-        print("Compliance data is being displayed in the matrix monitor.")
-        print("Press Ctrl+C to exit...")
+        logger.info("\n📊 Doctrine engine running in quiet mode.")
+        logger.info("Compliance data is being displayed in the matrix monitor.")
+        logger.info("Press Ctrl+C to exit...")
         # Keep the service running but don't print continuously
         while True:
             await asyncio.sleep(1)
     else:
-        print("\n🔍 Running Continuous Compliance Checks...")
-        print("─" * 80)
+        logger.info("\n🔍 Running Continuous Compliance Checks...")
+        logger.info("─" * 80)
 
         cycle = 0
         while True:
             cycle += 1
             report = await service.run_compliance_check()
-            print(f"\n[MONITOR] COMPLIANCE REPORT (Cycle {cycle})")
-            print(f"   Generated: {report.generated_at.strftime('%Y-%m-%d %H:%M:%S')}")
-            print(f"   Scope: {report.scope}")
-            print(f"   BARREN WUFFET State: {report.barren_wuffet_state.value}")
-            print(f"\n   ✅ Compliant: {report.compliant}")
-            print(f"   [WARN]️  Warnings: {report.warnings}")
-            print(f"   [CROSS] Violations: {report.violations}")
-            print(f"\n   📈 Compliance Score: {report.compliance_score}%")
+            logger.info(f"\n[MONITOR] COMPLIANCE REPORT (Cycle {cycle})")
+            logger.info(f"   Generated: {report.generated_at.strftime('%Y-%m-%d %H:%M:%S')}")
+            logger.info(f"   Scope: {report.scope}")
+            logger.info(f"   BARREN WUFFET State: {report.barren_wuffet_state.value}")
+            logger.info(f"\n   ✅ Compliant: {report.compliant}")
+            logger.info(f"   [WARN]️  Warnings: {report.warnings}")
+            logger.info(f"   [CROSS] Violations: {report.violations}")
+            logger.info(f"\n   📈 Compliance Score: {report.compliance_score}%")
             if report.violations_list:
-                print(f"\n   Active Violations:")
+                logger.info(f"\n   Active Violations:")
                 for v in report.violations_list:
-                    print(f"   - [{v.pack_name}] {v.description}")
-                    print(f"     Action: {v.recommended_action.value}")
-            print("─" * 80)
+                    logger.info(f"   - [{v.pack_name}] {v.description}")
+                    logger.info(f"     Action: {v.recommended_action.value}")
+            logger.info("─" * 80)
             # Per-department summary (optional, can be commented out for speed)
             # for dept in Department:
             #     summary = engine.get_department_doctrine_summary(dept)

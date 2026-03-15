@@ -12,6 +12,7 @@ from services.api_spending_limiter import (
 
 @pytest.fixture
 def limiter(tmp_path):
+    """Limiter."""
     return SpendingLimiter(
         daily_limit=10.0,
         monthly_limit=200.0,
@@ -31,6 +32,7 @@ def _event(provider="anthropic", cost=1.0, model="claude-sonnet", skill="test"):
 
 
 class TestSpendingLimiterInit:
+    """TestSpendingLimiterInit class."""
     def test_default_providers(self, limiter):
         assert set(limiter.providers.keys()) == {"anthropic", "openai", "google", "xai"}
 
@@ -44,6 +46,7 @@ class TestSpendingLimiterInit:
 
 
 class TestCanSpend:
+    """TestCanSpend class."""
     def test_allows_under_budget(self, limiter):
         assert limiter.can_spend("anthropic", 1.0) is True
 
@@ -63,6 +66,7 @@ class TestCanSpend:
 
 
 class TestRecordSpend:
+    """TestRecordSpend class."""
     def test_records_event(self, limiter):
         limiter.record_spend(_event(cost=2.0))
         assert limiter.providers["anthropic"].spent_today_usd == pytest.approx(2.0)
@@ -82,6 +86,7 @@ class TestRecordSpend:
 
 
 class TestEstimateCost:
+    """TestEstimateCost class."""
     def test_known_model(self, limiter):
         cost = limiter.estimate_cost("anthropic", "claude-sonnet", 1000, 500)
         expected = (1000 / 1000) * 0.003 + (500 / 1000) * 0.015
@@ -93,6 +98,7 @@ class TestEstimateCost:
 
 
 class TestGetStatus:
+    """TestGetStatus class."""
     def test_status_structure(self, limiter):
         status = limiter.get_status()
         assert "global_daily_limit" in status

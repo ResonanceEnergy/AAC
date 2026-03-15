@@ -73,6 +73,7 @@ class BetType(Enum):
 
 
 class PositionState(Enum):
+    """PositionState class."""
     OPEN = "open"
     CLOSED_WIN = "closed_win"
     CLOSED_LOSS = "closed_loss"
@@ -98,10 +99,12 @@ class PredictionMarket:
 
     @property
     def cheapest_outcome_price(self) -> float:
+        """Cheapest outcome price."""
         return min(self.prices.values()) if self.prices else 1.0
 
     @property
     def cheapest_outcome(self) -> str:
+        """Cheapest outcome."""
         if not self.prices:
             return ""
         return min(self.prices, key=lambda k: self.prices[k])
@@ -113,10 +116,12 @@ class PredictionMarket:
 
     @property
     def is_thin_book(self) -> bool:
+        """Is thin book."""
         return self.liquidity < 500.0
 
     @property
     def hours_to_resolution(self) -> Optional[float]:
+        """Hours to resolution."""
         if self.resolution_time is None:
             return None
         delta = self.resolution_time - datetime.now()
@@ -144,12 +149,14 @@ class PlanktonBet:
 
     @property
     def potential_roi(self) -> float:
+        """Potential roi."""
         if self.cost <= 0:
             return 0.0
         return (self.potential_payout - self.cost) / self.cost
 
     @property
     def risk_reward_ratio(self) -> float:
+        """Risk reward ratio."""
         if self.cost <= 0:
             return 0.0
         return self.potential_payout / self.cost
@@ -171,22 +178,26 @@ class HarvesterStats:
 
     @property
     def net_profit(self) -> float:
+        """Net profit."""
         return self.total_returned - self.total_invested
 
     @property
     def win_rate(self) -> float:
+        """Win rate."""
         if self.total_bets == 0:
             return 0.0
         return self.winning_bets / self.total_bets
 
     @property
     def roi(self) -> float:
+        """Roi."""
         if self.total_invested == 0:
             return 0.0
         return self.net_profit / self.total_invested
 
     @property
     def avg_bet_size(self) -> float:
+        """Avg bet size."""
         if self.total_bets == 0:
             return 0.0
         return self.total_invested / self.total_bets

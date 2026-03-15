@@ -203,6 +203,7 @@ class RESTConnector(BaseMarketDataConnector):
         self.rate_limit_delay = float(os.environ.get('API_RATE_LIMIT_DELAY', '1.0'))
 
     async def connect(self) -> bool:
+        """Connect."""
         try:
             if self.session and not self.session.closed:
                 await self.session.close()
@@ -216,6 +217,7 @@ class RESTConnector(BaseMarketDataConnector):
             return False
 
     async def disconnect(self) -> None:
+        """Disconnect."""
         if self.session:
             await self.session.close()
         self.status = FeedStatus.DISCONNECTED
@@ -240,6 +242,7 @@ class WebSocketConnector(BaseMarketDataConnector):
         self.reconnect_delay = float(os.environ.get('WS_RECONNECT_DELAY', '5.0'))
 
     async def connect(self) -> bool:
+        """Connect."""
         try:
             self.status = FeedStatus.CONNECTING
             if self.websocket and not self.websocket.closed:
@@ -255,6 +258,7 @@ class WebSocketConnector(BaseMarketDataConnector):
             return False
 
     async def disconnect(self) -> None:
+        """Disconnect."""
         if self.websocket:
             await self.websocket.close()
         self.status = FeedStatus.DISCONNECTED
@@ -342,6 +346,7 @@ class NYSEConnector(WebSocketConnector):
             return False
 
     async def disconnect(self):
+        """Disconnect."""
         if self.session:
             await self.session.close()
         self.status = FeedStatus.DISCONNECTED
@@ -447,7 +452,7 @@ class NYSEConnector(WebSocketConnector):
         """Handle incoming WebSocket message - not used for REST polling"""
         # This method is required by the abstract class but not used
         # since we're using REST polling instead of WebSocket
-        pass
+        logger.debug("_handle_message called")
 
     async def get_historical_data(self, symbol: str, start_date: datetime, end_date: datetime) -> List[MarketData]:
         """Get historical data for symbol"""
@@ -483,6 +488,7 @@ class CMEConnector(WebSocketConnector):
             return False
 
     async def disconnect(self):
+        """Disconnect."""
         if self.session:
             await self.session.close()
         self.status = FeedStatus.DISCONNECTED
@@ -571,7 +577,7 @@ class CMEConnector(WebSocketConnector):
 
     async def _handle_message(self, message: str):
         """Handle incoming WebSocket message - not used for REST polling"""
-        pass
+        logger.debug("_handle_message called")
 
     async def get_historical_data(self, symbol: str, start_date: datetime, end_date: datetime) -> List[MarketData]:
         """Get historical futures data"""
@@ -627,6 +633,7 @@ class NASDAQConnector(WebSocketConnector):
             return False
 
     async def disconnect(self):
+        """Disconnect."""
         if self.session:
             await self.session.close()
         self.status = FeedStatus.DISCONNECTED
@@ -689,7 +696,7 @@ class NASDAQConnector(WebSocketConnector):
 
     async def _handle_message(self, message: str):
         """Handle incoming WebSocket message - not used for REST polling"""
-        pass
+        logger.debug("_handle_message called")
 
     async def get_historical_data(self, symbol: str, start_date: datetime, end_date: datetime) -> List[MarketData]:
         """Get historical data for NASDAQ symbol"""
@@ -731,6 +738,7 @@ class BloombergConnector(RESTConnector):
 
     async def subscribe_symbols(self, symbols: List[str]):
         # Bloomberg uses polling for real-time data
+        """Subscribe symbols."""
         asyncio.create_task(self._poll_symbols(symbols))
 
     async def _poll_symbols(self, symbols: List[str]):
@@ -754,6 +762,7 @@ class BloombergConnector(RESTConnector):
 
     async def get_historical_data(self, symbol: str, start_date: datetime, end_date: datetime) -> List[MarketData]:
         # Bloomberg historical data API
+        """Get historical data."""
         return []
 
 
@@ -766,6 +775,7 @@ class RefinitivConnector(RESTConnector):
 
     async def subscribe_symbols(self, symbols: List[str]):
         # Refinitiv uses streaming API
+        """Subscribe symbols."""
         asyncio.create_task(self._poll_symbols(symbols))
 
     async def _poll_symbols(self, symbols: List[str]):
@@ -789,6 +799,7 @@ class RefinitivConnector(RESTConnector):
 
     async def get_historical_data(self, symbol: str, start_date: datetime, end_date: datetime) -> List[MarketData]:
         # Refinitiv historical data API
+        """Get historical data."""
         return []
 
 
@@ -826,6 +837,7 @@ class IQFeedConnector(WebSocketConnector):
 
     async def get_historical_data(self, symbol: str, start_date: datetime, end_date: datetime) -> List[MarketData]:
         # IQFeed historical data
+        """Get historical data."""
         return []
 
 

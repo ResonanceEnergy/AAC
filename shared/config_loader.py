@@ -116,6 +116,7 @@ class ExchangeConfig:
     enabled: bool = False
     
     def is_configured(self) -> bool:
+        """Is configured."""
         return bool(self.api_key and self.api_secret)
 
 
@@ -130,6 +131,7 @@ class IBKRConfig:
     enabled: bool = False
 
     def is_configured(self) -> bool:
+        """Is configured."""
         return bool(self.account)
 
 
@@ -145,6 +147,7 @@ class MoomooConfig:
     enabled: bool = False
 
     def is_configured(self) -> bool:
+        """Is configured."""
         return self.enabled
 
 
@@ -156,10 +159,12 @@ class DatabaseConfig:
     
     @property
     def is_sqlite(self) -> bool:
+        """Is sqlite."""
         return self.url.startswith('sqlite')
     
     @property
     def is_postgres(self) -> bool:
+        """Is postgres."""
         return self.url.startswith('postgresql')
 
 
@@ -178,12 +183,15 @@ class NotificationConfig:
     email_to: str = ''
     
     def telegram_enabled(self) -> bool:
+        """Telegram enabled."""
         return bool(self.telegram_token and self.telegram_chat_id)
     
     def slack_enabled(self) -> bool:
+        """Slack enabled."""
         return bool(self.slack_webhook)
     
     def email_enabled(self) -> bool:
+        """Email enabled."""
         return bool(self.smtp_host and self.smtp_user and self.email_to)
 
 

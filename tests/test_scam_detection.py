@@ -13,16 +13,19 @@ from CryptoIntelligence.scam_detection import (
 
 @pytest.fixture
 def detector():
+    """Detector."""
     return ScamDetector()
 
 
 class TestScamDetectorInit:
+    """TestScamDetectorInit class."""
     def test_creates(self, detector):
         assert isinstance(detector, ScamDetector)
         assert detector.alert_history == []
 
 
 class TestScanToken:
+    """TestScanToken class."""
     def test_clean_token_no_alerts(self, detector):
         data = {"address": "0xclean", "chain": "ethereum"}
         alerts = detector.scan_token(data)
@@ -83,6 +86,7 @@ class TestScanToken:
 
 
 class TestLegitimacyReport:
+    """TestLegitimacyReport class."""
     def test_clean_token_high_score(self, detector):
         data = {
             "address": "0xgood",
@@ -115,6 +119,7 @@ class TestLegitimacyReport:
 
 
 class TestScamAlertProperties:
+    """TestScamAlertProperties class."""
     def test_actionable_high_confidence(self):
         alert = ScamAlert(
             scam_type=ScamType.RUG_PULL,
@@ -144,6 +149,8 @@ class TestScamAlertProperties:
 
 
 class TestPumpDumpRegex:
+    """TestPumpDumpRegex class."""
+
     @pytest.mark.parametrize("text", [
         "guaranteed 100x moon shot",
         "next shiba inu killer",
