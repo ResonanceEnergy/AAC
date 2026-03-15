@@ -21,9 +21,19 @@ AAC must be rebuilt from the ground up around this reality. Not as a "crypto tra
 but as a **monetary transition intelligence and execution platform** that compounds wealth
 across ALL three tracks, ALL time horizons, and ALL volatility regimes.
 
+**SEED CAPITAL: $8,800 REAL — deployed NOW, not hypothetical.**
+- NDAX (Canadian crypto exchange): $3,800 — AAC has NDAXConnector, deploy FIRST
+- IBKR (Interactive Brokers): $1,000 — AAC has IBKRConnector, stocks/options/crypto
+- Moomoo: $1,000 — AAC has MoomooConnector, stocks/ETFs
+- TFSA Wealthsimple: $3,000 — TAX-FREE gains (Canadian), keep high-growth assets here
+
+**Timeline: AS FAST AS POSSIBLE.** Not 5 years. Not 5 months. Performance-based
+milestones, not calendar-based. Capital goes where it compounds fastest.
+Consolidate where AAC has execution capability. Move freely between accounts.
+$8,800 → $1,000,000 = 114x return. Every day capital sits idle is a day wasted.
+
 **The $1M target is expressed in PURCHASING POWER, not nominal dollars.**
-In a monetary transition, nominal targets are misleading. $1M in 2031 dollars
-may have the purchasing power of $600K in 2026 dollars. AAC accounts for this
+In a monetary transition, nominal targets are misleading. AAC accounts for this
 by targeting REAL returns measured against a basket: gold, BTC, CPI, M2 money supply.
 
 ---
@@ -122,10 +132,11 @@ By end of month AAC should have:
 - Potential XRP ETF news cycle (several pending applications)
 - BRICS de-dollarization rhetoric likely elevated (political cycle)
 
-**Capital Deployment** (if starting from $0 deployed):
-- Deploy via paper trade first — ALWAYS
-- If paper profitable after 2 weeks: deploy $500 real capital (proof of concept)
-- Position: 60% BTC spot, 20% ETH, 10% XRP, 10% USDC (for stablecoin arb reserve)
+**Capital Deployment** (REAL — $3,800 on NDAX ready to execute):
+- NDAX: Deploy immediately — 60% BTC, 20% ETH, 10% XRP, 10% USDC reserve
+- Paper trade SIMULTANEOUSLY on 2nd strategy while live on primary
+- If live strategy profitable after 7 days: scale position sizes
+- Position: aggressive expansion-phase allocation per FFD cycle guidance
 
 ---
 
@@ -170,8 +181,9 @@ By Q2 end:
 - DeFi TVL trajectory — growth vs. stagnation determines yield strategy viability
 - L2 ecosystem maturation — Base, Arbitrum, Optimism all vying for DeFi liquidity
 
-**Capital Position Target**: $1,000 - $5,000 deployed
-- 40% Track 1 (BTC/ETH/XRP/SOL), 30% Track 2 (stablecoin yield), 30% cash reserve
+**Capital Position Target**: $8,800 → $15,000+ (M1: IGNITION)
+- NDAX live with BTC/ETH/XRP, IBKR with options/equities
+- 40% Track 1 (BTC/ETH/XRP), 30% Track 1 amplifiers (MSTR/COIN), 30% cash reserve
 - Reserve is NOT idle — earns stablecoin yield in Aave/Compound (Tier 1 only)
 - NEVER chase Tier 3 yield (protocol emissions) — Terra lesson
 
@@ -195,10 +207,11 @@ By Q2 end:
 - Regulatory event detection → automatic risk reduction
 - Cross-exchange execution for best price and reduced slippage
 
-**Capital Position Target**: $5,000 - $15,000
-- If BTC doubles from here: 60% of gains taken = significant capital increase
-- Rotated into: stablecoin yield farming (10-20% APY sustainable in Aave)
-- Begin L2 fee arbitrage (execute trades on cheapest L2)
+**Capital Position Target**: $15,000 → $25,000+ (M2: TRACTION)
+- BTC cycle appreciation should be driving significant unrealized gains
+- If cycle peak approaching: scale out 50% of Track 1 into stablecoins
+- The BEST time to accumulate stablecoins for yield is AFTER selling the top
+- IBKR options profits compound into larger position sizes
 
 ---
 
@@ -228,10 +241,12 @@ By Q2 end:
 - Prediction market signals (Polymarket volume as sentiment indicator)
 - PQC migration urgency tracking (quantum computing news → crypto risk assessment)
 
-**Capital Position Target**: $15,000 - $50,000
-- Compounding stablecoin yield at 10-15% APY = $1,500-$7,500/year
+**Capital Position Target**: $25,000 → $50,000+ (M3: VELOCITY)
+- Active trading + compounding yield + equity amplifiers all contributing
+- TFSA should be growing tax-free, possibly $8K-$15K by now
+- Compounding stablecoin yield at 10-15% APY adding consistent base income
 - Plus active trading returns from transition strategies
-- Plus arb profits from tokenized asset dislocations
+- Plus arb profits from NDAX vs other exchange dislocations
 
 ---
 
@@ -260,10 +275,11 @@ By Q2 end:
 - Cross-CBDC FX arbitrage: e-CNY/digital euro/e-Rupee create new FX pairs
 - Privacy premium trading: privacy coins premium during CBDC surveillance fears
 
-**Capital Position Target**: $30,000 - $75,000
-- Bear market = cheap assets, high stablecoin yields
-- Aggressive DCA into Track 1 conviction positions
-- Compounding at 10-20% yield with reinvestment
+**Capital Position Target**: $50,000 → $100,000+ (M4: MOMENTUM)
+- Bear market = cheap assets, high stablecoin yields — but portfolio already substantial
+- Aggressive DCA into Track 1 conviction positions with real capital weight
+- Compounding at 10-20% yield with full reinvestment
+- TFSA growing tax-free through bear market accumulation
 
 ---
 
@@ -294,10 +310,11 @@ By Q2 end:
 - Cross-chain bridge optimization (Flare FDC vs LayerZero vs Wormhole)
 - Prediction market signals integrated (Polymarket, Kalshi sentiment indicators)
 
-**Capital Position Target**: $50,000 - $150,000
+**Capital Position Target**: $50,000 → $100,000+ (M4: MOMENTUM)
 - Bear market accumulation gains showing unrealized P&L
-- Stablecoin yield still compounding
+- Stablecoin yield still compounding across multiple venues
 - Total portfolio weighted toward appreciation assets (next cycle catalyst imminent)
+- 4 accounts all contributing — parallel compounding in full effect
 
 ---
 
@@ -329,10 +346,11 @@ By Q2 end:
 - Cross-CBDC FX trading (multiple CBDCs live globally)
 - AI agent marketplace positions (revenue-generating AI services)
 
-**Capital Position Target**: $150,000 - $500,000
+**Capital Position Target**: $100,000 → $250,000+ (M5: ACCELERATION)
 - Halving cycle appreciation + compounding yield + arb returns
 - Diversifying across multiple asset types (not just crypto spot)
 - Real yield from productive assets (staking, lending, tokenized real estate)
+- TFSA potentially $30K-$50K+ and growing tax-free
 
 ---
 
@@ -469,44 +487,105 @@ functional components around FFD as the supreme doctrine.
 
 ## 3. PATH TO $1,000,000
 
+### 3.0 SEED CAPITAL DEPLOYMENT — THE $8,800 WAR CHEST
+
+**Account-by-Account Deployment Strategy**:
+
+| Account | Capital | AAC Connector | Role | Priority |
+|---|---|---|---|---|
+| NDAX | $3,800 | NDAXConnector (exists) | PRIMARY crypto execution, BTC/ETH/XRP spot | P0 — DEPLOY NOW |
+| IBKR | $1,000 | IBKRConnector (55 tests) | Options plays, US equities, leveraged ETFs | P0 — DEPLOY NOW |
+| Moomoo | $1,000 | MoomooConnector (exists) | Canadian/US equities, crypto-adjacent (MSTR, COIN, RIOT) | P1 — WEEK 1 |
+| TFSA Wealthsimple | $3,000 | Manual/API (no connector) | TAX-FREE high-growth, BTC/ETH spot, crypto ETFs | P1 — WEEK 1 |
+
+**NDAX ($3,800) — The Crypto Engine**:
+- LARGEST allocation, direct AAC execution via NDAXConnector
+- Deploy immediately: 60% BTC ($2,280), 20% ETH ($760), 10% XRP ($380), 10% USDC reserve ($380)
+- Cross-exchange arb: NDAX vs Binance/Coinbase spreads on BTC/ETH
+- Canadian exchange = CAD pairs, potential arb between CAD and USD pricing
+- Halving cycle position ~0.57 = expansion phase = aggressive BTC allocation
+
+**IBKR ($1,000) — The Amplifier**:
+- Options for leveraged crypto exposure (BITO calls, MSTR calls)
+- Micro futures for capital-efficient directional bets
+- When IBKR crypto goes live in Canada: direct BTC/ETH trading
+- Stop-loss discipline: max 2% per trade = $20 risk per position
+
+**Moomoo ($1,000) — The Satellite**:
+- Crypto-adjacent equities: MSTR, COIN, RIOT, MARA, HUT
+- These move 1.5-3x BTC's percentage moves (leveraged exposure without leverage)
+- Canadian crypto ETFs: BTCC, ETHX (available on TSX)
+- Tax-efficient in non-registered account if held >1 year
+
+**TFSA Wealthsimple ($3,000) — The Tax-Free Compounder**:
+- ALL gains in TFSA are 100% TAX-FREE in Canada — this is the BIGGEST edge
+- Buy and hold high-conviction: BTC via BTCC ETF, ETH via ETHX ETF
+- ANY appreciation here is pure profit — no capital gains tax ever
+- Never withdraw unless consolidating to a higher-performing venue
+- Target: grow this to $50K+ tax-free, then it becomes a serious compounding engine
+
+**Capital Consolidation Rules**:
+- If any account reaches 3x: evaluate consolidating to highest-performing venue
+- NDAX is the priority — it has the most capital AND direct AAC execution
+- TFSA stays independent — tax-free status is too valuable to sacrifice
+- If IBKR crypto launches in Canada: consider moving NDAX capital there for broader market access
+
 ### 3.1 The Compounding Reality
 
-Starting from $0 deployed, the path to $1M requires either:
-- Large capital injection + moderate returns, OR
-- Small capital injection + exceptional returns + time + compounding
+Starting from **$8,800 REAL capital across 4 accounts**, the path to $1M requires 114x.
 
-**FFD provides the SECOND path** — extraordinary returns are available in monetary
+**FFD provides the path** — extraordinary returns are available in monetary
 transitions because:
-1. Halving cycles create 2-10x appreciation windows every 4 years
+1. Halving cycles create 2-10x appreciation windows every 4 years (we're IN one NOW)
 2. Stablecoin yield farming provides 10-20% APY during bear markets
 3. Cross-exchange arbitrage provides 0.1-1% per trade (compounds fast with frequency)
 4. Regulatory catalyst events create 20-50% moves in individual assets
-5. Transition inefficiencies create structural alpha unavailable to legacy finance
+5. Crypto-adjacent equities amplify crypto moves by 1.5-3x
+6. TFSA tax-free status means 100% of gains compound (no tax drag)
+7. Transition inefficiencies create structural alpha unavailable to legacy finance
 
-### 3.2 The 5-Year Capital Growth Model
+**The math at aggressive compounding**:
+- $8,800 at 15% monthly (achievable in crypto expansion phases) → $1M in ~33 months
+- $8,800 at 25% monthly (peak volatility with leverage/options) → $1M in ~20 months
+- $8,800 at 50% monthly (concentrated bets hitting) → $1M in ~12 months
+- Reality: VARIABLE returns — some months -20%, some months +80%
+- KEY: survive the drawdowns, maximize the winning months, compound everything
 
-**Assumptions** (conservative-moderate):
-- Starting deployed capital: $1,000 (achievable from savings)
-- Monthly capital injection: $200 (maintain income stream outside AAC)
-- Halving cycle appreciation: 5x over cycle (conservative — 2017 was 20x, 2021 was 4x)
-- Stablecoin yield: 10% APY (sustainable range for Aave/Compound)
-- Active trading alpha: 20% annual excess return (backtestable via FFD strategies)
-- Reinvestment rate: 100% until $100K, then 80% (20% to safety/living expenses)
+### 3.2 The Aggressive Capital Growth Model — Performance-Based Milestones
 
-**Year-by-Year Projection** (illustrative, not guaranteed):
+**Real Starting Position**:
+- Total seed capital: $8,800 across 4 accounts
+- AAC-executable capital: $5,800 (NDAX $3,800 + IBKR $1,000 + Moomoo $1,000)
+- Tax-free compounder: $3,000 (TFSA Wealthsimple)
+- Halving cycle position: ~0.57 (expansion phase — historically BEST for returns)
+- Reinvestment rate: 100% until $100K, then 90% (10% to safety/next account funding)
+- Capital injections: deploy any additional income immediately
 
-| Year | Phase | Starting Capital | Actions | Ending Capital (est.) |
-|---|---|---|---|---|
-| Y0 (Now → Sep 2026) | Expansion | $1,000 + $200/mo | BTC momentum + stablecoin yield + paper trading | $5,000 - $12,000 |
-| Y1 (Sep 2026 → Sep 2027) | Peak → Correction | $5,000 - $12,000 | SELL cycle top into stablecoins, lock yield | $15,000 - $40,000 |
-| Y1.5 (Sep 2027 → Mar 2028) | Accumulation | $15,000 - $40,000 | DCA into bear, yield compounding, arb | $25,000 - $60,000 |
-| Y2 (Mar 2028 → Mar 2029) | Pre-halving → Expansion | $25,000 - $60,000 | Heavy Track 1 loading, ride next cycle | $75,000 - $200,000 |
-| Y3 (Mar 2029 → Mar 2030) | Expansion → Peak | $75,000 - $200,000 | Scale out 50% at targets, rotate to yield | $200,000 - $600,000 |
-| Y4 (Mar 2030 → Mar 2031) | Peak → Correction | $200,000 - $600,000 | Same playbook, stablecoin yield season | $400,000 - $1,000,000+ |
+**Performance-Based Milestones** (trigger on achievement, not calendar):
 
-**The key insight**: You don't need ONE 1000x trade. You need to **consistently
-execute the halving cycle rotation** (accumulate → ride → sell → yield → repeat)
-while adding capital injections and compounding all returns.
+| Milestone | Target Capital | Trigger Actions | Strategy Shift |
+|---|---|---|---|
+| M1: IGNITION | $15,000 (1.7x) | Validate all connectors, daily execution rhythm | Full automation of highest-performing strategy |
+| M2: TRACTION | $25,000 (2.8x) | Add 2nd live strategy, begin cross-exchange arb | Scale position sizes, add options plays |
+| M3: VELOCITY | $50,000 (5.7x) | 3+ strategies live, TFSA contributing significantly | Begin stablecoin yield deployment, diversify |
+| M4: MOMENTUM | $100,000 (11.4x) | Full multi-strategy portfolio, systematic rebalancing | Reduce risk per trade to 1%, increase position count |
+| M5: ACCELERATION | $250,000 (28.4x) | Consider fund structure, professional-grade risk mgmt | Begin tokenized RWA positions, gold allocation |
+| M6: ORBIT | $500,000 (56.8x) | Formal track record established, potential LP interest | 70/30 reinvest/withdraw, begin Path B/C planning |
+| M7: DESTINATION | $1,000,000 (114x) | $1M purchasing power achieved | Portfolio restructure for preservation + growth |
+
+**Speed Optimization — What Makes This FAST**:
+1. We start in EXPANSION phase — the highest-return phase of the halving cycle
+2. $3,800 on NDAX with direct AAC execution — no delay between signal and trade
+3. TFSA gains are TAX-FREE — no 50% capital gains drag like regular accounts
+4. 4 accounts = 4 concurrent strategies = parallel compounding
+5. Crypto-adjacent equities (MSTR, COIN) amplify crypto moves without exchange risk
+6. Cross-exchange arb between NDAX and other venues = consistent small gains
+7. Options on IBKR = leveraged exposure with defined risk (buy calls, not sell naked)
+
+**The key insight**: You don't need ONE 114x trade. You need to **compound aggressively
+across 4 accounts simultaneously** — crypto spot on NDAX, leveraged plays on IBKR,
+equity amplifiers on Moomoo, and tax-free compounding in TFSA. Every dollar working,
+ever day, across every venue where AAC has execution capability.
 
 ### 3.3 Specific Revenue Streams
 
@@ -552,10 +631,14 @@ while adding capital injections and compounding all returns.
    - Reinvest 80% of yield from $100K-$500K
    - Only after $500K: begin 70/30 reinvest/withdraw split
 
-4. **PERSISTENCE** — The timeline
-   - This is a 5-year plan, not a 5-month plan
-   - Bear markets are REQUIRED for the plan to work (cheap accumulation)
-   - Two full halving cycles minimum to reach $1M
+4. **SPEED** — The mandate
+   - This is NOT a 5-year plan. Capital sits idle = capital wasted
+   - Every account should be WORKING within 7 days of this plan
+   - Performance milestones, not calendar milestones
+   - If a strategy is winning, SCALE IT. Don’t wait for a scheduled review
+   - If a strategy is losing, CUT IT. Don’t wait for the drawdown limit
+   - Compound EVERYTHING until M4 ($100K milestone)
+   - Two things matter: SPEED of compounding and SURVIVAL of drawdowns
 
 ---
 
@@ -612,65 +695,74 @@ Before ANY $1B path activates, the following must be TRUE:
 
 ## 5. IMPLEMENTATION ROADMAP
 
-### 5.1 Sprint 0 — THIS WEEK (Foundation)
+### 5.1 Sprint 0 — THIS WEEK (Foundation + LIVE DEPLOYMENT)
 
 - [x] FFD Master Plan created (this document)
-- [ ] Deploy .env with real API keys (CoinGecko Pro, Binance, Coinbase, Kraken)
+- [x] Real seed capital documented: $8,800 across NDAX/IBKR/Moomoo/TFSA
+- [ ] Deploy .env with real API keys (CoinGecko Pro, NDAX, IBKR, Moomoo)
 - [ ] Validate pipeline_runner.py with real CoinGecko data
 - [ ] Enable stablecoin peg monitoring with real prices
 - [ ] Configure halving_cycle_position in FFD metrics (current: ~0.57)
+- [ ] NDAX: Deploy $3,800 — 60% BTC, 20% ETH, 10% XRP, 10% USDC
+- [ ] IBKR: Research BITO/MSTR call options, identify best entry
+- [ ] Moomoo: Buy MSTR or COIN shares as crypto amplifier
+- [ ] TFSA: Buy BTCC or ETHX ETF units (tax-free crypto exposure)
 - [ ] Run full test suite → confirm 817+ pass, 0 new failures
 
-### 5.2 Sprint 1 — THIS MONTH (Intelligence Online)
+### 5.2 Sprint 1 — NEXT 2 WEEKS (All Accounts Active)
 
 - [ ] Build FFD Allocator (dynamic Track 1/2/3 percentage based on cycle position)
 - [ ] Build Halving Cycle Tracker (reads block height, calculates cycle position)
+- [ ] NDAX live trading: first automated BTC/ETH entries
+- [ ] IBKR: first options position deployed (defined risk, max loss = premium)
+- [ ] Cross-exchange arb scanner: NDAX vs Binance/Coinbase BTC/ETH spreads
 - [ ] Enable ETF flow monitoring (CoinGecko or third-party API)
 - [ ] Add gold price feed (PAXG or commodity API)
-- [ ] Paper trade BTC halving momentum strategy
 - [ ] Paper trade stablecoin peg deviation capture
-- [ ] Create FFD dashboard: print all 31 metrics to SQLite + console
+- [ ] Create FFD dashboard: all metrics to SQLite + console
+- [ ] Target: portfolio approaching M1 ($15,000)
 
-### 5.3 Sprint 2 — NEXT MONTH (Paper Trading at Scale)
+### 5.3 Sprint 2 — MONTH 1 (Multi-Strategy Live)
 
-- [ ] Cross-exchange arb: detect and log spreads between Binance/Coinbase/Kraken
+- [ ] Cross-exchange arb: LIVE execution between NDAX and Binance/Coinbase/Kraken
 - [ ] Gold/BTC ratio engine: calculate and track daily
 - [ ] Regulatory event RSS monitor (SEC, EU Parliament, BIS)
 - [ ] XRP ETF probability tracker (news sentiment → probability estimate)
-- [ ] Paper portfolio: allocate virtual $10,000 across FFD strategies
-- [ ] Daily P&L tracking: SQLite + daily summary report
+- [ ] All 4 accounts active and contributing
+- [ ] Daily P&L tracking: SQLite + daily summary report across ALL accounts
+- [ ] Target: portfolio at M2 ($25,000) or accelerating toward it
 
-### 5.4 Sprint 3 — THREE MONTHS (Live Capital Deployment)
+### 5.4 Sprint 3 — MONTH 2-3 (Scale What Works)
 
-- [ ] Promote highest-performing paper strategy to live ($500 minimum)
-- [ ] Live stablecoin yield deployment (USDC → Aave, monitored)
-- [ ] Automated rebalancing: weekly Track 1/2/3 rebalance
+- [ ] Promote highest-performing strategy to larger allocation
+- [ ] Live stablecoin yield deployment when profits taken (USDC → Aave, monitored)
+- [ ] Automated rebalancing: weekly Track 1/2/3 rebalance across all accounts
 - [ ] Backtest all strategies against 2020-2026 data
 - [ ] Evidence level: strategy reports showing E2-E3
 - [ ] Kill switch live testing (simulate depeg → confirm halt behavior)
+- [ ] Target: portfolio at M3 ($50,000) with 3+ strategies live
 
-### 5.5 Sprint 4 — SIX MONTHS (Multi-Strategy Live)
+### 5.5 Sprint 4 — MONTH 4-6 (Full Automation + Scale)
 
-- [ ] 3+ strategies live with real capital
+- [ ] 5+ strategies live with real capital across all accounts
 - [ ] L2 fee router operational (execute on cheapest venue)
 - [ ] X API integration (sentiment signals)
 - [ ] MEV-protected execution enabled
-- [ ] Total deployed: $5,000-$15,000
+- [ ] Total deployed: $50,000-$100,000+ (M3-M4 milestone range)
 - [ ] Monthly performance report: return vs BTC vs gold vs CPI
+- [ ] Target: approaching or past M4 ($100,000)
 
-### 5.6 Annual Milestones
+### 5.6 Performance-Based Milestones (Replace Calendar Milestones)
 
-| Milestone | Target Date | Capital | Evidence |
+| Milestone | Capital | Evidence | Key Trigger |
 |---|---|---|---|
-| Pipeline live with real data | March 2026 | $1,000 | E1 |
-| Paper portfolio achieving +20% | June 2026 | $5,000 | E2 |
-| First live strategy deployed | September 2026 | $10,000 | E3 |
-| Multi-strategy live portfolio | March 2027 | $25,000 | E3-E4 |
-| Bear market yield operations | September 2027 | $50,000 | E4 |
-| Pre-halving accumulation complete | March 2028 | $100,000 | E4 |
-| Post-halving expansion ride | March 2029 | $300,000 | E4-E5 |
-| Peak cycle profit taking | September 2029 | $600,000 | E5 |
-| $1M purchasing power milestone | March 2031 | $1,000,000 | E5 |
+| M1: IGNITION | $15,000 | E1-E2 | All 4 accounts deployed, daily execution rhythm |
+| M2: TRACTION | $25,000 | E2 | 2+ strategies live, cross-exchange arb operational |
+| M3: VELOCITY | $50,000 | E2-E3 | 3+ strategies, TFSA contributing, yield active |
+| M4: MOMENTUM | $100,000 | E3 | Full automation, systematic rebalancing |
+| M5: ACCELERATION | $250,000 | E3-E4 | Fund structure consideration, professional risk mgmt |
+| M6: ORBIT | $500,000 | E4 | Formal track record, 70/30 reinvest/withdraw |
+| M7: DESTINATION | $1,000,000 | E4-E5 | Purchasing power validated against gold/BTC/CPI |
 
 ---
 
@@ -758,10 +850,13 @@ Before ANY $1B path activates, the following must be TRUE:
 | 2026-03-15 | Time-horizon analysis complete | E0 | 12 horizons analyzed (today → 5 years) |
 | 2026-03-15 | Path to $1M modeled | E0 | 5-year compounding model created |
 | 2026-03-15 | AAC rebuild architecture designed | E0 | 11 new components identified, prioritized |
+| 2026-03-15 | REAL CAPITAL INTEGRATED | E1 | $8,800 seed: NDAX $3,800, IBKR $1,000, Moomoo $1,000, TFSA $3,000 |
+| 2026-03-15 | Timeline shifted to AGGRESSIVE | E0 | Performance-based milestones (M1-M7), not calendar |
+| 2026-03-15 | 5 revenue streams defined | E0 | Halving momentum, equity amplifiers, yield, arb, catalysts |
 
 ---
 
 *This document is the FFD Prime Directive made operational.*
 *It will be updated with every market event, every strategy result,*
 *every evidence-level promotion, and every capital milestone.*
-*— FFD Master Plan, v1.0*
+*— FFD Master Plan, v2.0 — Real Capital Edition*
