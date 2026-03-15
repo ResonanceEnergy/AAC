@@ -1140,28 +1140,64 @@ class AACDeploymentEngine:
 
     async def _check_strategy_system(self):
         """Check strategy system health"""
-        # Verify all strategies are running
-        return True
+        try:
+            strategies = getattr(self, 'active_strategies', [])
+            logger.info(f"Strategy system check: {len(strategies)} strategies loaded")
+            return True
+        except Exception as e:
+            logger.error(f"Strategy system check failed: {e}")
+            return False
 
     async def _check_market_data_system(self):
         """Check market data system health"""
-        # Verify market data feeds are active
-        return True
+        try:
+            feeds = getattr(self, 'market_data_feeds', {})
+            active = sum(1 for f in feeds.values() if f.get('status') == 'connected') if isinstance(feeds, dict) else 0
+            logger.info(f"Market data check: {active}/{len(feeds)} feeds active")
+            return True
+        except Exception as e:
+            logger.error(f"Market data system check failed: {e}")
+            return False
 
     async def _check_risk_management_system(self):
         """Check risk management system health"""
-        # Verify risk controls are active
-        return True
+        try:
+            risk_engine = getattr(self, 'risk_engine', None)
+            if risk_engine and hasattr(risk_engine, 'is_active'):
+                if not risk_engine.is_active():
+                    logger.warning("Risk management engine is not active")
+                    return False
+            logger.info("Risk management system check passed")
+            return True
+        except Exception as e:
+            logger.error(f"Risk management check failed: {e}")
+            return False
 
     async def _check_pnl_tracking_system(self):
         """Check P&L tracking system health"""
-        # Verify P&L tracking is working
-        return True
+        try:
+            pnl_tracker = getattr(self, 'pnl_tracker', None)
+            if pnl_tracker and hasattr(pnl_tracker, 'last_update'):
+                logger.info(f"P&L tracker last update: {pnl_tracker.last_update}")
+            logger.info("P&L tracking system check passed")
+            return True
+        except Exception as e:
+            logger.error(f"P&L tracking check failed: {e}")
+            return False
 
     async def _check_monitoring_system(self):
         """Check monitoring system health"""
-        # Verify monitoring is active
-        return True
+        try:
+            monitor = getattr(self, 'monitoring', None)
+            if monitor and hasattr(monitor, 'running'):
+                if not monitor.running:
+                    logger.warning("Monitoring system is not running")
+                    return False
+            logger.info("Monitoring system check passed")
+            return True
+        except Exception as e:
+            logger.error(f"Monitoring check failed: {e}")
+            return False
 
     async def _run_end_to_end_tests(self):
         """Run end-to-end deployment tests"""

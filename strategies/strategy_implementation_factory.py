@@ -349,12 +349,14 @@ class ETFArbitrageTemplate(BaseArbitrageStrategy):
                     # Simple signal generation for testing - alternate between long/short
                     signal_type = SignalType.LONG if hash(symbol) % 2 == 0 else SignalType.SHORT
 
+                    risk_cfg = getattr(self.config, 'risk_config', {})
+                    max_size = risk_cfg.get('max_position_size', 100) if isinstance(risk_cfg, dict) else 100
+
                     signal = TradingSignal(
                         strategy_id=self.config.strategy_id,
                         signal_type=signal_type,
                         symbol=symbol,
-                        # TODO: Use position sizing from risk config
-                        quantity=100,
+                        quantity=min(max_size, 100),
                         confidence=0.7,
                         metadata={
                             'price': price,

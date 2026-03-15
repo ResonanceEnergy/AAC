@@ -348,12 +348,22 @@ class OvernightJumpReversionStrategy(BaseArbitrageStrategy):
 
     async def _check_volume_threshold(self, symbol: str) -> bool:
         """Check if symbol meets minimum volume requirements."""
-        # Simplified volume check - in production would query actual volume data
-        return True  # Assume sufficient volume for universe stocks
+        if symbol in self.market_data:
+            volume = self.market_data[symbol].get('volume', 0)
+            min_volume = self.config.risk_envelope.get('min_volume', 100000)
+            return volume >= min_volume
+        return True  # Assume sufficient if no data available
 
     async def _get_portfolio_value(self) -> float:
         """Get current portfolio value for position sizing."""
-        return 10000000  # $10M portfolio
+        if hasattr(self, 'communication') and self.communication:
+            try:
+                portfolio = await self.communication.request('portfolio.value', {})
+                if portfolio and 'total_value' in portfolio:
+                    return float(portfolio['total_value'])
+            except Exception:
+                pass
+        return self.config.risk_envelope.get('portfolio_value', 10_000_000)
 
     async def _is_market_open_time(self, timestamp: datetime) -> bool:
         """Check if timestamp is around market open time."""

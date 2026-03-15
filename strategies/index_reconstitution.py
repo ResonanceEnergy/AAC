@@ -92,7 +92,19 @@ class IndexReconstitutionStrategy(BaseArbitrageStrategy):
 
     def _should_generate_signal(self) -> bool:
         """Determine if conditions are right to generate signals."""
-        return True  # Simplified for testing
+        now = datetime.now()
+        # Only generate during market hours (9:30-16:00 ET, simplified as UTC-5)
+        hour = now.hour
+        if hour < 9 or hour > 16:
+            return False
+        # Check if reconstitution events exist
+        if hasattr(self, 'reconstitution_events') and self.reconstitution_events:
+            return True
+        # Check if auction imbalance data exists
+        if hasattr(self, 'auction_imbalances') and self.auction_imbalances:
+            return True
+        # Default: allow signal generation during market hours
+        return True
 
     async def _generate_reconstitution_signals(self) -> List[TradingSignal]:
         """Generate signals for index reconstitution events"""

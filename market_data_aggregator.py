@@ -63,7 +63,8 @@ class MarketDataAggregator:
         self._warn_once()
 
     def stop(self) -> None:
-        pass
+        self.sources.clear()
+        self.logger.info("MarketDataAggregator stopped")
 
 
 def get_market_data_aggregator(**kwargs: Any) -> MarketDataAggregator:

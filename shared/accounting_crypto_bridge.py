@@ -356,7 +356,7 @@ class AccountingCryptoBridge:
                 "monitoring_period": monitoring_period,
                 "regulations": regulations,
                 "violations": [],
-                "compliance_score": 0.95,  # Mock compliance score
+                "compliance_score": 1.0,  # Start perfect, reduce per violation
                 "timestamp": datetime.now()
             }
 
@@ -371,8 +371,16 @@ class AccountingCryptoBridge:
                         "description": "Unusual trading activity detected outside normal hours"
                     })
 
-            # Generate regulatory report
+            # Generate regulatory report and adjust compliance score
             if monitoring_result["violations"]:
+                # Reduce compliance score per violation
+                for v in monitoring_result["violations"]:
+                    if v.get("severity") == "high":
+                        monitoring_result["compliance_score"] -= 0.15
+                    else:
+                        monitoring_result["compliance_score"] -= 0.05
+                monitoring_result["compliance_score"] = max(0.0, monitoring_result["compliance_score"])
+
                 report = {
                     "report_type": "compliance_violation",
                     "compliance_type": compliance_type,
@@ -393,7 +401,7 @@ class AccountingCryptoBridge:
             analysis_result = {
                 "counterparty_id": counterparty_id,
                 "analysis_scope": analysis_scope,
-                "risk_score": 0.25,  # Mock risk score
+                "risk_score": 0.1 + len(risk_factors) * 0.05,  # Scale with risk factor count
                 "risk_factors": risk_factors or ["credit_risk", "operational_risk", "market_risk"],
                 "recommendations": [],
                 "timestamp": datetime.now()

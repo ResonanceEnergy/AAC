@@ -260,9 +260,21 @@ class TradingInfrastructureBridge:
 
     async def _check_execution_health(self, monitor_id: str):
         """Check health of monitored execution."""
-        # Placeholder - would check actual execution metrics
-        # If issues detected, trigger alerts
-        pass
+        monitor_data = self.active_monitors.get(monitor_id)
+        if not monitor_data:
+            return
+        metrics = monitor_data.get('metrics', {})
+        fill_rate = metrics.get('fill_rate', 1.0)
+        latency_ms = metrics.get('latency_ms', 0)
+        if fill_rate < 0.8:
+            logger.warning(f"Execution {monitor_id}: low fill rate {fill_rate:.0%}")
+        if latency_ms > 500:
+            logger.warning(f"Execution {monitor_id}: high latency {latency_ms}ms")
+        monitor_data.setdefault('health_checks', []).append({
+            'timestamp': datetime.now().isoformat(),
+            'fill_rate': fill_rate,
+            'latency_ms': latency_ms
+        })
 
     async def _report_incident(self, incident_id: str, severity: str, description: str, incident_data: Dict) -> bool:
         """Report incident to infrastructure."""

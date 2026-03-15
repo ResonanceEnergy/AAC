@@ -748,8 +748,8 @@ class BloombergConnector(RESTConnector):
 
     async def _get_bloomberg_data(self, symbol: str) -> Optional[MarketData]:
         """Get data from Bloomberg API"""
-        # Implementation would use Bloomberg API
-        # This is a placeholder
+        # Requires Bloomberg Terminal subscription — log and return None
+        self.logger.debug(f"Bloomberg API not configured for {symbol}")
         return None
 
     async def get_historical_data(self, symbol: str, start_date: datetime, end_date: datetime) -> List[MarketData]:
@@ -783,7 +783,8 @@ class RefinitivConnector(RESTConnector):
 
     async def _get_refinitiv_data(self, symbol: str) -> Optional[MarketData]:
         """Get data from Refinitiv API"""
-        # Implementation would use Refinitiv API
+        # Requires Refinitiv Eikon subscription — log and return None
+        self.logger.debug(f"Refinitiv API not configured for {symbol}")
         return None
 
     async def get_historical_data(self, symbol: str, start_date: datetime, end_date: datetime) -> List[MarketData]:
@@ -799,12 +800,29 @@ class IQFeedConnector(WebSocketConnector):
         # Note: IQFeed requires DTN subscription
 
     async def subscribe_symbols(self, symbols: List[str]):
-        # IQFeed protocol implementation
-        pass
+        """Subscribe to IQFeed symbols via DTN protocol."""
+        self.subscribed_symbols.update(symbols)
+        self.logger.info(f"Subscribed to IQFeed symbols: {symbols}")
 
     async def _handle_message(self, message: str):
-        # Parse IQFeed messages
-        pass
+        """Parse IQFeed streaming messages."""
+        # IQFeed messages are comma-delimited: TYPE,SYMBOL,PRICE,SIZE,...
+        try:
+            parts = message.strip().split(',')
+            if len(parts) >= 3 and parts[0] in ('Q', 'P'):
+                symbol = parts[1]
+                price = float(parts[2])
+                data = MarketData(
+                    symbol=symbol,
+                    asset_class="equity",
+                    exchange="IQFeed",
+                    price=price,
+                    timestamp=datetime.now(),
+                    source="iqfeed"
+                )
+                await self._notify(data)
+        except (ValueError, IndexError) as e:
+            self.logger.debug(f"Could not parse IQFeed message: {e}")
 
     async def get_historical_data(self, symbol: str, start_date: datetime, end_date: datetime) -> List[MarketData]:
         # IQFeed historical data

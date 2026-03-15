@@ -467,7 +467,12 @@ class AsyncTimeout:
         return self
     
     async def __aexit__(self, exc_type, exc_val, exc_tb):
-        pass
+        if self._task is not None and not self._task.done():
+            self._task.cancel()
+            try:
+                await self._task
+            except asyncio.CancelledError:
+                pass
     
     @staticmethod
     async def run(coro, timeout: float):

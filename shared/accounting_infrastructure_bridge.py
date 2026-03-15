@@ -274,7 +274,7 @@ class AccountingInfrastructureBridge:
                 "check_type": check_type,
                 "verification_rules": verification_rules,
                 "violations": [],
-                "integrity_score": 0.98,  # Mock integrity score
+                "integrity_score": 1.0,  # Start perfect, reduce per violation
                 "timestamp": datetime.now()
             }
 
@@ -307,7 +307,7 @@ class AccountingInfrastructureBridge:
                 "system_name": system_name,
                 "metrics": metrics,
                 "alerts": [],
-                "health_score": 0.95,  # Mock health score
+                "health_score": 1.0,  # Start at perfect, deduct for alerts
                 "timestamp": datetime.now()
             }
 
@@ -333,6 +333,14 @@ class AccountingInfrastructureBridge:
                         })
 
             # Store system performance
+            # Deduct health score based on alerts
+            for alert in monitoring_result["alerts"]:
+                if alert["severity"] == "high":
+                    monitoring_result["health_score"] -= 0.15
+                elif alert["severity"] == "medium":
+                    monitoring_result["health_score"] -= 0.05
+            monitoring_result["health_score"] = max(0.0, monitoring_result["health_score"])
+
             self.system_performance[system_name] = {
                 "last_check": datetime.now(),
                 "metrics": metrics,

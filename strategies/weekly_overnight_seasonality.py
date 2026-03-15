@@ -338,7 +338,14 @@ class WeeklyOvernightSeasonalityStrategy(BaseArbitrageStrategy):
 
     async def _get_portfolio_value(self) -> float:
         """Get current portfolio value for position sizing."""
-        return 10000000  # $10M portfolio
+        if hasattr(self, 'communication') and self.communication:
+            try:
+                portfolio = await self.communication.request('portfolio.value', {})
+                if portfolio and 'total_value' in portfolio:
+                    return float(portfolio['total_value'])
+            except Exception:
+                pass
+        return self.config.risk_envelope.get('portfolio_value', 10_000_000)
 
     async def _calculate_max_position_size(self, symbol: str) -> int:
         """Calculate maximum position size based on risk limits."""

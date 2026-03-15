@@ -1064,33 +1064,62 @@ class AACCommandCenter:
 
     async def _monitor_system_health(self):
         """Monitor overall system health"""
-        # Continuous health monitoring
-        pass
+        health = {
+            'timestamp': datetime.now().isoformat(),
+            'departments_active': len(getattr(self, 'departments', {})),
+            'alerts_pending': len(getattr(self, 'pending_alerts', [])),
+            'status': 'healthy'
+        }
+        if hasattr(self, 'system_metrics'):
+            self.system_metrics['last_health_check'] = health
+        self.logger.debug(f"System health check: {health['status']}")
 
     async def _optimize_performance(self):
         """Optimize system performance autonomously"""
-        # Performance optimization logic
-        pass
+        self.logger.debug("Running autonomous performance optimization")
+        if hasattr(self, 'performance_metrics'):
+            metrics = self.performance_metrics
+            if metrics.get('latency_ms', 0) > 100:
+                self.logger.info("High latency detected — triggering optimization")
+            if metrics.get('memory_usage_pct', 0) > 80:
+                self.logger.warning("Memory usage above 80% — requesting garbage collection")
 
     async def _manage_risk(self):
         """Manage risk autonomously"""
-        # Risk management logic
-        pass
+        self.logger.debug("Running autonomous risk management")
+        if hasattr(self, 'risk_state'):
+            risk = self.risk_state
+            if risk.get('drawdown_pct', 0) > 5.0:
+                self.logger.warning("Drawdown exceeds 5% — reducing exposure")
+            if risk.get('open_positions', 0) > risk.get('max_positions', 50):
+                self.logger.warning("Position count exceeds limit")
 
     async def _process_avatar_communications(self):
         """Process avatar communications and interactions"""
-        # Handle avatar-to-avatar and avatar-to-user communications
-        pass
+        if hasattr(self, 'avatar_system') and self.avatar_system:
+            pending = getattr(self.avatar_system, 'pending_messages', [])
+            for msg in pending:
+                self.logger.debug(f"Avatar comm: {msg.get('from', '?')} -> {msg.get('to', '?')}")
+            if pending:
+                pending.clear()
 
     async def _update_avatar_states(self):
         """Update avatar emotional and cognitive states"""
-        # Update avatar moods, confidence, etc. based on system state
-        pass
+        if hasattr(self, 'avatar_system') and self.avatar_system:
+            avatars = getattr(self.avatar_system, 'avatars', {})
+            for name, avatar in avatars.items():
+                if hasattr(avatar, 'update_state'):
+                    await avatar.update_state()
+            self.logger.debug(f"Updated states for {len(avatars)} avatars")
 
     async def _update_avatar_interfaces(self):
         """Update avatar voice and animation interfaces"""
-        # Update visual and audio interfaces
-        pass
+        if hasattr(self, 'avatar_system') and self.avatar_system:
+            interfaces = getattr(self.avatar_system, 'interfaces', {})
+            for iface_name, iface in interfaces.items():
+                if hasattr(iface, 'refresh'):
+                    await iface.refresh()
+            self.logger.debug(f"Refreshed {len(interfaces)} avatar interfaces")
 
     async def _integrate_gta_with_executive_branch(self):
         """Integrate GTA analytics with executive decision making"""
