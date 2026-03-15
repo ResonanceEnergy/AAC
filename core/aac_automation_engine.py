@@ -521,8 +521,9 @@ class OrderSimulator:
 
     async def _enable_order_simulation(self):
         """Enable order execution simulation"""
-        # This is already handled by the order simulator creation
+        self._simulation_enabled = True
         logger.info("Order simulation enabled")
+        self.progress['order_simulation'] = True
 
     async def _phase_4_doctrine_compliance(self):
         """Phase 4: Achieve 100% doctrine compliance"""
@@ -554,9 +555,12 @@ class OrderSimulator:
 
     async def _implement_missing_compliance(self, orchestrator):
         """Implement missing doctrine compliance components"""
-        # This would implement any missing compliance adapters or metrics
-        # For now, we'll assume the doctrine system is already comprehensive
         logger.info("Validating doctrine compliance implementation")
+        report = await orchestrator.run_compliance_check()
+        missing = report.get('missing_components', [])
+        if missing:
+            logger.warning(f"Missing compliance components: {missing}")
+        self.progress['compliance_validation'] = report.get('compliance_score', 0)
 
     async def _final_validation(self):
         """Final validation of all implemented features"""

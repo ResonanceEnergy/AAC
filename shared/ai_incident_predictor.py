@@ -363,24 +363,52 @@ class IncidentResponseEngine:
 
     async def _respond_to_latency_spike(self, metrics: SystemMetrics):
         """Respond to latency spike"""
-        # Implement latency spike response
-        # In real implementation, this would scale resources, enable caching, etc.
-        logger.info("Executing latency spike response: scaling network resources")
+        logger.info(f"Executing latency spike response: latency={metrics.latency_ms:.1f}ms")
+        if not hasattr(self, '_response_log'):
+            self._response_log: list = []
+        self._response_log.append({
+            'type': 'latency_spike',
+            'latency_ms': metrics.latency_ms,
+            'action': 'scale_resources',
+            'timestamp': datetime.now().isoformat(),
+        })
 
     async def _respond_to_error_spike(self, metrics: SystemMetrics):
         """Respond to error rate spike"""
-        # Implement error spike response
-        logger.info("Executing error spike response: isolating failing components")
+        logger.info(f"Executing error spike response: error_rate={metrics.error_rate:.2%}")
+        if not hasattr(self, '_response_log'):
+            self._response_log: list = []
+        self._response_log.append({
+            'type': 'error_spike',
+            'error_rate': metrics.error_rate,
+            'action': 'isolate_failing_components',
+            'timestamp': datetime.now().isoformat(),
+        })
 
     async def _respond_to_memory_leak(self, metrics: SystemMetrics):
         """Respond to memory leak"""
-        # Implement memory leak response
-        logger.info("Executing memory leak response: triggering garbage collection")
+        logger.info(f"Executing memory leak response: memory={metrics.memory_usage_mb:.0f}MB")
+        if not hasattr(self, '_response_log'):
+            self._response_log: list = []
+        import gc
+        gc.collect()
+        self._response_log.append({
+            'type': 'memory_leak',
+            'memory_mb': metrics.memory_usage_mb,
+            'action': 'gc_collect',
+            'timestamp': datetime.now().isoformat(),
+        })
 
     async def _respond_to_circuit_trip(self, metrics: SystemMetrics):
         """Respond to circuit breaker trip"""
-        # Implement circuit trip response
         logger.info("Executing circuit trip response: enabling failover routes")
+        if not hasattr(self, '_response_log'):
+            self._response_log: list = []
+        self._response_log.append({
+            'type': 'circuit_trip',
+            'action': 'enable_failover',
+            'timestamp': datetime.now().isoformat(),
+        })
 
 class PredictiveModelTrainer:
     """

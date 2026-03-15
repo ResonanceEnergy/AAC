@@ -397,6 +397,10 @@ class AACMasterLauncher:
     async def _shutdown_monitoring(self):
         """Shutdown monitoring systems"""
         logger.info("Shutting down monitoring systems")
+        if self.monitoring_system and hasattr(self.monitoring_system, 'stop'):
+            await self.monitoring_system.stop()
+        self.monitoring_system = None
+        logger.info("Monitoring systems shut down")
 
     async def launch_doctrine_only(self) -> bool:
         """Launch doctrine system only"""

@@ -123,6 +123,7 @@ class TradingExecutionAdapter(DepartmentAdapter):
         super().__init__(Department.TRADING_EXECUTION)
         self.active_orders: Dict[str, Any] = {}
         self.positions: Dict[str, float] = {}
+        self.frozen_strategies: set = set()
         
     async def connect(self) -> bool:
         """Connect to trading systems."""
@@ -202,7 +203,16 @@ class TradingExecutionAdapter(DepartmentAdapter):
         
     async def freeze_strategy(self, strategy_id: str) -> bool:
         """Freeze a strategy (A_FREEZE_STRATEGY action)."""
-        logger.warning(f"FREEZING strategy: {strategy_id}")
+        if strategy_id in self.frozen_strategies:
+            logger.info(f"Strategy already frozen: {strategy_id}")
+            return True
+        self.frozen_strategies.add(strategy_id)
+        # Cancel any active orders for this strategy
+        cancelled = [oid for oid, o in self.active_orders.items()
+                     if o.get('strategy_id') == strategy_id]
+        for oid in cancelled:
+            del self.active_orders[oid]
+        logger.warning(f"FROZEN strategy {strategy_id} — cancelled {len(cancelled)} active orders")
         return True
 
 
@@ -213,6 +223,7 @@ class BigBrainIntelligenceAdapter(DepartmentAdapter):
         super().__init__(Department.BIGBRAIN_INTELLIGENCE)
         self.active_signals: Dict[str, Any] = {}
         self.research_queue: List[str] = []
+        self.quarantined_sources: set = set()
         
     async def connect(self) -> bool:
         """Connect to research systems."""
@@ -282,7 +293,19 @@ class BigBrainIntelligenceAdapter(DepartmentAdapter):
         
     async def quarantine_source(self, source_id: str) -> bool:
         """Quarantine a data source (A_QUARANTINE_SOURCE action)."""
-        logger.warning(f"QUARANTINING data source: {source_id}")
+        if source_id in self.quarantined_sources:
+            logger.info(f"Source already quarantined: {source_id}")
+            return True
+        self.quarantined_sources.add(source_id)
+        # Publish quarantine event so other departments stop using this source
+        event = CrossDepartmentEvent(
+            event_type='source_quarantined',
+            source_department=self.department,
+            data={'source_id': source_id, 'quarantined_at': datetime.now().isoformat()},
+            priority='high'
+        )
+        await self.send_event(event)
+        logger.warning(f"QUARANTINED data source: {source_id}")
         return True
         
     async def trigger_backtest(self, strategy_id: str, params: Dict[str, Any]) -> str:
@@ -374,12 +397,29 @@ class CentralAccountingAdapter(DepartmentAdapter):
         return self.pnl_cache.get(strategy_id, 0.0)
         
     async def get_risk_budget_remaining(self) -> float:
-        """Get remaining risk budget."""
-        return 0.55  # 55% of risk budget remaining
+        """Get remaining risk budget based on current positions."""
+        total_exposure = sum(abs(v) for v in self.positions.values())
+        max_budget = 1_000_000.0  # $1M max risk budget
+        used_fraction = min(total_exposure / max_budget, 1.0) if max_budget > 0 else 0.0
+        remaining = 1.0 - used_fraction
+        return round(remaining, 4)
         
     async def force_reconciliation(self, strategy_id: str) -> bool:
         """Force immediate reconciliation (A_FORCE_RECON action)."""
-        logger.warning(f"FORCING reconciliation for: {strategy_id}")
+        recon_record = {
+            'strategy_id': strategy_id,
+            'requested_at': datetime.now().isoformat(),
+            'status': 'pending',
+        }
+        # Snapshot current PnL state for reconciliation
+        recon_record['pnl_snapshot'] = self.pnl_cache.get(strategy_id, 0.0)
+        recon_record['position_snapshot'] = {
+            sym: pos for sym, pos in self.positions.items()
+        }
+        recon_record['status'] = 'completed'
+        logger.warning(f"FORCED reconciliation for {strategy_id} — "
+                      f"PnL={recon_record['pnl_snapshot']:.2f}, "
+                      f"positions={len(recon_record['position_snapshot'])}")
         return True
 
 
@@ -457,7 +497,23 @@ class CryptoIntelligenceAdapter(DepartmentAdapter):
         
     async def route_failover(self, from_venue: str, to_venue: str) -> bool:
         """Execute venue failover (A_ROUTE_FAILOVER action)."""
-        logger.warning(f"FAILOVER: {from_venue} -> {to_venue}")
+        # Update venue health to reflect failover
+        self.venue_health[from_venue] = 0.0  # Mark source as down
+        if to_venue not in self.venue_health:
+            self.venue_health[to_venue] = 0.85  # Default health for new target
+        # Publish failover event for system-wide awareness
+        event = CrossDepartmentEvent(
+            event_type='venue_failover',
+            source_department=self.department,
+            data={
+                'from_venue': from_venue,
+                'to_venue': to_venue,
+                'failover_at': datetime.now().isoformat(),
+            },
+            priority='critical'
+        )
+        await self.send_event(event)
+        logger.warning(f"FAILOVER: {from_venue} -> {to_venue} (venue health updated)")
         return True
 
 

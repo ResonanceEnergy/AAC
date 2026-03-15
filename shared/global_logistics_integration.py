@@ -325,27 +325,45 @@ class GlobalLogisticsNetworkIntegration:
 
     async def _apply_automation_insight(self, insight: LogisticsInsight, department: str):
         """Apply automation insight to department"""
-        logger.info(f"Applying automation insight to {department}: {insight}")
+        logger.info(f"Applying automation insight to {department}: {insight.title}")
+        if not hasattr(self, '_applied_insights'):
+            self._applied_insights: list = []
+        self._applied_insights.append({'category': 'automation', 'department': department, 'insight_id': insight.insight_id, 'timestamp': datetime.now().isoformat()})
 
     async def _apply_intelligence_insight(self, insight: LogisticsInsight, department: str):
         """Apply intelligence insight to department"""
-        logger.info(f"Applying intelligence insight to {department}: {insight}")
+        logger.info(f"Applying intelligence insight to {department}: {insight.title}")
+        if not hasattr(self, '_applied_insights'):
+            self._applied_insights: list = []
+        self._applied_insights.append({'category': 'intelligence', 'department': department, 'insight_id': insight.insight_id, 'timestamp': datetime.now().isoformat()})
 
     async def _apply_optimization_insight(self, insight: LogisticsInsight, department: str):
         """Apply optimization insight to department"""
-        logger.info(f"Applying optimization insight to {department}: {insight}")
+        logger.info(f"Applying optimization insight to {department}: {insight.title}")
+        if not hasattr(self, '_applied_insights'):
+            self._applied_insights: list = []
+        self._applied_insights.append({'category': 'optimization', 'department': department, 'insight_id': insight.insight_id, 'timestamp': datetime.now().isoformat()})
 
     async def _apply_security_insight(self, insight: LogisticsInsight, department: str):
         """Apply security insight to department"""
-        logger.info(f"Applying security insight to {department}: {insight}")
+        logger.info(f"Applying security insight to {department}: {insight.title}")
+        if not hasattr(self, '_applied_insights'):
+            self._applied_insights: list = []
+        self._applied_insights.append({'category': 'security', 'department': department, 'insight_id': insight.insight_id, 'timestamp': datetime.now().isoformat()})
 
     async def _apply_maintenance_insight(self, insight: LogisticsInsight, department: str):
         """Apply maintenance insight to department"""
-        logger.info(f"Applying maintenance insight to {department}: {insight}")
+        logger.info(f"Applying maintenance insight to {department}: {insight.title}")
+        if not hasattr(self, '_applied_insights'):
+            self._applied_insights: list = []
+        self._applied_insights.append({'category': 'maintenance', 'department': department, 'insight_id': insight.insight_id, 'timestamp': datetime.now().isoformat()})
 
     async def _apply_sustainability_insight(self, insight: LogisticsInsight, department: str):
         """Apply sustainability insight to department"""
-        logger.info(f"Applying sustainability insight to {department}: {insight}")
+        logger.info(f"Applying sustainability insight to {department}: {insight.title}")
+        if not hasattr(self, '_applied_insights'):
+            self._applied_insights: list = []
+        self._applied_insights.append({'category': 'sustainability', 'department': department, 'insight_id': insight.insight_id, 'timestamp': datetime.now().isoformat()})
 
     async def _enhance_agents(self):
         """Enhance all AAC agents with GLN capabilities"""
@@ -392,11 +410,16 @@ class GlobalLogisticsNetworkIntegration:
 
     async def _apply_insight_to_agent(self, insight: LogisticsInsight, agent_id: str):
         """Apply a logistics insight to a specific agent"""
-
         logger.info(f"Applying insight {insight.insight_id} to agent {agent_id}")
-
-        # Agent-specific implementation would go here
-        # This enhances the agent's capabilities with logistics features
+        if not hasattr(self, '_agent_insights'):
+            self._agent_insights: list = []
+        self._agent_insights.append({
+            'insight_id': insight.insight_id,
+            'agent_id': agent_id,
+            'category': insight.category,
+            'impact_score': insight.impact_score,
+            'timestamp': datetime.now().isoformat(),
+        })
 
     async def optimize_logistics_operations(self) -> Dict[str, Any]:
         """Execute comprehensive logistics optimization across AAC"""

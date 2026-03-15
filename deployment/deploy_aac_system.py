@@ -274,13 +274,17 @@ class AACDeploymentManager:
         return all_passed
 
     async def _get_live_trading_confirmation(self) -> bool:
-        """Get confirmation before enabling live trading"""
+        """Get confirmation before enabling live trading."""
         logger.warning("⚠️  LIVE TRADING CONFIRMATION REQUIRED ⚠️")
         logger.warning("This will enable real money trading with 50 arbitrage strategies")
         logger.warning("Expected revenue: $100K+/day, but with significant risk")
-
-        # In production, this would require manual confirmation
-        # For now, default to paper trading for safety
+        # Check for explicit environment variable opt-in
+        import os
+        confirm_env = os.environ.get('AAC_LIVE_TRADING_CONFIRM', '').lower()
+        if confirm_env in ('yes', 'true', '1'):
+            logger.warning("Live trading confirmed via AAC_LIVE_TRADING_CONFIRM env var")
+            return True
+        logger.info("Live trading NOT confirmed — defaulting to paper trading mode")
         return False
 
     async def _log_deployment_success(self, mode: str):

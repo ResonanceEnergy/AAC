@@ -54,10 +54,19 @@ except ImportError:
             self.price = price
 
     class ExecutionEngine:
+        def __init__(self):
+            self._logger = logging.getLogger('FallbackExecutionEngine')
+            self._orders: list = []
         async def initialize(self):
-            logging.getLogger(__name__).warning("Using fallback ExecutionEngine")
-        async def submit_order(self, order): return True
-        async def submit_paper_order(self, order): return True
+            self._logger.warning("Using fallback ExecutionEngine")
+        async def submit_order(self, order):
+            self._orders.append({'order': order, 'type': 'live', 'ts': __import__('time').time()})
+            self._logger.info(f"Fallback engine: live order submitted ({getattr(order, 'symbol', '?')})")
+            return True
+        async def submit_paper_order(self, order):
+            self._orders.append({'order': order, 'type': 'paper', 'ts': __import__('time').time()})
+            self._logger.info(f"Fallback engine: paper order submitted ({getattr(order, 'symbol', '?')})")
+            return True
 
 from shared.config_loader import get_config
 from shared.audit_logger import get_audit_logger
