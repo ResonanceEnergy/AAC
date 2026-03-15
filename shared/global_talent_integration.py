@@ -327,31 +327,52 @@ class GlobalTalentAcquisitionIntegration:
 
     async def _apply_recruitment_insight(self, insight: TalentInsight, department: str):
         """Apply recruitment insight to department"""
-        logger.info(f"Applying recruitment insight to {department}: {insight}")
+        logger.info(f"Applying recruitment insight to {department}: {insight.title}")
+        if not hasattr(self, '_applied_insights'):
+            self._applied_insights: list = []
+        self._applied_insights.append({'category': 'recruitment', 'department': department, 'insight_id': insight.insight_id, 'timestamp': datetime.now().isoformat()})
 
     async def _apply_analytics_insight(self, insight: TalentInsight, department: str):
         """Apply analytics insight to department"""
-        logger.info(f"Applying analytics insight to {department}: {insight}")
+        logger.info(f"Applying analytics insight to {department}: {insight.title}")
+        if not hasattr(self, '_applied_insights'):
+            self._applied_insights: list = []
+        self._applied_insights.append({'category': 'analytics', 'department': department, 'insight_id': insight.insight_id, 'timestamp': datetime.now().isoformat()})
 
     async def _apply_diversity_insight(self, insight: TalentInsight, department: str):
         """Apply diversity insight to department"""
-        logger.info(f"Applying diversity insight to {department}: {insight}")
+        logger.info(f"Applying diversity insight to {department}: {insight.title}")
+        if not hasattr(self, '_applied_insights'):
+            self._applied_insights: list = []
+        self._applied_insights.append({'category': 'diversity', 'department': department, 'insight_id': insight.insight_id, 'timestamp': datetime.now().isoformat()})
 
     async def _apply_planning_insight(self, insight: TalentInsight, department: str):
         """Apply planning insight to department"""
-        logger.info(f"Applying planning insight to {department}: {insight}")
+        logger.info(f"Applying planning insight to {department}: {insight.title}")
+        if not hasattr(self, '_applied_insights'):
+            self._applied_insights: list = []
+        self._applied_insights.append({'category': 'planning', 'department': department, 'insight_id': insight.insight_id, 'timestamp': datetime.now().isoformat()})
 
     async def _apply_assessment_insight(self, insight: TalentInsight, department: str):
         """Apply assessment insight to department"""
-        logger.info(f"Applying assessment insight to {department}: {insight}")
+        logger.info(f"Applying assessment insight to {department}: {insight.title}")
+        if not hasattr(self, '_applied_insights'):
+            self._applied_insights: list = []
+        self._applied_insights.append({'category': 'assessment', 'department': department, 'insight_id': insight.insight_id, 'timestamp': datetime.now().isoformat()})
 
     async def _apply_development_insight(self, insight: TalentInsight, department: str):
         """Apply development insight to department"""
-        logger.info(f"Applying development insight to {department}: {insight}")
+        logger.info(f"Applying development insight to {department}: {insight.title}")
+        if not hasattr(self, '_applied_insights'):
+            self._applied_insights: list = []
+        self._applied_insights.append({'category': 'development', 'department': department, 'insight_id': insight.insight_id, 'timestamp': datetime.now().isoformat()})
 
     async def _apply_retention_insight(self, insight: TalentInsight, department: str):
         """Apply retention insight to department"""
-        logger.info(f"Applying retention insight to {department}: {insight}")
+        logger.info(f"Applying retention insight to {department}: {insight.title}")
+        if not hasattr(self, '_applied_insights'):
+            self._applied_insights: list = []
+        self._applied_insights.append({'category': 'retention', 'department': department, 'insight_id': insight.insight_id, 'timestamp': datetime.now().isoformat()})
 
     async def _enhance_agents(self):
         """Enhance all AAC agents with GTA capabilities"""
@@ -398,11 +419,16 @@ class GlobalTalentAcquisitionIntegration:
 
     async def _apply_insight_to_agent(self, insight: TalentInsight, agent_id: str):
         """Apply a talent insight to a specific agent"""
-
         logger.info(f"Applying insight {insight.insight_id} to agent {agent_id}")
-
-        # Agent-specific implementation would go here
-        # This enhances the agent's capabilities with talent features
+        if not hasattr(self, '_agent_insights'):
+            self._agent_insights: list = []
+        self._agent_insights.append({
+            'insight_id': insight.insight_id,
+            'agent_id': agent_id,
+            'category': insight.category,
+            'impact_score': insight.impact_score,
+            'timestamp': datetime.now().isoformat(),
+        })
 
     async def analyze_critical_hiring_needs(self) -> Dict[str, Any]:
         """Analyze critical hiring needs across AAC departments"""

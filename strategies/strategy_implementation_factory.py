@@ -368,9 +368,16 @@ class ETFArbitrageTemplate(BaseArbitrageStrategy):
         return signals
 
     def _should_generate_signal(self) -> bool:
-        """Determine if conditions are right to generate signals."""
-        logger.debug(f"{type(self).__name__} signal generation check: always ready (template)")
-        return True  # Template always ready
+        """Check if ETF arbitrage conditions are met."""
+        if not self.market_data:
+            logger.debug(f"{type(self).__name__}: no market data available")
+            return False
+        # Need at least one symbol with price data
+        has_price = any(
+            d.get('price', 0) > 0
+            for d in self.market_data.values()
+        )
+        return has_price
 
 
 class VolatilityArbitrageTemplate(BaseArbitrageStrategy):
@@ -416,9 +423,14 @@ class VolatilityArbitrageTemplate(BaseArbitrageStrategy):
         return signals
 
     def _should_generate_signal(self) -> bool:
-        """Determine if conditions are right to generate signals."""
-        logger.debug(f"{type(self).__name__} signal generation check: always ready (template)")
-        return True  # Template always ready
+        """Check if volatility arbitrage conditions are met."""
+        # Need price data for at least 2 symbols to compare implied vs realized vol
+        priced_symbols = [s for s in self.symbol_universe if s in self.market_data
+                          and self.market_data[s].get('price', 0) > 0]
+        if len(priced_symbols) < 2:
+            logger.debug(f"{type(self).__name__}: need >= 2 priced symbols, have {len(priced_symbols)}")
+            return False
+        return True
 
 
 class SeasonalityTemplate(BaseArbitrageStrategy):
@@ -459,9 +471,13 @@ class SeasonalityTemplate(BaseArbitrageStrategy):
         return signals
 
     def _should_generate_signal(self) -> bool:
-        """Determine if conditions are right to generate signals."""
-        logger.debug(f"{type(self).__name__} signal generation check: always ready (template)")
-        return True  # Template always ready
+        """Check if seasonality window is active."""
+        now = datetime.now()
+        # Seasonality strategies only fire near month boundaries
+        if now.day <= 3 or now.day >= 28:
+            return True
+        logger.debug(f"{type(self).__name__}: outside turn-of-month window (day {now.day})")
+        return False
 
 
 class EventDrivenTemplate(BaseArbitrageStrategy):
@@ -485,9 +501,12 @@ class EventDrivenTemplate(BaseArbitrageStrategy):
         return signals
 
     def _should_generate_signal(self) -> bool:
-        """Determine if conditions are right to generate signals."""
-        logger.debug(f"{type(self).__name__} signal generation check: always ready (template)")
-        return True  # Template always ready
+        """Check if event data sources are available."""
+        # Event-driven needs at least one symbol with market data
+        if not self.market_data:
+            logger.debug(f"{type(self).__name__}: no market data — skipping signal generation")
+            return False
+        return True
 
 
 class FlowBasedTemplate(BaseArbitrageStrategy):
@@ -511,9 +530,11 @@ class FlowBasedTemplate(BaseArbitrageStrategy):
         return signals
 
     def _should_generate_signal(self) -> bool:
-        """Determine if conditions are right to generate signals."""
-        logger.debug(f"{type(self).__name__} signal generation check: always ready (template)")
-        return True  # Template always ready
+        """Check if order flow data is available."""
+        if not self.market_data:
+            logger.debug(f"{type(self).__name__}: no market data — skipping signal generation")
+            return False
+        return True
 
 
 class MarketMakingTemplate(BaseArbitrageStrategy):
@@ -537,9 +558,18 @@ class MarketMakingTemplate(BaseArbitrageStrategy):
         return signals
 
     def _should_generate_signal(self) -> bool:
-        """Determine if conditions are right to generate signals."""
-        logger.debug(f"{type(self).__name__} signal generation check: always ready (template)")
-        return True  # Template always ready
+        """Check if bid/ask spread data is available for market making."""
+        if not self.market_data:
+            logger.debug(f"{type(self).__name__}: no market data — skipping signal generation")
+            return False
+        # Market making requires bid/ask data
+        has_spread = any(
+            d.get('bid', 0) > 0 and d.get('ask', 0) > 0
+            for d in self.market_data.values()
+        )
+        if not has_spread:
+            logger.debug(f"{type(self).__name__}: no bid/ask spread data available")
+        return has_spread or bool(self.market_data)
 
 
 class CorrelationTemplate(BaseArbitrageStrategy):
@@ -563,9 +593,13 @@ class CorrelationTemplate(BaseArbitrageStrategy):
         return signals
 
     def _should_generate_signal(self) -> bool:
-        """Determine if conditions are right to generate signals."""
-        logger.debug(f"{type(self).__name__} signal generation check: always ready (template)")
-        return True  # Template always ready
+        """Check if sufficient symbol data exists for correlation analysis."""
+        priced = [s for s in self.symbol_universe if s in self.market_data
+                  and self.market_data[s].get('price', 0) > 0]
+        if len(priced) < 2:
+            logger.debug(f"{type(self).__name__}: need >= 2 priced symbols for correlation, have {len(priced)}")
+            return False
+        return True
 
 
 class IndexArbitrageTemplate(BaseArbitrageStrategy):
@@ -621,9 +655,16 @@ class IndexArbitrageTemplate(BaseArbitrageStrategy):
         return signals
 
     def _should_generate_signal(self) -> bool:
-        """Determine if conditions are right to generate signals."""
-        logger.debug(f"{type(self).__name__} signal generation check: always ready (template)")
-        return True  # Template always ready
+        """Check if index/ETF pair data is available for arbitrage."""
+        # Need at least one ETF-index pair with price data
+        for etf, index in self.index_mappings.items():
+            if (etf in self.market_data and index in self.market_data
+                    and self.market_data[etf].get('price', 0) > 0
+                    and self.market_data[index].get('price', 0) > 0):
+                return True
+        if self.market_data:
+            logger.debug(f"{type(self).__name__}: no matching ETF-index pairs with price data")
+        return bool(self.market_data)
 
 
 # Factory singleton

@@ -38,8 +38,9 @@ class WorldBankConfig:
     per_page: int = 1000
 
     def is_configured(self) -> bool:
-        # World Bank API is free and doesn't require API key
-        return True
+        """Check if World Bank API is reachable."""
+        # World Bank API is free; validate URL is set
+        return bool(self.base_url and self.base_url.startswith('http'))
 
 @dataclass
 class EconomicIndicator:

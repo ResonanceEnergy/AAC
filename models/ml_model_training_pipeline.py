@@ -722,14 +722,47 @@ class MLModelTrainingPipeline:
             return None
 
     async def _calculate_correlation_features(self, features: pd.DataFrame) -> pd.DataFrame:
-        """Calculate correlation-based features"""
-        # This would require multiple asset data
-        return None
+        """Calculate correlation-based features from multi-column price data."""
+        try:
+            corr_features = pd.DataFrame(index=features.index)
+            numeric_cols = features.select_dtypes(include='number').columns.tolist()
+            if len(numeric_cols) >= 2:
+                # Rolling pairwise correlation between first two numeric columns
+                col_a, col_b = numeric_cols[0], numeric_cols[1]
+                corr_features['rolling_corr_20'] = features[col_a].rolling(20).corr(features[col_b])
+                corr_features['rolling_corr_60'] = features[col_a].rolling(60).corr(features[col_b])
+                corr_features['corr_change'] = corr_features['rolling_corr_20'] - corr_features['rolling_corr_60']
+            elif 'price' in features.columns:
+                returns = features['price'].pct_change()
+                corr_features['autocorr_5'] = returns.rolling(20).apply(
+                    lambda x: x.autocorr(lag=5) if len(x) > 5 else 0, raw=False
+                )
+            return corr_features.fillna(0)
+        except Exception as e:
+            self.logger.error(f"Error calculating correlation features: {e}")
+            return None
 
     async def _calculate_sentiment_features(self, features: pd.DataFrame) -> pd.DataFrame:
-        """Calculate sentiment-based features"""
-        # This would integrate with sentiment analysis
-        return None
+        """Calculate sentiment-proxy features from price/volume data."""
+        try:
+            sent_features = pd.DataFrame(index=features.index)
+            if 'price' in features.columns:
+                returns = features['price'].pct_change()
+                # Momentum as sentiment proxy
+                sent_features['momentum_5'] = features['price'].pct_change(5)
+                sent_features['momentum_20'] = features['price'].pct_change(20)
+                # Fear/greed proxy: ratio of down days in rolling window
+                sent_features['fear_ratio_10'] = (returns < 0).rolling(10).mean()
+                # Consecutive up/down days
+                sign = (returns > 0).astype(int)
+                sent_features['consec_up'] = sign.groupby((sign != sign.shift()).cumsum()).cumcount() + 1
+                sent_features['consec_up'] = sent_features['consec_up'] * sign
+            if 'volume' in features.columns:
+                sent_features['volume_surge'] = features['volume'] / features['volume'].rolling(20).mean()
+            return sent_features.fillna(0)
+        except Exception as e:
+            self.logger.error(f"Error calculating sentiment features: {e}")
+            return None
 
     async def _train_model_instance(self, model_type: ModelType, training_data: TrainingDataset) -> Tuple[Any, ModelPerformance]:
         """Train a specific model instance"""

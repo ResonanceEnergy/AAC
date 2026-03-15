@@ -638,9 +638,29 @@ class BridgeAnalyzerAgent(BaseResearchAgent):
         return findings
 
     async def _analyze_bridge(self, bridge: Dict) -> Dict:
-        """Analyze bridge for opportunities"""
-        self.logger.warning("Analysis returned empty result")
-        return {}
+        """Analyze bridge for cross-chain arbitrage opportunities."""
+        chains = bridge.get('chains', [])
+        if len(chains) < 2:
+            return {}
+        tvl = bridge.get('tvl', 0)
+        volume_24h = bridge.get('volume_24h', 0)
+        fee_pct = bridge.get('fee_pct', 0.003)
+        spread_pct = bridge.get('spread_pct', 0)
+        # Check if spread exceeds bridge fees (opportunity exists)
+        net_spread = spread_pct - fee_pct
+        if net_spread > 0.001 and tvl > 100_000:
+            confidence = min(0.95, 0.5 + (net_spread * 50) + (min(tvl, 10_000_000) / 20_000_000))
+            return {
+                'arbitrage_opportunity': True,
+                'confidence': round(confidence, 3),
+                'spread_pct': round(spread_pct, 5),
+                'net_spread_pct': round(net_spread, 5),
+                'fee_pct': fee_pct,
+                'tvl': tvl,
+                'volume_24h': volume_24h,
+                'liquidity': {chain: tvl / len(chains) for chain in chains},
+            }
+        return {'arbitrage_opportunity': False, 'spread_pct': spread_pct, 'fee_pct': fee_pct}
 
 
 class GasOptimizerAgent(BaseResearchAgent):
@@ -837,9 +857,34 @@ class LiquidityTrackerAgent(BaseResearchAgent):
         return findings
 
     async def _analyze_liquidity(self) -> Dict[str, Dict]:
-        """Analyze liquidity across venues"""
-        self.logger.warning("Analysis returned empty result")
-        return {}
+        """Analyze liquidity across venues for tracked symbols."""
+        results: Dict[str, Dict] = {}
+        venues = getattr(self, 'monitored_venues', ['binance', 'coinbase', 'kraken'])
+        for symbol in getattr(self, 'monitored_pairs', ['BTC/USDT', 'ETH/USDT']):
+            venue_depths = {}
+            for venue in venues:
+                depth = getattr(self, '_venue_depths', {}).get(f"{venue}:{symbol}", 1_000_000)
+                venue_depths[venue] = depth
+            if not venue_depths:
+                continue
+            depths = list(venue_depths.values())
+            max_depth = max(depths)
+            min_depth = min(depths)
+            if min_depth > 0:
+                imbalance_ratio = max_depth / min_depth
+            else:
+                imbalance_ratio = float('inf')
+            deep_venue = max(venue_depths, key=venue_depths.get)
+            shallow_venue = min(venue_depths, key=venue_depths.get)
+            results[symbol] = {
+                'imbalance_detected': imbalance_ratio > 2.0,
+                'imbalance_ratio': round(imbalance_ratio, 2),
+                'confidence': min(0.95, 0.5 + (imbalance_ratio - 2.0) * 0.1) if imbalance_ratio > 2.0 else 0.3,
+                'deep_venue': deep_venue,
+                'shallow_venue': shallow_venue,
+                'venue_depths': venue_depths,
+            }
+        return results
 
 
 # ============================================

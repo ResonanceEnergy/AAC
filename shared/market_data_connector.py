@@ -1005,8 +1005,43 @@ class FinnhubConnector(RESTConnector):
         return None
 
     async def get_historical_data(self, symbol: str, start_date: datetime, end_date: datetime) -> List[MarketData]:
-        """Get historical data from Finnhub (limited free tier)"""
-        # Finnhub free tier has limited historical data
+        """Get historical candle data from Finnhub."""
+        if not self.session or not self.api_key:
+            self.logger.warning("Finnhub API key not configured — cannot fetch historical data")
+            return []
+        resolution = 'D'  # daily candles
+        start_ts = int(start_date.timestamp())
+        end_ts = int(end_date.timestamp())
+        url = f"https://finnhub.io/api/v1/stock/candle?symbol={symbol}&resolution={resolution}&from={start_ts}&to={end_ts}&token={self.api_key}"
+        try:
+            async with self.session.get(url) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    if data.get('s') != 'ok':
+                        return []
+                    results = []
+                    closes = data.get('c', [])
+                    opens = data.get('o', [])
+                    highs = data.get('h', [])
+                    lows = data.get('l', [])
+                    volumes = data.get('v', [])
+                    timestamps = data.get('t', [])
+                    for i in range(len(closes)):
+                        results.append(MarketData(
+                            symbol=symbol,
+                            asset_class="equity",
+                            exchange="NYSE",
+                            price=closes[i],
+                            open=opens[i] if i < len(opens) else 0,
+                            high=highs[i] if i < len(highs) else 0,
+                            low=lows[i] if i < len(lows) else 0,
+                            volume=volumes[i] if i < len(volumes) else 0,
+                            timestamp=datetime.fromtimestamp(timestamps[i]) if i < len(timestamps) else datetime.now(),
+                            source="finnhub"
+                        ))
+                    return results
+        except Exception as e:
+            self.logger.error(f"Finnhub historical data error for {symbol}: {e}")
         return []
 
 
@@ -1402,8 +1437,33 @@ class BinanceConnector(WebSocketConnector):
         return binance_symbol
 
     async def get_historical_data(self, symbol: str, start_date: datetime, end_date: datetime) -> List[MarketData]:
-        """Get Binance historical data via REST API"""
-        # Implementation would use Binance REST API
+        """Get Binance historical kline data via REST API."""
+        binance_symbol = symbol.replace('/', '').upper()
+        start_ms = int(start_date.timestamp() * 1000)
+        end_ms = int(end_date.timestamp() * 1000)
+        url = f"https://api.binance.com/api/v3/klines?symbol={binance_symbol}&interval=1d&startTime={start_ms}&endTime={end_ms}&limit=1000"
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url) as response:
+                    if response.status == 200:
+                        klines = await response.json()
+                        results = []
+                        for k in klines:
+                            results.append(MarketData(
+                                symbol=symbol,
+                                asset_class="crypto",
+                                exchange="binance",
+                                price=float(k[4]),
+                                open=float(k[1]),
+                                high=float(k[2]),
+                                low=float(k[3]),
+                                volume=float(k[5]),
+                                timestamp=datetime.fromtimestamp(k[0] / 1000),
+                                source="binance"
+                            ))
+                        return results
+        except Exception as e:
+            self.logger.error(f"Binance historical data error for {symbol}: {e}")
         return []
 
 
@@ -1455,7 +1515,33 @@ class CoinbaseProConnector(WebSocketConnector):
             self.logger.error(f"Coinbase Pro message parse error: {e}")
 
     async def get_historical_data(self, symbol: str, start_date: datetime, end_date: datetime) -> List[MarketData]:
-        """Get Coinbase Pro historical data"""
+        """Get Coinbase Pro historical candle data."""
+        product_id = symbol.replace('/', '-')
+        granularity = 86400  # daily
+        url = f"https://api.exchange.coinbase.com/products/{product_id}/candles?start={start_date.isoformat()}&end={end_date.isoformat()}&granularity={granularity}"
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url) as response:
+                    if response.status == 200:
+                        candles = await response.json()
+                        results = []
+                        for c in candles:
+                            # Coinbase candle format: [time, low, high, open, close, volume]
+                            results.append(MarketData(
+                                symbol=symbol,
+                                asset_class="crypto",
+                                exchange="coinbase_pro",
+                                price=float(c[4]),
+                                open=float(c[3]),
+                                high=float(c[2]),
+                                low=float(c[1]),
+                                volume=float(c[5]),
+                                timestamp=datetime.fromtimestamp(c[0]),
+                                source="coinbase_pro"
+                            ))
+                        return results
+        except Exception as e:
+            self.logger.error(f"Coinbase Pro historical data error for {symbol}: {e}")
         return []
 
 

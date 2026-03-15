@@ -48,6 +48,10 @@ class CommunicationFramework:
 
     async def initialize(self):
         """Initialize the communication framework"""
+        self.messages.clear()
+        self.subscriptions.clear()
+        self.agents.clear()
+        self.channels.clear()
         logger.info("CommunicationFramework initialized (base implementation)")
 
     async def send_message(self, sender: str, recipient: str, message_type: str,

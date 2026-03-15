@@ -1029,10 +1029,18 @@ class AACCommandCenter:
             await self.ax_helix.receive_operational_alert(alert)
 
     async def _check_system_alerts(self) -> List[Dict[str, Any]]:
-        """Check for system alerts"""
-        # This would integrate with the actual alerting system
-        self.logger.debug("System alerts check returned empty — no alerting backend configured")
-        return []
+        """Check for system alerts from internal queue and monitoring."""
+        alerts = []
+        # Drain the alerts queue
+        while not self.alerts_queue.empty():
+            try:
+                alert = self.alerts_queue.get_nowait()
+                alerts.append(alert)
+            except Exception:
+                break
+        if alerts:
+            self.logger.info(f"System alerts check returned {len(alerts)} alert(s)")
+        return alerts
 
     async def _execute_decision(self, decision: Dict[str, Any]):
         """Execute executive decisions"""
@@ -1047,13 +1055,29 @@ class AACCommandCenter:
 
     async def _execute_strategic_decision(self, decision: Dict[str, Any]):
         """Execute strategic decisions from AZ SUPREME"""
-        # Implementation would depend on decision content
-        self.logger.info(f"Executing strategic decision: {decision.get('action', 'unknown')}")
+        action = decision.get('action', 'unknown')
+        self.logger.info(f"Executing strategic decision: {action}")
+        if not hasattr(self, '_decision_log'):
+            self._decision_log: list = []
+        self._decision_log.append({
+            'type': 'strategic',
+            'action': action,
+            'params': {k: v for k, v in decision.items() if k != 'type'},
+            'timestamp': datetime.now().isoformat(),
+        })
 
     async def _execute_operational_decision(self, decision: Dict[str, Any]):
         """Execute operational decisions from AX HELIX"""
-        # Implementation would depend on decision content
-        self.logger.info(f"Executing operational decision: {decision.get('action', 'unknown')}")
+        action = decision.get('action', 'unknown')
+        self.logger.info(f"Executing operational decision: {action}")
+        if not hasattr(self, '_decision_log'):
+            self._decision_log: list = []
+        self._decision_log.append({
+            'type': 'operational',
+            'action': action,
+            'params': {k: v for k, v in decision.items() if k != 'type'},
+            'timestamp': datetime.now().isoformat(),
+        })
 
     async def _perform_autonomous_oversight(self):
         """Perform autonomous executive oversight"""

@@ -5,6 +5,7 @@ Implements the TradingExecution department state with EMP/bomb/hurricane resilie
 
 import asyncio
 import logging
+import time
 from datetime import datetime, time as dt_time
 from typing import Dict, List, Any, Optional
 from dataclasses import dataclass
@@ -696,30 +697,103 @@ class AIRiskManager:
         return {'valid': True, 'violations': []}
 
     async def check_order_risk(self, order: Dict) -> bool:
+        """Check if an order passes risk limits."""
+        if not self.models_loaded:
+            self._logger.warning("Risk models not loaded — allowing order (degraded mode)")
+            return True
+        if self.global_limits is None:
+            return True
+        qty = order.get('quantity', 0)
+        price = order.get('price', 0)
+        notional = qty * price
+        if notional > self.global_limits.max_position_size:
+            self._logger.warning(f"Order rejected: notional {notional} > max {self.global_limits.max_position_size}")
+            return False
         return True
 
 class QuantumFillOptimizer:
     def __init__(self):
         self._logger = logging.getLogger('QuantumFillOptimizer')
         self.optimized = False
+        self._slippage_budget = 0.001  # 10 bps default
+        self._min_fill_ratio = 0.95
 
     async def optimize_order(self, order: Dict) -> Dict:
-        return order
+        """Optimize order for best execution — split large orders, apply TWAP/VWAP."""
+        qty = order.get('quantity', 0)
+        price = order.get('price', 0)
+        notional = qty * price
+        optimized = dict(order)
+        # For large orders, suggest TWAP slicing
+        if notional > 100_000:
+            slices = min(10, max(2, int(notional / 50_000)))
+            optimized['execution_strategy'] = 'TWAP'
+            optimized['slices'] = slices
+            optimized['slice_quantity'] = qty / slices
+            self._logger.info(f"Order optimized: TWAP with {slices} slices")
+        else:
+            optimized['execution_strategy'] = 'IOC'  # Immediate or Cancel for small orders
+        optimized['slippage_budget'] = self._slippage_budget
+        optimized['min_fill_ratio'] = self._min_fill_ratio
+        return optimized
 
     async def optimize_parameters(self):
         self._logger.info("Optimizing fill parameters")
         self.optimized = True
 
+    async def set_slippage_budget(self, budget: float):
+        """Set maximum acceptable slippage (as decimal, e.g. 0.001 = 10bps)."""
+        self._slippage_budget = max(0.0, min(0.05, budget))
+        self._logger.info(f"Slippage budget set to {self._slippage_budget:.4f}")
+
 class AdaptiveCircuitBreaker:
     def __init__(self):
         self._tripped = False
+        self._trip_count = 0
+        self._error_window: List[float] = []
+        self._error_threshold = 5  # 5 errors in window
+        self._window_seconds = 60.0
+        self._last_trip_time: Optional[datetime] = None
+        self._logger = logging.getLogger('AdaptiveCircuitBreaker')
 
     async def check_status(self) -> Dict:
-        return {'tripped': self._tripped}
+        """Check circuit breaker status."""
+        return {
+            'tripped': self._tripped,
+            'trip_count': self._trip_count,
+            'errors_in_window': len(self._error_window),
+            'threshold': self._error_threshold,
+            'last_trip': self._last_trip_time.isoformat() if self._last_trip_time else None,
+        }
+
+    async def record_error(self):
+        """Record an error and auto-trip if threshold exceeded."""
+        now = time.time()
+        self._error_window.append(now)
+        # Prune old errors outside window
+        cutoff = now - self._window_seconds
+        self._error_window = [t for t in self._error_window if t > cutoff]
+        if len(self._error_window) >= self._error_threshold and not self._tripped:
+            await self.trip()
 
     async def trip(self):
+        """Trip the circuit breaker."""
         self._tripped = True
-        logger.critical("CIRCUIT BREAKER TRIPPED — all trading halted")
+        self._trip_count += 1
+        self._last_trip_time = datetime.now()
+        self._logger.critical("CIRCUIT BREAKER TRIPPED — all trading halted")
+
+    async def reset(self):
+        """Reset the circuit breaker after investigation."""
+        self._tripped = False
+        self._error_window.clear()
+        self._logger.info("Circuit breaker reset — trading resumed")
+
+    async def set_threshold(self, errors: int, window_seconds: float = 60.0):
+        """Adjust circuit breaker sensitivity."""
+        self._error_threshold = max(1, errors)
+        self._window_seconds = max(10.0, window_seconds)
+        self._logger.info(f"Circuit breaker threshold: {self._error_threshold} errors in {self._window_seconds}s")
 
 class ExecutionMetricsCollector:
     async def collect_real_time_metrics(self) -> ExecutionMetrics:
