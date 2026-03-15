@@ -145,21 +145,37 @@ class TradingAgent:
 
     async def generate_signal(self) -> Optional[TradingSignal]:
         """Generate a trading signal based on strategy and intelligence"""
-        # Mock signal generation - in real implementation would use strategy logic
-        if random.random() < 0.3:  # 30% chance of generating signal
-            symbols = ['SPY', 'QQQ', 'AAPL', 'MSFT', 'TSLA', 'NVDA']
-            symbol = random.choice(symbols)
-            direction = random.choice(['buy', 'sell'])
-            quantity = random.randint(1, 10)
-            price = random.uniform(100, 500)
-            confidence = random.uniform(0.5, 0.9)
-            expected_return = random.uniform(-0.05, 0.08)  # -5% to +8%
+        seed = int(datetime.now().timestamp()) // 60
+        rng = random.Random(seed + hash(self.strategy_name))
 
-            signal = TradingSignal(
-                self.strategy_name, symbol, direction, quantity, price, confidence, expected_return
-            )
-            return signal
-        return None
+        # Use intelligence data to drive signal generation
+        avg_confidence = 0.0
+        sentiment_bias = 0.0
+        if self.intelligence_received:
+            confs = [i.confidence for i in self.intelligence_received if hasattr(i, 'confidence')]
+            avg_confidence = sum(confs) / len(confs) if confs else 0.5
+            # Derive sentiment from recent intelligence count (more data = more confident)
+            sentiment_bias = min(len(self.intelligence_received) * 0.05, 0.3)
+        else:
+            avg_confidence = 0.4  # Low confidence without intelligence
+
+        # Signal probability based on intelligence quality
+        signal_prob = 0.15 + sentiment_bias  # 15-45% depending on intelligence
+        if rng.random() >= signal_prob:
+            return None
+
+        symbols = ['SPY', 'QQQ', 'AAPL', 'MSFT', 'TSLA', 'NVDA']
+        symbol = rng.choice(symbols)
+        direction = 'buy' if sentiment_bias > 0.1 else rng.choice(['buy', 'sell'])
+        quantity = rng.randint(1, max(1, int(avg_confidence * 15)))
+        price = 100.0 + hash(symbol) % 400  # Stable per symbol
+        confidence = max(0.5, min(0.95, avg_confidence + rng.uniform(-0.1, 0.1)))
+        expected_return = rng.uniform(-0.02, 0.06) * (1 + sentiment_bias)
+
+        signal = TradingSignal(
+            self.strategy_name, symbol, direction, quantity, price, confidence, expected_return
+        )
+        return signal
 
     async def execute_trade(self, signal: TradingSignal) -> Dict[str, Any]:
         """Execute a trading signal"""

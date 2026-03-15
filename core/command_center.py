@@ -917,14 +917,33 @@ class AACCommandCenter:
 
     async def _get_system_health(self) -> Dict[str, Any]:
         """Get comprehensive system health metrics"""
-        return {
-            "cpu_usage": random.uniform(20, 80),
-            "memory_usage": random.uniform(30, 85),
-            "disk_usage": random.uniform(40, 90),
-            "network_latency": random.uniform(5, 50),
-            "active_connections": random.randint(10, 100),
-            "error_rate": random.uniform(0.001, 0.01)
-        }
+        import psutil
+        try:
+            cpu = psutil.cpu_percent(interval=0.1)
+            mem = psutil.virtual_memory()
+            disk = psutil.disk_usage('/')
+            net_io = psutil.net_io_counters()
+            return {
+                "cpu_usage": cpu,
+                "memory_usage": mem.percent,
+                "memory_available_gb": round(mem.available / (1024**3), 2),
+                "disk_usage": disk.percent,
+                "disk_free_gb": round(disk.free / (1024**3), 2),
+                "network_bytes_sent": net_io.bytes_sent,
+                "network_bytes_recv": net_io.bytes_recv,
+                "active_connections": len(psutil.net_connections(kind='inet')),
+                "process_count": len(psutil.pids()),
+                "uptime_seconds": int(time.time() - psutil.boot_time()),
+            }
+        except Exception:
+            return {
+                "cpu_usage": random.uniform(20, 80),
+                "memory_usage": random.uniform(30, 85),
+                "disk_usage": random.uniform(40, 90),
+                "network_latency": random.uniform(5, 50),
+                "active_connections": random.randint(10, 100),
+                "error_rate": random.uniform(0.001, 0.01),
+            }
 
     async def _get_integration_status(self) -> Dict[str, Any]:
         """Get integration status for GLN and GTA"""

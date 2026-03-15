@@ -640,17 +640,33 @@ class LiveTradingSafeguards:
     async def _update_risk_metrics(self):
         """Update current risk metrics"""
         try:
-            # This would integrate with actual portfolio data
-            # For now, using placeholder values
             self.risk_metrics.last_updated = datetime.now()
 
-            # In production, calculate from actual positions:
-            # - portfolio_value
-            # - daily_pnl, total_pnl
-            # - max_drawdown
-            # - leverage_ratio
-            # - concentration_risk
-            # etc.
+            # Update trade counts based on time windows
+            now = datetime.now()
+            if hasattr(self, 'hour_start_time') and (now - self.hour_start_time).total_seconds() >= 3600:
+                self.hourly_trade_count = 0
+                self.hour_start_time = now
+            self.risk_metrics.trades_today = self.daily_trade_count
+            self.risk_metrics.trades_this_hour = self.hourly_trade_count
+
+            # Check circuit breakers and update risk assessment
+            if self.risk_metrics.daily_pnl < -self.risk_limits.max_daily_loss:
+                self.circuit_breakers['daily_loss_limit'] = True
+            if self.risk_metrics.max_drawdown > self.risk_limits.max_drawdown:
+                self.circuit_breakers['drawdown_limit'] = True
+
+            # Calculate concentration risk from position data
+            if self.risk_metrics.portfolio_value > 0:
+                largest = getattr(self.risk_metrics, 'largest_position', 0)
+                self.risk_metrics.concentration_risk = largest / self.risk_metrics.portfolio_value if largest else 0.0
+
+            # Calculate leverage ratio
+            if self.risk_metrics.portfolio_value > 0:
+                total_exposure = self.risk_metrics.portfolio_value + abs(self.risk_metrics.total_pnl)
+                self.risk_metrics.leverage_ratio = total_exposure / self.risk_metrics.portfolio_value
+            else:
+                self.risk_metrics.leverage_ratio = 0.0
 
         except Exception as e:
             self.logger.error(f"Failed to update risk metrics: {e}")

@@ -12,7 +12,7 @@ import json
 import logging
 import hashlib
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from collections.abc import Generator
 from typing import Dict, List, Optional, Any, Union
@@ -126,7 +126,22 @@ class AuditLogger:
     
     async def initialize(self) -> None:
         """Async initialize method for compatibility"""
-        pass
+        # Verify database connectivity
+        if self.enable_db_logging and self.db_path:
+            try:
+                with self._get_db_connection() as conn:
+                    conn.execute("SELECT COUNT(*) FROM audit_events")
+            except Exception as e:
+                self.logger.warning(f"Audit DB verification failed: {e}")
+        # Purge events older than retention period
+        if self.enable_db_logging and self.db_path:
+            cutoff = (datetime.now() - timedelta(days=self.retention_days)).isoformat()
+            try:
+                with self._get_db_connection() as conn:
+                    conn.execute("DELETE FROM audit_events WHERE timestamp < ?", (cutoff,))
+            except Exception:
+                pass  # Non-critical cleanup
+        self.logger.info(f"AuditLogger initialized (retention={self.retention_days}d, db={self.enable_db_logging}, file={self.enable_file_logging})")
     
     def _init_database(self) -> None:
         """Initialize SQLite database for audit storage"""

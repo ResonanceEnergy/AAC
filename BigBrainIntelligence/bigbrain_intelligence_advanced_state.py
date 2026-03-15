@@ -342,7 +342,24 @@ class BigBrainIntelligenceState:
     async def _attempt_error_recovery(self):
         """Attempt to recover from research error"""
         logger.info("Attempting research error recovery")
-        # Implement recovery logic
+        if not hasattr(self, '_recovery_attempts'):
+            self._recovery_attempts = 0
+        self._recovery_attempts += 1
+        # Try to restart any paused agents
+        try:
+            await self.research_agents.resume_all_agents()
+        except Exception as e:
+            logger.warning(f"Could not resume agents: {e}")
+        # Reset experiment manager if it crashed
+        try:
+            await self.experiment_manager.resume_all_experiments()
+        except Exception as e:
+            logger.warning(f"Could not resume experiments: {e}")
+        # If too many recovery attempts, reduce intensity instead
+        if self._recovery_attempts >= 3:
+            logger.warning(f"Recovery attempt {self._recovery_attempts} — reducing research intensity")
+            await self._reduce_research_intensity()
+            self._recovery_attempts = 0
 
     async def _emergency_research_shutdown(self):
         """Emergency research shutdown"""

@@ -281,13 +281,33 @@ class CodeQualityAnalyzer:
         }
 
     async def _analyze_test_coverage(self) -> Dict[str, Any]:
-        """Analyze test coverage"""
-        # Mock test coverage analysis
+        """Analyze test coverage by scanning test directory"""
+        test_dir = Path('tests')
+        src_files = set()
+        test_files = set()
+
+        # Count source files
+        for pattern in ['*.py', '**/*.py']:
+            for p in Path('.').glob(pattern):
+                if 'test' not in p.name and '__pycache__' not in str(p) and '.venv' not in str(p):
+                    src_files.add(p.stem)
+
+        # Count test files and infer which modules they cover
+        if test_dir.exists():
+            for tf in test_dir.rglob('test_*.py'):
+                test_files.add(tf.stem)
+
+        files_with_tests = len(test_files)
+        total_src = max(len(src_files), 1)
+        files_without_tests = max(0, total_src - files_with_tests)
+        # Estimate coverage from test-to-source ratio
+        estimated_coverage = min(95.0, (files_with_tests / total_src) * 100)
+
         coverage_data = {
-            'overall_coverage': 65.5,
-            'files_with_tests': 45,
-            'files_without_tests': 23,
-            'uncovered_lines': 1250
+            'overall_coverage': round(estimated_coverage, 1),
+            'files_with_tests': files_with_tests,
+            'files_without_tests': files_without_tests,
+            'uncovered_lines': files_without_tests * 50  # rough estimate
         }
 
         issues = 1 if coverage_data['overall_coverage'] < self.thresholds['min_test_coverage'] else 0

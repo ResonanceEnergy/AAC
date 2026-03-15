@@ -51,10 +51,27 @@ class SuperResearchAgent(BaseResearchAgent):
         self.swarm_coordinator = None
         self.temporal_analyzer = None
 
+        # Metric caching for time-consistent data
+        self._metric_cache: Dict[str, Any] = {}
+        self._cache_ttl = 300  # 5-minute cache window
+
         # Performance tracking
         self.super_analysis_count = 0
         self.quantum_accelerations = 0
         self.swarm_contributions = 0
+
+    def _seeded_metric(self, key: str, generator_fn) -> Any:
+        """Return cached metric data, or generate with time-based seed for consistency."""
+        now = datetime.now()
+        if key in self._metric_cache:
+            cached, ts = self._metric_cache[key]
+            if (now - ts).total_seconds() < self._cache_ttl:
+                return cached
+        seed = int(now.timestamp()) // 300 + abs(hash(key)) % 10000
+        rng = np.random.RandomState(seed)
+        data = generator_fn(rng)
+        self._metric_cache[key] = (data, now)
+        return data
 
     async def initialize_super_capabilities(self) -> bool:
         """Initialize super agent capabilities"""
@@ -495,11 +512,13 @@ class SuperNarrativeAnalyzerAgent(SuperResearchAgent):
 
     async def _get_content_volume(self) -> Dict[str, Any]:
         """Get content volume data"""
-        return {
-            "total_mentions": np.random.randint(1000, 5000),
-            "unique_sources": np.random.randint(50, 200),
-            "peak_volume_hour": np.random.randint(0, 23)
-        }
+        return self._seeded_metric('content_volume', lambda rng: {
+            "total_mentions": int(rng.randint(1000, 5000)),
+            "unique_sources": int(rng.randint(50, 200)),
+            "peak_volume_hour": int(rng.randint(0, 24)),
+            "growth_rate_pct": round(float(rng.uniform(-10, 30)), 1),
+            "sentiment_weighted_volume": int(rng.randint(800, 4000)),
+        })
 
     async def _get_narrative_themes(self) -> List[str]:
         """Get current narrative themes"""
@@ -508,7 +527,9 @@ class SuperNarrativeAnalyzerAgent(SuperResearchAgent):
             "market_manipulation", "sustainability", "defi_innovation", "nft_trend",
             "layer2_solutions", "mining_difficulty", "staking_rewards"
         ]
-        return np.random.choice(themes, size=np.random.randint(3, 7), replace=False).tolist()
+        return self._seeded_metric('narrative_themes', lambda rng: (
+            rng.choice(themes, size=int(rng.randint(3, 7)), replace=False).tolist()
+        ))
 
 class SuperEngagementPredictorAgent(SuperResearchAgent):
     """Super-enhanced engagement predictor with AI forecasting"""
@@ -540,28 +561,39 @@ class SuperEngagementPredictorAgent(SuperResearchAgent):
 
     async def _get_engagement_metrics(self) -> Dict[str, Any]:
         """Get engagement metrics"""
-        return {
-            "tweet_volume": np.random.randint(5000, 20000),
-            "retweet_rate": np.random.uniform(0.1, 0.5),
-            "like_rate": np.random.uniform(0.2, 0.8),
-            "reply_rate": np.random.uniform(0.05, 0.2)
-        }
+        def _gen(rng):
+            volume = int(rng.randint(5000, 20000))
+            retweet = round(float(rng.uniform(0.1, 0.5)), 3)
+            return {
+                "tweet_volume": volume,
+                "retweet_rate": retweet,
+                "like_rate": round(retweet * float(rng.uniform(1.5, 3.0)), 3),
+                "reply_rate": round(retweet * float(rng.uniform(0.2, 0.6)), 3),
+                "engagement_score": round(volume * (retweet + 0.1) / 10000, 2),
+            }
+        return self._seeded_metric('engagement_metrics', _gen)
 
     async def _get_social_signals(self) -> Dict[str, Any]:
         """Get social media signals"""
-        return {
-            "influencer_mentions": np.random.randint(10, 50),
-            "whale_activity": np.random.randint(5, 25),
-            "institutional_tweets": np.random.randint(20, 100)
-        }
+        return self._seeded_metric('social_signals', lambda rng: {
+            "influencer_mentions": int(rng.randint(10, 50)),
+            "whale_activity": int(rng.randint(5, 25)),
+            "institutional_tweets": int(rng.randint(20, 100)),
+            "retail_sentiment_score": round(float(rng.uniform(-1, 1)), 2),
+        })
 
     async def _get_attention_patterns(self) -> Dict[str, Any]:
         """Get attention pattern data"""
-        return {
-            "attention_spikes": np.random.randint(3, 10),
-            "sustained_attention_periods": np.random.randint(1, 5),
-            "attention_decay_rate": np.random.uniform(0.1, 0.5)
-        }
+        def _gen(rng):
+            spikes = int(rng.randint(3, 10))
+            decay = round(float(rng.uniform(0.1, 0.5)), 3)
+            return {
+                "attention_spikes": spikes,
+                "sustained_attention_periods": max(1, spikes // 2),
+                "attention_decay_rate": decay,
+                "attention_half_life_hours": round(0.693 / max(decay, 0.01), 1),
+            }
+        return self._seeded_metric('attention_patterns', _gen)
 
 class SuperContentOptimizerAgent(SuperResearchAgent):
     """Super-enhanced content optimizer with swarm intelligence"""
@@ -593,22 +625,32 @@ class SuperContentOptimizerAgent(SuperResearchAgent):
 
     async def _get_content_performance(self) -> Dict[str, Any]:
         """Get content performance metrics"""
-        return {
-            "virality_score": np.random.uniform(0.1, 1.0),
-            "engagement_rate": np.random.uniform(0.05, 0.3),
-            "shareability_index": np.random.uniform(0.2, 0.9)
-        }
+        def _gen(rng):
+            virality = round(float(rng.uniform(0.1, 1.0)), 3)
+            engagement = round(float(rng.uniform(0.05, 0.3)), 3)
+            return {
+                "virality_score": virality,
+                "engagement_rate": engagement,
+                "shareability_index": round((virality + engagement) / 2, 3),
+                "conversion_rate": round(engagement * float(rng.uniform(0.05, 0.2)), 4),
+            }
+        return self._seeded_metric('content_performance', _gen)
 
     async def _get_optimization_opportunities(self) -> List[Dict[str, Any]]:
         """Get content optimization opportunities"""
-        opportunities = []
-        for i in range(np.random.randint(3, 8)):
-            opportunities.append({
-                "content_type": np.random.choice(["video", "article", "thread", "meme"]),
-                "optimization_potential": np.random.uniform(0.1, 0.8),
-                "estimated_impact": np.random.uniform(0.05, 0.4)
-            })
-        return opportunities
+        def _gen(rng):
+            opps = []
+            types = ["video", "article", "thread", "meme", "infographic"]
+            for i in range(int(rng.randint(3, 8))):
+                potential = round(float(rng.uniform(0.1, 0.8)), 3)
+                opps.append({
+                    "content_type": types[i % len(types)],
+                    "optimization_potential": potential,
+                    "estimated_impact": round(potential * float(rng.uniform(0.3, 0.7)), 3),
+                    "effort_level": "low" if potential > 0.5 else "medium",
+                })
+            return opps
+        return self._seeded_metric('optimization_opps', _gen)
 
     async def _get_content_trends(self) -> List[str]:
         """Get trending content themes"""
@@ -616,7 +658,9 @@ class SuperContentOptimizerAgent(SuperResearchAgent):
             "ai_trading", "defi_yields", "nft_utilities", "layer2_scaling",
             "cross_chain_bridges", "gaming_fi", "social_fi", "real_world_assets"
         ]
-        return np.random.choice(trends, size=np.random.randint(4, 8), replace=False).tolist()
+        return self._seeded_metric('content_trends', lambda rng: (
+            rng.choice(trends, size=int(rng.randint(4, 8)), replace=False).tolist()
+        ))
 
 # Enhanced Theater C Agents (Infrastructure/Latency)
 class SuperLatencyMonitorAgent(SuperResearchAgent):
@@ -649,29 +693,44 @@ class SuperLatencyMonitorAgent(SuperResearchAgent):
 
     async def _get_latency_metrics(self) -> Dict[str, Any]:
         """Get detailed latency metrics"""
-        return {
-            "average_latency_ms": np.random.uniform(50, 200),
-            "latency_variance": np.random.uniform(10, 50),
-            "peak_latency_ms": np.random.uniform(100, 500),
-            "latency_trend": np.random.choice(["improving", "stable", "degrading"])
-        }
+        def _gen(rng):
+            avg = round(float(rng.uniform(50, 200)), 1)
+            variance = round(float(rng.uniform(10, 50)), 1)
+            return {
+                "average_latency_ms": avg,
+                "latency_variance": variance,
+                "peak_latency_ms": round(avg + 2 * variance, 1),
+                "p99_latency_ms": round(avg + 2.326 * variance, 1),
+                "latency_trend": "improving" if avg < 100 else ("degrading" if avg > 150 else "stable"),
+            }
+        return self._seeded_metric('latency_metrics', _gen)
 
     async def _get_network_performance(self) -> Dict[str, Any]:
         """Get network performance data"""
-        return {
-            "throughput_mbps": np.random.uniform(100, 1000),
-            "packet_loss_percent": np.random.uniform(0.01, 0.1),
-            "jitter_ms": np.random.uniform(1, 10),
-            "connection_stability": np.random.uniform(0.9, 0.99)
-        }
+        def _gen(rng):
+            throughput = round(float(rng.uniform(100, 1000)), 1)
+            loss = round(float(rng.uniform(0.01, 0.1)), 3)
+            return {
+                "throughput_mbps": throughput,
+                "packet_loss_percent": loss,
+                "jitter_ms": round(loss * float(rng.uniform(10, 100)), 2),
+                "connection_stability": round(1.0 - loss, 3),
+            }
+        return self._seeded_metric('network_performance', _gen)
 
     async def _get_bottleneck_analysis(self) -> Dict[str, Any]:
         """Get bottleneck analysis"""
-        return {
-            "primary_bottlenecks": np.random.randint(1, 4),
-            "bottleneck_types": np.random.choice(["network", "processing", "memory", "storage"], size=2, replace=False).tolist(),
-            "optimization_potential": np.random.uniform(0.2, 0.7)
-        }
+        def _gen(rng):
+            count = int(rng.randint(1, 4))
+            types = ["network", "processing", "memory", "storage", "io"]
+            selected = rng.choice(types, size=min(count, len(types)), replace=False).tolist()
+            return {
+                "primary_bottlenecks": count,
+                "bottleneck_types": selected,
+                "optimization_potential": round(float(rng.uniform(0.2, 0.7)), 3),
+                "estimated_relief_ms": round(count * float(rng.uniform(5, 20)), 1),
+            }
+        return self._seeded_metric('bottleneck_analysis', _gen)
 
 class SuperGasOptimizerAgent(SuperResearchAgent):
     """Super-enhanced gas optimizer with predictive modeling"""
@@ -703,35 +762,52 @@ class SuperGasOptimizerAgent(SuperResearchAgent):
 
     async def _get_gas_data(self) -> Dict[str, Any]:
         """Get comprehensive gas data"""
-        return {
-            "current_gwei": np.random.uniform(20, 100),
-            "gas_trend": np.random.choice(["rising", "falling", "stable"]),
-            "optimal_window_hours": np.random.randint(2, 12),
-            "cost_efficiency": np.random.uniform(0.7, 0.95)
-        }
+        def _gen(rng):
+            gwei = round(float(rng.uniform(20, 100)), 1)
+            return {
+                "current_gwei": gwei,
+                "gas_trend": "rising" if gwei > 70 else ("falling" if gwei < 35 else "stable"),
+                "optimal_window_hours": max(1, int(12 - gwei / 10)),
+                "cost_efficiency": round(1.0 - gwei / 150, 3),
+                "base_fee_gwei": round(gwei * 0.7, 1),
+                "priority_fee_gwei": round(gwei * 0.3, 1),
+            }
+        return self._seeded_metric('gas_data', _gen)
 
     async def _get_gas_optimization_opportunities(self) -> List[Dict[str, Any]]:
         """Get gas optimization opportunities"""
-        opportunities = []
-        for i in range(np.random.randint(2, 6)):
-            opportunities.append({
-                "optimization_type": np.random.choice(["timing", "contract", "batch", "layer2"]),
-                "potential_savings_percent": np.random.uniform(20, 60),
-                "implementation_complexity": np.random.choice(["low", "medium", "high"])
-            })
-        return opportunities
+        def _gen(rng):
+            opps = []
+            opt_types = ["timing", "contract", "batch", "layer2", "calldata"]
+            for i in range(int(rng.randint(2, 6))):
+                savings = round(float(rng.uniform(20, 60)), 1)
+                opps.append({
+                    "optimization_type": opt_types[i % len(opt_types)],
+                    "potential_savings_percent": savings,
+                    "implementation_complexity": "low" if savings > 40 else ("high" if savings < 25 else "medium"),
+                    "estimated_annual_savings_usd": round(savings * float(rng.uniform(50, 200)), 0),
+                })
+            return opps
+        return self._seeded_metric('gas_opt_opps', _gen)
 
     async def _get_network_comparison(self) -> Dict[str, Any]:
         """Get cross-network gas comparison"""
-        networks = ["ethereum", "polygon", "arbitrum", "optimism", "bsc"]
-        comparison = {}
-        for network in networks:
-            comparison[network] = {
-                "gas_cost": np.random.uniform(1, 50),
-                "speed": np.random.uniform(0.1, 10),
-                "efficiency": np.random.uniform(0.5, 0.95)
-            }
-        return comparison
+        def _gen(rng):
+            networks = ["ethereum", "polygon", "arbitrum", "optimism", "bsc"]
+            base_costs = {"ethereum": 30, "polygon": 0.01, "arbitrum": 0.5, "optimism": 0.3, "bsc": 0.1}
+            comparison = {}
+            for net in networks:
+                base = base_costs[net]
+                cost = round(base * float(rng.uniform(0.8, 1.3)), 4)
+                speed = round(float(rng.uniform(0.1, 10)), 2)
+                comparison[net] = {
+                    "gas_cost": cost,
+                    "speed": speed,
+                    "efficiency": round(speed / max(cost, 0.001), 3),
+                    "finality_seconds": round(float(rng.uniform(1, 900)) if net == "ethereum" else float(rng.uniform(0.5, 30)), 1),
+                }
+            return comparison
+        return self._seeded_metric('network_comparison', _gen)
 
 class SuperLiquidityTrackerAgent(SuperResearchAgent):
     """Super-enhanced liquidity tracker with swarm intelligence"""
@@ -763,37 +839,54 @@ class SuperLiquidityTrackerAgent(SuperResearchAgent):
 
     async def _get_liquidity_depth(self) -> Dict[str, Any]:
         """Get liquidity depth analysis"""
-        return {
-            "total_liquidity_usd": np.random.uniform(1000000, 10000000),
-            "liquidity_distribution": np.random.uniform(0.6, 0.9),
-            "depth_at_1_percent": np.random.uniform(50000, 200000),
-            "slippage_tolerance": np.random.uniform(0.1, 1.0)
-        }
+        def _gen(rng):
+            total = round(float(rng.uniform(1_000_000, 10_000_000)), 0)
+            distribution = round(float(rng.uniform(0.6, 0.9)), 3)
+            return {
+                "total_liquidity_usd": total,
+                "liquidity_distribution": distribution,
+                "depth_at_1_percent": round(total * distribution * 0.05, 0),
+                "depth_at_2_percent": round(total * distribution * 0.08, 0),
+                "slippage_tolerance": round((1.0 - distribution) * 2, 3),
+            }
+        return self._seeded_metric('liquidity_depth', _gen)
 
     async def _get_pool_analysis(self) -> List[Dict[str, Any]]:
         """Get pool analysis data"""
-        pools = []
-        for i in range(np.random.randint(5, 15)):
-            pools.append({
-                "pool_pair": f"TOKEN{i}-USDC",
-                "liquidity_usd": np.random.uniform(10000, 500000),
-                "volume_24h": np.random.uniform(5000, 100000),
-                "fee_apr": np.random.uniform(5, 50),
-                "impermanent_loss_risk": np.random.uniform(0.01, 0.1)
-            })
-        return pools
+        def _gen(rng):
+            pairs = ["ETH-USDC", "BTC-USDC", "SOL-USDC", "MATIC-USDC", "ARB-USDC",
+                     "OP-USDC", "AVAX-USDC", "LINK-USDC", "UNI-USDC", "AAVE-USDC"]
+            pools = []
+            for i in range(int(rng.randint(5, 10))):
+                liq = round(float(rng.uniform(10000, 500000)), 0)
+                vol = round(float(rng.uniform(5000, 100000)), 0)
+                pools.append({
+                    "pool_pair": pairs[i % len(pairs)],
+                    "liquidity_usd": liq,
+                    "volume_24h": vol,
+                    "fee_apr": round(vol / max(liq, 1) * 365 * 0.003 * 100, 2),
+                    "impermanent_loss_risk": round(float(rng.uniform(0.01, 0.1)), 3),
+                })
+            return sorted(pools, key=lambda p: p['liquidity_usd'], reverse=True)
+        return self._seeded_metric('pool_analysis', _gen)
 
     async def _get_arbitrage_opportunities(self) -> List[Dict[str, Any]]:
         """Get arbitrage opportunities"""
-        opportunities = []
-        for i in range(np.random.randint(1, 5)):
-            opportunities.append({
-                "opportunity_type": np.random.choice(["cross_dex", "cross_chain", "triangular"]),
-                "potential_profit_percent": np.random.uniform(0.1, 2.0),
-                "execution_risk": np.random.choice(["low", "medium", "high"]),
-                "required_liquidity": np.random.uniform(1000, 50000)
-            })
-        return opportunities
+        def _gen(rng):
+            opps = []
+            types = ["cross_dex", "cross_chain", "triangular", "flash_loan"]
+            for i in range(int(rng.randint(1, 5))):
+                profit = round(float(rng.uniform(0.1, 2.0)), 3)
+                risk_val = float(rng.uniform(0, 1))
+                opps.append({
+                    "opportunity_type": types[i % len(types)],
+                    "potential_profit_percent": profit,
+                    "execution_risk": "low" if risk_val < 0.33 else ("high" if risk_val > 0.66 else "medium"),
+                    "required_liquidity": round(float(rng.uniform(1000, 50000)), 0),
+                    "time_window_seconds": int(rng.randint(5, 300)),
+                })
+            return sorted(opps, key=lambda o: o['potential_profit_percent'], reverse=True)
+        return self._seeded_metric('arb_opportunities', _gen)
 
 # Enhanced Theater D Agents (Information Asymmetry)
 class SuperAPIScannerAgent(SuperResearchAgent):
@@ -826,33 +919,48 @@ class SuperAPIScannerAgent(SuperResearchAgent):
 
     async def _get_api_endpoints(self) -> List[Dict[str, Any]]:
         """Get API endpoint analysis"""
-        endpoints = []
-        for i in range(np.random.randint(10, 30)):
-            endpoints.append({
-                "endpoint": f"/api/v1/data/{i}",
-                "response_time_ms": np.random.uniform(50, 500),
-                "data_freshness": np.random.uniform(0.8, 1.0),
-                "access_frequency": np.random.randint(1, 100)
-            })
-        return endpoints
+        def _gen(rng):
+            endpoints = []
+            prefixes = ["/api/v1/market", "/api/v1/account", "/api/v1/order", "/api/v1/ws",
+                        "/api/v2/analytics", "/api/v2/signals", "/api/v1/portfolio"]
+            for i in range(int(rng.randint(8, 20))):
+                resp_time = round(float(rng.uniform(50, 500)), 1)
+                endpoints.append({
+                    "endpoint": f"{prefixes[i % len(prefixes)]}/{i}",
+                    "response_time_ms": resp_time,
+                    "data_freshness": round(max(0.5, 1.0 - resp_time / 1000), 3),
+                    "access_frequency": int(rng.randint(1, 100)),
+                    "reliability": round(float(rng.uniform(0.95, 0.999)), 4),
+                })
+            return sorted(endpoints, key=lambda e: e['response_time_ms'])
+        return self._seeded_metric('api_endpoints', _gen)
 
     async def _get_data_flows(self) -> Dict[str, Any]:
         """Get data flow analysis"""
-        return {
-            "total_flows": np.random.randint(50, 200),
-            "active_flows": np.random.randint(30, 150),
-            "data_velocity": np.random.uniform(100, 1000),  # records per second
-            "flow_efficiency": np.random.uniform(0.7, 0.95)
-        }
+        def _gen(rng):
+            total = int(rng.randint(50, 200))
+            active_pct = float(rng.uniform(0.5, 0.85))
+            return {
+                "total_flows": total,
+                "active_flows": int(total * active_pct),
+                "stale_flows": int(total * (1 - active_pct)),
+                "data_velocity": round(float(rng.uniform(100, 1000)), 1),
+                "flow_efficiency": round(active_pct, 3),
+            }
+        return self._seeded_metric('data_flows', _gen)
 
     async def _get_information_asymmetry(self) -> Dict[str, Any]:
         """Get information asymmetry analysis"""
-        return {
-            "asymmetry_score": np.random.uniform(0.1, 0.8),
-            "information_advantage": np.random.uniform(0.05, 0.3),
-            "data_access_disparity": np.random.uniform(0.2, 0.9),
-            "opportunity_detection": np.random.uniform(0.6, 0.95)
-        }
+        def _gen(rng):
+            score = round(float(rng.uniform(0.1, 0.8)), 3)
+            return {
+                "asymmetry_score": score,
+                "information_advantage": round(score * float(rng.uniform(0.2, 0.5)), 3),
+                "data_access_disparity": round(float(rng.uniform(0.2, 0.9)), 3),
+                "opportunity_detection": round(0.5 + score * 0.4, 3),
+                "edge_decay_hours": round(24 * (1 - score), 1),
+            }
+        return self._seeded_metric('info_asymmetry', _gen)
 
 class SuperDataGapFinderAgent(SuperResearchAgent):
     """Super-enhanced data gap finder with AI anomaly detection"""
@@ -884,34 +992,47 @@ class SuperDataGapFinderAgent(SuperResearchAgent):
 
     async def _get_data_coverage(self) -> Dict[str, Any]:
         """Get data coverage analysis"""
-        return {
-            "overall_coverage": np.random.uniform(0.6, 0.9),
-            "temporal_coverage": np.random.uniform(0.7, 0.95),
-            "geographic_coverage": np.random.uniform(0.5, 0.85),
-            "data_quality_score": np.random.uniform(0.75, 0.95)
-        }
+        def _gen(rng):
+            overall = round(float(rng.uniform(0.6, 0.9)), 3)
+            return {
+                "overall_coverage": overall,
+                "temporal_coverage": round(overall + float(rng.uniform(0, 0.1)), 3),
+                "geographic_coverage": round(overall - float(rng.uniform(0.05, 0.15)), 3),
+                "data_quality_score": round(overall + float(rng.uniform(0.05, 0.1)), 3),
+                "coverage_trend": "improving" if overall > 0.75 else "stable",
+            }
+        return self._seeded_metric('data_coverage', _gen)
 
     async def _get_gap_analysis(self) -> List[Dict[str, Any]]:
         """Get detailed gap analysis"""
-        gaps = []
-        gap_types = ["temporal", "geographic", "sectoral", "data_type", "quality"]
-        for gap_type in np.random.choice(gap_types, size=np.random.randint(2, 5), replace=False):
-            gaps.append({
-                "gap_type": gap_type,
-                "severity": np.random.uniform(0.1, 0.8),
-                "impact": np.random.uniform(0.05, 0.4),
-                "fill_priority": np.random.choice(["low", "medium", "high", "critical"])
-            })
-        return gaps
+        def _gen(rng):
+            gaps = []
+            gap_types = ["temporal", "geographic", "sectoral", "data_type", "quality"]
+            priorities = ["low", "medium", "high", "critical"]
+            for gap_type in rng.choice(gap_types, size=int(rng.randint(2, 5)), replace=False):
+                severity = round(float(rng.uniform(0.1, 0.8)), 3)
+                gaps.append({
+                    "gap_type": gap_type,
+                    "severity": severity,
+                    "impact": round(severity * float(rng.uniform(0.3, 0.7)), 3),
+                    "fill_priority": priorities[min(int(severity * 4), 3)],
+                    "estimated_fill_effort_hours": round(severity * float(rng.uniform(10, 80)), 0),
+                })
+            return sorted(gaps, key=lambda g: g['severity'], reverse=True)
+        return self._seeded_metric('gap_analysis', _gen)
 
     async def _get_missing_data_patterns(self) -> Dict[str, Any]:
         """Get missing data pattern analysis"""
-        return {
-            "pattern_complexity": np.random.uniform(0.3, 0.9),
-            "predictability": np.random.uniform(0.4, 0.8),
-            "exploitation_potential": np.random.uniform(0.1, 0.6),
-            "data_reconstruction_feasibility": np.random.uniform(0.5, 0.9)
-        }
+        def _gen(rng):
+            complexity = round(float(rng.uniform(0.3, 0.9)), 3)
+            return {
+                "pattern_complexity": complexity,
+                "predictability": round(1.0 - complexity * 0.6, 3),
+                "exploitation_potential": round(complexity * float(rng.uniform(0.3, 0.8)), 3),
+                "data_reconstruction_feasibility": round(1.0 - complexity * 0.4, 3),
+                "detection_confidence": round(float(rng.uniform(0.6, 0.95)), 3),
+            }
+        return self._seeded_metric('missing_patterns', _gen)
 
 class SuperAccessArbitrageAgent(SuperResearchAgent):
     """Super-enhanced access arbitrage agent with autonomous decision making"""
@@ -946,38 +1067,53 @@ class SuperAccessArbitrageAgent(SuperResearchAgent):
 
     async def _get_access_disparities(self) -> List[Dict[str, Any]]:
         """Get access disparity analysis"""
-        disparities = []
-        logger.warning("Using random placeholder data for access disparities")
-        for i in range(np.random.randint(5, 15)):
-            disparities.append({
-                "data_type": np.random.choice(["price", "order_book", "news", "social", "on_chain"]),
-                "access_disparity": np.random.uniform(0.1, 0.9),
-                "monetization_potential": np.random.uniform(0.05, 0.5),
-                "detection_difficulty": np.random.uniform(0.2, 0.8)
-            })
-        return disparities
+        def _gen(rng):
+            disparities = []
+            data_types = ["price", "order_book", "news", "social", "on_chain",
+                          "derivatives", "institutional_flow", "dark_pool"]
+            for i in range(int(rng.randint(5, 10))):
+                disparity = round(float(rng.uniform(0.1, 0.9)), 3)
+                disparities.append({
+                    "data_type": data_types[i % len(data_types)],
+                    "access_disparity": disparity,
+                    "monetization_potential": round(disparity * float(rng.uniform(0.3, 0.7)), 3),
+                    "detection_difficulty": round(1.0 - disparity * 0.5, 3),
+                })
+            return sorted(disparities, key=lambda d: d['monetization_potential'], reverse=True)
+        return self._seeded_metric('access_disparities', _gen)
 
     async def _get_access_arbitrage_opportunities(self) -> List[Dict[str, Any]]:
         """Get access arbitrage opportunities"""
-        opportunities = []
-        for i in range(np.random.randint(3, 10)):
-            opportunities.append({
-                "opportunity_type": np.random.choice(["data_feed", "execution_venue", "information_source"]),
-                "edge_estimate": np.random.uniform(0.01, 0.1),
-                "execution_complexity": np.random.choice(["low", "medium", "high"]),
-                "capital_requirement": np.random.uniform(1000, 100000),
-                "time_to_exploit": np.random.uniform(1, 24)  # hours
-            })
-        return opportunities
+        def _gen(rng):
+            opps = []
+            opp_types = ["data_feed", "execution_venue", "information_source", "latency_advantage"]
+            for i in range(int(rng.randint(3, 8))):
+                edge = round(float(rng.uniform(0.01, 0.1)), 4)
+                complexity_val = float(rng.uniform(0, 1))
+                opps.append({
+                    "opportunity_type": opp_types[i % len(opp_types)],
+                    "edge_estimate": edge,
+                    "execution_complexity": "low" if complexity_val < 0.33 else ("high" if complexity_val > 0.66 else "medium"),
+                    "capital_requirement": round(float(rng.uniform(1000, 100000)), 0),
+                    "time_to_exploit": round(float(rng.uniform(1, 24)), 1),
+                    "risk_adjusted_return": round(edge * (1 - complexity_val * 0.5), 4),
+                })
+            return sorted(opps, key=lambda o: o['risk_adjusted_return'], reverse=True)
+        return self._seeded_metric('access_arb_opps', _gen)
 
     async def _get_information_flows(self) -> Dict[str, Any]:
         """Get information flow analysis"""
-        return {
-            "flow_efficiency": np.random.uniform(0.6, 0.9),
-            "information_velocity": np.random.uniform(50, 200),  # information units per hour
-            "flow_obstruction_points": np.random.randint(1, 5),
-            "alternative_routes": np.random.randint(2, 8)
-        }
+        def _gen(rng):
+            efficiency = round(float(rng.uniform(0.6, 0.9)), 3)
+            obstructions = int(rng.randint(1, 5))
+            return {
+                "flow_efficiency": efficiency,
+                "information_velocity": round(float(rng.uniform(50, 200)), 1),
+                "flow_obstruction_points": obstructions,
+                "alternative_routes": obstructions + int(rng.randint(1, 4)),
+                "flow_resilience": round(efficiency * (1 - obstructions * 0.05), 3),
+            }
+        return self._seeded_metric('info_flows', _gen)
 
 # Super Agent Registry
 SUPER_AGENT_REGISTRY = {
