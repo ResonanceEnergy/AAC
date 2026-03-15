@@ -324,6 +324,59 @@ DEPEG_EXIT_THRESHOLD = 2.0      # Auto-exit at 2% deviation
 DEPEG_HALT_THRESHOLD = 5.0      # Kill switch at 5% deviation (Tether-specific)
 
 
+# ═══════════════════════════════════════════════════════════════════════════
+# SEED CAPITAL — REAL ACCOUNTS (FFD-11 Master Plan v2.0)
+# ═══════════════════════════════════════════════════════════════════════════
+
+SEED_CAPITAL = {
+    "NDAX": {
+        "initial_usd": 3800.0,
+        "currency": "CAD",
+        "connector": "NDAXConnector",
+        "role": "PRIMARY crypto execution — BTC/ETH/XRP spot",
+        "priority": "P0",
+        "tax_status": "taxable",
+    },
+    "IBKR": {
+        "initial_usd": 1000.0,
+        "currency": "CAD",
+        "connector": "IBKRConnector",
+        "role": "Options plays, US equities, leveraged ETFs",
+        "priority": "P0",
+        "tax_status": "taxable",
+    },
+    "Moomoo": {
+        "initial_usd": 1000.0,
+        "currency": "CAD",
+        "connector": "MoomooConnector",
+        "role": "Crypto-adjacent equities — MSTR, COIN, RIOT",
+        "priority": "P1",
+        "tax_status": "taxable",
+    },
+    "TFSA_Wealthsimple": {
+        "initial_usd": 3000.0,
+        "currency": "CAD",
+        "connector": None,
+        "role": "TAX-FREE high-growth — BTC/ETH ETFs (BTCC/ETHX)",
+        "priority": "P1",
+        "tax_status": "tax_free",
+    },
+}
+
+TOTAL_SEED_CAPITAL = sum(a["initial_usd"] for a in SEED_CAPITAL.values())  # $8,800
+
+# Performance-based milestones (M1-M7)
+MILESTONES = {
+    "M1_IGNITION": 15_000,
+    "M2_TRACTION": 25_000,
+    "M3_VELOCITY": 50_000,
+    "M4_MOMENTUM": 100_000,
+    "M5_ACCELERATION": 250_000,
+    "M6_ORBIT": 500_000,
+    "M7_DESTINATION": 1_000_000,
+}
+
+
 class StablecoinMonitor:
     """Monitors stablecoin peg health across all tracked stablecoins."""
 
@@ -424,6 +477,12 @@ class FFDEngine:
         self.cbdc_signals: List[CBDCSignal] = []
         self.regulatory_events: List[RegulatoryEvent] = []
         self._initialized = False
+        # Seed capital tracking — per-account balances
+        self.account_balances: Dict[str, float] = {
+            name: acct["initial_usd"] for name, acct in SEED_CAPITAL.items()
+        }
+        self.metrics.capital_injected_total = TOTAL_SEED_CAPITAL
+        self.metrics.portfolio_nominal_usd = TOTAL_SEED_CAPITAL
 
     def initialize(self) -> bool:
         """Initialize the FFD engine with baseline data."""
@@ -739,6 +798,60 @@ class FFDEngine:
                 "cbdc_hedging": {"min_pct": 5, "max_pct": 10},
             }
         return base
+
+    def update_account_balance(self, account: str, balance_usd: float):
+        """Update a specific account balance and recalculate portfolio total."""
+        if account not in SEED_CAPITAL:
+            logger.warning(f"Unknown account: {account}")
+            return
+        self.account_balances[account] = balance_usd
+        self.metrics.portfolio_nominal_usd = sum(self.account_balances.values())
+
+    def get_current_milestone(self) -> str:
+        """Return the current milestone based on portfolio value."""
+        total = self.metrics.portfolio_nominal_usd
+        current = "PRE_M1"
+        for name, target in MILESTONES.items():
+            if total >= target:
+                current = name
+            else:
+                break
+        return current
+
+    def get_next_milestone(self) -> Dict[str, Any]:
+        """Return next milestone target and distance."""
+        total = self.metrics.portfolio_nominal_usd
+        for name, target in MILESTONES.items():
+            if total < target:
+                return {
+                    "name": name,
+                    "target": target,
+                    "current": total,
+                    "remaining": target - total,
+                    "multiplier": target / total if total > 0 else float("inf"),
+                }
+        return {"name": "BEYOND_M7", "target": 0, "current": total, "remaining": 0, "multiplier": 1.0}
+
+    def get_account_summary(self) -> Dict[str, Any]:
+        """Return summary of all accounts with balances and roles."""
+        summary = {}
+        for name, config in SEED_CAPITAL.items():
+            summary[name] = {
+                "initial": config["initial_usd"],
+                "current": self.account_balances.get(name, 0.0),
+                "pnl": self.account_balances.get(name, 0.0) - config["initial_usd"],
+                "connector": config["connector"],
+                "role": config["role"],
+                "tax_status": config["tax_status"],
+            }
+        summary["_total"] = {
+            "initial": TOTAL_SEED_CAPITAL,
+            "current": self.metrics.portfolio_nominal_usd,
+            "pnl": self.metrics.portfolio_nominal_usd - TOTAL_SEED_CAPITAL,
+            "milestone": self.get_current_milestone(),
+            "next_milestone": self.get_next_milestone(),
+        }
+        return summary
 
 
 # ═══════════════════════════════════════════════════════════════════════════
