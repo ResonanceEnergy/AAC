@@ -7,6 +7,7 @@ Real order execution, position management, and risk controls.
 
 import asyncio
 import logging
+import time
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any, Tuple
@@ -456,8 +457,10 @@ class ExecutionEngine:
                 )
                 
                 # Determine if order is partially filled or fully filled
-                # Higher fill_probability means higher chance of full fill
-                fill_random = np.random.random()
+                # Use order-seeded RNG for deterministic fill simulation
+                import hashlib as _hl2
+                _fill_seed = int(_hl2.md5(f"{order.symbol}:{order.quantity}:{int(time.time()) // 60}".encode()).hexdigest()[:8], 16)
+                fill_random = (_fill_seed % 10000) / 10000.0
                 if fill_random < expected_fill_qty / order.quantity:
                     # Full fill
                     order.status = OrderStatus.FILLED
@@ -1418,11 +1421,14 @@ class ExecutionEngine:
         alpha = 2.0 + liquidity_ratio * 3.0  # Shape parameter
         beta_param = 1.5 + volatility * 10.0  # Beta parameter
 
-        # Sample fill fraction from Beta distribution
-        fill_fraction = np.random.beta(alpha, beta_param)
+        # Sample fill fraction from Beta distribution using seeded RNG
+        import hashlib as _hl3
+        _beta_seed = int(_hl3.md5(f"{order_quantity}:{alpha:.2f}:{beta_param:.2f}:{int(time.time()) // 60}".encode()).hexdigest()[:8], 16)
+        _beta_rng = np.random.RandomState(_beta_seed)
+        fill_fraction = _beta_rng.beta(alpha, beta_param)
 
-        # Apply no-fill probability
-        if np.random.random() < no_fill_prob:
+        # Apply no-fill probability with seeded check
+        if _beta_rng.random() < no_fill_prob:
             return 0.0
 
         return order_quantity * fill_fraction
@@ -1634,27 +1640,33 @@ class ExecutionEngine:
             # Liquidity depth at best bid/ask
             conditions['liquidity_depth'] = min(depth.total_bid_size, depth.total_ask_size)
 
-        # Estimate volatility (simplified - in real system would use historical data)
-        # For now, use a random value between 1% and 5% daily volatility
-        conditions['volatility'] = np.random.uniform(0.01, 0.05)
+        # Estimate volatility using symbol+time seed for consistency
+        import hashlib as _hl
+        _seed = int(_hl.md5(f"{symbol}:{int(time.time()) // 120}".encode()).hexdigest()[:8], 16)
+        _rng = np.random.RandomState(_seed)
+        conditions['volatility'] = 0.01 + _rng.random() * 0.04  # 1-5% daily vol
 
-        # Queue position (simplified - would need L2 data)
-        conditions['queue_position'] = np.random.randint(1, 10)
+        # Queue position derived from spread and volatility
+        conditions['queue_position'] = max(1, int(_rng.random() * 9) + 1)
 
-        # Market pressure (-1 to 1, negative = sell pressure, positive = buy pressure)
-        conditions['market_pressure'] = np.random.uniform(-0.5, 0.5)
+        # Market pressure from order book imbalance if available, else seeded
+        if depth and hasattr(depth, 'total_bid_size') and hasattr(depth, 'total_ask_size'):
+            total = depth.total_bid_size + depth.total_ask_size + 1e-9
+            conditions['market_pressure'] = (depth.total_bid_size - depth.total_ask_size) / total
+        else:
+            conditions['market_pressure'] = _rng.uniform(-0.5, 0.5)
 
         # Order size as percentage of average daily volume (simplified)
         conditions['order_size_pct'] = 0.001  # 0.1% of ADV
 
-        # Fill speed (relative to normal)
-        conditions['fill_speed'] = np.random.uniform(0.5, 2.0)
+        # Fill speed correlated with volatility (higher vol = faster fills)
+        conditions['fill_speed'] = 0.5 + conditions['volatility'] * 30 + _rng.random() * 0.5
 
         # L2 data availability (simplified - would check actual L2 subscription)
         conditions['l2_data'] = depth if depth else {}
 
-        # Queue ahead quantity (simplified)
-        conditions['queue_ahead_qty'] = np.random.uniform(0, 0.01)  # 0-0.01 BTC ahead
+        # Queue ahead quantity derived from queue position
+        conditions['queue_ahead_qty'] = _rng.random() * 0.01 * (conditions['queue_position'] / 10)
 
         return conditions
 

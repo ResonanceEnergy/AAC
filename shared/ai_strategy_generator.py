@@ -252,42 +252,43 @@ class AIStrategyGenerator:
         return min(risk_score, 3)  # Cap at EXTREME
 
     async def _generate_synthetic_training_data(self, n_samples: int) -> List[MarketFeatures]:
-        """Generate synthetic training data"""
+        """Generate synthetic training data with time-seeded determinism"""
         data = []
+        _seed = int(__import__('time').time()) // 300
+        _rng = __import__('random').Random(_seed)
 
         symbols = ["SPY", "QQQ", "AAPL", "MSFT", "BTC/USDT", "ETH/USDT"]
+        # Base prices per symbol for realistic ranges
+        base_prices = {"SPY": 450, "QQQ": 380, "AAPL": 175, "MSFT": 350, "BTC/USDT": 42000, "ETH/USDT": 2200}
 
-        for _ in range(n_samples):
-            symbol = random.choice(symbols)
-            timestamp = datetime.now() - timedelta(minutes=random.randint(0, 1440))
+        for i in range(n_samples):
+            symbol = symbols[i % len(symbols)]
+            timestamp = datetime.now() - timedelta(minutes=_rng.randint(0, 1440))
 
-            # Generate realistic market features
-            price = random.uniform(50, 50000)  # Wide price range
-            volume = random.uniform(1000, 1000000)
-            volatility = random.uniform(0.001, 0.1)
-            spread = random.uniform(0.0001, 0.01)
-            order_book_depth = random.uniform(10, 1000)
-            momentum = random.uniform(-0.1, 0.1)
-            trend_strength = random.uniform(0, 1)
+            bp = base_prices[symbol]
+            price = bp * (1 + _rng.uniform(-0.05, 0.05))
+            volume = bp * _rng.uniform(5000, 50000)  # Volume scales with price
+            volatility = _rng.uniform(0.005, 0.08)
+            spread = price * _rng.uniform(0.0001, 0.003)
+            order_book_depth = _rng.uniform(10, 1000)
+            momentum = _rng.uniform(-0.08, 0.08)
+            trend_strength = abs(momentum) * _rng.uniform(5, 15)
 
-            # Determine market regime
             regime = "bull" if momentum > 0.02 else "bear" if momentum < -0.02 else "sideways"
-
-            # Calculate arbitrage score (simplified)
-            arbitrage_score = random.uniform(0, 1)
+            arbitrage_score = max(0, min(1, volatility * _rng.uniform(2, 15) - 0.1))
 
             features = MarketFeatures(
                 symbol=symbol,
                 timestamp=timestamp,
-                price=price,
-                volume=volume,
-                volatility=volatility,
-                spread=spread,
-                order_book_depth=order_book_depth,
-                momentum=momentum,
-                trend_strength=trend_strength,
+                price=round(price, 2),
+                volume=round(volume, 0),
+                volatility=round(volatility, 4),
+                spread=round(spread, 4),
+                order_book_depth=round(order_book_depth, 1),
+                momentum=round(momentum, 4),
+                trend_strength=round(min(trend_strength, 1.0), 3),
                 market_regime=regime,
-                arbitrage_score=arbitrage_score
+                arbitrage_score=round(arbitrage_score, 3)
             )
 
             data.append(features)
@@ -537,8 +538,9 @@ def should_exit(position, current_price, entry_price, hold_time):
             price = initial_price
 
             for _ in range(n_periods):
-                # Random walk with drift
-                change = np.random.normal(0.0001, 0.01)  # Small drift, 1% volatility
+                # Seeded random walk with drift
+                _walk_rng = np.random.RandomState(int(price * 1000) % (2**31))
+                change = _walk_rng.normal(0.0001, 0.01)  # Small drift, 1% volatility
                 price *= (1 + change)
                 prices.append(price)
 

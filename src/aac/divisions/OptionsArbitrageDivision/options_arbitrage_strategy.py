@@ -204,8 +204,9 @@ class OptionsArbitrageStrategy(BaseArbitrageStrategy):
         signals = []
 
         try:
-            # Update risk-free rate periodically
-            if np.random.random() < 0.1:  # 10% chance each cycle
+            # Update risk-free rate periodically using time-based trigger
+            import time as _t
+            if int(_t.time()) % 600 < 60:  # First minute of every 10 minutes
                 await self._update_risk_free_rate()
 
             # Check each underlying for arbitrage opportunities

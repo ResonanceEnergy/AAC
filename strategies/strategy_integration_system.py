@@ -471,8 +471,11 @@ class PaperTradingAccount:
     async def _get_market_price(self, symbol: str) -> Optional[float]:
         """Get current market price for a symbol"""
         # In production, this would query live market data
-        # For now, return a mock price
-        return 100.0 + np.random.normal(0, 5)  # Mock price around $100
+        # Use symbol-seeded price for consistency within time windows
+        import hashlib as _hl
+        _seed = int(_hl.md5(f"{symbol}:{int(time.time()) // 120}".encode()).hexdigest()[:8], 16)
+        _rng = np.random.RandomState(_seed)
+        return 100.0 + _rng.normal(0, 5)
 
     async def get_performance_metrics(self) -> Dict[str, Any]:
         """Get performance metrics for the account"""

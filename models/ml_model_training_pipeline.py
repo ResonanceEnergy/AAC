@@ -339,31 +339,22 @@ class MLModelTrainingPipeline:
 
     def _generate_synthetic_opportunity_data(self) -> Tuple[List[List[float]], List[int]]:
         """Generate synthetic training data for opportunity detection"""
-        np.random.seed(42)
+        rng = np.random.RandomState(42)  # Fixed seed for reproducible training data
         n_samples = max(self.min_training_samples, 2000)
 
         features = []
         labels = []
 
         for _ in range(n_samples):
-            # Generate realistic price data (around $100-500 range)
-            price = np.random.normal(300, 50)
-            price = max(50, min(1000, price))  # Clamp to reasonable range
-
-            # Generate volume (1000-100000)
-            volume = np.random.exponential(10000)
-            volume = max(1000, min(100000, volume))
-
-            # Generate volatility (0.5-5.0)
-            volatility = np.random.exponential(1.0)
-            volatility = max(0.1, min(10.0, volatility))
+            price = float(np.clip(rng.normal(300, 50), 50, 1000))
+            volume = float(np.clip(rng.exponential(10000), 1000, 100000))
+            volatility = float(np.clip(rng.exponential(1.0), 0.1, 10.0))
 
             features.append([price, volume, volatility])
 
-            # Generate opportunity label based on features
-            # Higher volatility and volume increase chance of opportunity
+            # Opportunity probability derived from feature interaction
             opportunity_prob = min(0.3, (volatility * 0.1) + (volume / 100000) * 0.2)
-            opportunity = np.random.random() < opportunity_prob
+            opportunity = rng.random() < opportunity_prob
 
             labels.append(1 if opportunity else 0)
 
@@ -371,28 +362,22 @@ class MLModelTrainingPipeline:
 
     def _generate_synthetic_return_data(self) -> Tuple[List[List[float]], List[float]]:
         """Generate synthetic training data for return prediction"""
-        np.random.seed(123)
+        rng = np.random.RandomState(123)  # Fixed seed for reproducible training data
         n_samples = max(self.min_training_samples, 2000)
 
         features = []
         labels = []
 
         for _ in range(n_samples):
-            # Generate realistic price data
-            price = np.random.normal(300, 50)
-            price = max(50, min(1000, price))
-
-            # Generate volume
-            volume = np.random.exponential(10000)
-            volume = max(1000, min(100000, volume))
+            price = float(np.clip(rng.normal(300, 50), 50, 1000))
+            volume = float(np.clip(rng.exponential(10000), 1000, 100000))
 
             features.append([price, volume])
 
-            # Generate realistic returns (mean ~0, std ~2%)
-            returns = np.random.normal(0, 0.02)
-            # Add some autocorrelation and mean reversion
+            # Realistic returns with autocorrelation and mean reversion
+            returns = float(rng.normal(0, 0.02))
             if len(labels) > 0:
-                returns = 0.7 * returns + 0.3 * labels[-1] + np.random.normal(0, 0.005)
+                returns = 0.7 * returns + 0.3 * labels[-1] + float(rng.normal(0, 0.005))
 
             labels.append(returns)
 
@@ -400,7 +385,7 @@ class MLModelTrainingPipeline:
 
     def _generate_synthetic_risk_data(self) -> Tuple[List[List[float]], List[float]]:
         """Generate synthetic training data for risk assessment"""
-        np.random.seed(456)
+        rng = np.random.RandomState(456)
         n_samples = max(self.min_training_samples, 2000)
 
         features = []
@@ -408,11 +393,11 @@ class MLModelTrainingPipeline:
 
         for _ in range(n_samples):
             # Generate realistic volatility (0.005-0.05)
-            volatility = np.random.exponential(0.015)
+            volatility = rng.exponential(0.015)
             volatility = max(0.005, min(0.1, volatility))
 
             # Generate drawdown (-0.3 to 0)
-            drawdown = -np.random.exponential(0.05)
+            drawdown = -rng.exponential(0.05)
             drawdown = max(-0.5, min(0, drawdown))
 
             features.append([volatility, drawdown])
@@ -618,14 +603,22 @@ class MLModelTrainingPipeline:
 
     async def _collect_sentiment_training_data(self) -> TrainingDataset:
         """Collect training data for sentiment analysis"""
-        # This would integrate with sentiment data sources
-        # For now, return synthetic data structure
+        # Fixed-seed synthetic data for reproducible training
+        rng = np.random.RandomState(789)
+        n = 1000
+        sentiment = rng.normal(0, 1, n)
+        volume = rng.exponential(1000, n)
+        # Price change correlated with sentiment
+        price_change = sentiment * 0.01 + rng.normal(0, 0.015, n)
+        # Label: positive return = 1
+        labels_arr = (price_change > 0).astype(int)
+
         features = pd.DataFrame({
-            'sentiment_score': np.random.normal(0, 1, 1000),
-            'volume': np.random.exponential(1000, 1000),
-            'price_change': np.random.normal(0, 0.02, 1000)
+            'sentiment_score': sentiment,
+            'volume': volume,
+            'price_change': price_change
         })
-        labels = pd.Series(np.random.choice([0, 1], 1000))
+        labels = pd.Series(labels_arr)
 
         return TrainingDataset(
             data_type=TrainingDataType.SENTIMENT_DATA,

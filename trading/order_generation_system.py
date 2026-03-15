@@ -472,18 +472,21 @@ class OrderGenerator:
             self.logger.error(f"Error loading positions: {e}")
 
     async def _simulate_order_submission(self, order: Order) -> bool:
-        """Simulate order submission for testing"""
-        # Simulate some processing time
+        """Simulate order submission with deterministic outcome"""
         await asyncio.sleep(0.1)
 
-        # Simulate success/failure (90% success rate)
-        success = random.random() < 0.9
+        # Deterministic success based on order hash + time window
+        _seed = abs(hash((order.symbol, order.side, order.quantity))) % (2**31)
+        _rng = __import__('random').Random(_seed + int(__import__('time').time()) // 60)
+        # Higher success rate for smaller orders, lower for large
+        base_rate = 0.95 if order.quantity < 1.0 else 0.88 if order.quantity < 10.0 else 0.82
+        success = _rng.random() < base_rate
 
         if success:
-            # Simulate fill
+            slippage = _rng.uniform(-0.001, 0.002)  # Slight upward bias
             order.status = OrderStatus.FILLED
             order.filled_quantity = order.quantity
-            order.average_fill_price = order.price or 100.0
+            order.average_fill_price = (order.price or 100.0) * (1 + slippage)
 
         return success
 

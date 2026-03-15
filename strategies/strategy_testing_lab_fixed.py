@@ -211,10 +211,10 @@ class StrategyTestingLab:
 
         strategy_returns = base_returns.get(strategy_id, {'mean': 0.10, 'std': 0.10, 'win_rate': 0.60})
 
-        # Generate simulation results
-        np.random.seed(42)  # For reproducibility
+        # Generate simulation results with fixed seed for reproducibility
+        _rng = np.random.RandomState(42)
 
-        daily_returns = np.random.normal(
+        daily_returns = _rng.normal(
             strategy_returns['mean'] / 252,  # Daily mean
             strategy_returns['std'] / np.sqrt(252),  # Daily std
             n_simulations
