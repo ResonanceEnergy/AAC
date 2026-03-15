@@ -462,14 +462,23 @@ class BridgeOrchestrator:
 
     async def _process_generic_message(self, message: BridgeMessage):
         """Process messages that don't have specific handlers."""
-        # For now, just log the message and acknowledge receipt
         logger.info(f"Processed generic message: {message.source_dept.value} → {message.target_dept.value} ({message.message_type.value})")
-
-        # In a full implementation, this would:
-        # - Validate message content
-        # - Apply business logic rules
-        # - Forward to appropriate internal systems
-        # - Generate responses if needed
+        # Track the message for audit
+        if not hasattr(self, '_generic_message_log'):
+            self._generic_message_log: list = []
+        self._generic_message_log.append({
+            'correlation_id': message.correlation_id,
+            'source': message.source_dept.value,
+            'target': message.target_dept.value,
+            'type': message.message_type.value,
+            'timestamp': datetime.now().isoformat(),
+        })
+        # Update connection stats
+        connection_key = BridgeConnection(message.source_dept, message.target_dept).connection_key
+        if connection_key in self.connections:
+            conn = self.connections[connection_key]
+            conn.message_count += 1
+            conn.last_message = datetime.now()
 
     async def _health_monitoring_loop(self):
         """Monitor bridge health and connection status."""

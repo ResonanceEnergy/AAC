@@ -281,9 +281,16 @@ class QuantumFailoverRouter:
 
     async def _notify_entangled_systems(self, circuit_name: str):
         """Notify all quantum-entangled systems instantly"""
-        # In real quantum system, this would be instantaneous
-        # via quantum entanglement
         logger.warning(f"Circuit breaker {circuit_name} tripped — notifying entangled systems")
+        # Notify all other circuit breakers in the global registry
+        for name, cb in circuit_breakers.items():
+            if name != circuit_name and hasattr(cb, 'circuits'):
+                for cname, circuit in cb.circuits.items():
+                    if circuit.state == CircuitState.CLOSED:
+                        circuit.warning_count = getattr(circuit, 'warning_count', 0) + 1
+                        if circuit.warning_count >= 3:
+                            logger.warning(f"Entangled circuit {name}/{cname} elevated to HALF_OPEN")
+                            circuit.state = CircuitState.HALF_OPEN
 
 class CircuitBreakerOpen(Exception):
     """Exception raised when circuit breaker is open"""

@@ -63,9 +63,30 @@ class PredictiveMaintenanceEngine:
 
     async def _initialize_prediction_models(self):
         """Initialize machine learning models for failure prediction"""
-        # Placeholder for ML model initialization
         self.logger.info("Initializing predictive ML models")
-        await asyncio.sleep(0.1)  # Simulate initialization
+
+        # Set up per-component health tracking and baseline metrics
+        self._component_health: Dict[str, Dict] = {}
+        for component, config in self.monitored_components.items():
+            self._component_health[component] = {
+                'baseline_risk': config['failure_probability'],
+                'health_score': 1.0,
+                'error_count': 0,
+                'last_restart': datetime.now(),
+                'uptime_hours': 0.0,
+                'prediction_accuracy': 0.0,
+                'samples_collected': 0,
+            }
+
+        # Initialize failure history for trend detection
+        self._failure_history: List[Dict] = []
+
+        # Set up exponential moving average weights for each component
+        self._ema_weights: Dict[str, float] = {
+            component: 0.1 for component in self.monitored_components
+        }
+
+        self.logger.info(f"Prediction models initialized for {len(self.monitored_components)} components")
 
     async def predict_failures(self) -> List[Dict]:
         """

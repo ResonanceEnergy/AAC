@@ -57,9 +57,16 @@ class XMDTreasuryStrategy(BaseArbitrageStrategy):
         self._xmd_price_history: List[float] = []
 
     async def _initialize_strategy(self):
+        """Initialize XMD treasury state and price tracking."""
+        self._xmd_price_history = []
+        self._current_xmd_holdings = 0.0
+        self._lending_deployed = 0.0
+        self._peg_deviation_history = []
+        self._last_rebalance = None
         logger.info(
             f"XMD Treasury initialized — peg threshold {self.peg_threshold_bps} bps, "
-            f"max exposure ${self.max_xmd_exposure}"
+            f"max exposure ${self.max_xmd_exposure:,.0f}, "
+            f"lending min APY {self.lending_min_apy}%"
         )
 
     def _should_generate_signal(self) -> bool:

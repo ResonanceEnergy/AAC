@@ -439,7 +439,26 @@ class TOMFuturesOnlyOverlayStrategy(BaseArbitrageStrategy):
 
     async def _update_tom_schedule(self, calendar_data: Dict[str, Any]):
         """Update TOM schedule based on market calendar changes."""
-        logger.info(f"Updating TOM schedule with calendar data: {list(calendar_data.keys())}")
+        holidays = calendar_data.get('holidays', [])
+        early_closes = calendar_data.get('early_closes', [])
+        updated_count = 0
+        for month_key, schedule in self.tom_schedule.items():
+            entry_str = schedule['entry_date'].strftime('%Y-%m-%d') if isinstance(schedule['entry_date'], datetime) else str(schedule['entry_date'])
+            if entry_str in holidays or entry_str in early_closes:
+                adjusted = schedule['entry_date'] - timedelta(days=1)
+                schedule['entry_date'] = adjusted
+                updated_count += 1
+        if 'new_months' in calendar_data:
+            for month_info in calendar_data['new_months']:
+                month_key = month_info.get('month')
+                if month_key and month_key not in self.tom_schedule:
+                    self.tom_schedule[month_key] = {
+                        'entry_date': month_info.get('entry_date'),
+                        'exit_date': month_info.get('exit_date'),
+                        'holding_days': month_info.get('holding_days', []),
+                    }
+                    updated_count += 1
+        logger.info(f"Updated TOM schedule: {updated_count} changes from calendar data")
 
     async def shutdown(self) -> bool:
         """Shutdown the TOM futures overlay strategy."""

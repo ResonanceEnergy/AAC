@@ -73,10 +73,15 @@ class MetalXCEXArbitrageStrategy(BaseArbitrageStrategy):
         self._last_spreads: Dict[str, float] = {}
 
     async def _initialize_strategy(self):
-        """Subscribe to Metal X and CEX data feeds."""
+        """Initialize Metal X arb state and subscribe to data feeds."""
+        self._open_arb_count = 0
+        self._last_spreads = {}
+        self._venue_status = {venue: 'unknown' for venue in self.CEX_PRIORITY}
+        self._pair_tracking = {pair: {'last_price': None, 'last_cex_price': None} for pair in self.PAIR_MAP}
         logger.info(
             f"MetalXCEXArb initialized — min spread {self.min_spread_bps} bps, "
-            f"max position ${self.max_position_usd}"
+            f"max position ${self.max_position_usd}, "
+            f"tracking {len(self.PAIR_MAP)} pairs across {len(self.CEX_PRIORITY)} venues"
         )
 
     def _should_generate_signal(self) -> bool:

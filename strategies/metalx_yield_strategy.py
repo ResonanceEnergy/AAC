@@ -63,9 +63,16 @@ class MetalXYieldStrategy(BaseArbitrageStrategy):
         self._current_allocations: Dict[str, float] = {}
 
     async def _initialize_strategy(self):
+        """Initialize yield strategy state and allocation tracking."""
+        self._current_allocations = {}
+        self._pool_history = []
+        self._total_yield_earned = 0.0
+        self._active_lending_positions = {}
+        self._active_lp_positions = {}
         logger.info(
             f"MetalXYield initialized — lending min APY {self.min_lending_apy}%, "
-            f"LP min APY {self.min_lp_apy}%"
+            f"LP min APY {self.min_lp_apy}%, "
+            f"max lending ${self.max_lending_usd:,.0f}, max LP ${self.max_lp_usd:,.0f}"
         )
 
     def _should_generate_signal(self) -> bool:

@@ -379,7 +379,20 @@ class TradingExecutionState:
     async def _attempt_error_recovery(self):
         """Attempt to recover from error"""
         logger.info("Attempting error recovery")
-        # Implement recovery logic
+        if not hasattr(self, '_error_recovery_attempts'):
+            self._error_recovery_attempts = 0
+        self._error_recovery_attempts += 1
+        # Reset circuit breaker if tripped
+        if hasattr(self, 'circuit_breaker'):
+            await self.circuit_breaker.check_status()
+        # Re-initialize market feeds if they dropped
+        if not getattr(self, 'market_feeds_active', False):
+            await self._initialize_market_feeds()
+        # Restart execution queue processing
+        if self.execution_queue.empty():
+            logger.info(f"Error recovery complete (attempt {self._error_recovery_attempts})")
+        else:
+            logger.warning(f"Recovery attempt {self._error_recovery_attempts}: {self.execution_queue.qsize()} orders still queued")
 
     # Placeholder methods for components that would be fully implemented
     async def _load_strategy_configs(self) -> List[Dict]:
@@ -531,10 +544,32 @@ class TradingExecutionState:
     async def _optimize_fill_rate(self):
         """Optimize fill rate based on historical execution data."""
         logger.info("Analyzing fill rate for optimization opportunities")
+        # Adjust order sizing to improve fills
+        if hasattr(self, 'fill_optimizer'):
+            await self.fill_optimizer.optimize_parameters()
+        # Switch to more aggressive fill strategy if rate is low
+        metrics = await self.metrics_collector.collect_real_time_metrics()
+        if metrics.fill_rate < 0.90:
+            logger.warning(f"Fill rate critically low ({metrics.fill_rate:.1%}) — switching to aggressive mode")
+            await self.execution_engine.set_fill_mode('aggressive')
+        elif metrics.fill_rate < 0.95:
+            logger.info(f"Fill rate below target ({metrics.fill_rate:.1%}) — optimizing order sizes")
+            await self.execution_engine.set_fill_mode('optimized')
 
     async def _reduce_slippage(self):
         """Apply slippage reduction heuristics."""
         logger.info("Running slippage reduction analysis")
+        metrics = await self.metrics_collector.collect_real_time_metrics()
+        # Reduce order sizes to minimize market impact
+        if metrics.slippage_bps > 10.0:
+            logger.warning(f"Slippage {metrics.slippage_bps:.1f}bps — reducing order sizes by 50%")
+            self.risk_limits.max_position_size *= 0.5
+        elif metrics.slippage_bps > 5.0:
+            logger.info(f"Slippage {metrics.slippage_bps:.1f}bps — reducing order sizes by 25%")
+            self.risk_limits.max_position_size *= 0.75
+        # Update fill optimizer with new slippage budget
+        if hasattr(self, 'fill_optimizer'):
+            await self.fill_optimizer.set_slippage_budget(self.risk_limits.max_slippage_bps)
 
     async def _send_to_central_accounting(self, data: Dict):
         """Forward execution results to CentralAccounting."""
@@ -547,6 +582,14 @@ class TradingExecutionState:
     async def _send_performance_report(self, report: Dict):
         """Send performance report to monitoring."""
         logger.info(f"Performance report dispatched: {report.get('period', 'unknown')} period")
+        if not hasattr(self, '_performance_history'):
+            self._performance_history: list = []
+        self._performance_history.append({
+            'report': report,
+            'sent_at': datetime.now().isoformat(),
+        })
+        # Forward to CentralAccounting
+        await self._send_to_central_accounting({'performance_report': report})
 
     async def _analyze_daily_performance(self) -> Dict:
         """Analyze daily execution performance."""
@@ -560,6 +603,25 @@ class TradingExecutionState:
     async def _cleanup_old_data(self):
         """Clean up stale execution data older than retention period."""
         logger.info("Cleaning up old execution data")
+        retention_days = 30
+        cutoff = datetime.now()
+        # Clean performance history
+        if hasattr(self, '_performance_history'):
+            before = len(self._performance_history)
+            self._performance_history = [
+                r for r in self._performance_history
+                if r.get('sent_at', '') > (cutoff.isoformat()[:10])
+            ][-1000:]  # Keep at most 1000 recent records
+            cleaned = before - len(self._performance_history)
+            if cleaned > 0:
+                logger.info(f"Cleaned {cleaned} old performance records")
+        # Reset daily counters
+        if hasattr(self, '_daily_execution_count'):
+            self._daily_execution_count = 0
+        # Clear error recovery counter
+        if hasattr(self, '_error_recovery_attempts'):
+            self._error_recovery_attempts = 0
+            logger.info("Reset error recovery counter")
 
     async def _create_performance_report(self, metrics: ExecutionMetrics) -> Dict:
         """Create a performance report from execution metrics."""
@@ -677,7 +739,19 @@ class QuantumExecutionEngine:
         self.warmed_up = False  # Require re-warmup after model update
 
     async def update_parameters(self, analysis: Dict):
+        """Update execution parameters based on analysis results."""
         self._logger.info(f"Updating execution parameters from analysis ({len(analysis)} keys)")
+        if 'latency_target_ms' in analysis:
+            self.latency_target_ms = analysis['latency_target_ms']
+        if 'fill_rate_target' in analysis:
+            self.fill_rate_target = analysis['fill_rate_target']
+        if 'max_slippage_bps' in analysis:
+            self.max_slippage_bps = analysis['max_slippage_bps']
+        if 'risk_limits' in analysis:
+            for key, val in analysis['risk_limits'].items():
+                if hasattr(self, key):
+                    setattr(self, key, val)
+        self._logger.info("Execution parameters updated successfully")
 
 class AIRiskManager:
     def __init__(self):

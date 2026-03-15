@@ -59,9 +59,31 @@ class CrossTemporalProcessor:
 
     async def _initialize_temporal_models(self):
         """Initialize quantum-enhanced temporal analysis models"""
-        # Placeholder for quantum temporal analysis initialization
         self.logger.info("Initializing quantum temporal analysis models")
-        await asyncio.sleep(0.1)  # Simulate initialization
+
+        # Set up per-horizon analysis state
+        self._horizon_state: Dict[str, Dict] = {}
+        for horizon_name, horizon_config in self.temporal_horizons.items():
+            self._horizon_state[horizon_name] = {
+                'opportunities_found': 0,
+                'opportunities_executed': 0,
+                'last_scan': None,
+                'avg_profit': 0.0,
+                'hit_rate': 0.0,
+                'samples': 0,
+            }
+
+        # Initialize cross-temporal correlation tracking
+        self._temporal_correlations: Dict[str, float] = {}
+        horizon_names = list(self.temporal_horizons.keys())
+        for i, h1 in enumerate(horizon_names):
+            for h2 in horizon_names[i + 1:]:
+                self._temporal_correlations[f"{h1}_{h2}"] = 0.0
+
+        # Initialize opportunity history for pattern detection
+        self._opportunity_history: List[Dict] = []
+
+        self.logger.info(f"Temporal models initialized for {len(self.temporal_horizons)} horizons")
 
     async def scan_temporal_arbitrage(self) -> List[Dict]:
         """

@@ -73,11 +73,16 @@ class ForexArbitrageStrategy(BaseArbitrageStrategy):
         self._last_arb_scan: Optional[datetime] = None
 
     async def _initialize_strategy(self):
-        """Log initialization."""
+        """Initialize FX arbitrage state and corridor tracking."""
+        self._corridor_spreads = {corridor: {} for corridor in self.CORRIDORS}
+        self._last_arb_scan = None
+        self._open_fx_count = 0
+        self._trade_history = []
         logger.info(
             f"ForexArb initialized — min profit {self.min_profit_bps} bps, "
             f"max position ${self.max_position_usd:,.0f}, "
-            f"CAD weight {self.cad_weight}x"
+            f"CAD weight {self.cad_weight}x, "
+            f"corridors: {list(self.CORRIDORS.keys())}"
         )
 
     def _should_generate_signal(self) -> bool:

@@ -889,61 +889,101 @@ class DoctrineApplicationService:
     
     def _register_default_handlers(self) -> None:
         """Register default handlers for all action types."""
-        
+        if not hasattr(self, '_incident_log'):
+            self._incident_log = []
+
         def create_incident(ctx):
             logger.warning(f"[INCIDENT] Creating incident: {ctx}")
+            incident = {
+                'type': 'incident',
+                'timestamp': datetime.now().isoformat(),
+                'context': str(ctx),
+                'severity': ctx.get('severity', 'medium') if isinstance(ctx, dict) else 'medium',
+            }
+            self._incident_log.append(incident)
             return True
-        
+
         def page_oncall(ctx):
             logger.critical(f"[PAGE] Paging on-call: {ctx}")
+            self._incident_log.append({
+                'type': 'page_oncall',
+                'timestamp': datetime.now().isoformat(),
+                'context': str(ctx),
+                'severity': 'critical',
+            })
             return True
-        
+
         def throttle_risk(ctx):
             logger.warning(f"[RISK] Throttling risk: {ctx}")
+            metrics = ctx.get('metrics', {}) if isinstance(ctx, dict) else {}
+            for v in self.engine.metric_values.values():
+                if v.state == MetricState.CRITICAL:
+                    v.state = MetricState.WARNING
+            self._incident_log.append({'type': 'throttle_risk', 'timestamp': datetime.now().isoformat(), 'context': str(ctx)})
             return True
-        
+
         def stop_execution(ctx):
             logger.critical(f"[EXEC] Stopping execution: {ctx}")
+            self.engine.current_az_state = BarrenWuffetState.LOCKDOWN
+            self._incident_log.append({'type': 'stop_execution', 'timestamp': datetime.now().isoformat(), 'context': str(ctx)})
             return True
-        
+
         def enter_safe_mode(ctx):
             logger.critical(f"[SAFE_MODE] Entering safe mode: {ctx}")
+            if self.engine._state_severity(self.engine.current_az_state) < self.engine._state_severity(BarrenWuffetState.DEFENSIVE):
+                self.engine.current_az_state = BarrenWuffetState.DEFENSIVE
+            self._incident_log.append({'type': 'enter_safe_mode', 'timestamp': datetime.now().isoformat(), 'context': str(ctx)})
             return True
-        
+
         def freeze_strategy(ctx):
             logger.warning(f"[STRATEGY] Freezing strategy: {ctx}")
+            strategy_id = ctx.get('strategy_id', 'unknown') if isinstance(ctx, dict) else 'unknown'
+            self._incident_log.append({'type': 'freeze_strategy', 'timestamp': datetime.now().isoformat(), 'strategy_id': strategy_id, 'context': str(ctx)})
             return True
-        
+
         def route_failover(ctx):
             logger.warning(f"[ROUTING] Initiating failover: {ctx}")
+            source = ctx.get('source', 'unknown') if isinstance(ctx, dict) else 'unknown'
+            target = ctx.get('target', 'backup') if isinstance(ctx, dict) else 'backup'
+            self._incident_log.append({'type': 'route_failover', 'timestamp': datetime.now().isoformat(), 'source': source, 'target': target})
             return True
-        
+
         def lock_keys(ctx):
             logger.critical(f"[SECURITY] Locking keys: {ctx}")
+            self._incident_log.append({'type': 'lock_keys', 'timestamp': datetime.now().isoformat(), 'context': str(ctx), 'severity': 'critical'})
             return True
-        
+
         def quarantine_source(ctx):
             logger.warning(f"[DATA] Quarantining source: {ctx}")
+            source_name = ctx.get('source', 'unknown') if isinstance(ctx, dict) else 'unknown'
+            self._incident_log.append({'type': 'quarantine_source', 'timestamp': datetime.now().isoformat(), 'source': source_name})
             return True
-        
+
         def force_recon(ctx):
             logger.warning(f"[RECON] Forcing reconciliation: {ctx}")
+            self._incident_log.append({'type': 'force_recon', 'timestamp': datetime.now().isoformat(), 'context': str(ctx)})
             return True
-        
+
         def tactical_retreat(ctx):
             logger.warning(f"[STRATEGIC] Tactical retreat — reducing exposure: {ctx}")
+            if self.engine._state_severity(self.engine.current_az_state) < self.engine._state_severity(BarrenWuffetState.DEFENSIVE):
+                self.engine.current_az_state = BarrenWuffetState.DEFENSIVE
+            self._incident_log.append({'type': 'tactical_retreat', 'timestamp': datetime.now().isoformat(), 'context': str(ctx)})
             return True
-        
+
         def concentrate_force(ctx):
             logger.info(f"[STRATEGIC] Concentrating capital on top setups: {ctx}")
+            self._incident_log.append({'type': 'concentrate_force', 'timestamp': datetime.now().isoformat(), 'context': str(ctx)})
             return True
-        
+
         def conceal_position(ctx):
             logger.warning(f"[STRATEGIC] Concealing positions — switching to iceberg orders: {ctx}")
+            self._incident_log.append({'type': 'conceal_position', 'timestamp': datetime.now().isoformat(), 'context': str(ctx)})
             return True
-        
+
         def exploit_weakness(ctx):
             logger.info(f"[STRATEGIC] Exploiting detected market weakness: {ctx}")
+            self._incident_log.append({'type': 'exploit_weakness', 'timestamp': datetime.now().isoformat(), 'context': str(ctx)})
             return True
         
         self.engine.register_action_handler(ActionType.A_CREATE_INCIDENT, create_incident)

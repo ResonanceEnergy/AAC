@@ -551,4 +551,14 @@ class TradingIntelligenceBridge:
     async def shutdown(self):
         """Shutdown the bridge."""
         logger.info("Shutting down TradingExecution ↔ BigBrainIntelligence bridge")
-        # Cleanup resources if needed
+        # Drain signal queue
+        if self.active_signals:
+            logger.info(f"Clearing {len(self.active_signals)} active signals")
+            self.active_signals.clear()
+        # Clear performance tracking
+        self.signal_performance.clear()
+        # Reset state
+        self.is_initialized = False
+        self.last_signal_processed = None
+        self.last_feedback_sent = None
+        logger.info("TradingExecution ↔ BigBrainIntelligence bridge shutdown complete")

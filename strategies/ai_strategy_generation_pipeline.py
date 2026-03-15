@@ -334,9 +334,17 @@ class AIStrategyGenerator:
 
     async def _register_strategy(self, strategy_config: Dict, strategy_class: type):
         """Register strategy with the factory"""
-        # This would integrate with the strategy factory
-        # For now, just log the registration
-        logger.info(f"Registered AI strategy: {strategy_config['name']}")
+        if not hasattr(self, '_registered_strategies'):
+            self._registered_strategies = {}
+        strategy_name = strategy_config.get('name', 'unnamed')
+        self._registered_strategies[strategy_name] = {
+            'config': strategy_config,
+            'class': strategy_class,
+            'registered_at': datetime.now().isoformat(),
+            'confidence': strategy_config.get('confidence_score', 0.0),
+            'type': strategy_config.get('type', 'unknown'),
+        }
+        logger.info(f"Registered AI strategy: {strategy_name} (type={strategy_config.get('type')}, confidence={strategy_config.get('confidence_score', 0):.2f})")
 
     async def run_ai_pipeline(self, market_data: pd.DataFrame) -> Dict[str, Any]:
         """Run complete AI strategy generation pipeline"""

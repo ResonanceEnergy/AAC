@@ -975,14 +975,22 @@ class AutonomousEngine:
             # Calculate daily P&L from executed trades
             daily_pnl = 0.0
             for trade in self._daily_trades:
-                # Simple P&L tracking (paper mode)
-                pass  # In paper mode, P&L is simulated
+                action = trade.get("action", trade.get("side", ""))
+                price = trade.get("price", 0.0)
+                quantity = trade.get("quantity", trade.get("size", 0.0))
+                fill_price = trade.get("fill_price", price)
+                if action in ("sell", "SELL"):
+                    daily_pnl += (fill_price - price) * quantity
+                elif action in ("buy", "BUY"):
+                    daily_pnl -= (fill_price - price) * quantity
+
+            result["positions"] = len(self._daily_trades)
+            result["daily_pnl"] = round(daily_pnl, 2)
 
             # Update doctrine state
-            equity = 100_000.0  # Paper trading starts at $100K
+            equity = 100_000.0 + daily_pnl  # Paper trading starts at $100K
             self.doctrine.evaluate(daily_pnl, equity)
             result["doctrine_state"] = self.doctrine.state.value
-            result["daily_pnl"] = daily_pnl
 
             self.components["doctrine"].record_success()
 

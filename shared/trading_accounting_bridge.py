@@ -489,4 +489,10 @@ class TradingAccountingBridge:
     async def shutdown(self):
         """Shutdown the bridge."""
         logger.info("Shutting down TradingExecution ↔ CentralAccounting bridge")
-        # Cleanup resources if needed
+        if self.active_reconciliations:
+            logger.info(f"Completing {len(self.active_reconciliations)} pending reconciliations")
+            self.active_reconciliations.clear()
+        self.is_initialized = False
+        self.last_risk_update = None
+        self.last_pnl_update = None
+        logger.info("TradingExecution ↔ CentralAccounting bridge shutdown complete")
