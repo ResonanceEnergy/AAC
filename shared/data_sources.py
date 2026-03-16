@@ -60,6 +60,7 @@ class BlockchainEvent:
     block_number: int
     tx_hash: str
     timestamp: datetime
+    contract_address: Optional[str] = None
 
 
 class BaseDataSource(ABC):
@@ -115,7 +116,7 @@ class CoinGeckoClient(BaseDataSource):
 
     def __init__(self):
         super().__init__("coingecko")
-        self.session: Optional[aiohttp.ClientSession] = None
+        self.session: Optional[aiohttp.ClientSession] = None  # set in connect()
         self._api_key = self.config.coingecko_key
         self._is_pro = bool(self._api_key)
         self.BASE_URL = self.PRO_URL if self._is_pro else self.FREE_URL
@@ -153,6 +154,7 @@ class CoinGeckoClient(BaseDataSource):
         """Get current price for a coin"""
         if not self.session:
             await self.connect()
+        assert self.session is not None
 
         url = f"{self.BASE_URL}/simple/price"
         params = {
@@ -162,7 +164,7 @@ class CoinGeckoClient(BaseDataSource):
             "include_24hr_change": "true",
         }
 
-        async with self.session.get(url, params=params, timeout=aiohttp.ClientTimeout(total=10)) as resp:
+        async with self.session.get(url, params=params, timeout=aiohttp.ClientTimeout(total=10)) as resp:  # type: ignore[union-attr]
             if resp.status == 200:
                 data = await resp.json()
                 if coin_id in data:
@@ -190,6 +192,7 @@ class CoinGeckoClient(BaseDataSource):
         """Get prices for multiple coins"""
         if not self.session:
             await self.connect()
+        assert self.session is not None
 
         ticks = []
         url = f"{self.BASE_URL}/simple/price"
@@ -200,7 +203,7 @@ class CoinGeckoClient(BaseDataSource):
             "include_24hr_change": "true",
         }
 
-        async with self.session.get(url, params=params, timeout=aiohttp.ClientTimeout(total=15)) as resp:
+        async with self.session.get(url, params=params, timeout=aiohttp.ClientTimeout(total=15)) as resp:  # type: ignore[union-attr]
             if resp.status == 200:
                 data = await resp.json()
                 for coin_id in coin_ids:
@@ -227,9 +230,10 @@ class CoinGeckoClient(BaseDataSource):
         """Get trending coins"""
         if not self.session:
             await self.connect()
+        assert self.session is not None
 
         url = f"{self.BASE_URL}/search/trending"
-        async with self.session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as resp:
+        async with self.session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as resp:  # type: ignore[union-attr]
             if resp.status == 200:
                 data = await resp.json()
                 await asyncio.sleep(self._rate_limit_delay)
@@ -250,11 +254,12 @@ class CoinGeckoClient(BaseDataSource):
         """Get historical market data (OHLCV available on Pro tier)"""
         if not self.session:
             await self.connect()
+        assert self.session is not None
 
         url = f"{self.BASE_URL}/coins/{coin_id}/market_chart"
         params = {"vs_currency": vs_currency, "days": str(days)}
 
-        async with self.session.get(url, params=params, timeout=aiohttp.ClientTimeout(total=15)) as resp:
+        async with self.session.get(url, params=params, timeout=aiohttp.ClientTimeout(total=15)) as resp:  # type: ignore[union-attr]
             if resp.status == 200:
                 data = await resp.json()
                 await asyncio.sleep(self._rate_limit_delay)
@@ -271,9 +276,10 @@ class CoinGeckoClient(BaseDataSource):
         """Get global crypto market data (market cap, volume, dominance)"""
         if not self.session:
             await self.connect()
+        assert self.session is not None
 
         url = f"{self.BASE_URL}/global"
-        async with self.session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as resp:
+        async with self.session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as resp:  # type: ignore[union-attr]
             if resp.status == 200:
                 data = await resp.json()
                 await asyncio.sleep(self._rate_limit_delay)
@@ -290,6 +296,7 @@ class CoinGeckoClient(BaseDataSource):
         """Get detailed coin information (desc, links, market data, dev stats)"""
         if not self.session:
             await self.connect()
+        assert self.session is not None
 
         url = f"{self.BASE_URL}/coins/{coin_id}"
         params = {
@@ -300,7 +307,7 @@ class CoinGeckoClient(BaseDataSource):
             "developer_data": "true",
         }
 
-        async with self.session.get(url, params=params, timeout=aiohttp.ClientTimeout(total=15)) as resp:
+        async with self.session.get(url, params=params, timeout=aiohttp.ClientTimeout(total=15)) as resp:  # type: ignore[union-attr]
             if resp.status == 200:
                 data = await resp.json()
                 await asyncio.sleep(self._rate_limit_delay)
@@ -324,6 +331,7 @@ class CoinGeckoClient(BaseDataSource):
         """Get top coins by market cap with full market data"""
         if not self.session:
             await self.connect()
+        assert self.session is not None
 
         url = f"{self.BASE_URL}/coins/markets"
         params = {
@@ -334,7 +342,7 @@ class CoinGeckoClient(BaseDataSource):
             "sparkline": str(sparkline).lower(),
         }
 
-        async with self.session.get(url, params=params, timeout=aiohttp.ClientTimeout(total=15)) as resp:
+        async with self.session.get(url, params=params, timeout=aiohttp.ClientTimeout(total=15)) as resp:  # type: ignore[union-attr]
             if resp.status == 200:
                 data = await resp.json()
                 await asyncio.sleep(self._rate_limit_delay)
@@ -420,11 +428,12 @@ class BinanceWebSocket(BaseDataSource):
 
         if not self.session:
             await self.connect()
+        assert self.session is not None
 
-        async with self.session.ws_connect(
+        async with self.session.ws_connect(  # type: ignore[union-attr]
             stream_url,
             heartbeat=self._heartbeat_interval,
-            timeout=aiohttp.ClientTimeout(total=60)
+            timeout=aiohttp.ClientWSTimeout(ws_close=60.0)  # type: ignore[arg-type]
         ) as ws:
             self.ws = ws
             self._reconnect_attempts = 0  # Reset on successful connection
@@ -507,11 +516,12 @@ class RedditClient(BaseDataSource):
         """Get hot posts from a subreddit"""
         if not self.session:
             await self.connect()
+        assert self.session is not None
 
-        mentions = []
+        mentions: List[SocialMention] = []
         try:
             url = f"{self.BASE_URL}/r/{subreddit}/hot.json?limit={limit}"
-            async with self.session.get(url) as resp:
+            async with self.session.get(url) as resp:  # type: ignore[union-attr]
                 if resp.status == 200:
                     data = await resp.json()
                     for post in data.get("data", {}).get("children", []):
@@ -594,7 +604,7 @@ class TwitterClient(BaseDataSource):
             self.logger.warning("Twitter not configured")
             return []
 
-        mentions = []
+        mentions: List[SocialMention] = []
         # Twitter API v2 implementation would go here
         # Requires paid API access
         return mentions
@@ -634,6 +644,7 @@ class EtherscanClient(BaseDataSource):
         """Get recent whale transactions"""
         if not self.session:
             await self.connect()
+        assert self.session is not None
 
         events = []
         try:
@@ -663,7 +674,7 @@ class EtherscanClient(BaseDataSource):
                     "apikey": self.api_key or "",
                 }
 
-                async with self.session.get(self.BASE_URL, params=params) as resp:
+                async with self.session.get(self.BASE_URL, params=params) as resp:  # type: ignore[union-attr]
                     if resp.status == 200:
                         data = await resp.json()
                         for tx in data.get("result", []):
@@ -703,6 +714,7 @@ class EtherscanClient(BaseDataSource):
         """Get current gas prices"""
         if not self.session:
             await self.connect()
+        assert self.session is not None
 
         try:
             params = {
@@ -711,7 +723,7 @@ class EtherscanClient(BaseDataSource):
                 "apikey": self.api_key or "",
             }
 
-            async with self.session.get(self.BASE_URL, params=params) as resp:
+            async with self.session.get(self.BASE_URL, params=params) as resp:  # type: ignore[union-attr]
                 if resp.status == 200:
                     data = await resp.json()
                     result = data.get("result", {})
@@ -765,10 +777,11 @@ class MetalBlockchainSource(BaseDataSource):
             await self.session.close()
         self.is_connected = False
 
-    async def _rpc_call(self, method: str, params: list = None) -> Any:
+    async def _rpc_call(self, method: str, params: Optional[list] = None) -> Any:
         """Make a JSON-RPC call to Metal Blockchain C-Chain."""
         if not self.session:
             await self.connect()
+        assert self.session is not None
 
         payload = {
             "jsonrpc": "2.0",
@@ -778,7 +791,7 @@ class MetalBlockchainSource(BaseDataSource):
         }
 
         try:
-            async with self.session.post(self._rpc_url, json=payload) as resp:
+            async with self.session.post(self._rpc_url, json=payload) as resp:  # type: ignore[union-attr]
                 resp.raise_for_status()
                 data = await resp.json()
                 if "error" in data:

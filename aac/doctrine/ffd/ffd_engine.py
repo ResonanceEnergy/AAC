@@ -184,7 +184,7 @@ class FFDMetrics:
 # FFD DOCTRINE PACK DEFINITION (Pack 11)
 # ═══════════════════════════════════════════════════════════════════════════
 
-FFD_DOCTRINE_PACK = {
+FFD_DOCTRINE_PACK: Dict[str, Any] = {
     "name": "Future Financial Doctrine — Monetary Transition Intelligence",
     "owner": "FFD",
     "key_metrics": [
@@ -439,7 +439,7 @@ FFD_DOCTRINE_PACK = {
 # ═══════════════════════════════════════════════════════════════════════════
 
 # Reference stablecoins to monitor
-MONITORED_STABLECOINS = {
+MONITORED_STABLECOINS: Dict[str, Dict[str, Any]] = {
     "USDT": {"issuer": "Tether", "peg": 1.0, "tier": "critical"},
     "USDC": {"issuer": "Circle", "peg": 1.0, "tier": "primary"},
     "RLUSD": {"issuer": "Ripple", "peg": 1.0, "tier": "emerging"},
@@ -461,7 +461,7 @@ DEPEG_HALT_THRESHOLD = 5.0      # Kill switch at 5% deviation (Tether-specific)
 # SEED CAPITAL — REAL ACCOUNTS (FFD-11 Master Plan v3.0 — No Limits Edition)
 # ═══════════════════════════════════════════════════════════════════════════
 
-SEED_CAPITAL = {
+SEED_CAPITAL: Dict[str, Dict[str, Any]] = {
     "NDAX": {
         "initial_usd": 3800.0,
         "currency": "CAD",
@@ -534,7 +534,7 @@ SEED_CAPITAL = {
     },
 }
 
-TOTAL_SEED_CAPITAL = sum(a["initial_usd"] for a in SEED_CAPITAL.values())  # $8,800
+TOTAL_SEED_CAPITAL: float = sum(float(a["initial_usd"]) for a in SEED_CAPITAL.values())  # $8,800
 
 # Performance-based milestones (M1-M7)
 MILESTONES = {
@@ -615,7 +615,7 @@ class StablecoinMonitor:
             logger.warning(f"Unknown stablecoin: {symbol}")
             return
 
-        peg = config["peg"]
+        peg = float(config["peg"])
         deviation = abs(price - peg) / peg * 100.0
 
         if deviation < DEPEG_ALERT_THRESHOLD:
@@ -633,7 +633,7 @@ class StablecoinMonitor:
             peg_target=peg,
             deviation_pct=deviation,
             health=health,
-            issuer=config["issuer"],
+            issuer=str(config["issuer"]),
             market_cap_usd=market_cap,
             volume_24h_usd=volume,
         )
@@ -912,11 +912,11 @@ class FFDEngine:
             "superstonk_ftd_alert_count": float(self.metrics.superstonk_ftd_alert_count),
         }
 
-    def get_active_strategies(self) -> Dict[str, List[str]]:
+    def get_active_strategies(self) -> Any:
         """Return currently active FFD strategies per track."""
         return FFD_DOCTRINE_PACK["strategies"]
 
-    def get_allocation_guidance(self) -> Dict[str, Dict[str, int]]:
+    def get_allocation_guidance(self) -> Any:
         """Return recommended allocation targets per track."""
         return FFD_DOCTRINE_PACK["allocation_guidance"]
 
@@ -995,7 +995,7 @@ class FFDEngine:
         if gold_price_oz > 0 and silver_price_oz > 0:
             self.metrics.gold_silver_ratio = gold_price_oz / silver_price_oz
 
-    def get_allocation_targets(self) -> Dict[str, Dict[str, float]]:
+    def get_allocation_targets(self) -> Any:
         """
         Return dynamic allocation targets adjusted for cycle phase.
         In peak/correction phases, shift toward stablecoins and yield.
@@ -1074,7 +1074,7 @@ class FFDEngine:
             summary[name] = {
                 "initial": config["initial_usd"],
                 "current": self.account_balances.get(name, 0.0),
-                "pnl": self.account_balances.get(name, 0.0) - config["initial_usd"],
+                "pnl": self.account_balances.get(name, 0.0) - float(config["initial_usd"]),
                 "connector": config["connector"],
                 "role": config["role"],
                 "tax_status": config["tax_status"],
@@ -1114,8 +1114,8 @@ class FFDEngine:
 
     def get_no_limits_strategy_count(self) -> int:
         """Return total count of no-limits strategies defined in doctrine."""
-        nl = FFD_DOCTRINE_PACK.get("no_limits_strategies", {})
-        return sum(len(v) for v in nl.values())
+        nl: Dict[str, list] = FFD_DOCTRINE_PACK.get("no_limits_strategies", {})
+        return sum(len(v) for v in nl.values())  # type: ignore[arg-type]
 
 
 # ═══════════════════════════════════════════════════════════════════════════
