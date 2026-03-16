@@ -13,7 +13,7 @@ Metal X offers:
 
 import logging
 from datetime import datetime, timedelta
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 
 from shared.strategy_framework import (
     BaseArbitrageStrategy,
@@ -53,6 +53,7 @@ class MetalXYieldStrategy(BaseArbitrageStrategy):
         audit_logger: AuditLogger,
     ):
         super().__init__(config, communication, audit_logger)
+        self.last_signal_time: Optional[datetime] = None
         self._risk = config.risk_envelope or {}
         self.min_lending_apy = self._risk.get("min_lending_apy", 3.0)
         self.max_lending_usd = self._risk.get("max_lending_usd", 10000)

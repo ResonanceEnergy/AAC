@@ -200,7 +200,7 @@ class AACStrategyAgentMapper:
     def validate_assignments(self) -> Dict[str, Any]:
         """Validate that all assignments are correct"""
 
-        validation_results = {
+        validation_results: Dict[str, Any] = {
             "total_strategies": len(STRATEGIES_DATA),
             "total_trading_agents": 0,
             "total_executive_assistants": 0,

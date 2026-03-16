@@ -72,7 +72,7 @@ class BaseResearchAgent(ABC):
         self.logger = self._setup_logging()
         self.findings: List[ResearchFinding] = []
         self._finding_counter = 0
-        self.last_scan = None
+        self.last_scan: Optional[datetime] = None
         self.is_running = False
 
     def _setup_logging(self) -> logging.Logger:
@@ -376,7 +376,7 @@ class EngagementPredictorAgent(BaseResearchAgent):
                     posts = data.get('data', {}).get('children', [])
                     
                     # Count mentions and engagement
-                    asset_mentions = {asset: [] for asset in tracked_assets}
+                    asset_mentions: Dict[str, list] = {asset: [] for asset in tracked_assets}
                     
                     for post in posts:
                         post_data = post.get('data', {})
@@ -882,8 +882,8 @@ class LiquidityTrackerAgent(BaseResearchAgent):
                 imbalance_ratio = max_depth / min_depth
             else:
                 imbalance_ratio = float('inf')
-            deep_venue = max(venue_depths, key=venue_depths.get)
-            shallow_venue = min(venue_depths, key=venue_depths.get)
+            deep_venue = max(venue_depths, key=lambda k: venue_depths[k])
+            shallow_venue = min(venue_depths, key=lambda k: venue_depths[k])
             results[symbol] = {
                 'imbalance_detected': imbalance_ratio > 2.0,
                 'imbalance_ratio': round(imbalance_ratio, 2),
@@ -1885,7 +1885,7 @@ class ResearchAgentManager:
 
             # Aggregate findings by theater
             theater_findings = {}
-            theater_health = {}
+            theater_health: Dict[str, List[float]] = {}
 
             for agent_id, health in agent_health["agents"].items():
                 theater = health.get("theater", "unknown")

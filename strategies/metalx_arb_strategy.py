@@ -64,6 +64,7 @@ class MetalXCEXArbitrageStrategy(BaseArbitrageStrategy):
         audit_logger: AuditLogger,
     ):
         super().__init__(config, communication, audit_logger)
+        self.last_signal_time: Optional[datetime] = None
         self._risk = config.risk_envelope or {}
         self.min_spread_bps = self._risk.get("min_spread_bps", 15)
         self.max_position_usd = self._risk.get("max_position_usd", 5000)

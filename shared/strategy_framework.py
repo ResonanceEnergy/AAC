@@ -47,8 +47,8 @@ class TradingSignal:
     quantity: float
     price: Optional[float] = None
     confidence: float = 0.0
-    metadata: Dict[str, Any] = None
-    timestamp: datetime = None
+    metadata: Optional[Dict[str, Any]] = None
+    timestamp: Optional[datetime] = None
 
     def __post_init__(self):
         if self.timestamp is None:
@@ -87,14 +87,14 @@ class BaseArbitrageStrategy(ABC):
         self.audit_logger = audit_logger
 
         self.status = StrategyStatus.INACTIVE
-        self.last_signal_time = None
+        self.last_signal_time: Optional[datetime] = None
         self.position_size = 0.0
         self.unrealized_pnl = 0.0
 
         # Market data subscriptions
-        self.market_data = {}
-        self.nav_data = {}
-        self.futures_data = {}
+        self.market_data: Dict[str, Any] = {}
+        self.nav_data: Dict[str, Any] = {}
+        self.futures_data: Dict[str, Any] = {}
 
     async def initialize(self) -> bool:
         """Initialize the strategy."""

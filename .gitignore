@@ -164,6 +164,12 @@ coverage.xml
 *.backup
 tmp/
 temp/
+gap_fix_log.txt
+gap_scan_full.txt
+gap_scan_results.txt
+test_after_fix.txt
+test_after_fix2.txt
+test_results_run.txt
 
 # ===========================================
 # SERVICES — microservices build artifacts

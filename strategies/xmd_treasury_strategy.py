@@ -11,7 +11,7 @@ The strategy exploits premium/discount oscillations vs fiat USD.
 
 import logging
 from datetime import datetime, timedelta
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 
 from shared.strategy_framework import (
     BaseArbitrageStrategy,
@@ -49,6 +49,7 @@ class XMDTreasuryStrategy(BaseArbitrageStrategy):
         audit_logger: AuditLogger,
     ):
         super().__init__(config, communication, audit_logger)
+        self.last_signal_time: Optional[datetime] = None
         self._risk = config.risk_envelope or {}
         self.peg_threshold_bps = self._risk.get("peg_threshold_bps", 10)
         self.max_xmd_exposure = self._risk.get("max_xmd_exposure", 25000)

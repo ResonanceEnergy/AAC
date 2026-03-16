@@ -558,7 +558,7 @@ class Config:
     
     def get_enabled_exchanges(self) -> Dict[str, Union[ExchangeConfig, IBKRConfig, MoomooConfig]]:
         """Return dict of exchanges that have API keys configured"""
-        exchanges = {}
+        exchanges: Dict[str, Union[ExchangeConfig, IBKRConfig, MoomooConfig]] = {}
         if self.binance.is_configured():
             exchanges['binance'] = self.binance
         if self.coinbase.is_configured():
@@ -650,7 +650,7 @@ class ConfigSchema:
     """
     
     # Schema definitions for each config section
-    SCHEMAS = {
+    SCHEMAS: Dict[str, Dict[str, Any]] = {
         "environment": {
             "type": str,
             "allowed": ["development", "staging", "production"],
@@ -743,36 +743,40 @@ class ConfigSchema:
                 continue  # Skip optional empty fields
             
             # Check type
-            expected_type = schema.get("type")
+            expected_type: Any = schema.get("type")
             if expected_type:
                 if isinstance(expected_type, tuple):
-                    if not isinstance(value, expected_type):
+                    if not isinstance(value, expected_type):  # type: ignore[arg-type]
                         errors.append(
                             f"{field_path}: Expected {expected_type}, got {type(value).__name__}"
                         )
                         continue
-                elif not isinstance(value, expected_type):
+                elif not isinstance(value, expected_type):  # type: ignore[arg-type]
                     errors.append(
                         f"{field_path}: Expected {expected_type.__name__}, got {type(value).__name__}"
                     )
                     continue
             
             # Check allowed values
-            if "allowed" in schema and value not in schema["allowed"]:
+            allowed: Any = schema.get("allowed")
+            if allowed is not None and value not in allowed:
                 errors.append(
-                    f"{field_path}: Value '{value}' not in allowed values: {schema['allowed']}"
+                    f"{field_path}: Value '{value}' not in allowed values: {allowed}"
                 )
             
             # Check numeric range
             if isinstance(value, (int, float)):
-                if "min" in schema and value < schema["min"]:
-                    errors.append(f"{field_path}: Value {value} below minimum {schema['min']}")
-                if "max" in schema and value > schema["max"]:
-                    errors.append(f"{field_path}: Value {value} above maximum {schema['max']}")
+                min_val: Any = schema.get("min")
+                max_val: Any = schema.get("max")
+                if min_val is not None and value < min_val:
+                    errors.append(f"{field_path}: Value {value} below minimum {min_val}")
+                if max_val is not None and value > max_val:
+                    errors.append(f"{field_path}: Value {value} above maximum {max_val}")
             
             # Check pattern
-            if "pattern" in schema and isinstance(value, str) and value:
-                if not re.match(schema["pattern"], value):
+            pattern: Any = schema.get("pattern")
+            if pattern is not None and isinstance(value, str) and value:
+                if not re.match(pattern, value):
                     warnings.append(
                         f"{field_path}: Value doesn't match expected pattern {schema['pattern']}"
                     )
@@ -827,7 +831,7 @@ class ConfigSchema:
         Returns:
             Dict with validation results
         """
-        import yaml
+        import yaml  # type: ignore[import-untyped]
         
         if not yaml_path.exists():
             return {
