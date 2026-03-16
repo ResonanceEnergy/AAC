@@ -324,15 +324,15 @@ FALLBACK_DATA = {
 async def run_pipeline():
     """Execute the full data → analysis → trade → accounting pipeline."""
 
-    print("=" * 70)
-    print("  AAC PIPELINE RUNNER — Fibonacci/Golden Ratio Strategy")
-    print("  Mode: PAPER TRADING (no real money)")
-    print(f"  Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    print("=" * 70)
-    print()
+    logger.info("=" * 70)
+    logger.info("  AAC PIPELINE RUNNER — Fibonacci/Golden Ratio Strategy")
+    logger.info("  Mode: PAPER TRADING (no real money)")
+    logger.info(f"  Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    logger.info("=" * 70)
+    logger.info("")
 
     # ── 1. Initialize components ──────────────────────────────────────
-    print("[1/5] Initializing components...")
+    logger.info("[1/5] Initializing components...")
 
     config = get_config()
     db = AccountingDatabase()
@@ -347,11 +347,11 @@ async def run_pipeline():
 
     # Verify paper trading mode
     assert engine.paper_trading, "Safety check: must be in paper trading mode!"
-    print(f"  OK  Execution engine (paper_trading={engine.paper_trading})")
-    print(f"  OK  Accounting database: {db.db_path}")
+    logger.info(f"  OK  Execution engine (paper_trading={engine.paper_trading})")
+    logger.info(f"  OK  Accounting database: {db.db_path}")
     print(f"  OK  Risk limits: max_position=${engine.risk_manager.max_position_size_usd}, "
           f"max_daily_loss=${engine.risk_manager.max_daily_loss_usd}")
-    print()
+    logger.info("")
 
     # Symbol mapping: CoinGecko coin_id → readable ticker
     COIN_MAP = {
@@ -360,7 +360,7 @@ async def run_pipeline():
     }
 
     # ── 2. Fetch live market data ─────────────────────────────────────
-    print("[2/5] Fetching live market data from CoinGecko...")
+    logger.info("[2/5] Fetching live market data from CoinGecko...")
 
     coingecko = CoinGeckoClient()
     live_data = True
@@ -376,15 +376,15 @@ async def run_pipeline():
             if tick:
                 tick.symbol = ticker
                 market_data[ticker] = tick
-                print(f"  OK  {ticker}: ${tick.price:,.2f} ({tick.change_24h:+.2f}% 24h)")
+                logger.info(f"  OK  {ticker}: ${tick.price:,.2f} ({tick.change_24h:+.2f}% 24h)")
             else:
-                print(f"  FAIL {ticker}: failed to fetch")
+                logger.info(f"  FAIL {ticker}: failed to fetch")
 
     except (OSError, Exception) as e:
         logger.warning(f"CoinGecko unreachable: {e}")
         live_data = False
-        print(f"  Network unavailable — using cached reference prices")
-        print()
+        logger.info(f"  Network unavailable — using cached reference prices")
+        logger.info("")
 
         market_data = {}
         for coin_id, info in COIN_MAP.items():
@@ -399,7 +399,7 @@ async def run_pipeline():
                     source="fallback_cache",
                 )
                 market_data[ticker] = tick
-                print(f"  OK  {ticker}: ${tick.price:,.2f} ({tick.change_24h:+.2f}% 24h) [cached]")
+                logger.info(f"  OK  {ticker}: ${tick.price:,.2f} ({tick.change_24h:+.2f}% 24h) [cached]")
 
     finally:
         try:
@@ -408,12 +408,12 @@ async def run_pipeline():
             logger.exception("Unexpected error: %s", e)
 
     if not market_data:
-        print("\n  FAIL No market data available.")
+        logger.info("\n  FAIL No market data available.")
         return
 
     # ── 3. Fetch 30-day history + analyse ─────────────────────────
-    print()
-    print("[3/5] Running Fibonacci analysis...")
+    logger.info("")
+    logger.info("[3/5] Running Fibonacci analysis...")
 
     analyses = {}
 
@@ -479,36 +479,36 @@ async def run_pipeline():
         high_30d = analysis.get("_high_30d", max(_generate_realistic_price_series(tick.price)))
         low_30d = analysis.get("_low_30d", min(_generate_realistic_price_series(tick.price)))
 
-        print(f"\n  {sig_label} {ticker}: {sig} (confidence: {conf:.0%})")
-        print(f"    Compression: {comp:.0f}/100", end="")
+        logger.info(f"\n  {sig_label} {ticker}: {sig} (confidence: {conf:.0%})")
+        logger.info(f"    Compression: {comp:.0f}/100", end="")
         if comp > 60:
-            print(" << breakout zone", end="")
-        print()
+            logger.info(" << breakout zone", end="")
+        logger.info("")
         print(f"    Support: ${analysis['nearest_support']:,.2f} | "
               f"Resistance: ${analysis['nearest_resistance']:,.2f}")
-        print(f"    Reason: {analysis['reason']}")
+        logger.info(f"    Reason: {analysis['reason']}")
 
         if analysis["spiral_targets"]:
-            print("    Spiral targets: ", end="")
+            logger.info("    Spiral targets: ", end="")
             print(", ".join(
                 f"${t['price']:,.2f} ({t['label']})"
                 for t in analysis["spiral_targets"][:3]
             ))
 
     # ── 4. Execute trades ─────────────────────────────────────────────
-    print()
-    print("[4/5] Executing paper trades...")
+    logger.info("")
+    logger.info("[4/5] Executing paper trades...")
 
     trades_made = 0
     for ticker, analysis in analyses.items():
         base = ticker.split("/")[0]  # BTC, ETH
 
         if analysis["signal"] == "HOLD":
-            print(f"  [HOLD] {ticker}: HOLD -- no trade")
+            logger.info(f"  [HOLD] {ticker}: HOLD -- no trade")
             continue
 
         if analysis["confidence"] < 0.3:
-            print(f"  [SKIP] {ticker}: {analysis['signal']} but confidence too low ({analysis['confidence']:.0%}) -- skipped")
+            logger.info(f"  [SKIP] {ticker}: {analysis['signal']} but confidence too low ({analysis['confidence']:.0%}) -- skipped")
             continue
 
         tick = market_data[ticker]
@@ -539,7 +539,7 @@ async def run_pipeline():
         )
 
         if position:
-            print(f"    OK  Position opened: {position.position_id}")
+            logger.info(f"    OK  Position opened: {position.position_id}")
             print(f"    Entry: ${position.entry_price:,.2f} | "
                   f"SL: ${position.stop_loss:,.2f} | "
                   f"TP: ${position.take_profit:,.2f}")
@@ -562,32 +562,32 @@ async def run_pipeline():
                         "reason": analysis["reason"],
                     }),
                 )
-                print(f"    OK  Recorded to accounting DB (tx_id={tx_id})")
+                logger.info(f"    OK  Recorded to accounting DB (tx_id={tx_id})")
                 trades_made += 1
             except Exception as e:
-                print(f"    WARN DB recording failed: {e}")
+                logger.info(f"    WARN DB recording failed: {e}")
                 trades_made += 1  # Trade still went through
         else:
-            print(f"    FAIL Position rejected by risk manager")
+            logger.info(f"    FAIL Position rejected by risk manager")
 
     # ── 5. Summary ────────────────────────────────────────────────────
-    print()
-    print("=" * 70)
-    print("[5/5] PIPELINE SUMMARY")
-    print("=" * 70)
-    print(f"  Assets analyzed: {len(analyses)}")
-    print(f"  Trades executed: {trades_made}")
+    logger.info("")
+    logger.info("=" * 70)
+    logger.info("[5/5] PIPELINE SUMMARY")
+    logger.info("=" * 70)
+    logger.info(f"  Assets analyzed: {len(analyses)}")
+    logger.info(f"  Trades executed: {trades_made}")
     open_positions = [p for p in engine.positions.values() if p.status == PositionStatus.OPEN]
-    print(f"  Open positions: {len(open_positions)}")
+    logger.info(f"  Open positions: {len(open_positions)}")
 
     for pos in open_positions:
-        print(f"    * {pos.symbol}: {pos.side.value} {pos.quantity:.6f} @ ${pos.entry_price:,.2f}")
+        logger.info(f"    * {pos.symbol}: {pos.side.value} {pos.quantity:.6f} @ ${pos.entry_price:,.2f}")
 
     # Show recent DB transactions
     try:
         recent_txs = db.get_transactions(limit=5)
         if recent_txs:
-            print(f"\n  Recent transactions in accounting DB:")
+            logger.info(f"\n  Recent transactions in accounting DB:")
             for tx in recent_txs[:3]:
                 print(f"    * [{tx.get('status','?')}] {tx.get('side','?')} "
                       f"{tx.get('quantity',0):.6f} {tx.get('asset','?')} "
@@ -596,12 +596,12 @@ async def run_pipeline():
     except Exception as e:
         logger.exception("Unexpected error: %s", e)
 
-    print(f"\n  Database: {db.db_path}")
-    print(f"  Timestamp: {datetime.now().isoformat()}")
-    print("=" * 70)
-    print()
-    print("This was a PAPER TRADE. No real money was used.")
-    print("Run again anytime -- each run fetches fresh prices and generates new signals.")
+    logger.info(f"\n  Database: {db.db_path}")
+    logger.info(f"  Timestamp: {datetime.now().isoformat()}")
+    logger.info("=" * 70)
+    logger.info("")
+    logger.info("This was a PAPER TRADE. No real money was used.")
+    logger.info("Run again anytime -- each run fetches fresh prices and generates new signals.")
 
 
 # ════════════════════════════════════════════════════════════════════════

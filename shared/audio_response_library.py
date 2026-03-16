@@ -14,6 +14,9 @@ import time
 from typing import Dict, List
 from pathlib import Path
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 class AACAudioResponseLibrary:
     """
@@ -33,7 +36,7 @@ class AACAudioResponseLibrary:
             self.engine.setProperty('rate', 180)  # Optimal speech rate
             self.engine.setProperty('volume', 0.8)  # Clear volume level
         except Exception as e:
-            print(f"Warning: Could not initialize TTS engine: {e}")
+            logger.info(f"Warning: Could not initialize TTS engine: {e}")
 
     def _load_responses(self) -> Dict[str, str]:
         """Load the 100 most common response patterns"""
@@ -133,7 +136,7 @@ class AACAudioResponseLibrary:
     def speak_response(self, query: str):
         """Speak the appropriate response for a query"""
         if not self.engine:
-            print("TTS engine not available")
+            logger.info("TTS engine not available")
             return
 
         response = self.get_response(query)
@@ -144,7 +147,7 @@ class AACAudioResponseLibrary:
                 self.engine.say(response)
                 self.engine.runAndWait()
             except Exception as e:
-                print(f"TTS error: {e}")
+                logger.info(f"TTS error: {e}")
 
         # Run in background thread
         threading.Thread(target=speak, daemon=True).start()

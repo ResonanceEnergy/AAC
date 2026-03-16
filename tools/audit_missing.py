@@ -14,12 +14,12 @@ def audit_missing_components():
     """Audit missing components."""
     config = get_config()
 
-    print('🔍 AAC 2100 MISSING COMPONENTS AUDIT')
-    print('=' * 50)
-    print()
+    logger.info('🔍 AAC 2100 MISSING COMPONENTS AUDIT')
+    logger.info('=' * 50)
+    logger.info("")
 
     # Configuration Status
-    print('[MONITOR] CONFIGURATION STATUS:')
+    logger.info('[MONITOR] CONFIGURATION STATUS:')
     try:
         paper_trading = config.trading.paper_trading if hasattr(config, 'trading') and hasattr(config.trading, 'paper_trading') else True
         dry_run = config.trading.dry_run if hasattr(config, 'trading') and hasattr(config.trading, 'dry_run') else False
@@ -27,50 +27,50 @@ def audit_missing_components():
         logger.warning(f"Config access issue: {e}")
         paper_trading = True
         dry_run = False
-    print(f'  Paper Trading: {paper_trading}')
-    print(f'  Dry Run: {dry_run}')
-    print()
+    logger.info(f'  Paper Trading: {paper_trading}')
+    logger.info(f'  Dry Run: {dry_run}')
+    logger.info("")
 
     # Exchange API Keys
-    print('🔑 EXCHANGE API KEYS:')
+    logger.info('🔑 EXCHANGE API KEYS:')
     binance_key = getattr(config.binance, 'api_key', '') if hasattr(config, 'binance') else ''
     coinbase_key = getattr(config.coinbase, 'api_key', '') if hasattr(config, 'coinbase') else ''
     kraken_key = getattr(config.kraken, 'api_key', '') if hasattr(config, 'kraken') else ''
 
-    print(f'  Binance: {"[CROSS] MISSING" if not binance_key else "✅ CONFIGURED"}')
-    print(f'  Coinbase: {"[CROSS] MISSING" if not coinbase_key else "✅ CONFIGURED"}')
-    print(f'  Kraken: {"[CROSS] MISSING" if not kraken_key else "✅ CONFIGURED"}')
-    print()
+    logger.info(f'  Binance: {"[CROSS] MISSING" if not binance_key else "✅ CONFIGURED"}')
+    logger.info(f'  Coinbase: {"[CROSS] MISSING" if not coinbase_key else "✅ CONFIGURED"}')
+    logger.info(f'  Kraken: {"[CROSS] MISSING" if not kraken_key else "✅ CONFIGURED"}')
+    logger.info("")
 
     # Account Funding
-    print('[MONEY] ACCOUNT FUNDING:')
-    print('  [WARN]️  NO REAL CAPITAL CONFIGURED (Paper Trading Mode)')
-    print()
+    logger.info('[MONEY] ACCOUNT FUNDING:')
+    logger.info('  [WARN]️  NO REAL CAPITAL CONFIGURED (Paper Trading Mode)')
+    logger.info("")
 
     # Database
-    print('🗄️ DATABASE:')
+    logger.info('🗄️ DATABASE:')
     try:
         db_path = config.database.path if hasattr(config, 'database') and hasattr(config.database, 'path') else 'data/accounting.db'
     except (AttributeError, TypeError) as e:
         logger.warning(f"Config access issue: {e}")
         db_path = 'data/accounting.db'
-    print(f'  Path: {db_path}')
-    print('  ✅ SQLite configured (consider PostgreSQL for production)')
-    print()
+    logger.info(f'  Path: {db_path}')
+    logger.info('  ✅ SQLite configured (consider PostgreSQL for production)')
+    logger.info("")
 
     # External Monitoring
-    print('📡 EXTERNAL MONITORING:')
+    logger.info('📡 EXTERNAL MONITORING:')
     try:
         prometheus_port = config.monitoring.prometheus_port if hasattr(config, 'monitoring') and hasattr(config.monitoring, 'prometheus_port') else None
     except (AttributeError, TypeError) as e:
         logger.warning(f"Config access issue: {e}")
         prometheus_port = None
-    print(f'  Prometheus: {"[CROSS] NOT CONFIGURED" if not prometheus_port else "✅ CONFIGURED"}')
-    print('  Grafana: [CROSS] NOT CONFIGURED (config exists but not integrated)')
-    print()
+    logger.info(f'  Prometheus: {"[CROSS] NOT CONFIGURED" if not prometheus_port else "✅ CONFIGURED"}')
+    logger.info('  Grafana: [CROSS] NOT CONFIGURED (config exists but not integrated)')
+    logger.info("")
 
     # Alerts & Notifications
-    print('[ALERT] ALERTS & NOTIFICATIONS:')
+    logger.info('[ALERT] ALERTS & NOTIFICATIONS:')
     telegram_enabled = False
     slack_enabled = False
     try:
@@ -81,54 +81,54 @@ def audit_missing_components():
         # Fallback check
         telegram_enabled = bool(os.getenv('TELEGRAM_BOT_TOKEN') and os.getenv('TELEGRAM_CHAT_ID'))
         slack_enabled = bool(os.getenv('SLACK_WEBHOOK_URL'))
-    print(f'  Telegram: {"[CROSS] NOT CONFIGURED" if not telegram_enabled else "✅ CONFIGURED"}')
-    print(f'  Slack: {"[CROSS] NOT CONFIGURED" if not slack_enabled else "✅ CONFIGURED"}')
-    print()
+    logger.info(f'  Telegram: {"[CROSS] NOT CONFIGURED" if not telegram_enabled else "✅ CONFIGURED"}')
+    logger.info(f'  Slack: {"[CROSS] NOT CONFIGURED" if not slack_enabled else "✅ CONFIGURED"}')
+    logger.info("")
 
     # Security
-    print('🔐 SECURITY:')
-    print('  ✅ Secrets Manager implemented')
-    print(f'  Master Password: {"[CROSS] NOT SET" if not os.getenv("ACC_MASTER_PASSWORD") else "✅ SET"}')
-    print('  [WARN]️  No HSM or key management service')
-    print()
+    logger.info('🔐 SECURITY:')
+    logger.info('  ✅ Secrets Manager implemented')
+    logger.info(f'  Master Password: {"[CROSS] NOT SET" if not os.getenv("ACC_MASTER_PASSWORD") else "✅ SET"}')
+    logger.info('  [WARN]️  No HSM or key management service')
+    logger.info("")
 
     # Infrastructure
-    print('☁️ INFRASTRUCTURE:')
+    logger.info('☁️ INFRASTRUCTURE:')
     k8s_exists = Path('k8s').exists()
     docker_exists = Path('docker-compose.yml').exists()
-    print(f'  Kubernetes: {"✅ CONFIGURED" if k8s_exists else "[CROSS] MISSING"}')
-    print(f'  Docker Compose: {"✅ CONFIGURED" if docker_exists else "[CROSS] MISSING"}')
-    print('  [CROSS] No CI/CD pipeline configuration')
-    print()
+    logger.info(f'  Kubernetes: {"✅ CONFIGURED" if k8s_exists else "[CROSS] MISSING"}')
+    logger.info(f'  Docker Compose: {"✅ CONFIGURED" if docker_exists else "[CROSS] MISSING"}')
+    logger.info('  [CROSS] No CI/CD pipeline configuration')
+    logger.info("")
 
     # Documentation
-    print('📚 DOCUMENTATION:')
+    logger.info('📚 DOCUMENTATION:')
     readme_exists = Path('README.md').exists()
-    print(f'  README: {"✅ EXISTS" if readme_exists else "[CROSS] MISSING"}')
-    print('  [CROSS] No API documentation')
-    print('  [CROSS] No deployment runbooks')
-    print('  [CROSS] No troubleshooting guides')
-    print()
+    logger.info(f'  README: {"✅ EXISTS" if readme_exists else "[CROSS] MISSING"}')
+    logger.info('  [CROSS] No API documentation')
+    logger.info('  [CROSS] No deployment runbooks')
+    logger.info('  [CROSS] No troubleshooting guides')
+    logger.info("")
 
     # Testing
-    print('🧪 TESTING & VALIDATION:')
+    logger.info('🧪 TESTING & VALIDATION:')
     tests_exist = Path('tests').exists()
-    print(f'  Test Suite: {"✅ EXISTS" if tests_exist else "[CROSS] MISSING"}')
-    print('  [CROSS] No integration tests for live trading')
-    print('  [CROSS] No chaos engineering tests')
-    print('  [CROSS] No performance benchmarking')
-    print()
+    logger.info(f'  Test Suite: {"✅ EXISTS" if tests_exist else "[CROSS] MISSING"}')
+    logger.info('  [CROSS] No integration tests for live trading')
+    logger.info('  [CROSS] No chaos engineering tests')
+    logger.info('  [CROSS] No performance benchmarking')
+    logger.info("")
 
     # Production Optimizations
-    print('⚡ PRODUCTION OPTIMIZATIONS:')
-    print('  ✅ Async/await patterns implemented')
-    print('  [WARN]️  No connection pooling for high-frequency trading')
-    print('  [WARN]️  No rate limiting for exchange APIs')
-    print('  [WARN]️  No circuit breaker for external dependencies')
-    print()
+    logger.info('⚡ PRODUCTION OPTIMIZATIONS:')
+    logger.info('  ✅ Async/await patterns implemented')
+    logger.info('  [WARN]️  No connection pooling for high-frequency trading')
+    logger.info('  [WARN]️  No rate limiting for exchange APIs')
+    logger.info('  [WARN]️  No circuit breaker for external dependencies')
+    logger.info("")
 
     # Summary
-    print('📋 SUMMARY - CRITICAL MISSING COMPONENTS:')
+    logger.info('📋 SUMMARY - CRITICAL MISSING COMPONENTS:')
     critical_missing = []
 
     if not binance_key and not coinbase_key and not kraken_key:
@@ -147,13 +147,13 @@ def audit_missing_components():
         critical_missing.append('• Local development environment')
 
     if critical_missing:
-        print('\n'.join(critical_missing))
+        logger.info('\n'.join(critical_missing))
     else:
-        print('✅ All critical components present!')
+        logger.info('✅ All critical components present!')
 
-    print()
-    print('[TARGET] READY FOR: Paper Trading & Development')
-    print('[DEPLOY] REQUIRES: Exchange API keys for live trading')
+    logger.info("")
+    logger.info('[TARGET] READY FOR: Paper Trading & Development')
+    logger.info('[DEPLOY] REQUIRES: Exchange API keys for live trading')
 
 if __name__ == "__main__":
     audit_missing_components()

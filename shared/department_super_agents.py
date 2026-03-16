@@ -1511,14 +1511,14 @@ async def _establish_cross_department_connections(initialized_agents: Dict[str, 
 async def demo_department_super_agents():
     """Demonstrate department super agents"""
 
-    print("[DEPLOY] AAC Department Super Agents Demonstration")
-    print("=" * 55)
+    logger.info("[DEPLOY] AAC Department Super Agents Demonstration")
+    logger.info("=" * 55)
 
     # Initialize all department super agents
-    print("Initializing department super agents...")
+    logger.info("Initializing department super agents...")
     init_result = await initialize_all_department_super_agents()
 
-    print(f"✅ Initialized {init_result['total_count']} super agents across {init_result['departments_covered']} departments")
+    logger.info(f"✅ Initialized {init_result['total_count']} super agents across {init_result['departments_covered']} departments")
 
     # Demonstrate key super agents
     demonstrations = [
@@ -1530,7 +1530,7 @@ async def demo_department_super_agents():
     ]
 
     for department, agent_type, method_name in demonstrations:
-        print(f"\\n🧬 Demonstrating {department}.{agent_type}...")
+        logger.info(f"\\n🧬 Demonstrating {department}.{agent_type}...")
 
         agent = await get_department_super_agent(department, agent_type)
         if agent and hasattr(agent, method_name):
@@ -1539,55 +1539,55 @@ async def demo_department_super_agents():
                 if method_name == "execute_super_trade":
                     test_signal = {"symbol": "BTC/USD", "side": "buy", "quantity": 1.0, "price": 50000}
                     result = await agent.execute_super_trade(test_signal)
-                    print(f"  • Executed super trade: ${result['execution_result']['profit']:.2f} profit")
+                    logger.info(f"  • Executed super trade: ${result['execution_result']['profit']:.2f} profit")
 
                 elif method_name == "analyze_super_crypto":
                     test_data = {"symbol": "BTC", "price": 50000, "volume": 1000000}
                     result = await agent.analyze_super_crypto(test_data)
-                    print(f"  • Crypto analysis: {len(result['trading_signals'])} signals generated")
+                    logger.info(f"  • Crypto analysis: {len(result['trading_signals'])} signals generated")
 
                 elif method_name == "process_super_transaction":
                     test_transaction = {"amount": 10000, "type": "transfer", "description": "Test transaction"}
                     result = await agent.process_super_transaction(test_transaction)
-                    print(f"  • Transaction processed: {'compliant' if result['compliance_check']['compliant'] else 'non-compliant'}")
+                    logger.info(f"  • Transaction processed: {'compliant' if result['compliance_check']['compliant'] else 'non-compliant'}")
 
                 elif method_name == "monitor_super_health":
                     test_components = ["database", "network", "application"]
                     result = await agent.monitor_super_health(test_components)
-                    print(f"  • Health monitoring: {result['overall_health_score']:.1%} system health")
+                    logger.info(f"  • Health monitoring: {result['overall_health_score']:.1%} system health")
 
                 elif method_name == "coordinate_super_mission":
                     test_objectives = {"target": "profit_maximization", "timeframe": "30_days", "budget": 1000000}
                     result = await agent.coordinate_super_mission(test_objectives)
-                    print(f"  • Mission coordination: {result['success_probability']:.1%} success probability")
+                    logger.info(f"  • Mission coordination: {result['success_probability']:.1%} success probability")
 
                 # Show super metrics
                 metrics = agent.get_super_metrics()
-                print(f"  • Super capabilities: {len(agent.super_capabilities)}")
-                print(f"  • Quantum acceleration: {metrics['performance_metrics']['quantum_acceleration_factor']:.1f}x")
+                logger.info(f"  • Super capabilities: {len(agent.super_capabilities)}")
+                logger.info(f"  • Quantum acceleration: {metrics['performance_metrics']['quantum_acceleration_factor']:.1f}x")
 
             except Exception as e:
-                print(f"  [CROSS] Error in demonstration: {e}")
+                logger.info(f"  [CROSS] Error in demonstration: {e}")
         else:
-            print(f"  [CROSS] Agent or method not available")
+            logger.info(f"  [CROSS] Agent or method not available")
 
-    print("\\n[TARGET] Department Super Agent Capabilities:")
-    print("  • TradingExecution: Quantum arbitrage, autonomous execution, risk management AI")
-    print("  • CryptoIntelligence: On-chain analysis, whale tracking, predictive signals")
-    print("  • CentralAccounting: Automated reconciliation, compliance monitoring, financial prediction")
-    print("  • SharedInfrastructure: Predictive maintenance, system diagnostics, performance optimization")
-    print("  • NCC: Strategic planning, mission optimization, doctrine enforcement")
+    logger.info("\\n[TARGET] Department Super Agent Capabilities:")
+    logger.info("  • TradingExecution: Quantum arbitrage, autonomous execution, risk management AI")
+    logger.info("  • CryptoIntelligence: On-chain analysis, whale tracking, predictive signals")
+    logger.info("  • CentralAccounting: Automated reconciliation, compliance monitoring, financial prediction")
+    logger.info("  • SharedInfrastructure: Predictive maintenance, system diagnostics, performance optimization")
+    logger.info("  • NCC: Strategic planning, mission optimization, doctrine enforcement")
 
-    print("\\n✨ All department agents enhanced with:")
-    print("  • Quantum computing integration")
-    print("  • Advanced AI/ML capabilities")
-    print("  • Swarm intelligence coordination")
-    print("  • Cross-temporal analysis")
-    print("  • Autonomous decision making")
-    print("  • Real-time adaptation")
-    print("  • Multi-dimensional optimization")
+    logger.info("\\n✨ All department agents enhanced with:")
+    logger.info("  • Quantum computing integration")
+    logger.info("  • Advanced AI/ML capabilities")
+    logger.info("  • Swarm intelligence coordination")
+    logger.info("  • Cross-temporal analysis")
+    logger.info("  • Autonomous decision making")
+    logger.info("  • Real-time adaptation")
+    logger.info("  • Multi-dimensional optimization")
 
-    print("\\n[CELEBRATION] Department super agents operational!")
+    logger.info("\\n[CELEBRATION] Department super agents operational!")
 
 if __name__ == "__main__":
     # Run demonstration

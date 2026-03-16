@@ -18,6 +18,8 @@ from enum import Enum
 import sys
 import subprocess
 
+logger = logging.getLogger(__name__)
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
@@ -683,20 +685,20 @@ business_continuity_system = BusinessContinuitySystem()
 
 async def initialize_business_continuity():
     """Initialize the business continuity system"""
-    print("[CONTINUITY] Initializing Business Continuity System...")
+    logger.info("[CONTINUITY] Initializing Business Continuity System...")
 
     # Run initial continuity test
     test_results = await business_continuity_system.run_business_continuity_test()
 
     readiness = business_continuity_system.check_business_continuity_readiness()
 
-    print("[OK] Business continuity system initialized")
-    print(f"  Procedures Configured: {readiness['procedures_configured']}")
-    print(f"  Backups Configured: {readiness['backups_configured']}")
-    print(f"  Failover Systems: {readiness['failover_systems']}")
-    print(f"  Recent Backups: {readiness['recent_backups']}")
-    print(f"  Recent Tests: {readiness['recent_tests']}")
-    print(f"  Overall Readiness: {'READY' if readiness['overall_readiness'] else 'NEEDS ATTENTION'}")
+    logger.info("[OK] Business continuity system initialized")
+    logger.info(f"  Procedures Configured: {readiness['procedures_configured']}")
+    logger.info(f"  Backups Configured: {readiness['backups_configured']}")
+    logger.info(f"  Failover Systems: {readiness['failover_systems']}")
+    logger.info(f"  Recent Backups: {readiness['recent_backups']}")
+    logger.info(f"  Recent Tests: {readiness['recent_tests']}")
+    logger.info(f"  Overall Readiness: {'READY' if readiness['overall_readiness'] else 'NEEDS ATTENTION'}")
 
     return True
 

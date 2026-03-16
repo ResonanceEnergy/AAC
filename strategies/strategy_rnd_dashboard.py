@@ -20,6 +20,8 @@ import plotly.graph_objects as go
 import plotly.express as px
 from plotly.subplots import make_subplots
 
+logger = logging.getLogger(__name__)
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
@@ -394,8 +396,8 @@ rnd_dashboard = StrategyRnDDashboard()
 async def run_comprehensive_rnd_demo():
     """Demo function for comprehensive R&D"""
 
-    print("🔬 ACCELERATED ARBITRAGE CORP - Strategy R&D Dashboard")
-    print("=" * 60)
+    logger.info("🔬 ACCELERATED ARBITRAGE CORP - Strategy R&D Dashboard")
+    logger.info("=" * 60)
 
     await rnd_dashboard.initialize()
 
@@ -404,7 +406,7 @@ async def run_comprehensive_rnd_demo():
     strategy_types = ["statistical_arbitrage", "triangular_arbitrage"]
     methods = [OptimizationMethod.GRID_SEARCH, OptimizationMethod.RANDOM_SEARCH]
 
-    print("\n🎯 Running comprehensive experiment...")
+    logger.info("\n🎯 Running comprehensive experiment...")
     results = await rnd_dashboard.run_comprehensive_experiment(
         experiment_name=experiment_name,
         strategy_types=strategy_types,
@@ -416,17 +418,17 @@ async def run_comprehensive_rnd_demo():
     report = rnd_dashboard.generate_experiment_report(experiment_name)
     rnd_dashboard.create_visualization_dashboard(experiment_name)
 
-    print("\n✅ Comprehensive R&D experiment completed!")
-    print(f"Experiment: {experiment_name}")
-    print(f"Strategies tested: {len(strategy_types)}")
-    print(f"Methods tested: {len(methods)}")
-    print(f"Report: reports/rnd/{experiment_name}_report.md")
-    print(f"Dashboard: reports/rnd/{experiment_name}_dashboard.html")
+    logger.info("\n✅ Comprehensive R&D experiment completed!")
+    logger.info(f"Experiment: {experiment_name}")
+    logger.info(f"Strategies tested: {len(strategy_types)}")
+    logger.info(f"Methods tested: {len(methods)}")
+    logger.info(f"Report: reports/rnd/{experiment_name}_report.md")
+    logger.info(f"Dashboard: reports/rnd/{experiment_name}_dashboard.html")
 
     # Print top recommendations
-    print("\n🎯 Top Recommendations:")
+    logger.info("\n🎯 Top Recommendations:")
     for rec in results["recommendations"][:3]:
-        print(f"  {rec}")
+        logger.info(f"  {rec}")
 
     return results
 

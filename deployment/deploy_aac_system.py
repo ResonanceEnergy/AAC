@@ -451,9 +451,9 @@ async def main():
     mode = sys.argv[1] if len(sys.argv) > 1 else 'paper'
 
     if mode not in ['paper', 'live']:
-        print("Usage: python deploy_aac_system.py [paper|live]")
-        print("  paper: Safe testing mode (default)")
-        print("  live:  Live trading mode (use with caution)")
+        logger.info("Usage: python deploy_aac_system.py [paper|live]")
+        logger.info("  paper: Safe testing mode (default)")
+        logger.info("  live:  Live trading mode (use with caution)")
         sys.exit(1)
 
     # Initialize deployment manager

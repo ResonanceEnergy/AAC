@@ -22,6 +22,8 @@ import argparse
 from pathlib import Path
 import hashlib
 
+logger = logging.getLogger(__name__)
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
@@ -611,29 +613,29 @@ async def main():
     args = parser.parse_args()
 
     if args.command == 'scan':
-        print("[SCAN] Performing comprehensive system scan...")
+        logger.info("[SCAN] Performing comprehensive system scan...")
         results = await deep_dive_analyzer.perform_comprehensive_scan()
-        print(f"Scan completed: {results['total_files']} files analyzed")
-        print(f"Strategy files: {len(results['strategy_files'])}")
-        print(f"Test files: {len(results['test_files'])}")
-        print(f"Metric files: {len(results['metric_files'])}")
+        logger.info(f"Scan completed: {results['total_files']} files analyzed")
+        logger.info(f"Strategy files: {len(results['strategy_files'])}")
+        logger.info(f"Test files: {len(results['test_files'])}")
+        logger.info(f"Metric files: {len(results['metric_files'])}")
 
     elif args.command == 'report':
-        print("[REPORT] Generating deep dive report...")
+        logger.info("[REPORT] Generating deep dive report...")
         scan_results = await deep_dive_analyzer.perform_comprehensive_scan()
         report_path = await deep_dive_analyzer.generate_deep_dive_report(scan_results, args.output_dir)
-        print(f"Report generated: {report_path}")
+        logger.info(f"Report generated: {report_path}")
 
     elif args.command == 'dependencies':
         if not args.strategy_id:
-            print("Strategy ID required for dependency analysis")
+            logger.info("Strategy ID required for dependency analysis")
             return
 
-        print(f"[DEPENDENCIES] Analyzing dependencies for {args.strategy_id}...")
+        logger.info(f"[DEPENDENCIES] Analyzing dependencies for {args.strategy_id}...")
         deps = await deep_dive_analyzer.find_strategy_dependencies(args.strategy_id)
-        print(f"Implementation files: {len(deps['implementation_files'])}")
-        print(f"Test files: {len(deps['test_files'])}")
-        print(f"Related strategies: {len(deps['related_strategies'])}")
+        logger.info(f"Implementation files: {len(deps['implementation_files'])}")
+        logger.info(f"Test files: {len(deps['test_files'])}")
+        logger.info(f"Related strategies: {len(deps['related_strategies'])}")
 
 
 if __name__ == "__main__":

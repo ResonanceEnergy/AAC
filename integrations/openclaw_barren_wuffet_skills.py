@@ -131,6 +131,9 @@ import json
 from pathlib import Path
 from typing import Dict, List, Optional
 from datetime import datetime
+import logging
+
+logger = logging.getLogger(__name__)
 
 SKILLS_DIR = Path(os.path.expanduser("~/.openclaw/workspace/skills"))
 
@@ -5331,7 +5334,7 @@ def write_all_skills(base_dir: Optional[str] = None) -> List[str]:
         content = generate_skill_md(skill_def)
         skill_md_path.write_text(content, encoding="utf-8")
         written.append(str(skill_dir))
-        print(f"  ✅ {skill_name} → {skill_md_path}")
+        logger.info(f"  ✅ {skill_name} → {skill_md_path}")
     return written
 
 

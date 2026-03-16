@@ -24,6 +24,9 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
 from dotenv import load_dotenv
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
@@ -123,7 +126,7 @@ class FinnhubArbitrageClient:
                     timestamp=datetime.now()
                 )
         except Exception as e:
-            print(f"Error getting quote for {symbol}: {e}")
+            logger.info(f"Error getting quote for {symbol}: {e}")
         return None
 
     async def get_news_sentiment(self, symbol: str) -> Optional[NewsSentiment]:
@@ -143,7 +146,7 @@ class FinnhubArbitrageClient:
                     buzz_score=buzz.get('buzz', 0)
                 )
         except Exception as e:
-            print(f"Error getting news sentiment for {symbol}: {e}")
+            logger.info(f"Error getting news sentiment for {symbol}: {e}")
         return None
 
     async def get_earnings_calendar(self, symbol: str, limit: int = 5) -> List[EarningsData]:
@@ -164,7 +167,7 @@ class FinnhubArbitrageClient:
                     ))
             return earnings
         except Exception as e:
-            print(f"Error getting earnings calendar for {symbol}: {e}")
+            logger.info(f"Error getting earnings calendar for {symbol}: {e}")
         return []
 
     async def get_multiple_quotes(self, symbols: List[str]) -> Dict[str, RealTimeQuote]:
@@ -191,49 +194,49 @@ class FinnhubArbitrageClient:
 
 async def test_finnhub_integration():
     """Test Finnhub integration"""
-    print("🔍 Testing Finnhub Integration")
-    print("=" * 50)
+    logger.info("🔍 Testing Finnhub Integration")
+    logger.info("=" * 50)
 
     config = FinnhubConfig()
 
     if not config.is_configured():
-        print("❌ FINNHUB_API_KEY not found in .env file")
-        print("   Get your free API key from: https://finnhub.io")
-        print("   Add to .env: FINNHUB_API_KEY=your_key_here")
+        logger.info("❌ FINNHUB_API_KEY not found in .env file")
+        logger.info("   Get your free API key from: https://finnhub.io")
+        logger.info("   Add to .env: FINNHUB_API_KEY=your_key_here")
         return
 
     async with FinnhubArbitrageClient(config) as client:
         # Test basic quotes
-        print("\n📈 Testing Real-time Quotes:")
+        logger.info("\n📈 Testing Real-time Quotes:")
         symbols = ['AAPL', 'GOOGL', 'MSFT', 'TSLA']
 
         quotes = await client.get_multiple_quotes(symbols)
 
         for symbol, quote in quotes.items():
-            print(f"   {symbol}: ${quote.current_price:.2f} ({quote.change_percent:+.2f}%)")
+            logger.info(f"   {symbol}: ${quote.current_price:.2f} ({quote.change_percent:+.2f}%)")
 
         # Test news sentiment
-        print("\n📰 Testing News Sentiment:")
+        logger.info("\n📰 Testing News Sentiment:")
         sentiments = await client.get_multiple_sentiments(symbols[:2])  # Test first 2 to save API calls
 
         for symbol, sentiment in sentiments.items():
-            print(f"   {symbol}: {sentiment.sentiment_label} ({sentiment.sentiment_score:.2f})")
-            print(f"      Articles: {sentiment.articles_count}, Buzz: {sentiment.buzz_score:.2f}")
+            logger.info(f"   {symbol}: {sentiment.sentiment_label} ({sentiment.sentiment_score:.2f})")
+            logger.info(f"      Articles: {sentiment.articles_count}, Buzz: {sentiment.buzz_score:.2f}")
 
         # Test earnings calendar
-        print("\n📊 Testing Earnings Calendar (AAPL):")
+        logger.info("\n📊 Testing Earnings Calendar (AAPL):")
         earnings = await client.get_earnings_calendar('AAPL', 3)
 
         for earning in earnings:
-            print(f"   {earning.date}: EPS ${earning.eps_actual:.2f} (Est: ${earning.eps_estimate:.2f})")
-            print(f"      Surprise: {earning.surprise_percent:+.1f}%")
+            logger.info(f"   {earning.date}: EPS ${earning.eps_actual:.2f} (Est: ${earning.eps_estimate:.2f})")
+            logger.info(f"      Surprise: {earning.surprise_percent:+.1f}%")
 
-    print("\n✅ Finnhub integration test complete!")
+    logger.info("\n✅ Finnhub integration test complete!")
 
 async def arbitrage_opportunities_demo():
     """Demo arbitrage opportunities using Finnhub data"""
-    print("\n🎯 Arbitrage Opportunities Demo")
-    print("=" * 50)
+    logger.info("\n🎯 Arbitrage Opportunities Demo")
+    logger.info("=" * 50)
 
     config = FinnhubConfig()
     if not config.is_configured():
@@ -241,7 +244,7 @@ async def arbitrage_opportunities_demo():
 
     async with FinnhubArbitrageClient(config) as client:
         # Sentiment-based arbitrage
-        print("\n📰 Sentiment-Based Arbitrage Analysis:")
+        logger.info("\n📰 Sentiment-Based Arbitrage Analysis:")
         symbols = ['AAPL', 'GOOGL', 'MSFT']
 
         quotes = await client.get_multiple_quotes(symbols)
@@ -259,20 +262,20 @@ async def arbitrage_opportunities_demo():
                 elif sentiment.sentiment_label == 'negative' and sentiment.sentiment_score < -0.1:
                     sentiment_signal = -1
 
-                print(f"   {symbol}:")
-                print(f"      Price: ${quote.current_price:.2f} ({quote.change_percent:+.2f}%)")
-                print(f"      Sentiment: {sentiment.sentiment_label} ({sentiment.sentiment_score:.2f})")
-                print(f"      Signal: {'BUY' if sentiment_signal > 0 else 'SELL' if sentiment_signal < 0 else 'HOLD'}")
+                logger.info(f"   {symbol}:")
+                logger.info(f"      Price: ${quote.current_price:.2f} ({quote.change_percent:+.2f}%)")
+                logger.info(f"      Sentiment: {sentiment.sentiment_label} ({sentiment.sentiment_score:.2f})")
+                logger.info(f"      Signal: {'BUY' if sentiment_signal > 0 else 'SELL' if sentiment_signal < 0 else 'HOLD'}")
 
         # Earnings surprise arbitrage
-        print("\n📊 Earnings Surprise Analysis:")
+        logger.info("\n📊 Earnings Surprise Analysis:")
         earnings = await client.get_earnings_calendar('AAPL', 5)
 
         for earning in earnings:
             if abs(earning.surprise_percent) > 5:  # Significant surprise
                 direction = "positive" if earning.surprise > 0 else "negative"
-                print(f"   {earning.date}: {direction} surprise ({earning.surprise_percent:+.1f}%)")
-                print("   ⚠️  Potential post-earnings arbitrage opportunity!")
+                logger.info(f"   {earning.date}: {direction} surprise ({earning.surprise_percent:+.1f}%)")
+                logger.info("   ⚠️  Potential post-earnings arbitrage opportunity!")
 
 if __name__ == "__main__":
     print("🚀 AAC Finnhub Arbitrage Integration")

@@ -5,6 +5,9 @@ from __future__ import annotations
 import argparse
 import sys
 from pathlib import Path
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Ensure the module root is on sys.path for direct script invocation
 _MODULE_ROOT = Path(__file__).resolve().parent.parent
@@ -69,18 +72,18 @@ def ingest(symbols: list[str] | None = None) -> None:
     for sym in symbols:
         csv_path = _find_csv(sym)
         if csv_path is None:
-            print(f"[SKIP] No CSV found for {sym} in {_DATA_RAW}")
+            logger.info(f"[SKIP] No CSV found for {sym} in {_DATA_RAW}")
             continue
 
-        print(f"[INGEST] {sym} <- {csv_path.name}")
+        logger.info(f"[INGEST] {sym} <- {csv_path.name}")
         df = read_mt5_csv(csv_path)
         warnings = validate_ohlcv(df)
         if warnings:
             for w in warnings:
-                print(f"  WARNING: {w}")
+                logger.info(f"  WARNING: {w}")
         df = normalize(df)
         out = save_processed(df, _DATA_PROC, sym)
-        print(f"  -> {out} ({len(df)} bars)")
+        logger.info(f"  -> {out} ({len(df)} bars)")
 
 
 def backtest(symbols: list[str] | None = None) -> None:
@@ -97,10 +100,10 @@ def backtest(symbols: list[str] | None = None) -> None:
     for sym in symbols:
         proc_path = _DATA_PROC / f"{sym}_processed.csv"
         if not proc_path.exists():
-            print(f"[SKIP] No processed data for {sym}. Run ingest first.")
+            logger.info(f"[SKIP] No processed data for {sym}. Run ingest first.")
             continue
 
-        print(f"[BACKTEST] {sym}")
+        logger.info(f"[BACKTEST] {sym}")
         df = _load_processed(proc_path)
         daily_df = _resample_to_daily(df)
 
@@ -128,7 +131,7 @@ def backtest(symbols: list[str] | None = None) -> None:
 
     report_md = generate_markdown_report(all_metrics, all_trades, campaign)
     report_path = save_report(report_md, {"campaign": campaign, "by_symbol": all_metrics}, _REPORTS_DIR)
-    print(f"\n[REPORT] {report_path}")
+    logger.info(f"\n[REPORT] {report_path}")
 
     # Journal
     all_trade_list = []
@@ -136,7 +139,7 @@ def backtest(symbols: list[str] | None = None) -> None:
         all_trade_list.extend(sym_trades)
     if all_trade_list:
         journal_path = write_trades_to_journal(all_trade_list, _JOURNAL_DIR, risk_cfg["starting_equity"])
-        print(f"[JOURNAL] {journal_path}")
+        logger.info(f"[JOURNAL] {journal_path}")
 
 
 def signals(symbols: list[str] | None = None) -> None:
@@ -147,7 +150,7 @@ def signals(symbols: list[str] | None = None) -> None:
     for sym in symbols:
         proc_path = _DATA_PROC / f"{sym}_processed.csv"
         if not proc_path.exists():
-            print(f"[SKIP] No processed data for {sym}. Run ingest first.")
+            logger.info(f"[SKIP] No processed data for {sym}. Run ingest first.")
             continue
 
         df = _load_processed(proc_path)
@@ -164,7 +167,7 @@ def signals(symbols: list[str] | None = None) -> None:
                   f"Long: {long_s} | Short: {short_s} | "
                   f"ATR: {last.get('atr', 0):.4f} | Close: {last['close']:.4f}")
         else:
-            print(f"[SIGNAL] {sym} | No data")
+            logger.info(f"[SIGNAL] {sym} | No data")
 
 
 def report() -> None:
@@ -173,13 +176,13 @@ def report() -> None:
 
     df = load_journal(_JOURNAL_DIR)
     if df.empty:
-        print("[REPORT] No journal data found. Run a backtest first.")
+        logger.info("[REPORT] No journal data found. Run a backtest first.")
         return
 
     summary = review_summary(df)
-    print("\n=== VCE Campaign Review ===")
+    logger.info("\n=== VCE Campaign Review ===")
     for k, v in summary.items():
-        print(f"  {k}: {v}")
+        logger.info(f"  {k}: {v}")
 
 
 def _load_processed(path: Path):

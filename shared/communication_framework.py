@@ -106,7 +106,7 @@ class CommunicationFramework:
         """Deliver message to recipient (mock implementation)"""
         # In a real implementation, this would handle actual delivery
         # For now, just log the delivery
-        print(f"📨 Delivered message from {message.sender} to {message.recipient}: {message.message_type}")
+        logger.info(f"📨 Delivered message from {message.sender} to {message.recipient}: {message.message_type}")
 
     async def get_agent_status(self, agent_id: str) -> Dict[str, Any]:
         """Get status of an agent"""

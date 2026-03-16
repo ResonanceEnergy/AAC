@@ -15,6 +15,8 @@ from enum import Enum
 from pathlib import Path
 import sys
 
+logger = logging.getLogger(__name__)
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
@@ -472,9 +474,9 @@ async def initialize_license_system():
     await license_manager._load_licenses()
     await license_manager.initialize_default_licenses()
 
-    print("[OK] License management system initialized")
-    print(f"  Active licenses: {len([l for l in license_manager.licenses.values() if l.status == LicenseStatus.ACTIVE])}")
-    print(f"  Pending alerts: {len(license_manager.get_alerts(acknowledged=False))}")
+    logger.info("[OK] License management system initialized")
+    logger.info(f"  Active licenses: {len([l for l in license_manager.licenses.values() if l.status == LicenseStatus.ACTIVE])}")
+    logger.info(f"  Pending alerts: {len(license_manager.get_alerts(acknowledged=False))}")
 
 
 if __name__ == "__main__":

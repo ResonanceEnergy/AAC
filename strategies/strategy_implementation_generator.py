@@ -204,7 +204,7 @@ async def main():
     """Generate missing strategy implementations"""
     generator = StrategyImplementationGenerator()
     count = await generator.generate_missing_strategies()
-    print(f"Generated {count} strategy implementations")
+    logger.info(f"Generated {count} strategy implementations")
 
 
 if __name__ == "__main__":

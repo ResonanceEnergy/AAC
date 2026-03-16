@@ -48,11 +48,11 @@ class ProductionSetup:
 
     def setup_master_password(self) -> bool:
         """Set up master password for secrets encryption"""
-        print("\n🔐 MASTER PASSWORD SETUP")
-        print("=" * 30)
+        logger.info("\n🔐 MASTER PASSWORD SETUP")
+        logger.info("=" * 30)
 
         if os.getenv('ACC_MASTER_PASSWORD'):
-            print("✅ Master password already set in environment")
+            logger.info("✅ Master password already set in environment")
             return True
 
         # Generate secure password
@@ -64,15 +64,15 @@ class ProductionSetup:
         # Also save to .env file for persistence
         self.update_env_var('ACC_MASTER_PASSWORD', master_password)
 
-        print(f"✅ Generated and set master password: {master_password[:8]}...")
-        print("[WARN]️  IMPORTANT: Save this password securely - it's required for secrets decryption!")
+        logger.info(f"✅ Generated and set master password: {master_password[:8]}...")
+        logger.info("[WARN]️  IMPORTANT: Save this password securely - it's required for secrets decryption!")
 
         return True
 
     def setup_exchange_apis(self) -> bool:
         """Configure exchange API keys"""
-        print("\n🔑 EXCHANGE API CONFIGURATION")
-        print("=" * 35)
+        logger.info("\n🔑 EXCHANGE API CONFIGURATION")
+        logger.info("=" * 35)
 
         exchanges = {
             'binance': {
@@ -93,11 +93,11 @@ class ProductionSetup:
         configured = 0
 
         for exchange_id, exchange_info in exchanges.items():
-            print(f"\n📈 {exchange_info['name']} Setup:")
+            logger.info(f"\n📈 {exchange_info['name']} Setup:")
 
             # Check if already configured
             if all(os.getenv(var) for var in exchange_info['vars']):
-                print(f"  ✅ Already configured")
+                logger.info(f"  ✅ Already configured")
                 configured += 1
                 continue
 
@@ -105,7 +105,7 @@ class ProductionSetup:
             configure = input(f"  Configure {exchange_info['name']} API keys? (y/n): ").lower().strip()
 
             if configure == 'y':
-                print("  Enter your API credentials:")
+                logger.info("  Enter your API credentials:")
 
                 for var in exchange_info['vars']:
                     current = os.getenv(var, '')
@@ -127,18 +127,18 @@ class ProductionSetup:
                     os.environ['BINANCE_TESTNET'] = str(testnet).lower()
                     self.update_env_var('BINANCE_TESTNET', str(testnet).lower())
 
-                print(f"  ✅ {exchange_info['name']} configured")
+                logger.info(f"  ✅ {exchange_info['name']} configured")
                 configured += 1
             else:
-                print(f"  ⏭️  Skipped {exchange_info['name']}")
+                logger.info(f"  ⏭️  Skipped {exchange_info['name']}")
 
-        print(f"\n[MONITOR] Exchange Configuration: {configured}/{len(exchanges)} exchanges configured")
+        logger.info(f"\n[MONITOR] Exchange Configuration: {configured}/{len(exchanges)} exchanges configured")
         return configured > 0
 
     def setup_notifications(self) -> bool:
         """Configure notification systems"""
-        print("\n[ALERT] NOTIFICATION SYSTEM SETUP")
-        print("=" * 32)
+        logger.info("\n[ALERT] NOTIFICATION SYSTEM SETUP")
+        logger.info("=" * 32)
 
         notification_options = {
             'telegram': {
@@ -161,19 +161,19 @@ class ProductionSetup:
         configured = 0
 
         for notif_id, notif_info in notification_options.items():
-            print(f"\n📢 {notif_info['name']} Setup:")
+            logger.info(f"\n📢 {notif_info['name']} Setup:")
 
             # Check if already configured
             if all(os.getenv(var) for var in notif_info['vars']):
-                print(f"  ✅ Already configured")
+                logger.info(f"  ✅ Already configured")
                 configured += 1
                 continue
 
             configure = input(f"  Configure {notif_info['name']} notifications? (y/n): ").lower().strip()
 
             if configure == 'y':
-                print(f"  Instructions: {notif_info['instructions']}")
-                print("  Enter your configuration:")
+                logger.info(f"  Instructions: {notif_info['instructions']}")
+                logger.info("  Enter your configuration:")
 
                 for var in notif_info['vars']:
                     current = os.getenv(var, '')
@@ -188,33 +188,33 @@ class ProductionSetup:
                         os.environ[var] = current
                         self.update_env_var(var, current)
 
-                print(f"  ✅ {notif_info['name']} configured")
+                logger.info(f"  ✅ {notif_info['name']} configured")
                 configured += 1
             else:
-                print(f"  ⏭️  Skipped {notif_info['name']}")
+                logger.info(f"  ⏭️  Skipped {notif_info['name']}")
 
-        print(f"\n[MONITOR] Notifications: {configured}/{len(notification_options)} systems configured")
+        logger.info(f"\n[MONITOR] Notifications: {configured}/{len(notification_options)} systems configured")
         return configured > 0
 
     def setup_monitoring(self) -> bool:
         """Configure monitoring systems"""
-        print("\n[MONITOR] MONITORING SETUP")
-        print("=" * 20)
+        logger.info("\n[MONITOR] MONITORING SETUP")
+        logger.info("=" * 20)
 
         # Check if Prometheus config exists
         prometheus_config = self.project_root / 'config' / 'prometheus.yml'
         if prometheus_config.exists():
-            print("✅ Prometheus config exists")
+            logger.info("✅ Prometheus config exists")
         else:
-            print("[WARN]️  Prometheus config missing - creating basic config")
+            logger.info("[WARN]️  Prometheus config missing - creating basic config")
             self.create_prometheus_config()
 
         # Check Grafana config
         grafana_config = self.project_root / 'config' / 'grafana'
         if grafana_config.exists():
-            print("✅ Grafana config directory exists")
+            logger.info("✅ Grafana config directory exists")
         else:
-            print("[WARN]️  Grafana config missing - creating directory")
+            logger.info("[WARN]️  Grafana config missing - creating directory")
             grafana_config.mkdir(parents=True, exist_ok=True)
 
         # Set monitoring environment variables
@@ -229,13 +229,13 @@ class ProductionSetup:
                 os.environ[var] = default
                 self.update_env_var(var, default)
 
-        print("✅ Monitoring configuration updated")
+        logger.info("✅ Monitoring configuration updated")
         return True
 
     def setup_production_safeguards(self) -> bool:
         """Implement production safeguards"""
-        print("\n[SHIELD]️ PRODUCTION SAFEGUARDS SETUP")
-        print("=" * 32)
+        logger.info("\n[SHIELD]️ PRODUCTION SAFEGUARDS SETUP")
+        logger.info("=" * 32)
 
         safeguards = {
             'rate_limiting': {
@@ -266,24 +266,24 @@ class ProductionSetup:
         }
 
         for safeguard_id, safeguard_info in safeguards.items():
-            print(f"\n🔧 {safeguard_info['name']}:")
-            print(f"  {safeguard_info['description']}")
+            logger.info(f"\n🔧 {safeguard_info['name']}:")
+            logger.info(f"  {safeguard_info['description']}")
 
             for var, default in safeguard_info['vars'].items():
                 if not os.getenv(var):
                     os.environ[var] = default
                     self.update_env_var(var, default)
-                    print(f"  ✅ Set {var} = {default}")
+                    logger.info(f"  ✅ Set {var} = {default}")
                 else:
-                    print(f"  ✅ {var} already set")
+                    logger.info(f"  ✅ {var} already set")
 
         # Switch from paper trading to live (with confirmation)
-        print("\n[TARGET] TRADING MODE:")
+        logger.info("\n[TARGET] TRADING MODE:")
         current_paper = os.getenv('PAPER_TRADING', 'true').lower() == 'true'
         current_dry = os.getenv('DRY_RUN', 'true').lower() == 'true'
 
         if current_paper or current_dry:
-            print("  Current mode: PAPER TRADING / DRY RUN")
+            logger.info("  Current mode: PAPER TRADING / DRY RUN")
             enable_live = input("  Enable LIVE trading? (y/n) [n]: ").lower().strip()
 
             if enable_live == 'y':
@@ -291,13 +291,13 @@ class ProductionSetup:
                 os.environ['DRY_RUN'] = 'false'
                 self.update_env_var('PAPER_TRADING', 'false')
                 self.update_env_var('DRY_RUN', 'false')
-                print("  [DEPLOY] LIVE TRADING ENABLED!")
+                logger.info("  [DEPLOY] LIVE TRADING ENABLED!")
             else:
-                print("  📝 Staying in paper trading mode")
+                logger.info("  📝 Staying in paper trading mode")
         else:
-            print("  [DEPLOY] Already configured for live trading")
+            logger.info("  [DEPLOY] Already configured for live trading")
 
-        print("✅ Production safeguards configured")
+        logger.info("✅ Production safeguards configured")
         return True
 
     def update_env_var(self, key: str, value: str) -> None:
@@ -365,44 +365,44 @@ scrape_configs:
 
         prometheus_config.parent.mkdir(parents=True, exist_ok=True)
         prometheus_config.write_text(config_content)
-        print(f"  Created {prometheus_config}")
+        logger.info(f"  Created {prometheus_config}")
 
     def validate_setup(self) -> Dict[str, Any]:
         """Validate the production setup"""
-        print("\n🔍 VALIDATION")
-        print("=" * 12)
+        logger.info("\n🔍 VALIDATION")
+        logger.info("=" * 12)
 
         config = get_config()
         validation = config.validate()
 
-        print("Configuration Status:")
-        print(f"  Environment: {validation['environment']}")
-        print(f"  Dry Run: {validation['dry_run']}")
-        print(f"  Exchanges: {', '.join(validation['exchanges_configured']) if validation['exchanges_configured'] else 'None'}")
+        logger.info("Configuration Status:")
+        logger.info(f"  Environment: {validation['environment']}")
+        logger.info(f"  Dry Run: {validation['dry_run']}")
+        logger.info(f"  Exchanges: {', '.join(validation['exchanges_configured']) if validation['exchanges_configured'] else 'None'}")
 
         if validation['issues']:
-            print("  [CROSS] Issues:")
+            logger.info("  [CROSS] Issues:")
             for issue in validation['issues']:
-                print(f"    - {issue}")
+                logger.info(f"    - {issue}")
 
         if validation['warnings']:
-            print("  [WARN]️  Warnings:")
+            logger.info("  [WARN]️  Warnings:")
             for warning in validation['warnings']:
-                print(f"    - {warning}")
+                logger.info(f"    - {warning}")
 
         if validation['valid'] and validation['exchanges_configured']:
-            print("  ✅ Setup appears ready for live trading!")
+            logger.info("  ✅ Setup appears ready for live trading!")
         else:
-            print("  [WARN]️  Setup incomplete - review issues above")
+            logger.info("  [WARN]️  Setup incomplete - review issues above")
 
         return validation
 
     def run_setup(self):
         """Run the complete production setup"""
-        print("[DEPLOY] AAC 2100 PRODUCTION SETUP")
-        print("=" * 30)
-        print("This will configure your system for live trading.")
-        print("Make sure you have your API keys and credentials ready.\n")
+        logger.info("[DEPLOY] AAC 2100 PRODUCTION SETUP")
+        logger.info("=" * 30)
+        logger.info("This will configure your system for live trading.")
+        logger.info("Make sure you have your API keys and credentials ready.\n")
 
         # Run each setup component
         components = [
@@ -418,33 +418,33 @@ scrape_configs:
             try:
                 result = setup_func()
                 results[name] = result
-                print(f"✅ {name}: {'SUCCESS' if result else 'SKIPPED'}")
+                logger.info(f"✅ {name}: {'SUCCESS' if result else 'SKIPPED'}")
             except Exception as e:
-                print(f"[CROSS] {name}: FAILED - {e}")
+                logger.info(f"[CROSS] {name}: FAILED - {e}")
                 results[name] = False
 
         # Validate final setup
         validation = self.validate_setup()
 
         # Summary
-        print("\n📋 SETUP SUMMARY")
-        print("=" * 15)
+        logger.info("\n📋 SETUP SUMMARY")
+        logger.info("=" * 15)
 
         successful = sum(1 for r in results.values() if r)
         total = len(results)
 
-        print(f"Components configured: {successful}/{total}")
+        logger.info(f"Components configured: {successful}/{total}")
 
         if validation['valid'] and validation['exchanges_configured']:
-            print("\n[CELEBRATION] PRODUCTION SETUP COMPLETE!")
-            print("Your AAC 2100 system is ready for live trading.")
-            print("\nNext steps:")
-            print("1. Start the system: python run_integrated_system.py")
-            print("2. Monitor logs and metrics")
-            print("3. Gradually increase position sizes")
+            logger.info("\n[CELEBRATION] PRODUCTION SETUP COMPLETE!")
+            logger.info("Your AAC 2100 system is ready for live trading.")
+            logger.info("\nNext steps:")
+            logger.info("1. Start the system: python run_integrated_system.py")
+            logger.info("2. Monitor logs and metrics")
+            logger.info("3. Gradually increase position sizes")
         else:
-            print("\n[WARN]️  SETUP INCOMPLETE")
-            print("Address the issues above before going live.")
+            logger.info("\n[WARN]️  SETUP INCOMPLETE")
+            logger.info("Address the issues above before going live.")
 
         return results
 

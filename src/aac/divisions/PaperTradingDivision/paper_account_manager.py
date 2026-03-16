@@ -13,6 +13,9 @@ from typing import Dict, List, Any, Optional
 from datetime import datetime
 from dataclasses import dataclass, asdict
 import uuid
+import logging
+
+logger = logging.getLogger(__name__)
 
 @dataclass
 class PaperAccount:
@@ -115,7 +118,7 @@ class PaperAccountManager:
                     self.accounts[account.account_id] = account
 
             except Exception as e:
-                print(f"Error loading accounts: {e}")
+                logger.info(f"Error loading accounts: {e}")
 
     async def _save_accounts(self):
         """Save accounts to file"""

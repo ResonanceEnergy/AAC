@@ -14,6 +14,9 @@ from datetime import datetime
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from pathlib import Path
 from threading import Thread
+import logging
+
+logger = logging.getLogger(__name__)
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(PROJECT_ROOT))
@@ -94,7 +97,7 @@ def start_health_server(port: int = 8080, background: bool = True):
         t.start()
         return server
     else:
-        print(f"Health endpoint listening on http://0.0.0.0:{port}/health")
+        logger.info(f"Health endpoint listening on http://0.0.0.0:{port}/health")
         server.serve_forever()
 
 

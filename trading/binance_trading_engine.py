@@ -31,6 +31,9 @@ from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass
 from decimal import Decimal, ROUND_DOWN
 from dotenv import load_dotenv
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
@@ -134,7 +137,7 @@ class BinanceTradingEngine:
             else:
                 raise ValueError(f"Unsupported HTTP method: {method}")
         except Exception as e:
-            print(f"Request error: {e}")
+            logger.info(f"Request error: {e}")
             raise
 
     async def _handle_response(self, response) -> Dict:
@@ -167,7 +170,7 @@ class BinanceTradingEngine:
                 } for b in account['balances'] if float(b['free']) > 0 or float(b['locked']) > 0}
 
         except Exception as e:
-            print(f"Error getting balance: {e}")
+            logger.info(f"Error getting balance: {e}")
             return {}
 
     async def get_symbol_info(self, symbol: str) -> Optional[Dict]:
@@ -180,7 +183,7 @@ class BinanceTradingEngine:
                     return s
             return None
         except Exception as e:
-            print(f"Error getting symbol info: {e}")
+            logger.info(f"Error getting symbol info: {e}")
             return None
 
     def calculate_position_size(self, symbol: str, price: float, confidence: float) -> float:
@@ -207,7 +210,7 @@ class BinanceTradingEngine:
             # Get symbol info for precision
             symbol_info = await self.get_symbol_info(symbol)
             if not symbol_info:
-                print(f"Symbol {symbol} not found")
+                logger.info(f"Symbol {symbol} not found")
                 return None
 
             # Round quantity and price to appropriate precision
@@ -230,7 +233,7 @@ class BinanceTradingEngine:
             return await self._make_request('POST', endpoint, params, signed=True)
 
         except Exception as e:
-            print(f"Error placing limit order: {e}")
+            logger.info(f"Error placing limit order: {e}")
             return None
 
     async def place_market_order(self, symbol: str, side: str, quantity: float, test: bool = True) -> Optional[Dict]:
@@ -239,7 +242,7 @@ class BinanceTradingEngine:
             # Get symbol info for precision
             symbol_info = await self.get_symbol_info(symbol)
             if not symbol_info:
-                print(f"Symbol {symbol} not found")
+                logger.info(f"Symbol {symbol} not found")
                 return None
 
             quantity_precision = symbol_info['baseAssetPrecision']
@@ -256,28 +259,28 @@ class BinanceTradingEngine:
             return await self._make_request('POST', endpoint, params, signed=True)
 
         except Exception as e:
-            print(f"Error placing market order: {e}")
+            logger.info(f"Error placing market order: {e}")
             return None
 
     async def execute_arbitrage_signal(self, signal: TradeSignal, test: bool = True) -> bool:
         """Execute an arbitrage trade signal"""
         try:
-            print(f"🎯 Executing {signal.arbitrage_type} signal for {signal.symbol}")
+            logger.info(f"🎯 Executing {signal.arbitrage_type} signal for {signal.symbol}")
 
             # Check risk limits
             if len(self.positions) >= self.trading_config.max_open_positions:
-                print("❌ Maximum open positions reached")
+                logger.info("❌ Maximum open positions reached")
                 return False
 
             if self.daily_pnl <= -self.trading_config.max_daily_loss_usd:
-                print("❌ Daily loss limit reached")
+                logger.info("❌ Daily loss limit reached")
                 return False
 
             # Calculate position size
             position_size = self.calculate_position_size(signal.symbol, signal.price, signal.confidence)
 
             if position_size <= 0:
-                print("❌ Position size too small")
+                logger.info("❌ Position size too small")
                 return False
 
             # Apply slippage for limit orders
@@ -296,7 +299,7 @@ class BinanceTradingEngine:
             )
 
             if order_result:
-                print(f"✅ Order placed: {signal.action} {position_size:.4f} {signal.symbol} @ ${limit_price:.2f}")
+                logger.info(f"✅ Order placed: {signal.action} {position_size:.4f} {signal.symbol} @ ${limit_price:.2f}")
 
                 # Create position tracking
                 position = Position(
@@ -314,11 +317,11 @@ class BinanceTradingEngine:
                 self.positions[signal.symbol] = position
                 return True
             else:
-                print("❌ Order placement failed")
+                logger.info("❌ Order placement failed")
                 return False
 
         except Exception as e:
-            print(f"Error executing signal: {e}")
+            logger.info(f"Error executing signal: {e}")
             return False
 
     async def check_positions(self) -> Dict[str, Any]:
@@ -341,18 +344,18 @@ class BinanceTradingEngine:
 
                 # Check stop loss
                 if position.side == 'BUY' and current_price <= position.stop_loss:
-                    print(f"🛑 Stop loss triggered for {symbol} BUY position")
+                    logger.info(f"🛑 Stop loss triggered for {symbol} BUY position")
                     position.status = 'stopped'
                 elif position.side == 'SELL' and current_price >= position.stop_loss:
-                    print(f"🛑 Stop loss triggered for {symbol} SELL position")
+                    logger.info(f"🛑 Stop loss triggered for {symbol} SELL position")
                     position.status = 'stopped'
 
                 # Check take profit
                 elif position.side == 'BUY' and current_price >= position.take_profit:
-                    print(f"🎉 Take profit triggered for {symbol} BUY position")
+                    logger.info(f"🎉 Take profit triggered for {symbol} BUY position")
                     position.status = 'closed'
                 elif position.side == 'SELL' and current_price <= position.take_profit:
-                    print(f"🎉 Take profit triggered for {symbol} SELL position")
+                    logger.info(f"🎉 Take profit triggered for {symbol} SELL position")
                     position.status = 'closed'
 
                 updates[symbol] = {
@@ -362,7 +365,7 @@ class BinanceTradingEngine:
                 }
 
             except Exception as e:
-                print(f"Error checking position {symbol}: {e}")
+                logger.info(f"Error checking position {symbol}: {e}")
 
         return updates
 
@@ -393,8 +396,8 @@ class BinanceTradingEngine:
 
 async def trading_engine_demo():
     """Demo the trading engine with sample signals"""
-    print("🎯 AAC Binance Trading Engine Demo")
-    print("=" * 50)
+    logger.info("🎯 AAC Binance Trading Engine Demo")
+    logger.info("=" * 50)
 
     from binance_arbitrage_integration import BinanceConfig
 
@@ -402,17 +405,17 @@ async def trading_engine_demo():
     trading_config = TradingConfig()
 
     if not binance_config.is_configured():
-        print("❌ Binance API keys not configured")
+        logger.info("❌ Binance API keys not configured")
         return
 
     async with BinanceTradingEngine(binance_config, trading_config) as engine:
         # Get account balance
-        print("👤 Account Balance:")
+        logger.info("👤 Account Balance:")
         balance = await engine.get_account_balance('USDT')
         if balance:
-            print(f"   USDT: {balance.get('free', 0):.2f} free, {balance.get('locked', 0):.2f} locked")
+            logger.info(f"   USDT: {balance.get('free', 0):.2f} free, {balance.get('locked', 0):.2f} locked")
         else:
-            print("   Unable to retrieve balance")
+            logger.info("   Unable to retrieve balance")
 
         # Create sample arbitrage signals
         signals = [
@@ -438,27 +441,27 @@ async def trading_engine_demo():
             )
         ]
 
-        print(f"\n🎯 Processing {len(signals)} Arbitrage Signals:")
+        logger.info(f"\n🎯 Processing {len(signals)} Arbitrage Signals:")
 
         for signal in signals:
             success = await engine.execute_arbitrage_signal(signal, test=True)  # Test mode
-            print(f"   {'✅' if success else '❌'} {signal.symbol} {signal.action}")
+            logger.info(f"   {'✅' if success else '❌'} {signal.symbol} {signal.action}")
 
         # Check positions
-        print("📊 Position Updates:")
+        logger.info("📊 Position Updates:")
         updates = await engine.check_positions()
 
         for symbol, update in updates.items():
-            print(f"   {symbol}: {update['status']} - PnL: ${update['pnl']:.2f}")
+            logger.info(f"   {symbol}: {update['status']} - PnL: ${update['pnl']:.2f}")
 
         # Portfolio summary
-        print("📈 Portfolio Summary:")
+        logger.info("📈 Portfolio Summary:")
         summary = engine.get_portfolio_summary()
-        print(f"   Total Positions: {summary['total_positions']}")
-        print(f"   Open Positions: {summary['open_positions']}")
-        print(f"   Total PnL: ${summary['total_pnl']:.2f}")
+        logger.info(f"   Total Positions: {summary['total_positions']}")
+        logger.info(f"   Open Positions: {summary['open_positions']}")
+        logger.info(f"   Total PnL: ${summary['total_pnl']:.2f}")
 
-    print("\n✅ Trading engine demo complete!")
+    logger.info("\n✅ Trading engine demo complete!")
 
 if __name__ == "__main__":
     print("🚀 AAC Binance Trading Engine")

@@ -25,6 +25,9 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
 from dotenv import load_dotenv
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
@@ -75,7 +78,7 @@ class EODHDClient:
                     error_text = await response.text()
                     raise Exception(f"EODHD API Error {response.status}: {error_text}")
         except Exception as e:
-            print(f"EODHD request error: {e}")
+            logger.info(f"EODHD request error: {e}")
             raise
 
     async def get_end_of_day_data(self, symbol: str, exchange: str = None,
@@ -100,11 +103,11 @@ class EODHDClient:
             if isinstance(data, list):
                 return data
             else:
-                print(f"Unexpected response format for {full_symbol}")
+                logger.info(f"Unexpected response format for {full_symbol}")
                 return []
 
         except Exception as e:
-            print(f"Error getting EOD data for {symbol}: {e}")
+            logger.info(f"Error getting EOD data for {symbol}: {e}")
             return []
 
     async def get_real_time_price(self, symbol: str, exchange: str = None) -> Optional[Dict]:
@@ -122,7 +125,7 @@ class EODHDClient:
             return None
 
         except Exception as e:
-            print(f"Error getting real-time price for {symbol}: {e}")
+            logger.info(f"Error getting real-time price for {symbol}: {e}")
             return None
 
     async def get_fundamentals(self, symbol: str, exchange: str = None) -> Optional[Dict]:
@@ -137,7 +140,7 @@ class EODHDClient:
             return data
 
         except Exception as e:
-            print(f"Error getting fundamentals for {symbol}: {e}")
+            logger.info(f"Error getting fundamentals for {symbol}: {e}")
             return None
 
     async def get_options_data(self, symbol: str, exchange: str = "US",
@@ -159,7 +162,7 @@ class EODHDClient:
             return []
 
         except Exception as e:
-            print(f"Error getting options data for {symbol}: {e}")
+            logger.info(f"Error getting options data for {symbol}: {e}")
             return []
 
     async def get_forex_data(self, from_symbol: str, to_symbol: str,
@@ -181,7 +184,7 @@ class EODHDClient:
             return []
 
         except Exception as e:
-            print(f"Error getting forex data for {from_symbol}/{to_symbol}: {e}")
+            logger.info(f"Error getting forex data for {from_symbol}/{to_symbol}: {e}")
             return []
 
     async def get_crypto_data(self, symbol: str, from_date: str = None, to_date: str = None) -> List[Dict]:
@@ -202,7 +205,7 @@ class EODHDClient:
             return []
 
         except Exception as e:
-            print(f"Error getting crypto data for {symbol}: {e}")
+            logger.info(f"Error getting crypto data for {symbol}: {e}")
             return []
 
     async def search_instruments(self, query: str, exchange: str = None, limit: int = 10) -> List[Dict]:
@@ -223,7 +226,7 @@ class EODHDClient:
             return []
 
         except Exception as e:
-            print(f"Error searching instruments: {e}")
+            logger.info(f"Error searching instruments: {e}")
             return []
 
 class EODHDArbitrageAnalyzer:
@@ -255,7 +258,7 @@ class EODHDArbitrageAnalyzer:
                                 symbol_prices[exchange] = latest_price
 
                     except Exception as e:
-                        print(f"Error getting {symbol} from {exchange}: {e}")
+                        logger.info(f"Error getting {symbol} from {exchange}: {e}")
                         continue
 
                 # Analyze discrepancies
@@ -298,7 +301,7 @@ class EODHDArbitrageAnalyzer:
                                 'change_pct': latest.get('change_percent', 0)
                             }
                     except Exception as e:
-                        print(f"Error getting index {index}: {e}")
+                        logger.info(f"Error getting index {index}: {e}")
 
                 return {
                     'indices': index_data,
@@ -306,43 +309,43 @@ class EODHDArbitrageAnalyzer:
                 }
 
             except Exception as e:
-                print(f"Error getting market overview: {e}")
+                logger.info(f"Error getting market overview: {e}")
                 return {}
 
 async def test_eodhd_integration():
     """Test EODHD integration"""
-    print("🧪 Testing EODHD Integration")
-    print("=" * 40)
+    logger.info("🧪 Testing EODHD Integration")
+    logger.info("=" * 40)
 
     config = EODHDConfig()
 
     if not config.is_configured():
-        print("❌ EODHD API key not configured")
-        print("💡 Set EODHD_API_KEY in your .env file")
+        logger.info("❌ EODHD API key not configured")
+        logger.info("💡 Set EODHD_API_KEY in your .env file")
         return
 
     async with EODHDClient(config) as client:
         # Test basic connectivity
-        print("🔍 Testing basic connectivity...")
+        logger.info("🔍 Testing basic connectivity...")
 
         try:
             # Test with Apple stock
             eod_data = await client.get_end_of_day_data('AAPL', 'US')
             if eod_data and len(eod_data) > 0:
                 latest = eod_data[-1]
-                print("✅ EODHD API connected")
-                print(f"   AAPL latest price: ${latest.get('close', 'N/A')}")
-                print(f"   Data points: {len(eod_data)}")
+                logger.info("✅ EODHD API connected")
+                logger.info(f"   AAPL latest price: ${latest.get('close', 'N/A')}")
+                logger.info(f"   Data points: {len(eod_data)}")
             else:
-                print("❌ No data received for AAPL")
+                logger.info("❌ No data received for AAPL")
                 return
 
         except Exception as e:
-            print(f"❌ Connection test failed: {e}")
+            logger.info(f"❌ Connection test failed: {e}")
             return
 
         # Test arbitrage analysis
-        print("\n🔍 Testing arbitrage analysis...")
+        logger.info("\n🔍 Testing arbitrage analysis...")
 
         analyzer = EODHDArbitrageAnalyzer(config)
 
@@ -350,21 +353,21 @@ async def test_eodhd_integration():
         symbols = ['AAPL', 'MSFT', 'GOOGL', 'TSLA']
         discrepancies = await analyzer.analyze_price_discrepancies(symbols)
 
-        print(f"📊 Found {len(discrepancies)} price discrepancies:")
+        logger.info(f"📊 Found {len(discrepancies)} price discrepancies:")
 
         for disc in discrepancies:
-            print(f"   🎯 {disc['symbol']}: {disc['spread_pct']:.2f}% spread")
-            print(f"      Price range: ${disc['min_price']:.2f} - ${disc['max_price']:.2f}")
+            logger.info(f"   🎯 {disc['symbol']}: {disc['spread_pct']:.2f}% spread")
+            logger.info(f"      Price range: ${disc['min_price']:.2f} - ${disc['max_price']:.2f}")
 
         # Test market overview
-        print("\n📈 Market Overview:")
+        logger.info("\n📈 Market Overview:")
         overview = await analyzer.get_market_overview()
 
         if overview.get('indices'):
             for index, data in overview['indices'].items():
-                print(f"   {index}: ${data['price']:.2f} ({data['change_pct']:+.2f}%)")
+                logger.info(f"   {index}: ${data['price']:.2f} ({data['change_pct']:+.2f}%)")
 
-        print("\n✅ EODHD integration test complete!")
+        logger.info("\n✅ EODHD integration test complete!")
 
 if __name__ == "__main__":
     print("🚀 AAC EODHD Integration")

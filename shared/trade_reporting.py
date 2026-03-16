@@ -18,6 +18,8 @@ from decimal import Decimal
 import sys
 import uuid
 
+logger = logging.getLogger(__name__)
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
@@ -472,17 +474,17 @@ trade_reporting_system = TradeReportingSystem()
 
 async def initialize_trade_reporting():
     """Initialize the trade reporting system"""
-    print("[TRADING] Initializing Trade Reporting System...")
+    logger.info("[TRADING] Initializing Trade Reporting System...")
 
     # Run daily reporting check
     await trade_reporting_system.run_daily_reporting()
 
     status = trade_reporting_system.get_reporting_status()
 
-    print("[OK] Trade reporting system initialized")
-    print(f"  Total Trades Recorded: {status['total_trades_recorded']}")
-    print(f"  Pending Reports: {status['pending_reports']}")
-    print(f"  Today's Reports: FINRA={status['today_reports_generated']['FINRA_TRF']}, SEC={status['today_reports_generated']['SEC_BD']}")
+    logger.info("[OK] Trade reporting system initialized")
+    logger.info(f"  Total Trades Recorded: {status['total_trades_recorded']}")
+    logger.info(f"  Pending Reports: {status['pending_reports']}")
+    logger.info(f"  Today's Reports: FINRA={status['today_reports_generated']['FINRA_TRF']}, SEC={status['today_reports_generated']['SEC_BD']}")
 
     return True
 

@@ -8,6 +8,9 @@ Complete guide for setting up premium market data APIs for enhanced trading perf
 import os
 from pathlib import Path
 from typing import Dict, List, Any
+import logging
+
+logger = logging.getLogger(__name__)
 
 class PremiumAPIGuide:
     """Guide for setting up premium market data APIs"""
@@ -155,50 +158,50 @@ class PremiumAPIGuide:
 
     def print_guide(self):
         """Print the complete setup guide"""
-        print("🚀 AAC Premium Market Data API Setup Guide")
-        print("=" * 60)
-        print()
+        logger.info("🚀 AAC Premium Market Data API Setup Guide")
+        logger.info("=" * 60)
+        logger.info("")
 
-        print("📊 WHY UPGRADE TO PREMIUM APIs?")
-        print("-" * 40)
-        print("• Higher rate limits (free APIs have strict limits)")
-        print("• More frequent data updates")
-        print("• Additional data sources and features")
-        print("• Better reliability and uptime")
-        print("• Historical data access")
-        print("• Priority support")
-        print()
+        logger.info("📊 WHY UPGRADE TO PREMIUM APIs?")
+        logger.info("-" * 40)
+        logger.info("• Higher rate limits (free APIs have strict limits)")
+        logger.info("• More frequent data updates")
+        logger.info("• Additional data sources and features")
+        logger.info("• Better reliability and uptime")
+        logger.info("• Historical data access")
+        logger.info("• Priority support")
+        logger.info("")
 
-        print("💰 CURRENT FREE APIs IN USE:")
-        print("-" * 40)
-        print("• Yahoo Finance (via yfinance) - No API key needed")
-        print("• Binance/Coinbase Pro - For crypto data")
-        print("• Alpha Vantage - If API key configured")
-        print()
+        logger.info("💰 CURRENT FREE APIs IN USE:")
+        logger.info("-" * 40)
+        logger.info("• Yahoo Finance (via yfinance) - No API key needed")
+        logger.info("• Binance/Coinbase Pro - For crypto data")
+        logger.info("• Alpha Vantage - If API key configured")
+        logger.info("")
 
         for api_key, api_info in self.apis.items():
             self._print_api_guide(api_key, api_info)
-            print()
+            logger.info("")
 
     def _print_api_guide(self, api_key: str, api_info: Dict[str, Any]):
         """Print guide for a specific API"""
-        print(f"🔑 {api_info['name']} ({api_key.upper()})")
-        print("-" * 50)
-        print(f"🌐 Website: {api_info['website']}")
-        print(f"🆓 Free Tier: {api_info['free_tier']}")
+        logger.info(f"🔑 {api_info['name']} ({api_key.upper()})")
+        logger.info("-" * 50)
+        logger.info(f"🌐 Website: {api_info['website']}")
+        logger.info(f"🆓 Free Tier: {api_info['free_tier']}")
 
         if api_info['premium_plans']:
-            print("💎 Premium Plans:")
+            logger.info("💎 Premium Plans:")
             for plan in api_info['premium_plans']:
-                print(f"   • {plan['name']}: {plan['price']} ({plan['calls']} calls)")
+                logger.info(f"   • {plan['name']}: {plan['price']} ({plan['calls']} calls)")
 
-        print("✨ Features:")
+        logger.info("✨ Features:")
         for feature in api_info['features']:
-            print(f"   • {feature}")
+            logger.info(f"   • {feature}")
 
-        print("📝 Setup Steps:")
+        logger.info("📝 Setup Steps:")
         for step in api_info['setup_steps']:
-            print(f"   {step}")
+            logger.info(f"   {step}")
 
     def check_env_file(self) -> Dict[str, bool]:
         """Check which APIs are configured in .env file"""
@@ -210,29 +213,29 @@ class PremiumAPIGuide:
 
     def print_status(self):
         """Print current API configuration status"""
-        print("📊 CURRENT API CONFIGURATION STATUS")
-        print("=" * 50)
+        logger.info("📊 CURRENT API CONFIGURATION STATUS")
+        logger.info("=" * 50)
 
         configured = self.check_env_file()
         for api_key, is_configured in configured.items():
             status = "✅ Configured" if is_configured else "❌ Not configured"
             name = self.apis[api_key]['name']
-            print(f"• {name}: {status}")
+            logger.info(f"• {name}: {status}")
 
         configured_count = sum(configured.values())
         total_count = len(configured)
-        print(f"\n📈 Summary: {configured_count}/{total_count} premium APIs configured")
+        logger.info(f"\n📈 Summary: {configured_count}/{total_count} premium APIs configured")
 
         if configured_count == 0:
-            print("💡 Tip: Start with Polygon.io or Finnhub for the best free tier experience!")
+            logger.info("💡 Tip: Start with Polygon.io or Finnhub for the best free tier experience!")
         elif configured_count < 3:
-            print("💡 Tip: Consider adding 2-3 premium APIs for redundancy and better data quality.")
+            logger.info("💡 Tip: Consider adding 2-3 premium APIs for redundancy and better data quality.")
 
 def main():
     """Main function to display the guide"""
     guide = PremiumAPIGuide()
     guide.print_guide()
-    print("\n" + "=" * 60)
+    logger.info("\n" + "=" * 60)
     guide.print_status()
 
 if __name__ == "__main__":

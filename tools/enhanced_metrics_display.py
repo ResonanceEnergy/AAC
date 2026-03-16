@@ -19,6 +19,9 @@ import os
 import platform
 import psutil
 import numpy as np
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Add project root
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -83,19 +86,19 @@ class AACMetricsDisplay:
             )
             return True
         except Exception as e:
-            print(f"❌ Failed to initialize metrics display: {e}")
+            logger.info(f"❌ Failed to initialize metrics display: {e}")
             return False
 
     async def display_comprehensive_dashboard(self):
         """Display the comprehensive AAC dashboard"""
-        print("\n" + "="*80)
-        print("🏛️  ACCELERATED ARBITRAGE CORP - EXECUTIVE DASHBOARD")
-        print("="*80)
+        logger.info("\n" + "="*80)
+        logger.info("🏛️  ACCELERATED ARBITRAGE CORP - EXECUTIVE DASHBOARD")
+        logger.info("="*80)
 
         # System timestamp
         now = datetime.now()
-        print(f"📅 Report Time: {now.strftime('%Y-%m-%d %H:%M:%S UTC')}")
-        print()
+        logger.info(f"📅 Report Time: {now.strftime('%Y-%m-%d %H:%M:%S UTC')}")
+        logger.info("")
 
         # Get all metrics
         metrics = await self._collect_all_metrics()
@@ -122,15 +125,15 @@ class AACMetricsDisplay:
         await self._display_data_intelligence(metrics)
 
         # Footer
-        print("\n" + "="*80)
-        print("🔄 Auto-refresh: 30s | Press Ctrl+C to exit | Use --compact for condensed view")
-        print("="*80)
+        logger.info("\n" + "="*80)
+        logger.info("🔄 Auto-refresh: 30s | Press Ctrl+C to exit | Use --compact for condensed view")
+        logger.info("="*80)
 
     async def display_compact_dashboard(self):
         """Display compact dashboard for monitoring"""
-        print("\n" + "="*60)
-        print("AAC - COMPACT DASHBOARD")
-        print("="*60)
+        logger.info("\n" + "="*60)
+        logger.info("AAC - COMPACT DASHBOARD")
+        logger.info("="*60)
 
         metrics = await self._collect_all_metrics()
 
@@ -146,16 +149,16 @@ class AACMetricsDisplay:
         active_trades = trading.get('active_trades', 0)
 
         status_line = f"CPU:{cpu:.1f}% | MEM:{mem:.1f}% | EQUITY:${equity:,.0f} | P&L:${pnl:+,.0f} | TRADES:{active_trades}"
-        print(f"📊 {status_line}")
+        logger.info(f"📊 {status_line}")
 
         # Quick alerts
         alerts = await self._get_active_alerts()
         if alerts:
-            print(f"🚨 ALERTS: {len(alerts)} active")
+            logger.info(f"🚨 ALERTS: {len(alerts)} active")
             for alert in alerts[:2]:  # Show top 2
-                print(f"   {alert['level']}: {alert['message'][:50]}...")
+                logger.info(f"   {alert['level']}: {alert['message'][:50]}...")
 
-        print("="*60)
+        logger.info("="*60)
 
     async def _collect_all_metrics(self) -> Dict[str, Any]:
         """Collect comprehensive metrics from all systems"""
@@ -399,8 +402,8 @@ class AACMetricsDisplay:
 
     async def _display_executive_summary(self, metrics: Dict[str, Any]):
         """Display executive summary section"""
-        print("📈 EXECUTIVE SUMMARY")
-        print("-" * 40)
+        logger.info("📈 EXECUTIVE SUMMARY")
+        logger.info("-" * 40)
 
         health = metrics.get('system_health', {})
         financial = metrics.get('financial', {})
@@ -409,16 +412,16 @@ class AACMetricsDisplay:
         health_score = health.get('health_score', 0)
         health_icon = "🟢" if health_score > 80 else "🟡" if health_score > 60 else "🔴"
 
-        print(f"System Health: {health_icon} {health_score:.1f}/100")
-        print(f"Total Equity: ${financial.get('total_equity', 0):,.0f}")
-        print(f"Daily P&L: ${financial.get('daily_pnl', 0):+,.0f}")
-        print(f"Active Trades: {trading.get('active_trades', 0)}")
-        print()
+        logger.info(f"System Health: {health_icon} {health_score:.1f}/100")
+        logger.info(f"Total Equity: ${financial.get('total_equity', 0):,.0f}")
+        logger.info(f"Daily P&L: ${financial.get('daily_pnl', 0):+,.0f}")
+        logger.info(f"Active Trades: {trading.get('active_trades', 0)}")
+        logger.info("")
 
     async def _display_core_metrics_grid(self, metrics: Dict[str, Any]):
         """Display core metrics in a grid format"""
-        print("📊 CORE METRICS")
-        print("-" * 40)
+        logger.info("📊 CORE METRICS")
+        logger.info("-" * 40)
 
         # Create a nice grid layout
         health = metrics.get('system_health', {})
@@ -452,13 +455,13 @@ class AACMetricsDisplay:
                 else:
                     row.append("")
 
-            print(" | ".join(f"{col:<20}" for col in row if col))
-        print()
+            logger.info(" | ".join(f"{col:<20}" for col in row if col))
+        logger.info("")
 
     async def _display_system_health(self, metrics: Dict[str, Any]):
         """Display detailed system health"""
-        print("🖥️  SYSTEM HEALTH")
-        print("-" * 40)
+        logger.info("🖥️  SYSTEM HEALTH")
+        logger.info("-" * 40)
 
         health = metrics.get('system_health', {})
 
@@ -467,93 +470,93 @@ class AACMetricsDisplay:
         mem = health.get('memory_usage', 0)
         disk = health.get('disk_usage', 0)
 
-        print(f"CPU Usage:     {self._progress_bar(cpu)} {cpu:.1f}%")
-        print(f"Memory Usage:  {self._progress_bar(mem)} {mem:.1f}%")
-        print(f"Disk Usage:    {self._progress_bar(disk)} {disk:.1f}%")
+        logger.info(f"CPU Usage:     {self._progress_bar(cpu)} {cpu:.1f}%")
+        logger.info(f"Memory Usage:  {self._progress_bar(mem)} {mem:.1f}%")
+        logger.info(f"Disk Usage:    {self._progress_bar(disk)} {disk:.1f}%")
 
-        print(f"Uptime:        {self._format_uptime(health.get('uptime_seconds', 0))}")
-        print(f"Active Threads: {health.get('active_threads', 0)}")
-        print()
+        logger.info(f"Uptime:        {self._format_uptime(health.get('uptime_seconds', 0))}")
+        logger.info(f"Active Threads: {health.get('active_threads', 0)}")
+        logger.info("")
 
     async def _display_trading_performance(self, metrics: Dict[str, Any]):
         """Display trading performance metrics"""
-        print("📈 TRADING PERFORMANCE")
-        print("-" * 40)
+        logger.info("📈 TRADING PERFORMANCE")
+        logger.info("-" * 40)
 
         financial = metrics.get('financial', {})
         trading = metrics.get('trading', {})
 
-        print(f"Total Trades:     {financial.get('total_trades', 0):,}")
-        print(f"Win Rate:         {financial.get('win_rate', 0):.1%}")
-        print(f"Avg Trade Size:   ${trading.get('avg_trade_size', 0):,.0f}")
-        print(f"Trade Frequency:  {trading.get('trade_frequency', 0):.1f}/hour")
+        logger.info(f"Total Trades:     {financial.get('total_trades', 0):,}")
+        logger.info(f"Win Rate:         {financial.get('win_rate', 0):.1%}")
+        logger.info(f"Avg Trade Size:   ${trading.get('avg_trade_size', 0):,.0f}")
+        logger.info(f"Trade Frequency:  {trading.get('trade_frequency', 0):.1f}/hour")
 
         if trading.get('last_trade_time'):
-            print(f"Last Trade:       {trading.get('last_trade_time')}")
+            logger.info(f"Last Trade:       {trading.get('last_trade_time')}")
 
-        print()
+        logger.info("")
 
     async def _display_agent_contest_status(self, metrics: Dict[str, Any]):
         """Display agent contest status"""
-        print("🤖 AGENT CONTEST STATUS")
-        print("-" * 40)
+        logger.info("🤖 AGENT CONTEST STATUS")
+        logger.info("-" * 40)
 
         contest = metrics.get('agent_contest', {})
 
         if contest.get('status') == 'active':
-            print(f"Status:          🟢 ACTIVE")
-            print(f"Active Agents:   {contest.get('active_agents', 0)}")
-            print(f"Total Agents:    {contest.get('total_agents', 0)}")
-            print(f"Rounds:          {contest.get('rounds_completed', 0)}")
+            logger.info(f"Status:          🟢 ACTIVE")
+            logger.info(f"Active Agents:   {contest.get('active_agents', 0)}")
+            logger.info(f"Total Agents:    {contest.get('total_agents', 0)}")
+            logger.info(f"Rounds:          {contest.get('rounds_completed', 0)}")
 
             if contest.get('leaderboard'):
-                print("Top Performers:")
+                logger.info("Top Performers:")
                 for i, agent in enumerate(contest.get('leaderboard', [])[:3], 1):
-                    print(f"  {i}. {agent.get('agent_id', 'Unknown')}: ${agent.get('portfolio_value', 0):,.0f}")
+                    logger.info(f"  {i}. {agent.get('agent_id', 'Unknown')}: ${agent.get('portfolio_value', 0):,.0f}")
         else:
-            print(f"Status:          🔴 {contest.get('status', 'inactive').upper()}")
+            logger.info(f"Status:          🔴 {contest.get('status', 'inactive').upper()}")
 
-        print()
+        logger.info("")
 
     async def _display_risk_compliance(self, metrics: Dict[str, Any]):
         """Display risk and compliance status"""
-        print("⚠️  RISK & COMPLIANCE")
-        print("-" * 40)
+        logger.info("⚠️  RISK & COMPLIANCE")
+        logger.info("-" * 40)
 
         risk = metrics.get('risk', {})
 
         # Circuit breakers
         breakers = risk.get('circuit_breakers', {})
-        print("Circuit Breakers:")
+        logger.info("Circuit Breakers:")
         for name, triggered in breakers.items():
             status = "🔴 TRIGGERED" if triggered else "🟢 NORMAL"
-            print(f"  {name.replace('_', ' ').title()}: {status}")
+            logger.info(f"  {name.replace('_', ' ').title()}: {status}")
 
         # Compliance
         compliance = risk.get('compliance', {})
-        print("Compliance Status:")
+        logger.info("Compliance Status:")
         for check, status in compliance.items():
             icon = "✅" if status else "❌"
-            print(f"  {check.replace('_', ' ').title()}: {icon}")
+            logger.info(f"  {check.replace('_', ' ').title()}: {icon}")
 
-        print()
+        logger.info("")
 
     async def _display_data_intelligence(self, metrics: Dict[str, Any]):
         """Display data sources and intelligence status"""
-        print("🔍 DATA & INTELLIGENCE")
-        print("-" * 40)
+        logger.info("🔍 DATA & INTELLIGENCE")
+        logger.info("-" * 40)
 
         data = metrics.get('data_sources', {})
         intel = metrics.get('intelligence', {})
 
-        print(f"Active Data Sources: {data.get('active_sources', 0)}/{data.get('total_sources', 0)}")
-        print(f"Data Freshness:      {data.get('data_freshness', 'unknown')}")
-        print(f"API Rate Limits:     {data.get('api_rate_limits', 'unknown')}")
+        logger.info(f"Active Data Sources: {data.get('active_sources', 0)}/{data.get('total_sources', 0)}")
+        logger.info(f"Data Freshness:      {data.get('data_freshness', 'unknown')}")
+        logger.info(f"API Rate Limits:     {data.get('api_rate_limits', 'unknown')}")
 
-        print(f"Research Agents:     {intel.get('active_research_agents', 0)}")
-        print(f"Market Sentiment:    {intel.get('market_sentiment', 'unknown')}")
+        logger.info(f"Research Agents:     {intel.get('active_research_agents', 0)}")
+        logger.info(f"Market Sentiment:    {intel.get('market_sentiment', 'unknown')}")
 
-        print()
+        logger.info("")
 
     def _progress_bar(self, percentage: float, width: int = 20) -> str:
         """Create a visual progress bar"""
@@ -614,7 +617,7 @@ async def main():
                 await display.display_comprehensive_dashboard()
 
     except KeyboardInterrupt:
-        print("\nMonitoring stopped.")
+        logger.info("\nMonitoring stopped.")
 
 
 if __name__ == "__main__":

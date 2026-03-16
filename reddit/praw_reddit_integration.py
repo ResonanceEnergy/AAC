@@ -132,9 +132,9 @@ class PRAWRedditClient:
                 username=self.config.username,
                 password=self.config.password
             )
-            print("✅ PRAW Reddit client initialized successfully")
+            logger.info("✅ PRAW Reddit client initialized successfully")
         except Exception as e:
-            print(f"❌ Failed to initialize PRAW client: {e}")
+            logger.info(f"❌ Failed to initialize PRAW client: {e}")
             self.reddit = None
 
     def is_authenticated(self) -> bool:
@@ -219,7 +219,7 @@ class PRAWRedditClient:
         and timely discussions that may indicate market sentiment shifts.
         """
         if not self.reddit:
-            print("❌ Reddit client not initialized")
+            logger.info("❌ Reddit client not initialized")
             return []
 
         limit = limit or self.config.post_limit
@@ -241,11 +241,11 @@ class PRAWRedditClient:
                 )
                 posts.append(post)
 
-            print(f"✅ Retrieved {len(posts)} hot posts from r/{self.config.subreddit}")
+            logger.info(f"✅ Retrieved {len(posts)} hot posts from r/{self.config.subreddit}")
             return posts
 
         except Exception as e:
-            print(f"❌ Error fetching hot posts: {e}")
+            logger.info(f"❌ Error fetching hot posts: {e}")
             return []
 
     def get_post_comments(self, post_id: str, limit: Optional[int] = None) -> List[str]:
@@ -267,7 +267,7 @@ class PRAWRedditClient:
             return comments
 
         except Exception as e:
-            print(f"❌ Error fetching comments for post {post_id}: {e}")
+            logger.info(f"❌ Error fetching comments for post {post_id}: {e}")
             return []
 
 class RedditSentimentAnalyzer:
@@ -376,13 +376,13 @@ class RedditSentimentAnalyzer:
 
     async def get_sentiment_arbitrage_opportunities(self) -> List[SentimentSignal]:
         """Main method to get sentiment-based arbitrage opportunities"""
-        print("🔍 Analyzing WallStreetBets sentiment for arbitrage opportunities...")
+        logger.info("🔍 Analyzing WallStreetBets sentiment for arbitrage opportunities...")
 
         # Get recent hot posts
         posts = self.client.get_hot_posts()
 
         if not posts:
-            print("❌ No posts retrieved from Reddit")
+            logger.info("❌ No posts retrieved from Reddit")
             return []
 
         # Analyze ticker sentiment
@@ -391,14 +391,14 @@ class RedditSentimentAnalyzer:
         # Generate arbitrage signals
         signals = self.generate_arbitrage_signals(ticker_data)
 
-        print(f"🎯 Found {len(signals)} potential sentiment arbitrage signals")
+        logger.info(f"🎯 Found {len(signals)} potential sentiment arbitrage signals")
 
         return signals
 
 async def test_praw_reddit_integration():
     """Test the PRAW Reddit integration"""
-    print("🧪 Testing PRAW Reddit Integration")
-    print("=" * 50)
+    logger.info("🧪 Testing PRAW Reddit Integration")
+    logger.info("=" * 50)
 
     # Load configuration from environment
     config = PRAWConfig(
@@ -411,9 +411,9 @@ async def test_praw_reddit_integration():
 
     # Check if credentials are configured
     if not config.client_id or not config.client_secret:
-        print("❌ Reddit API credentials not configured!")
-        print("Please run: python configure_api_keys.py")
-        print("And set REDDIT_CLIENT_ID and REDDIT_CLIENT_SECRET")
+        logger.info("❌ Reddit API credentials not configured!")
+        logger.info("Please run: python configure_api_keys.py")
+        logger.info("And set REDDIT_CLIENT_ID and REDDIT_CLIENT_SECRET")
         return
 
     # Initialize analyzer
@@ -421,27 +421,27 @@ async def test_praw_reddit_integration():
 
     # Check authentication
     if analyzer.client.is_authenticated():
-        print("✅ Authenticated Reddit access")
+        logger.info("✅ Authenticated Reddit access")
     else:
-        print("⚠️  Read-only Reddit access (limited functionality)")
+        logger.info("⚠️  Read-only Reddit access (limited functionality)")
 
     # Get sentiment arbitrage opportunities
     signals = await analyzer.get_sentiment_arbitrage_opportunities()
 
     if signals:
-        print("\n🎯 Top Sentiment Arbitrage Signals:")
-        print("-" * 40)
+        logger.info("\n🎯 Top Sentiment Arbitrage Signals:")
+        logger.info("-" * 40)
         for i, signal in enumerate(signals[:10], 1):  # Show top 10
             sentiment_icon = "🚀" if signal.sentiment_score > 0 else "📉"
-            print(f"{i}. {sentiment_icon} {signal.ticker}")
-            print(f"   Sentiment: {signal.sentiment_score:.2f} (Confidence: {signal.confidence:.2f})")
-            print(f"   Mentions: {signal.mentions}, Avg Score: {signal.avg_score:.1f}")
-            print(f"   {signal.description}")
-            print()
+            logger.info(f"{i}. {sentiment_icon} {signal.ticker}")
+            logger.info(f"   Sentiment: {signal.sentiment_score:.2f} (Confidence: {signal.confidence:.2f})")
+            logger.info(f"   Mentions: {signal.mentions}, Avg Score: {signal.avg_score:.1f}")
+            logger.info(f"   {signal.description}")
+            logger.info("")
     else:
-        print("❌ No arbitrage signals found")
+        logger.info("❌ No arbitrage signals found")
 
-    print("✅ PRAW Reddit integration test completed")
+    logger.info("✅ PRAW Reddit integration test completed")
 
 if __name__ == "__main__":
     # Run the test

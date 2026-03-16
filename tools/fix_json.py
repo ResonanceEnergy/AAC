@@ -4,16 +4,19 @@ Fix the malformed JSON in sample_reddit_data.json
 """
 
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 def fix_json_file():
     """Fix json file."""
     with open('sample_reddit_data.json', 'r') as f:
         content = f.read()
 
-    print("Original content around error:")
+    logger.info("Original content around error:")
     start = 4270
     end = 4290
-    print(content[start:end])
+    logger.info(str(content[start:end]))
 
     # The issue is that "ossposts" should be "num_crossposts"
     # and there might be missing properties
@@ -26,16 +29,16 @@ def fix_json_file():
     with open('sample_reddit_data.json', 'w') as f:
         f.write(content)
 
-    print("Fixed JSON file")
+    logger.info("Fixed JSON file")
 
     # Test if it's valid now
     try:
         with open('sample_reddit_data.json', 'r') as f:
             data = json.load(f)
-        print("JSON is now valid!")
+        logger.info("JSON is now valid!")
         return True
     except json.JSONDecodeError as e:
-        print(f"Still has error: {e}")
+        logger.info(f"Still has error: {e}")
         return False
 
 if __name__ == "__main__":

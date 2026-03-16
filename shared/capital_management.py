@@ -17,6 +17,8 @@ from decimal import Decimal, ROUND_DOWN
 import sys
 import yaml
 
+logger = logging.getLogger(__name__)
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
@@ -493,7 +495,7 @@ capital_management_system = CapitalManagementSystem()
 
 async def initialize_capital_management():
     """Initialize the capital management system"""
-    print("[CAPITAL] Initializing Capital Management System...")
+    logger.info("[CAPITAL] Initializing Capital Management System...")
 
     # Start monitoring
     await capital_management_system.start_capital_monitoring()
@@ -502,10 +504,10 @@ async def initialize_capital_management():
     adequacy = await capital_management_system.check_capital_adequacy()
     status = capital_management_system.get_capital_status()
 
-    print("[OK] Capital management system initialized")
-    print(f"  Total Capital: ${status['total_capital']:,.2f}")
-    print(f"  Available Capital: ${status['available_capital']:,.2f}")
-    print(f"  Capital Adequacy: {'COMPLIANT' if adequacy['compliant'] else 'NON-COMPLIANT'}")
+    logger.info("[OK] Capital management system initialized")
+    logger.info(f"  Total Capital: ${status['total_capital']:,.2f}")
+    logger.info(f"  Available Capital: ${status['available_capital']:,.2f}")
+    logger.info(f"  Capital Adequacy: {'COMPLIANT' if adequacy['compliant'] else 'NON-COMPLIANT'}")
 
     return True
 

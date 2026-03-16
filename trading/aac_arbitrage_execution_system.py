@@ -27,6 +27,9 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
 from dotenv import load_dotenv
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Import AAC components
 try:
@@ -94,7 +97,7 @@ class AACArbitrageExecutionSystem:
 
     async def initialize(self):
         """Initialize the execution system"""
-        print("🚀 Initializing AAC Arbitrage Execution System")
+        logger.info("🚀 Initializing AAC Arbitrage Execution System")
 
         # Initialize trading engine
         self.trading_engine = BinanceTradingEngine(
@@ -106,35 +109,35 @@ class AACArbitrageExecutionSystem:
         if not await self._test_connections():
             raise RuntimeError("Connection tests failed")
 
-        print("✅ System initialized successfully")
+        logger.info("✅ System initialized successfully")
 
     async def _test_connections(self) -> bool:
         """Test all system connections"""
-        print("🔍 Testing connections...")
+        logger.info("🔍 Testing connections...")
 
         try:
             # Test arbitrage detector
-            print("   Testing arbitrage detector...")
+            logger.info("   Testing arbitrage detector...")
             test_opportunities = await self.arbitrage_detector.detect_opportunities()
-            print(f"   ✅ Detected {len(test_opportunities)} opportunities")
+            logger.info(f"   ✅ Detected {len(test_opportunities)} opportunities")
 
             # Test Binance connection
             if self.binance_config.is_configured():
-                print("   Testing Binance connection...")
+                logger.info("   Testing Binance connection...")
                 async with self.trading_engine:
                     balance = await self.trading_engine.get_account_balance('USDT')
                     if balance:
-                        print(f"   ✅ Binance connected - USDT: {balance.get('free', 0):.2f}")
+                        logger.info(f"   ✅ Binance connected - USDT: {balance.get('free', 0):.2f}")
                     else:
-                        print("   ❌ Binance balance check failed")
+                        logger.info("   ❌ Binance balance check failed")
                         return False
             else:
-                print("   ⚠️  Binance not configured - running in simulation mode")
+                logger.info("   ⚠️  Binance not configured - running in simulation mode")
 
             return True
 
         except Exception as e:
-            print(f"❌ Connection test failed: {e}")
+            logger.info(f"❌ Connection test failed: {e}")
             return False
 
     async def run_arbitrage_cycle(self) -> Dict[str, Any]:
@@ -143,7 +146,7 @@ class AACArbitrageExecutionSystem:
 
         try:
             # 1. Detect arbitrage opportunities
-            print(f"\n🔍 [{cycle_start.strftime('%H:%M:%S')}] Detecting arbitrage opportunities...")
+            logger.info(f"\n🔍 [{cycle_start.strftime('%H:%M:%S')}] Detecting arbitrage opportunities...")
             opportunities = await self.arbitrage_detector.detect_opportunities()
 
             # 2. Filter and prioritize opportunities
@@ -169,7 +172,7 @@ class AACArbitrageExecutionSystem:
             return cycle_report
 
         except Exception as e:
-            print(f"❌ Error in arbitrage cycle: {e}")
+            logger.info(f"❌ Error in arbitrage cycle: {e}")
             return {'error': str(e), 'cycle_time': cycle_start}
 
     def _filter_opportunities(self, opportunities: List[Dict]) -> List[ArbitrageOpportunity]:
@@ -208,7 +211,7 @@ class AACArbitrageExecutionSystem:
     async def _execute_opportunities(self, opportunities: List[ArbitrageOpportunity]):
         """Execute filtered arbitrage opportunities"""
         if not self.trading_engine:
-            print("❌ Trading engine not initialized")
+            logger.info("❌ Trading engine not initialized")
             return
 
         async with self.trading_engine:
@@ -241,13 +244,13 @@ class AACArbitrageExecutionSystem:
                         self.active_trades[opportunity.symbol] = signal
                         self.performance_stats['executed_trades'] += 1
 
-                        print(f"✅ Executed {opportunity.arbitrage_type} arbitrage for {opportunity.symbol}")
+                        logger.info(f"✅ Executed {opportunity.arbitrage_type} arbitrage for {opportunity.symbol}")
 
                         # Add execution delay
                         await asyncio.sleep(self.execution_config.execution_delay_seconds)
 
                 except Exception as e:
-                    print(f"❌ Error executing {opportunity.symbol}: {e}")
+                    logger.info(f"❌ Error executing {opportunity.symbol}: {e}")
 
     def _update_performance_stats(self):
         """Update performance statistics"""
@@ -278,7 +281,7 @@ class AACArbitrageExecutionSystem:
                         self.performance_stats['total_pnl'] += update['pnl']
 
         except Exception as e:
-            print(f"❌ Error monitoring positions: {e}")
+            logger.info(f"❌ Error monitoring positions: {e}")
 
     def get_system_status(self) -> Dict[str, Any]:
         """Get comprehensive system status"""
@@ -309,10 +312,10 @@ class AACArbitrageExecutionSystem:
 
     async def run_continuous_trading(self, cycles: int = None, cycle_interval: int = 60):
         """Run continuous arbitrage trading"""
-        print("🎯 Starting continuous arbitrage trading")
-        print(f"   Auto-execute: {self.execution_config.auto_execute}")
-        print(f"   Test mode: {self.execution_config.enable_test_mode}")
-        print(f"   Cycle interval: {cycle_interval}s")
+        logger.info("🎯 Starting continuous arbitrage trading")
+        logger.info(f"   Auto-execute: {self.execution_config.auto_execute}")
+        logger.info(f"   Test mode: {self.execution_config.enable_test_mode}")
+        logger.info(f"   Cycle interval: {cycle_interval}s")
 
         cycle_count = 0
 
@@ -322,10 +325,10 @@ class AACArbitrageExecutionSystem:
                 cycle_report = await self.run_arbitrage_cycle()
                 cycle_count += 1
 
-                print(f"📊 Cycle {cycle_count} complete:")
-                print(f"   Opportunities: {cycle_report.get('opportunities_detected', 0)}")
-                print(f"   Executed: {cycle_report.get('trades_executed', 0)}")
-                print(f"   Active trades: {cycle_report.get('active_trades', 0)}")
+                logger.info(f"📊 Cycle {cycle_count} complete:")
+                logger.info(f"   Opportunities: {cycle_report.get('opportunities_detected', 0)}")
+                logger.info(f"   Executed: {cycle_report.get('trades_executed', 0)}")
+                logger.info(f"   Active trades: {cycle_report.get('active_trades', 0)}")
 
                 # Monitor positions
                 await self.monitor_positions()
@@ -338,23 +341,23 @@ class AACArbitrageExecutionSystem:
                     await asyncio.sleep(cycle_interval)
 
         except KeyboardInterrupt:
-            print("\n🛑 Trading stopped by user")
+            logger.info("\n🛑 Trading stopped by user")
         except Exception as e:
-            print(f"\n❌ Trading error: {e}")
+            logger.info(f"\n❌ Trading error: {e}")
         finally:
             # Final status report
             final_status = self.get_system_status()
-            print("\n📈 Final Session Report:")
-            print(f"   Runtime: {final_status['session_runtime']}")
-            print(f"   Total Opportunities: {final_status['performance']['total_opportunities']}")
-            print(f"   Executed Trades: {final_status['performance']['executed_trades']}")
-            print(f"   Total PnL: ${final_status['performance']['total_pnl']:.2f}")
-            print(f"   Win Rate: {final_status['performance']['win_rate']:.1%}")
+            logger.info("\n📈 Final Session Report:")
+            logger.info(f"   Runtime: {final_status['session_runtime']}")
+            logger.info(f"   Total Opportunities: {final_status['performance']['total_opportunities']}")
+            logger.info(f"   Executed Trades: {final_status['performance']['executed_trades']}")
+            logger.info(f"   Total PnL: ${final_status['performance']['total_pnl']:.2f}")
+            logger.info(f"   Win Rate: {final_status['performance']['win_rate']:.1%}")
 
 async def main():
     """Main execution function"""
-    print("🚀 AAC Arbitrage Execution System")
-    print("=" * 50)
+    logger.info("🚀 AAC Arbitrage Execution System")
+    logger.info("=" * 50)
 
     # Configuration
     execution_config = ExecutionConfig()
@@ -364,34 +367,34 @@ async def main():
     await system.initialize()
 
     # Display configuration
-    print("\n⚙️  Configuration:")
-    print(f"   Auto Execute: {execution_config.auto_execute}")
-    print(f"   Test Mode: {execution_config.enable_test_mode}")
-    print(f"   Min Confidence: {execution_config.min_confidence_threshold}")
-    print(f"   Max Spread: {execution_config.max_spread_threshold}")
+    logger.info("\n⚙️  Configuration:")
+    logger.info(f"   Auto Execute: {execution_config.auto_execute}")
+    logger.info(f"   Test Mode: {execution_config.enable_test_mode}")
+    logger.info(f"   Min Confidence: {execution_config.min_confidence_threshold}")
+    logger.info(f"   Max Spread: {execution_config.max_spread_threshold}")
 
     # Run demo cycle
-    print("\n🎯 Running demo arbitrage cycle...")
+    logger.info("\n🎯 Running demo arbitrage cycle...")
     cycle_report = await system.run_arbitrage_cycle()
 
-    print("📊 Demo Results:")
-    print(f"   Opportunities Detected: {cycle_report.get('opportunities_detected', 0)}")
-    print(f"   Opportunities Filtered: {cycle_report.get('opportunities_filtered', 0)}")
-    print(f"   Trades Executed: {cycle_report.get('trades_executed', 0)}")
+    logger.info("📊 Demo Results:")
+    logger.info(f"   Opportunities Detected: {cycle_report.get('opportunities_detected', 0)}")
+    logger.info(f"   Opportunities Filtered: {cycle_report.get('opportunities_filtered', 0)}")
+    logger.info(f"   Trades Executed: {cycle_report.get('trades_executed', 0)}")
 
     # System status
     status = system.get_system_status()
-    print("\n📈 System Status:")
-    print(f"   Active Trades: {status['active_trades']}")
-    print(f"   Total Opportunities: {status['total_opportunities']}")
-    print(f"   Performance: {status['performance']}")
+    logger.info("\n📈 System Status:")
+    logger.info(f"   Active Trades: {status['active_trades']}")
+    logger.info(f"   Total Opportunities: {status['total_opportunities']}")
+    logger.info(f"   Performance: {status['performance']}")
 
-    print("\n💡 Next Steps:")
-    print("   1. Configure API keys in .env")
-    print("   2. Set AUTO_EXECUTE=true for live trading")
-    print("   3. Set ENABLE_TEST_MODE=false for production")
-    print("   4. Run with longer cycles for continuous trading")
-    print("   5. Monitor performance and adjust risk parameters")
+    logger.info("\n💡 Next Steps:")
+    logger.info("   1. Configure API keys in .env")
+    logger.info("   2. Set AUTO_EXECUTE=true for live trading")
+    logger.info("   3. Set ENABLE_TEST_MODE=false for production")
+    logger.info("   4. Run with longer cycles for continuous trading")
+    logger.info("   5. Monitor performance and adjust risk parameters")
 
 if __name__ == "__main__":
     asyncio.run(main())

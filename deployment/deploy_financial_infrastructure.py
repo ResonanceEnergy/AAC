@@ -286,37 +286,37 @@ class FinancialInfrastructureDeployer:
     def _print_deployment_summary(self, report: dict):
         """Print deployment summary to console"""
 
-        print("\\n[MONITOR] AAC Financial Infrastructure Deployment Summary")
-        print("=" * 60)
-        print(f"Status: {report['status']}")
-        print(f"Timestamp: {report['deployment_timestamp']}")
+        logger.info("\\n[MONITOR] AAC Financial Infrastructure Deployment Summary")
+        logger.info("=" * 60)
+        logger.info(f"Status: {report['status']}")
+        logger.info(f"Timestamp: {report['deployment_timestamp']}")
 
         # Component status
         components = report.get("components", {})
-        print("\\n🔧 Component Status:")
+        logger.info("\\n🔧 Component Status:")
         for component, status in components.items():
             if isinstance(status, dict):
                 active = status.get("active", status.get("connected", "unknown"))
-                print(f"  • {component}: {active}")
+                logger.info(f"  • {component}: {active}")
             else:
-                print(f"  • {component}: {status}")
+                logger.info(f"  • {component}: {status}")
 
         # Test results
         if self.test_results:
             summary = self.test_results.get("summary", {})
-            print(f"\\n🧪 Test Results: {summary.get('passed', 0)}/{summary.get('total_tests', 0)} passed")
+            logger.info(f"\\n🧪 Test Results: {summary.get('passed', 0)}/{summary.get('total_tests', 0)} passed")
 
-        print("\\n[TARGET] Key Features Deployed:")
-        print("  [OK] Internal banking system with 10 specialized accounts")
-        print("  [OK] Real-time money monitoring across all departments")
-        print("  [OK] Controller agent (PROFIT-SAGE) for financial oversight")
-        print("  [OK] AX Helix enterprise financial management integration")
-        print("  [OK] Cross-department agent registration and coordination")
-        print("  [OK] Transaction approval workflows and risk assessment")
-        print("  [OK] Compliance monitoring and audit trails")
-        print("  [OK] Automated financial reporting and alerting")
+        logger.info("\\n[TARGET] Key Features Deployed:")
+        logger.info("  [OK] Internal banking system with 10 specialized accounts")
+        logger.info("  [OK] Real-time money monitoring across all departments")
+        logger.info("  [OK] Controller agent (PROFIT-SAGE) for financial oversight")
+        logger.info("  [OK] AX Helix enterprise financial management integration")
+        logger.info("  [OK] Cross-department agent registration and coordination")
+        logger.info("  [OK] Transaction approval workflows and risk assessment")
+        logger.info("  [OK] Compliance monitoring and audit trails")
+        logger.info("  [OK] Automated financial reporting and alerting")
 
-        print("\\n✅ Deployment Complete - System Operational!")
+        logger.info("\\n✅ Deployment Complete - System Operational!")
 
     async def _handle_deployment_failure(self, error: Exception):
         """Handle deployment failure gracefully"""

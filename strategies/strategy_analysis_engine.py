@@ -27,6 +27,8 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score
 from sklearn.preprocessing import StandardScaler
 import joblib
 
+logger = logging.getLogger(__name__)
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
@@ -718,17 +720,17 @@ async def main():
         strategy_ids = args.strategy_ids or list(strategy_testing_lab.strategy_configs.keys())[:5]  # Default to first 5
         analysis_types = [AnalysisType(t.upper()) for t in (args.analysis_types or ['performance', 'risk', 'predictive'])]
 
-        print(f"🔬 Analyzing {len(strategy_ids)} strategies...")
+        logger.info(f"🔬 Analyzing {len(strategy_ids)} strategies...")
         results = await strategy_analysis_engine.perform_comprehensive_analysis(
             strategy_ids, analysis_types, args.timeframe
         )
 
-        print("✅ Analysis completed")
+        logger.info("✅ Analysis completed")
 
     elif args.command == 'predict':
         strategy_ids = args.strategy_ids or list(strategy_testing_lab.strategy_configs.keys())[:3]
 
-        print(f"🔮 Generating predictions for {len(strategy_ids)} strategies...")
+        logger.info(f"🔮 Generating predictions for {len(strategy_ids)} strategies...")
         predictions = await strategy_analysis_engine._generate_strategy_predictions(strategy_ids)
 
         for strategy_id, pred in predictions.items():
@@ -742,13 +744,13 @@ async def main():
         analysis_types = [AnalysisType.PERFORMANCE, AnalysisType.RISK, AnalysisType.PREDICTIVE,
                          AnalysisType.CORRELATION, AnalysisType.SENSITIVITY, AnalysisType.MARKET_REGIME]
 
-        print(f"📊 Generating mastery report for {len(strategy_ids)} strategies...")
+        logger.info(f"📊 Generating mastery report for {len(strategy_ids)} strategies...")
         results = await strategy_analysis_engine.perform_comprehensive_analysis(
             strategy_ids, analysis_types, args.timeframe
         )
 
         report_path = await strategy_analysis_engine.generate_mastery_report(results, args.output_dir)
-        print(f"📄 Mastery report generated: {report_path}")
+        logger.info(f"📄 Mastery report generated: {report_path}")
 
 
 if __name__ == "__main__":

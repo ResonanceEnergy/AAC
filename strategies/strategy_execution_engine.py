@@ -26,6 +26,8 @@ import sys
 import math
 import random
 
+logger = logging.getLogger(__name__)
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
@@ -1016,7 +1018,7 @@ async def main():
 
         if args.test_signal:
             # Generate and test a sample signal
-            print("🧪 Testing Strategy Execution Engine...")
+            logger.info("🧪 Testing Strategy Execution Engine...")
 
             # Create test signal
             test_signal = StrategyTradeSignal(strategy_id=1,
@@ -1028,24 +1030,24 @@ async def main():
                 price=450.0
             )
 
-            print(f"📤 Generated test signal: {test_signal.strategy_name} -> {test_signal.symbol} {test_signal.signal}")
+            logger.info(f"📤 Generated test signal: {test_signal.strategy_name} -> {test_signal.symbol} {test_signal.signal}")
 
             # Process signal
             validated_order = await engine.order_generator.generate_order_from_signal(test_signal)
 
             if validated_order:
-                print(f"✅ Order validated: {validated_order.validation_result.value}")
+                logger.info(f"✅ Order validated: {validated_order.validation_result.value}")
                 if validated_order.validation_result.name == "VALID":
                     success = await engine.order_generator.submit_validated_order(validated_order)
-                    print(f"📋 Order submitted: {'Success' if success else 'Failed'}")
+                    logger.info(f"📋 Order submitted: {'Success' if success else 'Failed'}")
 
                     # Get portfolio status
                     portfolio = await engine.order_generator.get_portfolio_status()
-                    print(f"💼 Portfolio: {portfolio.get('total_positions', 0)} positions, ${portfolio.get('daily_volume', 0):.2f} volume")
+                    logger.info(f"💼 Portfolio: {portfolio.get('total_positions', 0)} positions, ${portfolio.get('daily_volume', 0):.2f} volume")
                 else:
-                    print(f"❌ Validation errors: {validated_order.validation_errors}")
+                    logger.info(f"❌ Validation errors: {validated_order.validation_errors}")
             else:
-                print("❌ Failed to generate order from signal")
+                logger.info("❌ Failed to generate order from signal")
 
             await engine.stop_execution()
             return
@@ -1062,22 +1064,22 @@ async def main():
             while True:
                 await asyncio.sleep(60)
                 report = await engine.get_performance_report()
-                print(f"📊 Performance Report: {report['active_strategies']}/{report['total_strategies']} strategies active")
+                logger.info(f"📊 Performance Report: {report['active_strategies']}/{report['total_strategies']} strategies active")
         else:
             # Run for 5 minutes then show report
             await asyncio.sleep(300)
             report = await engine.get_performance_report()
-            print("🎯 Strategy Execution Report:")
-            print(json.dumps(report, indent=2, default=str))
+            logger.info("🎯 Strategy Execution Report:")
+            logger.info(str(json.dumps(report, indent=2, default=str)))
 
         await engine.stop_execution()
 
     except KeyboardInterrupt:
         if _strategy_execution_engine:
             await _strategy_execution_engine.stop_execution()
-        print("\nStrategy execution stopped.")
+        logger.info("\nStrategy execution stopped.")
     except Exception as e:
-        print(f"❌ Error: {e}")
+        logger.info(f"❌ Error: {e}")
         raise
 
 

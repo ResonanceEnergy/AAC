@@ -11,6 +11,9 @@ import json
 import sys
 from pathlib import Path
 from datetime import datetime
+import logging
+
+logger = logging.getLogger(__name__)
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
@@ -29,8 +32,8 @@ async def run_optimization(strategy_type: str,
                           output_dir: str):
     """Run parameter optimization for a strategy type"""
 
-    print(f"🔬 Starting parameter optimization for {strategy_type}")
-    print(f"Method: {method}, Iterations: {n_iterations}, Samples: {n_samples}")
+    logger.info(f"🔬 Starting parameter optimization for {strategy_type}")
+    logger.info(f"Method: {method}, Iterations: {n_iterations}, Samples: {n_samples}")
 
     # Initialize system
     await initialize_strategy_parameter_testing()
@@ -47,7 +50,7 @@ async def run_optimization(strategy_type: str,
     )
 
     if not results:
-        print("❌ No results generated")
+        logger.info("❌ No results generated")
         return
 
     # Generate timestamp for output files
@@ -79,12 +82,12 @@ async def run_optimization(strategy_type: str,
     with open(results_path, 'w') as f:
         json.dump(results_data, f, indent=2, default=str)
 
-    print("\n✅ Optimization completed!")
-    print(f"Results: {len(results)} parameter combinations tested")
-    print(f"Best Score: {results[0].score:.4f}")
-    print(f"Report: {report_path}")
-    print(f"Plots: {plot_path}")
-    print(f"Raw Data: {results_path}")
+    logger.info("\n✅ Optimization completed!")
+    logger.info(f"Results: {len(results)} parameter combinations tested")
+    logger.info(f"Best Score: {results[0].score:.4f}")
+    logger.info(f"Report: {report_path}")
+    logger.info(f"Plots: {plot_path}")
+    logger.info(f"Raw Data: {results_path}")
 
 
 async def run_comparative_analysis(strategy_type: str,
@@ -93,7 +96,7 @@ async def run_comparative_analysis(strategy_type: str,
                                  output_dir: str):
     """Run comparative analysis of parameter sets"""
 
-    print(f"🔬 Running comparative analysis for {strategy_type}")
+    logger.info(f"🔬 Running comparative analysis for {strategy_type}")
 
     # Load parameter sets
     with open(parameter_sets_file, 'r') as f:
@@ -116,8 +119,8 @@ async def run_comparative_analysis(strategy_type: str,
     with open(output_path, 'w') as f:
         json.dump(results, f, indent=2, default=str)
 
-    print("\n✅ Comparative analysis completed!")
-    print(f"Results saved to: {output_path}")
+    logger.info("\n✅ Comparative analysis completed!")
+    logger.info(f"Results saved to: {output_path}")
 
 
 async def run_parameter_sensitivity_analysis(strategy_type: str,
@@ -125,7 +128,7 @@ async def run_parameter_sensitivity_analysis(strategy_type: str,
                                           output_dir: str):
     """Run parameter sensitivity analysis"""
 
-    print(f"🔬 Running parameter sensitivity analysis for {strategy_type}")
+    logger.info(f"🔬 Running parameter sensitivity analysis for {strategy_type}")
 
     await initialize_strategy_parameter_testing()
 
@@ -153,8 +156,8 @@ async def run_parameter_sensitivity_analysis(strategy_type: str,
     with open(report_path, 'w') as f:
         f.write('\n'.join(report))
 
-    print("\n✅ Sensitivity analysis completed!")
-    print(f"Report saved to: {report_path}")
+    logger.info("\n✅ Sensitivity analysis completed!")
+    logger.info(f"Report saved to: {report_path}")
 
 
 def main():
@@ -191,7 +194,7 @@ def main():
         ))
     elif args.command == "compare":
         if not args.parameter_sets:
-            print("❌ --parameter-sets required for comparative analysis")
+            logger.info("❌ --parameter-sets required for comparative analysis")
             sys.exit(1)
         asyncio.run(run_comparative_analysis(
             args.strategy_type, args.parameter_sets, args.n_runs, args.output_dir

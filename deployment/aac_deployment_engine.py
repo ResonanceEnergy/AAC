@@ -1271,25 +1271,25 @@ class AACDeploymentEngine:
             json.dump(report, f, indent=2)
 
         # Print summary
-        print("\n" + "="*80)
-        print("🚀 AAC DEPLOYMENT ENGINE - PHASE 2 COMPLETION REPORT")
-        print("="*80)
-        print(f"📅 Execution Time: {duration}")
-        print(f"📊 Strategies Validated: {'✅' if self.progress.get('paper_trading_validated') else '❌'}")
-        print(f"⚡ Performance Tuned: {'✅' if self.progress.get('performance_tuned') else '❌'}")
-        print(f"🛡️ Risk Management: {'✅' if self.progress.get('risk_management_optimized') else '❌'}")
-        print(f"🚀 Live Deployment: {'✅' if self.progress.get('live_deployment_ready') else '❌'}")
-        print(f"💰 Revenue Monitoring: {'✅' if self.progress.get('revenue_monitoring_active') else '❌'}")
+        logger.info("\n" + "="*80)
+        logger.info("🚀 AAC DEPLOYMENT ENGINE - PHASE 2 COMPLETION REPORT")
+        logger.info("="*80)
+        logger.info(f"📅 Execution Time: {duration}")
+        logger.info(f"📊 Strategies Validated: {'✅' if self.progress.get('paper_trading_validated') else '❌'}")
+        logger.info(f"⚡ Performance Tuned: {'✅' if self.progress.get('performance_tuned') else '❌'}")
+        logger.info(f"🛡️ Risk Management: {'✅' if self.progress.get('risk_management_optimized') else '❌'}")
+        logger.info(f"🚀 Live Deployment: {'✅' if self.progress.get('live_deployment_ready') else '❌'}")
+        logger.info(f"💰 Revenue Monitoring: {'✅' if self.progress.get('revenue_monitoring_active') else '❌'}")
 
         if self.progress['errors']:
-            print(f"\n❌ ERRORS ({len(self.progress['errors'])}):")
+            logger.info(f"\n❌ ERRORS ({len(self.progress['errors'])}):")
             for error in self.progress['errors'][:5]:
-                print(f"   • {error}")
+                logger.info(f"   • {error}")
 
         if self.progress['warnings']:
-            print(f"\n⚠️ WARNINGS ({len(self.progress['warnings'])}):")
+            logger.info(f"\n⚠️ WARNINGS ({len(self.progress['warnings'])}):")
             for warning in self.progress['warnings'][:5]:
-                print(f"   • {warning}")
+                logger.info(f"   • {warning}")
 
         completed_phases = sum([
             self.progress.get('paper_trading_validated', False),
@@ -1301,18 +1301,18 @@ class AACDeploymentEngine:
 
         success_rate = (completed_phases / 5) * 100
 
-        print(f"\n🎯 OVERALL SUCCESS RATE: {success_rate:.1f}%")
+        logger.info(f"\n🎯 OVERALL SUCCESS RATE: {success_rate:.1f}%")
 
         if success_rate >= 90:
-            print("🏆 MISSION ACCOMPLISHED: AAC system fully deployed and operational!")
-            print("💰 Ready to generate $100K+/day arbitrage profits")
+            logger.info("🏆 MISSION ACCOMPLISHED: AAC system fully deployed and operational!")
+            logger.info("💰 Ready to generate $100K+/day arbitrage profits")
         elif success_rate >= 75:
-            print("✅ MAJOR SUCCESS: Core deployment phases completed")
+            logger.info("✅ MAJOR SUCCESS: Core deployment phases completed")
         else:
-            print("⚠️ PARTIAL SUCCESS: Additional deployment work needed")
+            logger.info("⚠️ PARTIAL SUCCESS: Additional deployment work needed")
 
-        print(f"\n📄 Detailed report saved to: {report_file}")
-        print("="*80)
+        logger.info(f"\n📄 Detailed report saved to: {report_file}")
+        logger.info("="*80)
 
 
 async def main():

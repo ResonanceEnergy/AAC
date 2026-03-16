@@ -631,20 +631,20 @@ async def initialize_strategy_parameter_testing():
 # Example usage and testing
 async def run_parameter_optimization_demo():
     """Demo function for parameter optimization"""
-    print("🔬 ACCELERATED ARBITRAGE CORP - Strategy Parameter R&D")
-    print("=" * 60)
+    logger.info("🔬 ACCELERATED ARBITRAGE CORP - Strategy Parameter R&D")
+    logger.info("=" * 60)
 
     await initialize_strategy_parameter_testing()
 
     # Run parameter sweep for statistical arbitrage
-    print("\n🎯 Running Parameter Sweep for Statistical Arbitrage...")
+    logger.info("\n🎯 Running Parameter Sweep for Statistical Arbitrage...")
     results = await strategy_parameter_tester.run_parameter_sweep(
         strategy_type="statistical_arbitrage",
         optimization_method=OptimizationMethod.GRID_SEARCH,
         n_samples_per_param=3  # Small for demo
     )
 
-    print(f"\n✅ Parameter sweep completed! Tested {len(results)} combinations")
+    logger.info(f"\n✅ Parameter sweep completed! Tested {len(results)} combinations")
 
     # Generate report
     report = strategy_parameter_tester.generate_optimization_report(
@@ -652,9 +652,9 @@ async def run_parameter_optimization_demo():
         output_path="reports/parameter_optimization_report.md"
     )
 
-    print("\n📊 Optimization Report Summary:")
-    print(f"Best Score: {results[0].score:.4f}" if results else "No results")
-    print(f"Report saved to: reports/parameter_optimization_report.md")
+    logger.info("\n📊 Optimization Report Summary:")
+    logger.info(f"Best Score: {results[0].score:.4f}" if results else "No results")
+    logger.info(f"Report saved to: reports/parameter_optimization_report.md")
 
     return results
 

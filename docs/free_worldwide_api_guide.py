@@ -9,6 +9,9 @@ These APIs provide global stock markets, forex, crypto, and economic data.
 import requests
 import json
 from datetime import datetime
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Free Worldwide APIs Database
 FREE_WORLDWIDE_APIS = {
@@ -218,18 +221,18 @@ FREE_WORLDWIDE_APIS = {
 
 def display_free_api_guide():
     """Display comprehensive guide to free worldwide APIs"""
-    print("🌍 FREE WORLDWIDE API GUIDE FOR AAC")
-    print("=" * 60)
-    print()
+    logger.info("🌍 FREE WORLDWIDE API GUIDE FOR AAC")
+    logger.info("=" * 60)
+    logger.info("")
 
-    print("🎯 WHY USE FREE WORLDWIDE APIs?")
-    print("-" * 40)
-    print("• Global market coverage (not just US)")
-    print("• Cost-effective for development/testing")
-    print("• Diverse data sources for arbitrage opportunities")
-    print("• No subscription fees")
-    print("• Good for worldwide arbitrage strategies")
-    print()
+    logger.info("🎯 WHY USE FREE WORLDWIDE APIs?")
+    logger.info("-" * 40)
+    logger.info("• Global market coverage (not just US)")
+    logger.info("• Cost-effective for development/testing")
+    logger.info("• Diverse data sources for arbitrage opportunities")
+    logger.info("• No subscription fees")
+    logger.info("• Good for worldwide arbitrage strategies")
+    logger.info("")
 
     # Group APIs by category
     categories = {
@@ -241,82 +244,82 @@ def display_free_api_guide():
     }
 
     for category, apis in categories.items():
-        print(f"{category}")
-        print("-" * 50)
+        logger.info(f"{category}")
+        logger.info("-" * 50)
 
         for api_key in apis:
             if api_key in FREE_WORLDWIDE_APIS:
                 api = FREE_WORLDWIDE_APIS[api_key]
                 key_status = "🔑 Required" if api["key_required"] else "✅ No Key"
 
-                print(f"📡 {api['name']}")
-                print(f"   🌐 {api['website']}")
-                print(f"   🆓 Free Tier: {api['free_tier']}")
-                print(f"   🌍 Coverage: {api['global_coverage']}")
-                print(f"   🔑 API Key: {key_status}")
-                print(f"   📊 Data: {', '.join(api['data_types'])}")
-                print(f"   📝 Signup: {api['signup_url']}")
-                print()
+                logger.info(f"📡 {api['name']}")
+                logger.info(f"   🌐 {api['website']}")
+                logger.info(f"   🆓 Free Tier: {api['free_tier']}")
+                logger.info(f"   🌍 Coverage: {api['global_coverage']}")
+                logger.info(f"   🔑 API Key: {key_status}")
+                logger.info(f"   📊 Data: {', '.join(api['data_types'])}")
+                logger.info(f"   📝 Signup: {api['signup_url']}")
+                logger.info("")
 
-    print("🚀 QUICK START RECOMMENDATIONS")
-    print("-" * 40)
-    print("1. 🥇 Alpha Vantage - Best all-around free API")
-    print("2. 🥈 CoinGecko - No API key needed for crypto")
-    print("3. 🥉 Twelve Data - Excellent global coverage")
-    print()
+    logger.info("🚀 QUICK START RECOMMENDATIONS")
+    logger.info("-" * 40)
+    logger.info("1. 🥇 Alpha Vantage - Best all-around free API")
+    logger.info("2. 🥈 CoinGecko - No API key needed for crypto")
+    logger.info("3. 🥉 Twelve Data - Excellent global coverage")
+    logger.info("")
 
-    print("💡 AAC INTEGRATION TIPS")
-    print("-" * 40)
-    print("• Use multiple APIs for data redundancy")
-    print("• Implement rate limiting and caching")
-    print("• Monitor API limits and switch providers")
-    print("• Combine free + premium APIs for best results")
-    print()
+    logger.info("💡 AAC INTEGRATION TIPS")
+    logger.info("-" * 40)
+    logger.info("• Use multiple APIs for data redundancy")
+    logger.info("• Implement rate limiting and caching")
+    logger.info("• Monitor API limits and switch providers")
+    logger.info("• Combine free + premium APIs for best results")
+    logger.info("")
 
-    print("🔧 CONFIGURATION EXAMPLE")
-    print("-" * 40)
-    print("# Add to your .env file:")
-    print("ALPHAVANTAGE_API_KEY=your_key_here")
+    logger.info("🔧 CONFIGURATION EXAMPLE")
+    logger.info("-" * 40)
+    logger.info("# Add to your .env file:")
+    logger.info("ALPHAVANTAGE_API_KEY=your_key_here")
     print("COINGECKO_API_KEY=")  # No key needed
-    print("FIXER_API_KEY=your_key_here")
-    print()
+    logger.info("FIXER_API_KEY=your_key_here")
+    logger.info("")
 
 def test_free_api_connectivity():
     """Test connectivity to free APIs that don't require keys"""
-    print("🧪 TESTING FREE API CONNECTIVITY")
-    print("-" * 40)
+    logger.info("🧪 TESTING FREE API CONNECTIVITY")
+    logger.info("-" * 40)
 
     # Test CoinGecko (no API key needed)
     try:
         response = requests.get("https://api.coingecko.com/api/v3/ping", timeout=10)
         if response.status_code == 200:
-            print("✅ CoinGecko: Connected successfully")
+            logger.info("✅ CoinGecko: Connected successfully")
         else:
-            print(f"⚠️  CoinGecko: HTTP {response.status_code}")
+            logger.info(f"⚠️  CoinGecko: HTTP {response.status_code}")
     except Exception as e:
-        print(f"❌ CoinGecko: {e}")
+        logger.info(f"❌ CoinGecko: {e}")
 
     # Test World Bank API
     try:
         response = requests.get("https://api.worldbank.org/v2/countries", timeout=10)
         if response.status_code == 200:
-            print("✅ World Bank: Connected successfully")
+            logger.info("✅ World Bank: Connected successfully")
         else:
-            print(f"⚠️  World Bank: HTTP {response.status_code}")
+            logger.info(f"⚠️  World Bank: HTTP {response.status_code}")
     except Exception as e:
-        print(f"❌ World Bank: {e}")
+        logger.info(f"❌ World Bank: {e}")
 
     # Test ECB API
     try:
         response = requests.get("https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml", timeout=10)
         if response.status_code == 200:
-            print("✅ ECB: Connected successfully")
+            logger.info("✅ ECB: Connected successfully")
         else:
-            print(f"⚠️  ECB: HTTP {response.status_code}")
+            logger.info(f"⚠️  ECB: HTTP {response.status_code}")
     except Exception as e:
-        print(f"❌ ECB: {e}")
+        logger.info(f"❌ ECB: {e}")
 
-    print()
+    logger.info("")
 
 if __name__ == "__main__":
     display_free_api_guide()

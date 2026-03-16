@@ -43,6 +43,9 @@ import csv
 import pandas as pd
 
 from dotenv import load_dotenv
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
@@ -90,7 +93,7 @@ class AACRedditWebScraper:
         self.comment_ids_url = f"{self.pushshift_base}/submission/comment_ids/{{}}"
         self.comments_url = f"{self.pushshift_base}/comment/search"
 
-        print("✅ AAC Reddit Web Scraper initialized")
+        logger.info("✅ AAC Reddit Web Scraper initialized")
 
     def _load_stocks_list(self) -> List[str]:
         """Load stock tickers list for analysis"""
@@ -152,10 +155,10 @@ class AACRedditWebScraper:
 
         try:
             self.driver = webdriver.Chrome(options=chrome_options)
-            print("✅ Chrome WebDriver initialized")
+            logger.info("✅ Chrome WebDriver initialized")
         except Exception as e:
-            print(f"❌ Failed to initialize WebDriver: {e}")
-            print("Make sure ChromeDriver is installed and in PATH")
+            logger.info(f"❌ Failed to initialize WebDriver: {e}")
+            logger.info("Make sure ChromeDriver is installed and in PATH")
             raise
 
     def _close_driver(self):
@@ -206,7 +209,7 @@ class AACRedditWebScraper:
                             # Get the thread URL
                             thread_url = link_element.find_element(By.XPATH, "../..").get_attribute('href')
                             thread_id = thread_url.split('/')[-3]
-                            print(f"✅ Found Daily Discussion thread for {target_date}: {thread_id}")
+                            logger.info(f"✅ Found Daily Discussion thread for {target_date}: {thread_id}")
                             return thread_id
                     except Exception as e:
                         continue
@@ -231,16 +234,16 @@ class AACRedditWebScraper:
                             if thread_start_date <= target_date <= thread_end_date:
                                 thread_url = link_element.find_element(By.XPATH, "../..").get_attribute('href')
                                 thread_id = thread_url.split('/')[-3]
-                                print(f"✅ Found Weekend Discussion thread for {target_date}: {thread_id}")
+                                logger.info(f"✅ Found Weekend Discussion thread for {target_date}: {thread_id}")
                                 return thread_id
                     except Exception as e:
                         continue
 
-            print(f"❌ No Daily Discussion thread found for {target_date}")
+            logger.info(f"❌ No Daily Discussion thread found for {target_date}")
             return None
 
         except Exception as e:
-            print(f"❌ Error finding Daily Discussion thread: {e}")
+            logger.info(f"❌ Error finding Daily Discussion thread: {e}")
             return None
 
     def get_comment_ids(self, thread_id: str) -> List[str]:
@@ -261,11 +264,11 @@ class AACRedditWebScraper:
             data = response.json()
             comment_ids = data.get('data', [])
 
-            print(f"✅ Retrieved {len(comment_ids)} comment IDs for thread {thread_id}")
+            logger.info(f"✅ Retrieved {len(comment_ids)} comment IDs for thread {thread_id}")
             return comment_ids
 
         except Exception as e:
-            print(f"❌ Error getting comment IDs: {e}")
+            logger.info(f"❌ Error getting comment IDs: {e}")
             return []
 
     def get_comments_batch(self, comment_ids: List[str], batch_size: int = 1000) -> List[Dict[str, Any]]:
@@ -299,16 +302,16 @@ class AACRedditWebScraper:
                 batch_comments = data.get('data', [])
                 all_comments.extend(batch_comments)
 
-                print(f"✅ Retrieved batch {i//batch_size + 1}: {len(batch_comments)} comments")
+                logger.info(f"✅ Retrieved batch {i//batch_size + 1}: {len(batch_comments)} comments")
 
                 # Rate limiting - be respectful to the API
                 time.sleep(0.5)
 
             except Exception as e:
-                print(f"❌ Error in batch {i//batch_size + 1}: {e}")
+                logger.info(f"❌ Error in batch {i//batch_size + 1}: {e}")
                 continue
 
-        print(f"✅ Total comments retrieved: {len(all_comments)}")
+        logger.info(f"✅ Total comments retrieved: {len(all_comments)}")
         return all_comments
 
     def analyze_ticker_mentions(self, comments: List[Dict[str, Any]]) -> Dict[str, StockMention]:
@@ -372,7 +375,7 @@ class AACRedditWebScraper:
                 sentiment_indicators=sentiment_indicators
             )
 
-        print(f"✅ Analyzed {len(stock_mentions)} tickers mentioned in {len(comments)} comments")
+        logger.info(f"✅ Analyzed {len(stock_mentions)} tickers mentioned in {len(comments)} comments")
         return stock_mentions
 
     def scrape_daily_discussion(self, target_date: Optional[date] = None) -> Optional[ScrapedRedditPost]:
@@ -389,7 +392,7 @@ class AACRedditWebScraper:
             target_date = date.today() - timedelta(days=1)
 
         try:
-            print(f"🔍 Starting scrape for Daily Discussion on {target_date}")
+            logger.info(f"🔍 Starting scrape for Daily Discussion on {target_date}")
 
             # Find the thread
             thread_id = self.find_daily_discussion_thread(target_date)
@@ -432,15 +435,15 @@ class AACRedditWebScraper:
                 timestamp_scraped=datetime.now()
             )
 
-            print(f"✅ Successfully scraped Daily Discussion thread")
-            print(f"   Comments: {result.comment_count}")
-            print(f"   Tickers mentioned: {len(result.tickers_mentioned)}")
-            print(".2f")
+            logger.info(f"✅ Successfully scraped Daily Discussion thread")
+            logger.info(f"   Comments: {result.comment_count}")
+            logger.info(f"   Tickers mentioned: {len(result.tickers_mentioned)}")
+            logger.info(".2f")
 
             return result
 
         except Exception as e:
-            print(f"❌ Error during scraping: {e}")
+            logger.info(f"❌ Error during scraping: {e}")
             return None
 
         finally:
@@ -470,10 +473,10 @@ class AACRedditWebScraper:
                         'top_context': mention.context_examples[0] if mention.context_examples else ''
                     })
 
-            print(f"✅ Exported data to {filename}")
+            logger.info(f"✅ Exported data to {filename}")
 
         except Exception as e:
-            print(f"❌ Error exporting to CSV: {e}")
+            logger.info(f"❌ Error exporting to CSV: {e}")
 
     def export_to_dataframe(self, stock_mentions: Dict[str, StockMention]) -> pd.DataFrame:
         """
@@ -504,10 +507,10 @@ class AACRedditWebScraper:
 
 def run_aac_web_scraping_demo():
     """Run the AAC Reddit web scraping demo"""
-    print("AAC Advanced Reddit Web Scraping Demo")
-    print("=" * 50)
-    print("Using Selenium + Pushshift API for comprehensive sentiment analysis")
-    print()
+    logger.info("AAC Advanced Reddit Web Scraping Demo")
+    logger.info("=" * 50)
+    logger.info("Using Selenium + Pushshift API for comprehensive sentiment analysis")
+    logger.info("")
 
     scraper = AACRedditWebScraper(headless=True)
 
@@ -516,23 +519,23 @@ def run_aac_web_scraping_demo():
         result = scraper.scrape_daily_discussion()
 
         if result:
-            print()
-            print("📊 Scraping Results:")
-            print(f"Thread: {result.thread_title}")
-            print(f"Comments: {result.comment_count:,}")
-            print(f"Tickers Found: {len(result.tickers_mentioned)}")
-            print(".2f")
+            logger.info("")
+            logger.info("📊 Scraping Results:")
+            logger.info(f"Thread: {result.thread_title}")
+            logger.info(f"Comments: {result.comment_count:,}")
+            logger.info(f"Tickers Found: {len(result.tickers_mentioned)}")
+            logger.info(".2f")
 
             # Show top 10 mentioned tickers
-            print()
-            print("🔥 Top 10 Mentioned Tickers:")
+            logger.info("")
+            logger.info("🔥 Top 10 Mentioned Tickers:")
             sorted_tickers = sorted(result.tickers_mentioned.items(), key=lambda x: x[1], reverse=True)
             for i, (ticker, count) in enumerate(sorted_tickers[:10], 1):
-                print("2d")
+                logger.info("2d")
 
             # Export to CSV
-            print()
-            print("💾 Exporting data...")
+            logger.info("")
+            logger.info("💾 Exporting data...")
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             csv_filename = f"wallstreetbets_sentiment_{timestamp}.csv"
 
@@ -545,24 +548,24 @@ def run_aac_web_scraping_demo():
 
             # Show DataFrame preview
             df = scraper.export_to_dataframe(detailed_analysis)
-            print()
-            print("📋 Data Preview:")
-            print(df.head().to_string(index=False))
+            logger.info("")
+            logger.info("📋 Data Preview:")
+            logger.info(str(df.head().to_string(index=False)))
 
         else:
-            print("❌ Failed to scrape Daily Discussion thread")
-            print("This could be due to:")
-            print("- No Daily Discussion thread for the target date")
-            print("- Network connectivity issues")
-            print("- Reddit website changes")
+            logger.info("❌ Failed to scrape Daily Discussion thread")
+            logger.info("This could be due to:")
+            logger.info("- No Daily Discussion thread for the target date")
+            logger.info("- Network connectivity issues")
+            logger.info("- Reddit website changes")
 
     except Exception as e:
-        print(f"❌ Demo failed: {e}")
-        print("Make sure you have:")
-        print("- Chrome browser installed")
-        print("- ChromeDriver in PATH")
-        print("- Internet connection")
-        print("- Required Python packages: selenium, requests, pandas")
+        logger.info(f"❌ Demo failed: {e}")
+        logger.info("Make sure you have:")
+        logger.info("- Chrome browser installed")
+        logger.info("- ChromeDriver in PATH")
+        logger.info("- Internet connection")
+        logger.info("- Required Python packages: selenium, requests, pandas")
 
 
 if __name__ == "__main__":

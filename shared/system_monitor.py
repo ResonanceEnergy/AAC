@@ -55,41 +55,41 @@ class SystemMonitor:
     @staticmethod
     def _clear() -> None:
         # Use ANSI escape codes instead of os.system() to avoid shell injection
-        print("\033[2J\033[H", end="", flush=True)
+        logger.info("\033[2J\033[H", end="", flush=True)
 
     def _render_banner(self) -> None:
-        print()
-        print("  ╔══════════════════════════════════════════════╗")
-        print("  ║   BARREN WUFFET — System Monitor             ║")
-        print("  ║   Codename: AZ SUPREME                       ║")
-        print("  ╚══════════════════════════════════════════════╝")
-        print()
+        logger.info("")
+        logger.info("  ╔══════════════════════════════════════════════╗")
+        logger.info("  ║   BARREN WUFFET — System Monitor             ║")
+        logger.info("  ║   Codename: AZ SUPREME                       ║")
+        logger.info("  ╚══════════════════════════════════════════════╝")
+        logger.info("")
 
     def _render_metrics(self) -> None:
         if not PSUTIL_AVAILABLE:
-            print("  [!] psutil not installed — metrics unavailable")
+            logger.info("  [!] psutil not installed — metrics unavailable")
             return
 
         metrics = self.service.metrics_collector.collect()
-        print("  ┌─── System Resources ────────────────────────┐")
-        print(f"  │  CPU         {metrics.cpu_percent:6.1f}%                      │")
-        print(f"  │  Memory      {metrics.memory_percent:6.1f}%  ({metrics.memory_used_mb:,.0f} MB)       │")
-        print(f"  │  Disk        {metrics.disk_percent:6.1f}%  ({metrics.disk_used_gb:,.1f} GB)        │")
-        print(f"  │  Threads     {metrics.threads:6d}                       │")
-        print("  └─────────────────────────────────────────────┘")
-        print()
+        logger.info("  ┌─── System Resources ────────────────────────┐")
+        logger.info(f"  │  CPU         {metrics.cpu_percent:6.1f}%                      │")
+        logger.info(f"  │  Memory      {metrics.memory_percent:6.1f}%  ({metrics.memory_used_mb:,.0f} MB)       │")
+        logger.info(f"  │  Disk        {metrics.disk_percent:6.1f}%  ({metrics.disk_used_gb:,.1f} GB)        │")
+        logger.info(f"  │  Threads     {metrics.threads:6d}                       │")
+        logger.info("  └─────────────────────────────────────────────┘")
+        logger.info("")
 
     async def _render_health(self) -> None:
         results = await self.service.health_checker.run_all_checks()
         overall = self.service.health_checker.get_overall_status()
 
         icon = {"healthy": "✅", "degraded": "⚠️", "unhealthy": "❌"}.get(overall.value, "❓")
-        print(f"  Overall Health: {icon} {overall.value.upper()}")
-        print()
+        logger.info(f"  Overall Health: {icon} {overall.value.upper()}")
+        logger.info("")
         for name, r in results.items():
             ic = {"healthy": "✅", "degraded": "⚠️", "unhealthy": "❌"}.get(r.status.value, "❓")
-            print(f"    {ic} {name:<20s}  {r.message}")
-        print()
+            logger.info(f"    {ic} {name:<20s}  {r.message}")
+        logger.info("")
 
     def _render_alerts(self) -> None:
         unack = self.service.alert_manager.get_unacknowledged()
@@ -97,19 +97,19 @@ class SystemMonitor:
         warnings = [a for a in unack if a.severity == "warning"]
 
         if critical:
-            print(f"  🚨 Critical Alerts: {len(critical)}")
+            logger.info(f"  🚨 Critical Alerts: {len(critical)}")
             for a in critical[-3:]:
-                print(f"       {a.title}: {a.message}")
+                logger.info(f"       {a.title}: {a.message}")
         if warnings:
-            print(f"  ⚠️  Warnings: {len(warnings)}")
+            logger.info(f"  ⚠️  Warnings: {len(warnings)}")
         if not critical and not warnings:
-            print("  ✅ No active alerts")
-        print()
+            logger.info("  ✅ No active alerts")
+        logger.info("")
 
     def _render_footer(self) -> None:
-        print(f"  Cycle #{self._cycle}  |  Refresh every {self.refresh_seconds}s  |  Ctrl+C to quit")
-        print(f"  Last update: {datetime.now():%Y-%m-%d %H:%M:%S}")
-        print()
+        logger.info(f"  Cycle #{self._cycle}  |  Refresh every {self.refresh_seconds}s  |  Ctrl+C to quit")
+        logger.info(f"  Last update: {datetime.now():%Y-%m-%d %H:%M:%S}")
+        logger.info("")
 
     # ── main loop ────────────────────────────────────────────────
 
@@ -132,7 +132,7 @@ class SystemMonitor:
             pass
         finally:
             self._running = False
-            print("\n  System Monitor stopped.\n")
+            logger.info("\n  System Monitor stopped.\n")
 
     def stop(self) -> None:
         """Stop."""

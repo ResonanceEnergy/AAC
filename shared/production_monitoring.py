@@ -20,6 +20,8 @@ from email.mime.multipart import MIMEMultipart
 import sys
 import yaml
 
+logger = logging.getLogger(__name__)
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
@@ -265,8 +267,8 @@ class ProductionMonitoringSystem:
             "INFO": "ℹ️"
         }.get(alert.severity, "❓")
 
-        print(f"{severity_emoji} ALERT [{alert.severity}] {alert.category}: {alert.title}")
-        print(f"   {alert.message}")
+        logger.info(f"{severity_emoji} ALERT [{alert.severity}] {alert.category}: {alert.title}")
+        logger.info(f"   {alert.message}")
 
     async def _send_file_alert(self, alert: Alert):
         """Write alert to log file"""
@@ -411,17 +413,17 @@ production_monitoring_system = ProductionMonitoringSystem()
 
 async def initialize_production_monitoring():
     """Initialize the production monitoring system"""
-    print("[MONITOR] Initializing Production Monitoring System...")
+    logger.info("[MONITOR] Initializing Production Monitoring System...")
 
     await production_monitoring_system.start_monitoring()
 
-    print("[OK] Production monitoring system initialized")
-    print("  24/7 monitoring active")
-    print("  Alert channels: console, file")
+    logger.info("[OK] Production monitoring system initialized")
+    logger.info("  24/7 monitoring active")
+    logger.info("  Alert channels: console, file")
 
     status = production_monitoring_system.get_monitoring_status()
-    print(f"  Health checks: {len(status['health_checks'])}")
-    print(f"  Active alerts: {status['active_alerts']}")
+    logger.info(f"  Health checks: {len(status['health_checks'])}")
+    logger.info(f"  Active alerts: {status['active_alerts']}")
 
 
 if __name__ == "__main__":

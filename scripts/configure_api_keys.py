@@ -7,6 +7,9 @@ Helps you configure premium market data API keys for enhanced trading performanc
 import os
 import sys
 from pathlib import Path
+import logging
+
+logger = logging.getLogger(__name__)
 
 def load_env_file():
     """Load existing .env file if it exists"""
@@ -65,13 +68,13 @@ def save_env_file(env_data):
 
 def main():
     """Main."""
-    print("🚀 AAC Premium API Key Configuration Helper")
-    print("=" * 50)
+    logger.info("🚀 AAC Premium API Key Configuration Helper")
+    logger.info("=" * 50)
 
     # Load existing environment
     env_data = load_env_file()
 
-    print("\n📝 Current API Key Status:")
+    logger.info("\n📝 Current API Key Status:")
     api_keys = {
         'POLYGON_API_KEY': 'Polygon.io',
         'FINNHUB_API_KEY': 'Finnhub',
@@ -100,11 +103,11 @@ def main():
             status = "✅ Configured" if env_data.get(key) else "❌ Not configured"
             if env_data.get(key):
                 configured += 1
-        print(f"   {name}: {status}")
+        logger.info(f"   {name}: {status}")
 
-    print(f"\n📊 Summary: {configured} / {len(api_keys)} APIs configured (including free APIs)")
+    logger.info(f"\n📊 Summary: {configured} / {len(api_keys)} APIs configured (including free APIs)")
 
-    print("\n🔑 Enter your API keys below (press Enter to skip):")
+    logger.info("\n🔑 Enter your API keys below (press Enter to skip):")
 
     # Collect API keys from user
     new_keys = {}
@@ -116,9 +119,9 @@ def main():
         current_value = env_data.get(key, '')
         if current_value:
             masked = current_value[:8] + "..." if len(current_value) > 8 else current_value
-            print(f"\n{name} (current: {masked}):")
+            logger.info(f"\n{name} (current: {masked}):")
         else:
-            print(f"\n{name}:")
+            logger.info(f"\n{name}:")
 
         user_input = input(f"   {key} = ").strip()
 
@@ -135,9 +138,9 @@ def main():
     if 'INTRINIO_API_KEY' in new_keys and new_keys['INTRINIO_API_KEY']:
         intrinio_username = env_data.get('INTRINIO_USERNAME', '')
         if intrinio_username:
-            print(f"\nIntrinio Username (current: {intrinio_username}):")
+            logger.info(f"\nIntrinio Username (current: {intrinio_username}):")
         else:
-            print("\nIntrinio Username:")
+            logger.info("\nIntrinio Username:")
 
         username_input = input("   INTRINIO_USERNAME = ").strip()
         if username_input:
@@ -148,10 +151,10 @@ def main():
     # Save to .env file
     if new_keys:
         save_env_file(new_keys)
-        print("\n✅ API keys saved to .env file!")
+        logger.info("\n✅ API keys saved to .env file!")
 
         # Show updated status
-        print("\n📊 Updated API Key Status:")
+        logger.info("\n📊 Updated API Key Status:")
         final_env = load_env_file()
         configured_final = 0
         for key, name in api_keys.items():
@@ -163,14 +166,14 @@ def main():
                 status = "✅ Configured" if final_env.get(key) else "❌ Not configured"
                 if final_env.get(key):
                     configured_final += 1
-            print(f"   {name}: {status}")
+            logger.info(f"   {name}: {status}")
 
-        print(f"\n🎯 Final Summary: {configured_final} / {len(api_keys)} APIs configured (including free APIs)")
+        logger.info(f"\n🎯 Final Summary: {configured_final} / {len(api_keys)} APIs configured (including free APIs)")
 
         if configured_final > 0:
-            print("\n🧪 Ready to test! Run: python test_premium_apis.py")
+            logger.info("\n🧪 Ready to test! Run: python test_premium_apis.py")
     else:
-        print("\nℹ️  No changes made.")
+        logger.info("\nℹ️  No changes made.")
 
 if __name__ == "__main__":
     main()

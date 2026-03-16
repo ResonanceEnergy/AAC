@@ -734,8 +734,8 @@ class ProductionDeploymentManager:
 
 async def run_production_deployment():
     """Run the complete production deployment pipeline"""
-    print("🚀 AAC Production Deployment Pipeline")
-    print("=" * 50)
+    logger.info("🚀 AAC Production Deployment Pipeline")
+    logger.info("=" * 50)
 
     # Initialize components (mock)
     from shared.communication import CommunicationFramework
@@ -751,16 +751,16 @@ async def run_production_deployment():
     # Run deployment pipeline
     results = await deployment_manager.run_full_deployment_pipeline('staging')
 
-    print("\n📊 Deployment Results:")
-    print(f"   Environment: {results['environment']}")
-    print(f"   Success: {results['success']}")
-    print(".2f")
-    print(f"   Rollback Performed: {results.get('rollback_performed', False)}")
+    logger.info("\n📊 Deployment Results:")
+    logger.info(f"   Environment: {results['environment']}")
+    logger.info(f"   Success: {results['success']}")
+    logger.info(".2f")
+    logger.info(f"   Rollback Performed: {results.get('rollback_performed', False)}")
 
-    print("\n📋 Phase Results:")
+    logger.info("\n📋 Phase Results:")
     for phase, result in results['phases'].items():
         status = "✅" if result.get('passed', False) else "❌"
-        print(f"   {phase}: {status}")
+        logger.info(f"   {phase}: {status}")
 
     return results
 

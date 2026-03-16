@@ -388,31 +388,31 @@ class OperationalReadinessTester:
 
     def _print_final_report(self):
         """Print final operational readiness report"""
-        print("\n" + "="*60)
-        print("AAC 2100 OPERATIONAL READINESS REPORT")
-        print("="*60)
+        logger.info("\n" + "="*60)
+        logger.info("AAC 2100 OPERATIONAL READINESS REPORT")
+        logger.info("="*60)
 
-        print("\n📋 TEST RESULTS:")
+        logger.info("\n📋 TEST RESULTS:")
         for phase, result in self.test_results.items():
             status = "✅ PASSED" if result == "PASSED" else "[CROSS] FAILED"
-            print(f"  {phase.replace('_', ' ').title()}: {status}")
+            logger.info(f"  {phase.replace('_', ' ').title()}: {status}")
 
-        print("\n[MONITOR] SYSTEM STATUS:")
-        print(f"  GLN Integration: {'✅ Active' if self.orchestrator.gln_integration else '[CROSS] Inactive'}")
-        print(f"  GTA Integration: {'✅ Active' if self.orchestrator.gta_integration else '[CROSS] Inactive'}")
-        print(f"  Executive Branch: {'✅ Active' if self.orchestrator.az_supreme and self.orchestrator.ax_helix else '[CROSS] Inactive'}")
-        print(f"  Command Center: {'✅ Operational' if self.command_center and self.command_center.operational_readiness else '[CROSS] Offline'}")
-        print(f"  AI Avatars: {'✅ Active' if len(self.avatars) == 2 else '[CROSS] Inactive'}")
+        logger.info("\n[MONITOR] SYSTEM STATUS:")
+        logger.info(f"  GLN Integration: {'✅ Active' if self.orchestrator.gln_integration else '[CROSS] Inactive'}")
+        logger.info(f"  GTA Integration: {'✅ Active' if self.orchestrator.gta_integration else '[CROSS] Inactive'}")
+        logger.info(f"  Executive Branch: {'✅ Active' if self.orchestrator.az_supreme and self.orchestrator.ax_helix else '[CROSS] Inactive'}")
+        logger.info(f"  Command Center: {'✅ Operational' if self.command_center and self.command_center.operational_readiness else '[CROSS] Offline'}")
+        logger.info(f"  AI Avatars: {'✅ Active' if len(self.avatars) == 2 else '[CROSS] Inactive'}")
 
-        print("\n[TARGET] KEY METRICS:")
+        logger.info("\n[TARGET] KEY METRICS:")
         if self.baselines:
-            print(f"  CPU Baseline: {self.baselines.get('system_cpu_mean', 0):.1f}%")
-            print(f"  Memory Baseline: {self.baselines.get('system_memory_mean', 0):.1f}%")
-            print(f"  Samples Collected: {self.baselines.get('sample_count', 0)}")
+            logger.info(f"  CPU Baseline: {self.baselines.get('system_cpu_mean', 0):.1f}%")
+            logger.info(f"  Memory Baseline: {self.baselines.get('system_memory_mean', 0):.1f}%")
+            logger.info(f"  Samples Collected: {self.baselines.get('sample_count', 0)}")
 
-        print("\n[DEPLOY] DEPLOYMENT STATUS: FULLY OPERATIONAL")
-        print("Command & Control Center ready for executive oversight")
-        print("="*60)
+        logger.info("\n[DEPLOY] DEPLOYMENT STATUS: FULLY OPERATIONAL")
+        logger.info("Command & Control Center ready for executive oversight")
+        logger.info("="*60)
 
 async def main():
     """Main operational readiness execution"""
@@ -422,19 +422,19 @@ async def main():
         success = await tester.run_operational_readiness()
 
         if success:
-            print("\n[CELEBRATION] AAC 2100 is now fully operational with:")
-            print("  • Complete operational readiness")
-            print("  • Established monitoring baselines")
-            print("  • GTA talent analytics activated")
-            print("  • Executive branch in active monitoring")
-            print("  • Command & Control Center operational")
-            print("  • AI avatars ready for interaction")
+            logger.info("\n[CELEBRATION] AAC 2100 is now fully operational with:")
+            logger.info("  • Complete operational readiness")
+            logger.info("  • Established monitoring baselines")
+            logger.info("  • GTA talent analytics activated")
+            logger.info("  • Executive branch in active monitoring")
+            logger.info("  • Command & Control Center operational")
+            logger.info("  • AI avatars ready for interaction")
 
-            print("\n💡 Next Steps:")
-            print("  1. Launch command center interface: python command_center_interface.py")
-            print("  2. Interact with AI avatars for strategic guidance")
-            print("  3. Monitor system performance against baselines")
-            print("  4. Enable autonomous decision making gradually")
+            logger.info("\n💡 Next Steps:")
+            logger.info("  1. Launch command center interface: python command_center_interface.py")
+            logger.info("  2. Interact with AI avatars for strategic guidance")
+            logger.info("  3. Monitor system performance against baselines")
+            logger.info("  4. Enable autonomous decision making gradually")
 
         return 0 if success else 1
 

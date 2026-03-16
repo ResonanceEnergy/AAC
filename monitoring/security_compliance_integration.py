@@ -9,6 +9,9 @@ import asyncio
 import sys
 from datetime import datetime
 from pathlib import Path
+import logging
+
+logger = logging.getLogger(__name__)
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
@@ -22,19 +25,19 @@ from security_dashboard import SecurityDashboard
 
 async def run_security_compliance_check():
     """Run comprehensive security compliance check"""
-    print("[SECURITY] Running Security Compliance Check...")
-    print("=" * 60)
+    logger.info("[SECURITY] Running Security Compliance Check...")
+    logger.info("=" * 60)
 
     # Initialize security dashboard
     dashboard = SecurityDashboard()
     security_report = await dashboard.get_security_status_report()
 
-    print("🔒 Security Framework Status:")
-    print(f"  Overall Security Score: {security_report['overall_security_score']}/100")
-    print(f"  Components: {len(security_report['security_components'])}")
-    print(f"  Active Alerts: {len(security_report['active_alerts'])}")
-    print(f"  Recommendations: {len(security_report['recommendations'])}")
-    print()
+    logger.info("🔒 Security Framework Status:")
+    logger.info(f"  Overall Security Score: {security_report['overall_security_score']}/100")
+    logger.info(f"  Components: {len(security_report['security_components'])}")
+    logger.info(f"  Active Alerts: {len(security_report['active_alerts'])}")
+    logger.info(f"  Recommendations: {len(security_report['recommendations'])}")
+    logger.info("")
 
     # Check individual security components
     security_checks = {
@@ -48,37 +51,37 @@ async def run_security_compliance_check():
     passed_checks = 0
     total_checks = len(security_checks)
 
-    print("🛡️  Security Component Checks:")
+    logger.info("🛡️  Security Component Checks:")
     for check_name, check_result in security_checks.items():
         status = "✅ PASS" if check_result["passed"] else "❌ FAIL"
-        print(f"  {status} {check_name}: {check_result['message']}")
+        logger.info(f"  {status} {check_name}: {check_result['message']}")
         if check_result["passed"]:
             passed_checks += 1
 
-    print()
-    print(f"Security Checks: {passed_checks}/{total_checks} PASSED")
+    logger.info("")
+    logger.info(f"Security Checks: {passed_checks}/{total_checks} PASSED")
 
     # Security compliance score
     security_compliance = (passed_checks / total_checks) * 100
-    print(f"Security Compliance Score: {security_compliance:.1f}%")
+    logger.info(f"Security Compliance Score: {security_compliance:.1f}%")
     # Overall system readiness
     overall_ready = security_compliance >= 80 and security_report['overall_security_score'] >= 70
 
-    print()
+    logger.info("")
     if overall_ready:
-        print("🎉 SECURITY COMPLIANCE: PASSED")
-        print("✅ System is security-hardened and production-ready")
+        logger.info("🎉 SECURITY COMPLIANCE: PASSED")
+        logger.info("✅ System is security-hardened and production-ready")
     else:
-        print("⚠️  SECURITY COMPLIANCE: NEEDS IMPROVEMENT")
-        print("❌ Address security issues before production deployment")
+        logger.info("⚠️  SECURITY COMPLIANCE: NEEDS IMPROVEMENT")
+        logger.info("❌ Address security issues before production deployment")
 
-    print()
-    print("📋 Security Recommendations:")
+    logger.info("")
+    logger.info("📋 Security Recommendations:")
     for rec in security_report['recommendations'][:5]:  # Show top 5
-        print(f"  • {rec}")
+        logger.info(f"  • {rec}")
 
-    print()
-    print("=" * 60)
+    logger.info("")
+    logger.info("=" * 60)
 
     return {
         "security_compliance_score": security_compliance,
@@ -187,7 +190,7 @@ def check_security_monitoring():
 
 async def integrate_security_with_compliance():
     """Integrate security checks with main compliance system"""
-    print("[INTEGRATION] Integrating Security with Compliance System...")
+    logger.info("[INTEGRATION] Integrating Security with Compliance System...")
 
     # Run security compliance check
     security_results = await run_security_compliance_check()
@@ -196,41 +199,41 @@ async def integrate_security_with_compliance():
     compliance_report = await compliance_review_system.run_compliance_review()
     compliance_status = compliance_review_system.get_compliance_status()
 
-    print("\n📊 Integrated Compliance Status:")
-    print("=" * 40)
+    logger.info("\n📊 Integrated Compliance Status:")
+    logger.info("=" * 40)
 
     # Combine results
     overall_compliance = compliance_status.get('overall_compliant', False)
     security_compliance = security_results['system_ready']
 
-    print(f"Regulatory Compliance: {'✅ PASSED' if overall_compliance else '❌ FAILED'}")
-    print(f"Security Compliance: {'✅ PASSED' if security_compliance else '❌ FAILED'}")
+    logger.info(f"Regulatory Compliance: {'✅ PASSED' if overall_compliance else '❌ FAILED'}")
+    logger.info(f"Security Compliance: {'✅ PASSED' if security_compliance else '❌ FAILED'}")
 
     # Phase 1 completion status
     phase1_complete = overall_compliance and security_compliance
 
-    print()
+    logger.info("")
     if phase1_complete:
-        print("🎯 PHASE 1: CRITICAL BLOCKERS - COMPLETE!")
-        print("✅ System is production-ready for live trading")
-        print("✅ All regulatory and security requirements met")
+        logger.info("🎯 PHASE 1: CRITICAL BLOCKERS - COMPLETE!")
+        logger.info("✅ System is production-ready for live trading")
+        logger.info("✅ All regulatory and security requirements met")
     else:
-        print("⚠️  PHASE 1: INCOMPLETE")
+        logger.info("⚠️  PHASE 1: INCOMPLETE")
         if not overall_compliance:
-            print("❌ Regulatory compliance issues remain")
+            logger.info("❌ Regulatory compliance issues remain")
         if not security_compliance:
-            print("❌ Security hardening incomplete")
+            logger.info("❌ Security hardening incomplete")
 
-    print()
-    print("📈 Next Steps:")
+    logger.info("")
+    logger.info("📈 Next Steps:")
     if phase1_complete:
-        print("1. Proceed to Phase 2: API Integration")
-        print("2. Add critical trading APIs (ETH_PRIVATE_KEY, etc.)")
-        print("3. Implement live exchange connections")
+        logger.info("1. Proceed to Phase 2: API Integration")
+        logger.info("2. Add critical trading APIs (ETH_PRIVATE_KEY, etc.)")
+        logger.info("3. Implement live exchange connections")
     else:
-        print("1. Address remaining compliance issues")
-        print("2. Complete security hardening")
-        print("3. Re-run compliance checks")
+        logger.info("1. Address remaining compliance issues")
+        logger.info("2. Complete security hardening")
+        logger.info("3. Re-run compliance checks")
 
     return phase1_complete
 

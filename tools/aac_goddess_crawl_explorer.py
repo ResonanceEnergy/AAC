@@ -11,49 +11,52 @@ from datasets import load_dataset
 import pandas as pd
 from typing import Dict, List, Any
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 def explore_goddess_crawl_dataset():
     """
     Load and explore the goddess-crawl dataset from Hugging Face.
     """
-    print("🔍 AAC Goddess-Crawl Dataset Explorer")
-    print("=" * 50)
+    logger.info("🔍 AAC Goddess-Crawl Dataset Explorer")
+    logger.info("=" * 50)
 
     try:
-        print("📥 Loading goddess-crawl dataset from Hugging Face...")
+        logger.info("📥 Loading goddess-crawl dataset from Hugging Face...")
         # Load a small sample first to understand the structure
         dataset = load_dataset("OpenTransformer/goddess-crawl", split="train[:1000]")
 
-        print("✅ Dataset loaded successfully!")
-        print(f"   Sample size: {len(dataset)} rows")
-        print(f"   Features: {list(dataset.features.keys())}")
+        logger.info("✅ Dataset loaded successfully!")
+        logger.info(f"   Sample size: {len(dataset)} rows")
+        logger.info(f"   Features: {list(dataset.features.keys())}")
 
         # Examine the first few examples
-        print("\n🔎 Examining first 5 examples:")
+        logger.info("\n🔎 Examining first 5 examples:")
         for i, example in enumerate(dataset.select(range(5))):
-            print(f"\n--- Example {i+1} ---")
+            logger.info(f"\n--- Example {i+1} ---")
             for key, value in example.items():
                 if isinstance(value, str) and len(value) > 200:
-                    print(f"{key}: {value[:200]}... (truncated)")
+                    logger.info(f"{key}: {value[:200]}... (truncated)")
                 else:
-                    print(f"{key}: {value}")
+                    logger.info(f"{key}: {value}")
 
         # Analyze data types and structure
-        print("\n📊 Dataset Structure Analysis:")
+        logger.info("\n📊 Dataset Structure Analysis:")
         feature_info = {}
         for feature_name, feature_type in dataset.features.items():
             feature_info[feature_name] = str(feature_type)
 
-        print("Features and types:")
+        logger.info("Features and types:")
         for name, ftype in feature_info.items():
-            print(f"   {name}: {ftype}")
+            logger.info(f"   {name}: {ftype}")
 
         # Look for potential financial/trading content
-        print("\n💰 Analyzing for Financial/Trading Content:")
+        logger.info("\n💰 Analyzing for Financial/Trading Content:")
 
         text_fields = [col for col in dataset.column_names if 'text' in col.lower() or 'content' in col.lower()]
         if text_fields:
-            print(f"   Text fields found: {text_fields}")
+            logger.info(f"   Text fields found: {text_fields}")
 
             # Sample some text content to look for financial keywords
             sample_texts = []
@@ -77,16 +80,16 @@ def explore_goddess_crawl_dataset():
                     keyword_counts[keyword] = count
 
             if keyword_counts:
-                print("   Financial keywords detected:")
+                logger.info("   Financial keywords detected:")
                 for keyword, count in sorted(keyword_counts.items(), key=lambda x: x[1], reverse=True):
-                    print(f"     '{keyword}': {count} occurrences")
+                    logger.info(f"     '{keyword}': {count} occurrences")
             else:
-                print("   No obvious financial keywords found in sample")
+                logger.info("   No obvious financial keywords found in sample")
 
         # Check for URL or source fields
         url_fields = [col for col in dataset.column_names if 'url' in col.lower() or 'source' in col.lower() or 'link' in col.lower()]
         if url_fields:
-            print(f"   URL/source fields: {url_fields}")
+            logger.info(f"   URL/source fields: {url_fields}")
 
             # Sample some URLs to understand data sources
             sample_urls = []
@@ -96,50 +99,50 @@ def explore_goddess_crawl_dataset():
                         sample_urls.append(str(example[field]))
 
             if sample_urls:
-                print("   Sample URLs/sources:")
+                logger.info("   Sample URLs/sources:")
                 for url in sample_urls[:5]:
-                    print(f"     {url}")
+                    logger.info(f"     {url}")
 
         # Estimate dataset size and potential value
-        print(f"\n📈 Dataset Assessment:")
-        print(f"   Total estimated rows: ~4.9M")
-        print(f"   Sample analyzed: {len(dataset)} rows")
+        logger.info(f"\n📈 Dataset Assessment:")
+        logger.info(f"   Total estimated rows: ~4.9M")
+        logger.info(f"   Sample analyzed: {len(dataset)} rows")
 
         # Potential AAC integration assessment
-        print(f"\n🎯 AAC Integration Potential:")
+        logger.info(f"\n🎯 AAC Integration Potential:")
         has_financial_content = len(keyword_counts) > 0
         has_text_content = len(text_fields) > 0
         has_structured_data = len(dataset.features) > 2
 
         if has_financial_content:
-            print("   ✅ Contains financial/trading content - High arbitrage potential")
+            logger.info("   ✅ Contains financial/trading content - High arbitrage potential")
         else:
-            print("   ⚠️  No obvious financial content detected")
+            logger.info("   ⚠️  No obvious financial content detected")
 
         if has_text_content:
-            print("   ✅ Has text content - Suitable for sentiment analysis")
+            logger.info("   ✅ Has text content - Suitable for sentiment analysis")
         else:
-            print("   ❌ No text content found")
+            logger.info("   ❌ No text content found")
 
         if has_structured_data:
-            print("   ✅ Structured data available - Good for systematic processing")
+            logger.info("   ✅ Structured data available - Good for systematic processing")
         else:
-            print("   ⚠️  Limited structure - May require additional processing")
+            logger.info("   ⚠️  Limited structure - May require additional processing")
 
         # Recommendations
-        print(f"\n💡 Recommendations for AAC Integration:")
+        logger.info(f"\n💡 Recommendations for AAC Integration:")
         if has_financial_content and has_text_content:
-            print("   • Integrate as alternative data source for arbitrage signals")
-            print("   • Use for sentiment analysis in trading strategies")
-            print("   • Combine with existing Reddit and World Bank data")
-            print("   • Implement in AlgoTrading101 backtesting framework")
+            logger.info("   • Integrate as alternative data source for arbitrage signals")
+            logger.info("   • Use for sentiment analysis in trading strategies")
+            logger.info("   • Combine with existing Reddit and World Bank data")
+            logger.info("   • Implement in AlgoTrading101 backtesting framework")
         elif has_text_content:
-            print("   • May contain valuable unstructured data for ML models")
-            print("   • Consider NLP processing for feature extraction")
-            print("   • Evaluate for correlation with market movements")
+            logger.info("   • May contain valuable unstructured data for ML models")
+            logger.info("   • Consider NLP processing for feature extraction")
+            logger.info("   • Evaluate for correlation with market movements")
         else:
-            print("   • Dataset may not be directly relevant for financial analysis")
-            print("   • Consider if it contains domain-specific data for your strategies")
+            logger.info("   • Dataset may not be directly relevant for financial analysis")
+            logger.info("   • Consider if it contains domain-specific data for your strategies")
 
         return {
             'dataset_info': {
@@ -160,8 +163,8 @@ def explore_goddess_crawl_dataset():
         }
 
     except Exception as e:
-        print(f"❌ Error exploring dataset: {e}")
-        print("   This might be due to network issues or dataset access restrictions")
+        logger.info(f"❌ Error exploring dataset: {e}")
+        logger.info("   This might be due to network issues or dataset access restrictions")
         return None
 
 def create_aac_goddess_integration(result: Dict[str, Any]):
@@ -171,7 +174,7 @@ def create_aac_goddess_integration(result: Dict[str, Any]):
     if not result:
         return
 
-    print(f"\n🔧 Creating AAC Integration Code...")
+    logger.info(f"\n🔧 Creating AAC Integration Code...")
     integration_code = f'''
 """
 AAC Goddess-Crawl Dataset Integration
@@ -231,7 +234,7 @@ class AACGoddessCrawlIntegration:
                 self._dataset = load_dataset(self.dataset_name, split=split)
             return self._dataset
         except Exception as e:
-            print(f"❌ Error loading dataset: {{e}}")
+            logger.info(f"❌ Error loading dataset: {{e}}")
             return None
 
     def extract_financial_signals(self, text: str) -> Dict[str, Any]:
@@ -339,7 +342,7 @@ class AACGoddessCrawlIntegration:
             return pd.DataFrame(signals_data)
 
         except Exception as e:
-            print(f"❌ Error processing dataset: {{e}}")
+            logger.info(f"❌ Error processing dataset: {{e}}")
             return pd.DataFrame()
 
     def integrate_with_aac_arbitrage(self, arbitrage_signals: pd.DataFrame) -> pd.DataFrame:
@@ -356,7 +359,7 @@ class AACGoddessCrawlIntegration:
             goddess_signals = self.process_dataset_for_arbitrage(max_samples=5000)
 
             if goddess_signals.empty:
-                print("⚠️  No goddess-crawl signals to integrate")
+                logger.info("⚠️  No goddess-crawl signals to integrate")
                 return arbitrage_signals
 
             # Merge signals based on tickers
@@ -367,20 +370,20 @@ class AACGoddessCrawlIntegration:
             goddess_confidence = goddess_signals.groupby('mentioned_tickers')['confidence'].mean()
 
             # This would be integrated into your existing arbitrage logic
-            print(f"✅ Integrated {{len(goddess_signals)}} goddess-crawl signals")
-            print(f"   Unique tickers with signals: {{len(goddess_sentiment)}}")
+            logger.info(f"✅ Integrated {{len(goddess_signals)}} goddess-crawl signals")
+            logger.info(f"   Unique tickers with signals: {{len(goddess_sentiment)}}")
 
             return enhanced_signals
 
         except Exception as e:
-            print(f"❌ Error integrating signals: {{e}}")
+            logger.info(f"❌ Error integrating signals: {{e}}")
             return arbitrage_signals
 
 # Example usage
 def demo_goddess_aac_integration():
     """Demonstrate goddess-crawl integration with AAC"""
-    print("AAC Goddess-Crawl Integration Demo")
-    print("=" * 40)
+    logger.info("AAC Goddess-Crawl Integration Demo")
+    logger.info("=" * 40)
 
     integrator = AACGoddessCrawlIntegration()
 
@@ -388,18 +391,18 @@ def demo_goddess_aac_integration():
     signals_df = integrator.process_dataset_for_arbitrage(max_samples=100)
 
     if not signals_df.empty:
-        print(f"✅ Processed {{len(signals_df)}} signals")
+        logger.info(f"✅ Processed {{len(signals_df)}} signals")
         print("\\nSample signals:"
-        print(signals_df.head())
+        logger.info(str(signals_df.head()))
 
         # Show summary statistics
-        print("\\n📊 Signal Statistics:")
-        print(f"   Average sentiment: {{signals_df['sentiment_score'].mean():.3f}}")
-        print(f"   Average confidence: {{signals_df['confidence'].mean():.3f}}")
-        print(f"   Total unique tickers: {{len(set([t for tickers in signals_df['mentioned_tickers'] for t in tickers]))}}")
-        print(f"   Total financial keywords: {{len(set([k for keywords in signals_df['financial_keywords'] for k in keywords]))}}")
+        logger.info("\\n📊 Signal Statistics:")
+        logger.info(f"   Average sentiment: {{signals_df['sentiment_score'].mean():.3f}}")
+        logger.info(f"   Average confidence: {{signals_df['confidence'].mean():.3f}}")
+        logger.info(f"   Total unique tickers: {{len(set([t for tickers in signals_df['mentioned_tickers'] for t in tickers]))}}")
+        logger.info(f"   Total financial keywords: {{len(set([k for keywords in signals_df['financial_keywords'] for k in keywords]))}}")
     else:
-        print("❌ No signals processed")
+        logger.info("❌ No signals processed")
 
 if __name__ == "__main__":
     demo_goddess_aac_integration()

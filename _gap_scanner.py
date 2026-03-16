@@ -4,6 +4,9 @@ import re
 import ast
 import sys
 from collections import Counter
+import logging
+
+logger = logging.getLogger(__name__)
 
 ROOT = r"c:\dev\AAC_fresh"
 gaps = []
@@ -150,12 +153,12 @@ with open(os.path.join(ROOT, "gap_scan_full.txt"), "w", encoding="utf-8") as out
         out.write("|".join(str(x) for x in g) + "\n")
 
 cats = Counter(g[1] for g in gaps)
-print(f"Total gaps: {len(gaps)}")
+logger.info(f"Total gaps: {len(gaps)}")
 for cat, count in cats.most_common():
-    print(f"  {cat}: {count}")
+    logger.info(f"  {cat}: {count}")
 
 # Show per-file breakdown for top files
 file_counts = Counter(g[2] for g in gaps)
-print(f"\nTop 30 files by gap count:")
+logger.info(f"\nTop 30 files by gap count:")
 for f, c in file_counts.most_common(30):
-    print(f"  {c:4d}  {f}")
+    logger.info(f"  {c:4d}  {f}")

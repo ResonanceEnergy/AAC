@@ -13,6 +13,9 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 from typing import Dict, List
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Add current directory to path for imports
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -103,7 +106,7 @@ class AACAlgoTrading101IntegrationTest:
         Tests the integration between AAC arbitrage logic and
         AlgoTrading101 backtesting framework.
         """
-        print("🧪 Testing Statistical Arbitrage Backtest...")
+        logger.info("🧪 Testing Statistical Arbitrage Backtest...")
 
         try:
             # Generate sample data for correlated assets
@@ -121,14 +124,14 @@ class AACAlgoTrading101IntegrationTest:
             )
 
             if results:
-                print("✅ Statistical arbitrage backtest completed")
-                print(f"   Strategy: {results.strategy_name}")
-                print(".1%")
-                print(".2f")
-                print(".1%")
-                print(".1%")
-                print(f"   Total trades: {results.total_trades}")
-                print(f"   Period: {results.start_date.date()} to {results.end_date.date()}")
+                logger.info("✅ Statistical arbitrage backtest completed")
+                logger.info(f"   Strategy: {results.strategy_name}")
+                logger.info(".1%")
+                logger.info(".2f")
+                logger.info(".1%")
+                logger.info(".1%")
+                logger.info(f"   Total trades: {results.total_trades}")
+                logger.info(f"   Period: {results.start_date.date()} to {results.end_date.date()}")
 
                 # Validate results
                 assert results.total_trades > 0, "Should have executed trades"
@@ -142,7 +145,7 @@ class AACAlgoTrading101IntegrationTest:
                 })
 
             else:
-                print("❌ Statistical arbitrage backtest failed")
+                logger.info("❌ Statistical arbitrage backtest failed")
                 self.test_results.append({
                     'test': 'statistical_arbitrage_backtest',
                     'status': 'FAILED',
@@ -150,7 +153,7 @@ class AACAlgoTrading101IntegrationTest:
                 })
 
         except Exception as e:
-            print(f"❌ Statistical arbitrage test error: {e}")
+            logger.info(f"❌ Statistical arbitrage test error: {e}")
             self.test_results.append({
                 'test': 'statistical_arbitrage_backtest',
                 'status': 'ERROR',
@@ -163,7 +166,7 @@ class AACAlgoTrading101IntegrationTest:
 
         Tests more complex arbitrage involving multiple assets.
         """
-        print("🧪 Testing Multi-Asset Arbitrage Backtest...")
+        logger.info("🧪 Testing Multi-Asset Arbitrage Backtest...")
 
         try:
             # Generate data for tech sector arbitrage
@@ -211,9 +214,9 @@ class AACAlgoTrading101IntegrationTest:
             )
 
             if results:
-                print("✅ Multi-asset arbitrage backtest completed")
-                print(f"   Total trades: {results.total_trades}")
-                print(".1%")
+                logger.info("✅ Multi-asset arbitrage backtest completed")
+                logger.info(f"   Total trades: {results.total_trades}")
+                logger.info(".1%")
 
                 self.test_results.append({
                     'test': 'multi_asset_arbitrage_backtest',
@@ -222,7 +225,7 @@ class AACAlgoTrading101IntegrationTest:
                 })
 
             else:
-                print("❌ Multi-asset arbitrage backtest failed")
+                logger.info("❌ Multi-asset arbitrage backtest failed")
                 self.test_results.append({
                     'test': 'multi_asset_arbitrage_backtest',
                     'status': 'FAILED',
@@ -230,7 +233,7 @@ class AACAlgoTrading101IntegrationTest:
                 })
 
         except Exception as e:
-            print(f"❌ Multi-asset arbitrage test error: {e}")
+            logger.info(f"❌ Multi-asset arbitrage test error: {e}")
             self.test_results.append({
                 'test': 'multi_asset_arbitrage_backtest',
                 'status': 'ERROR',
@@ -241,19 +244,19 @@ class AACAlgoTrading101IntegrationTest:
         """
         Test integration with AAC timestamp converter for market hours filtering.
         """
-        print("🧪 Testing Timestamp Integration...")
+        logger.info("🧪 Testing Timestamp Integration...")
 
         try:
             # Test timestamp conversion
             test_timestamp = 1704067200  # 2024-01-01 00:00:00 UTC
             converted = self.timestamp_converter.epoch_to_datetime(test_timestamp)
 
-            print("✅ Timestamp conversion working")
-            print(f"   Input: {test_timestamp}")
-            print(f"   Output: {converted}")
+            logger.info("✅ Timestamp conversion working")
+            logger.info(f"   Input: {test_timestamp}")
+            logger.info(f"   Output: {converted}")
 
             # Test market hours detection (simplified)
-            print(f"   During business hours check: Available")
+            logger.info(f"   During business hours check: Available")
 
             self.test_results.append({
                 'test': 'timestamp_integration',
@@ -266,7 +269,7 @@ class AACAlgoTrading101IntegrationTest:
             })
 
         except Exception as e:
-            print(f"❌ Timestamp integration test error: {e}")
+            logger.info(f"❌ Timestamp integration test error: {e}")
             self.test_results.append({
                 'test': 'timestamp_integration',
                 'status': 'ERROR',
@@ -277,7 +280,7 @@ class AACAlgoTrading101IntegrationTest:
         """
         Test that performance metrics are calculated correctly.
         """
-        print("🧪 Testing Performance Metrics Calculation...")
+        logger.info("🧪 Testing Performance Metrics Calculation...")
 
         try:
             # Create simple test data
@@ -291,9 +294,9 @@ class AACAlgoTrading101IntegrationTest:
             peak = np.maximum.accumulate(portfolio_values)
             manual_max_dd = np.min((portfolio_values - peak) / peak)
 
-            print("✅ Performance metrics calculation working")
-            print(".2f")
-            print(".1%")
+            logger.info("✅ Performance metrics calculation working")
+            logger.info(".2f")
+            logger.info(".1%")
 
             # Verify calculations are reasonable
             assert -10 <= manual_sharpe <= 10, "Sharpe ratio should be reasonable"
@@ -309,7 +312,7 @@ class AACAlgoTrading101IntegrationTest:
             })
 
         except Exception as e:
-            print(f"❌ Performance metrics test error: {e}")
+            logger.info(f"❌ Performance metrics test error: {e}")
             self.test_results.append({
                 'test': 'performance_metrics_calculation',
                 'status': 'ERROR',
@@ -320,23 +323,23 @@ class AACAlgoTrading101IntegrationTest:
         """
         Run all integration tests and report results.
         """
-        print("AAC AlgoTrading101 Integration Test Suite")
-        print("=" * 50)
-        print("Testing AAC arbitrage strategies with AlgoTrading101 backtesting")
-        print()
+        logger.info("AAC AlgoTrading101 Integration Test Suite")
+        logger.info("=" * 50)
+        logger.info("Testing AAC arbitrage strategies with AlgoTrading101 backtesting")
+        logger.info("")
 
         # Run all tests
         self.test_statistical_arbitrage_backtest()
-        print()
+        logger.info("")
 
         self.test_multi_asset_arbitrage_backtest()
-        print()
+        logger.info("")
 
         self.test_timestamp_integration()
-        print()
+        logger.info("")
 
         self.test_performance_metrics_calculation()
-        print()
+        logger.info("")
 
         # Report results
         self.report_results()
@@ -345,8 +348,8 @@ class AACAlgoTrading101IntegrationTest:
         """
         Report test results summary.
         """
-        print("📊 Test Results Summary")
-        print("-" * 30)
+        logger.info("📊 Test Results Summary")
+        logger.info("-" * 30)
 
         passed = 0
         failed = 0
@@ -357,33 +360,33 @@ class AACAlgoTrading101IntegrationTest:
             test_name = result['test'].replace('_', ' ').title()
 
             if status == 'PASSED':
-                print(f"✅ {test_name}: PASSED")
+                logger.info(f"✅ {test_name}: PASSED")
                 passed += 1
             elif status == 'FAILED':
-                print(f"❌ {test_name}: FAILED - {result['details']}")
+                logger.info(f"❌ {test_name}: FAILED - {result['details']}")
                 failed += 1
             else:
-                print(f"⚠️  {test_name}: ERROR - {result['details']}")
+                logger.info(f"⚠️  {test_name}: ERROR - {result['details']}")
                 errors += 1
 
-        print()
-        print(f"Total Tests: {len(self.test_results)}")
-        print(f"Passed: {passed}")
-        print(f"Failed: {failed}")
-        print(f"Errors: {errors}")
+        logger.info("")
+        logger.info(f"Total Tests: {len(self.test_results)}")
+        logger.info(f"Passed: {passed}")
+        logger.info(f"Failed: {failed}")
+        logger.info(f"Errors: {errors}")
 
         if failed == 0 and errors == 0:
-            print("🎉 All tests passed! AAC + AlgoTrading101 integration is working correctly.")
+            logger.info("🎉 All tests passed! AAC + AlgoTrading101 integration is working correctly.")
         else:
-            print("⚠️  Some tests failed. Check the details above for issues.")
+            logger.info("⚠️  Some tests failed. Check the details above for issues.")
 
-        print()
-        print("🔧 Integration Status:")
-        print("   • AAC Arbitrage Strategies: ✅ Integrated")
-        print("   • AlgoTrading101 Backtesting: ✅ Working")
-        print("   • Timestamp Converter: ✅ Functional")
-        print("   • Performance Metrics: ✅ Calculated")
-        print("   • Multi-Asset Support: ✅ Available")
+        logger.info("")
+        logger.info("🔧 Integration Status:")
+        logger.info("   • AAC Arbitrage Strategies: ✅ Integrated")
+        logger.info("   • AlgoTrading101 Backtesting: ✅ Working")
+        logger.info("   • Timestamp Converter: ✅ Functional")
+        logger.info("   • Performance Metrics: ✅ Calculated")
+        logger.info("   • Multi-Asset Support: ✅ Available")
 
 
 def run_integration_tests():

@@ -33,6 +33,9 @@ API Documentation: See reddit_api_documentation.py for detailed endpoint specs
 
 import os
 from dotenv import load_dotenv
+import logging
+
+logger = logging.getLogger(__name__)
 
 def check_reddit_credentials():
     """Check current Reddit API configuration"""
@@ -46,8 +49,8 @@ def check_reddit_credentials():
         'password': os.getenv('REDDIT_PASSWORD')
     }
 
-    print("🔍 Current Reddit API Configuration:")
-    print("-" * 40)
+    logger.info("🔍 Current Reddit API Configuration:")
+    logger.info("-" * 40)
 
     configured = 0
     for key, value in credentials.items():
@@ -60,54 +63,54 @@ def check_reddit_credentials():
         else:
             display_value = "None"
 
-        print(f"   {key}: {status} ({display_value})")
+        logger.info(f"   {key}: {status} ({display_value})")
         if value:
             configured += 1
 
-    print(f"\n📊 Configuration Status: {configured}/5 credentials set")
+    logger.info(f"\n📊 Configuration Status: {configured}/5 credentials set")
 
     if configured >= 3:  # client_id, client_secret, user_agent are required
-        print("✅ Basic configuration complete - you can use read-only access")
+        logger.info("✅ Basic configuration complete - you can use read-only access")
         if configured >= 5:
-            print("✅ Full configuration complete - you can use authenticated access")
+            logger.info("✅ Full configuration complete - you can use authenticated access")
     else:
-        print("❌ Insufficient configuration - please set at least client_id, client_secret, and user_agent")
+        logger.info("❌ Insufficient configuration - please set at least client_id, client_secret, and user_agent")
 
     return credentials
 
 def generate_reddit_app_guide():
     """Generate step-by-step guide for creating Reddit app"""
-    print("\n📋 Reddit API Setup Guide:")
-    print("=" * 50)
-    print()
-    print("1. 🌐 Go to Reddit Apps Page:")
-    print("   https://www.reddit.com/prefs/apps")
-    print()
-    print("2. 🔐 Log in to your Reddit account")
-    print()
-    print("3. ➕ Create New App:")
-    print("   - Click 'Create App' or 'Create Another App'")
-    print("   - App type: script")
-    print("   - Name: AAC Arbitrage Bot")
-    print("   - Description: Automated arbitrage trading sentiment analysis")
-    print("   - About URL: (leave blank)")
-    print("   - Redirect URI: http://localhost:8080")
-    print()
-    print("4. 📝 Copy Credentials:")
-    print("   - client_id: The string under the app name")
-    print("   - client_secret: The 'secret' field")
-    print()
-    print("5. 🧪 Test Configuration:")
-    print("   Run: python praw_reddit_integration.py")
-    print()
-    print("6. 🔑 Optional - Authenticated Access:")
-    print("   For higher rate limits, also set:")
-    print("   - username: Your Reddit username")
-    print("   - password: Your Reddit password")
-    print()
-    print("⚠️  Security Note:")
-    print("   Never share your Reddit credentials or commit them to version control!")
-    print("   The .env file is already in .gitignore for your protection.")
+    logger.info("\n📋 Reddit API Setup Guide:")
+    logger.info("=" * 50)
+    logger.info("")
+    logger.info("1. 🌐 Go to Reddit Apps Page:")
+    logger.info("   https://www.reddit.com/prefs/apps")
+    logger.info("")
+    logger.info("2. 🔐 Log in to your Reddit account")
+    logger.info("")
+    logger.info("3. ➕ Create New App:")
+    logger.info("   - Click 'Create App' or 'Create Another App'")
+    logger.info("   - App type: script")
+    logger.info("   - Name: AAC Arbitrage Bot")
+    logger.info("   - Description: Automated arbitrage trading sentiment analysis")
+    logger.info("   - About URL: (leave blank)")
+    logger.info("   - Redirect URI: http://localhost:8080")
+    logger.info("")
+    logger.info("4. 📝 Copy Credentials:")
+    logger.info("   - client_id: The string under the app name")
+    logger.info("   - client_secret: The 'secret' field")
+    logger.info("")
+    logger.info("5. 🧪 Test Configuration:")
+    logger.info("   Run: python praw_reddit_integration.py")
+    logger.info("")
+    logger.info("6. 🔑 Optional - Authenticated Access:")
+    logger.info("   For higher rate limits, also set:")
+    logger.info("   - username: Your Reddit username")
+    logger.info("   - password: Your Reddit password")
+    logger.info("")
+    logger.info("⚠️  Security Note:")
+    logger.info("   Never share your Reddit credentials or commit them to version control!")
+    logger.info("   The .env file is already in .gitignore for your protection.")
 
 if __name__ == "__main__":
     print("🚀 AAC Reddit API Setup Guide")

@@ -1225,56 +1225,56 @@ async def _establish_swarm_connections():
 async def demo_super_agents():
     """Demonstrate super agent capabilities"""
 
-    print("[DEPLOY] AAC Super Agent Demonstration")
-    print("=" * 50)
+    logger.info("[DEPLOY] AAC Super Agent Demonstration")
+    logger.info("=" * 50)
 
     # Initialize super agent network
-    print("Initializing super agent network...")
+    logger.info("Initializing super agent network...")
     network_initialized = await initialize_super_agent_network()
 
     if not network_initialized:
-        print("[CROSS] Failed to initialize super agent network")
+        logger.info("[CROSS] Failed to initialize super agent network")
         return
 
-    print("✅ Super agent network operational")
+    logger.info("✅ Super agent network operational")
 
     # Demonstrate a few super agents
     demo_agents = ['narrative_analyzer', 'latency_monitor', 'api_scanner']
 
     for agent_id in demo_agents:
-        print(f"\\n🧬 Testing Super Agent: {agent_id}")
+        logger.info(f"\\n🧬 Testing Super Agent: {agent_id}")
 
         agent = await get_super_agent(agent_id)
         if agent:
             # Show capabilities
             metrics = agent.get_super_metrics()
-            print(f"  • Super Capabilities: {len(agent.super_capabilities)}")
-            print(f"  • Quantum Acceleration: {metrics['performance_metrics']['quantum_acceleration_factor']:.1f}x")
-            print(f"  • Prediction Accuracy: {metrics['performance_metrics']['prediction_accuracy']:.1%}")
-            print(f"  • Swarm Connections: {len(agent.super_core.swarm_connections)}")
+            logger.info(f"  • Super Capabilities: {len(agent.super_capabilities)}")
+            logger.info(f"  • Quantum Acceleration: {metrics['performance_metrics']['quantum_acceleration_factor']:.1f}x")
+            logger.info(f"  • Prediction Accuracy: {metrics['performance_metrics']['prediction_accuracy']:.1%}")
+            logger.info(f"  • Swarm Connections: {len(agent.super_core.swarm_connections)}")
 
             # Perform super analysis
-            print("  • Executing super analysis...")
+            logger.info("  • Executing super analysis...")
             test_data = {"market_context": {"price": 50000, "volume": 1000000}}
             analysis = await agent.execute_super_analysis(test_data)
 
-            print(f"  • Analysis completed in {analysis['processing_time_ms']:.1f}ms")
-            print(f"  • Overall confidence: {analysis['confidence_score']:.1%}")
-            print(f"  • Insights generated: {len(analysis.get('quantum_insights', {}).get('insights', [])) + len(analysis.get('ai_predictions', {}).get('predictions', [])) + len(analysis.get('swarm_insights', {}).get('swarm_insights', []))}")
+            logger.info(f"  • Analysis completed in {analysis['processing_time_ms']:.1f}ms")
+            logger.info(f"  • Overall confidence: {analysis['confidence_score']:.1%}")
+            logger.info(f"  • Insights generated: {len(analysis.get('quantum_insights', {}).get('insights', [])) + len(analysis.get('ai_predictions', {}).get('predictions', [])) + len(analysis.get('swarm_insights', {}).get('swarm_insights', []))}")
 
         else:
-            print(f"  [CROSS] Failed to initialize {agent_id}")
+            logger.info(f"  [CROSS] Failed to initialize {agent_id}")
 
-    print("\\n[CELEBRATION] Super agent demonstration complete!")
-    print("\\n✨ Key Super Agent Features:")
-    print("  • Quantum computing integration")
-    print("  • Advanced AI/ML capabilities")
-    print("  • Swarm intelligence coordination")
-    print("  • Cross-temporal analysis")
-    print("  • Autonomous decision making")
-    print("  • Real-time adaptation")
-    print("  • Multi-dimensional optimization")
-    print("  • Enhanced perception and learning")
+    logger.info("\\n[CELEBRATION] Super agent demonstration complete!")
+    logger.info("\\n✨ Key Super Agent Features:")
+    logger.info("  • Quantum computing integration")
+    logger.info("  • Advanced AI/ML capabilities")
+    logger.info("  • Swarm intelligence coordination")
+    logger.info("  • Cross-temporal analysis")
+    logger.info("  • Autonomous decision making")
+    logger.info("  • Real-time adaptation")
+    logger.info("  • Multi-dimensional optimization")
+    logger.info("  • Enhanced perception and learning")
 
 if __name__ == "__main__":
     # Run demonstration

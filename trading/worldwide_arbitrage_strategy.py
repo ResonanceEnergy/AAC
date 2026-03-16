@@ -315,21 +315,21 @@ async def main():
         filtered_opps = strategy.filter_opportunities(opportunities)
 
         if filtered_opps:
-            print(f"\n[TARGET] Found {len(filtered_opps)} Arbitrage Opportunities:")
-            print("=" * 60)
+            logger.info(f"\n[TARGET] Found {len(filtered_opps)} Arbitrage Opportunities:")
+            logger.info("=" * 60)
 
             for i, opp in enumerate(filtered_opps[:5], 1):
-                print(f"{i}. {opp.symbol}")
-                print(f"   Buy:  {opp.buy_exchange} @ ${opp.buy_price:.4f}")
-                print(f"   Sell: {opp.sell_exchange} @ ${opp.sell_price:.4f}")
-                print(f"   Spread: {opp.spread_pct:.2%}")
-                print(f"   Profit: ${opp.potential_profit:.2f}")
-                print()
+                logger.info(f"{i}. {opp.symbol}")
+                logger.info(f"   Buy:  {opp.buy_exchange} @ ${opp.buy_price:.4f}")
+                logger.info(f"   Sell: {opp.sell_exchange} @ ${opp.sell_price:.4f}")
+                logger.info(f"   Spread: {opp.spread_pct:.2%}")
+                logger.info(f"   Profit: ${opp.potential_profit:.2f}")
+                logger.info("")
         else:
-            print("\n[WARN] No arbitrage opportunities found (may be due to rate limits)")
+            logger.info("\n[WARN] No arbitrage opportunities found (may be due to rate limits)")
 
-        print(f"\n[DATA] API Calls Used: {strategy.call_count}/{strategy.max_calls_per_day}")
-        print("[INFO] Alpha Vantage free tier: 25 calls/day, 5 calls/minute")
+        logger.info(f"\n[DATA] API Calls Used: {strategy.call_count}/{strategy.max_calls_per_day}")
+        logger.info("[INFO] Alpha Vantage free tier: 25 calls/day, 5 calls/minute")
 
     except Exception as e:
         logger.error(f"Error running strategy: {e}")

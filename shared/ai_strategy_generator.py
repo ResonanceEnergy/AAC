@@ -23,6 +23,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, mean_squared_error
 import joblib
 
+logger = logging.getLogger(__name__)
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
@@ -665,7 +667,7 @@ ai_strategy_generator = AIStrategyGenerator()
 
 async def initialize_ai_strategy_generation():
     """Initialize the AI strategy generation system"""
-    print("[AI] Initializing AI Strategy Generation Engine...")
+    logger.info("[AI] Initializing AI Strategy Generation Engine...")
 
     # Initialize the AI strategy generator instance
     await ai_strategy_generator.initialize()
@@ -673,9 +675,9 @@ async def initialize_ai_strategy_generation():
     # Start background strategy generation
     asyncio.create_task(ai_strategy_generator.start_strategy_generation_loop())
 
-    print("[OK] AI strategy generation initialized")
-    print(f"  Active opportunities: {len(await ai_strategy_generator.get_active_opportunities())}")
-    print(f"  Generated strategies: {len(ai_strategy_generator.get_generated_strategies())}")
+    logger.info("[OK] AI strategy generation initialized")
+    logger.info(f"  Active opportunities: {len(await ai_strategy_generator.get_active_opportunities())}")
+    logger.info(f"  Generated strategies: {len(ai_strategy_generator.get_generated_strategies())}")
 
 
 if __name__ == "__main__":

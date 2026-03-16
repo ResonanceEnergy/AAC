@@ -16,6 +16,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 import sys
 
+logger = logging.getLogger(__name__)
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
@@ -1259,48 +1261,48 @@ api_integration_hub = APIIntegrationHub()
 
 async def test_api_integrations():
     """Test all API integrations"""
-    print("🔗 Testing API Integrations - Phase 2")
-    print("=" * 50)
+    logger.info("🔗 Testing API Integrations - Phase 2")
+    logger.info("=" * 50)
 
     # Get system status
     status = await api_integration_hub.get_system_status()
 
-    print(f"📊 Configured APIs: {status['total_configured_apis']}")
-    print(f"🧪 Connection Tests: {status['connection_tests_run']}")
-    print(f"✅ Successful: {status['successful_connections']}")
-    print(f"📈 Success Rate: {status['connection_success_rate']:.1f}%")
-    print()
+    logger.info(f"📊 Configured APIs: {status['total_configured_apis']}")
+    logger.info(f"🧪 Connection Tests: {status['connection_tests_run']}")
+    logger.info(f"✅ Successful: {status['successful_connections']}")
+    logger.info(f"📈 Success Rate: {status['connection_success_rate']:.1f}%")
+    logger.info("")
 
     # Show available clients
     if status['available_clients']:
-        print("🔧 Available API Clients:")
+        logger.info("🔧 Available API Clients:")
         for client in status['available_clients']:
-            print(f"  • {client}")
+            logger.info(f"  • {client}")
     else:
-        print("⚠️  No API clients configured")
-        print("   Configure API keys in .env file:")
-        print("   - ETH_PRIVATE_KEY")
-        print("   - BIGBRAIN_AUTH_TOKEN")
-        print("   - COINMARKETCAP_API_KEY")
-        print("   - NEWS_API_KEY")
-        print("   - TWITTER_BEARER_TOKEN")
-        print("   - REDDIT_CLIENT_ID & REDDIT_CLIENT_SECRET")
-        print("   - NCC_AUTH_TOKEN")
-        print("   - KYC_PROVIDER_API_KEY")
+        logger.info("⚠️  No API clients configured")
+        logger.info("   Configure API keys in .env file:")
+        logger.info("   - ETH_PRIVATE_KEY")
+        logger.info("   - BIGBRAIN_AUTH_TOKEN")
+        logger.info("   - COINMARKETCAP_API_KEY")
+        logger.info("   - NEWS_API_KEY")
+        logger.info("   - TWITTER_BEARER_TOKEN")
+        logger.info("   - REDDIT_CLIENT_ID & REDDIT_CLIENT_SECRET")
+        logger.info("   - NCC_AUTH_TOKEN")
+        logger.info("   - KYC_PROVIDER_API_KEY")
 
-    print()
+    logger.info("")
 
     # Show connection test results
     if status['connection_details']:
-        print("🧪 Connection Test Results:")
+        logger.info("🧪 Connection Test Results:")
         for api_name, details in status['connection_details'].items():
             status_icon = "✅" if details['success'] else "❌"
-            print(f"  {status_icon} {api_name}: {details['response_time']:.2f}s")
+            logger.info(f"  {status_icon} {api_name}: {details['response_time']:.2f}s")
             if not details['success'] and details['error']:
-                print(f"    Error: {details['error']}")
+                logger.info(f"    Error: {details['error']}")
 
-    print()
-    print("=" * 50)
+    logger.info("")
+    logger.info("=" * 50)
 
 
 if __name__ == "__main__":

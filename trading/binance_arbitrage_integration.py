@@ -30,6 +30,9 @@ from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass
 from dotenv import load_dotenv
 import requests
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
@@ -144,7 +147,7 @@ class BinanceArbitrageClient:
             else:
                 raise ValueError(f"Unsupported HTTP method: {method}")
         except Exception as e:
-            print(f"Request error: {e}")
+            logger.info(f"Request error: {e}")
             raise
 
     async def _handle_response(self, response) -> Dict:
@@ -167,7 +170,7 @@ class BinanceArbitrageClient:
                 timestamp=datetime.now()
             )
         except Exception as e:
-            print(f"Error getting price for {symbol}: {e}")
+            logger.info(f"Error getting price for {symbol}: {e}")
             return None
 
     async def get_24hr_stats(self, symbol: str) -> Optional[Dict]:
@@ -175,7 +178,7 @@ class BinanceArbitrageClient:
         try:
             return await self._make_request('GET', '/api/v3/ticker/24hr', {'symbol': symbol})
         except Exception as e:
-            print(f"Error getting 24hr stats for {symbol}: {e}")
+            logger.info(f"Error getting 24hr stats for {symbol}: {e}")
             return None
 
     async def get_order_book(self, symbol: str, limit: int = 100) -> Optional[OrderBook]:
@@ -196,7 +199,7 @@ class BinanceArbitrageClient:
                 timestamp=datetime.now()
             )
         except Exception as e:
-            print(f"Error getting order book for {symbol}: {e}")
+            logger.info(f"Error getting order book for {symbol}: {e}")
             return None
 
     async def get_account_info(self) -> Optional[Dict]:
@@ -204,7 +207,7 @@ class BinanceArbitrageClient:
         try:
             return await self._make_request('GET', '/api/v3/account', signed=True)
         except Exception as e:
-            print(f"Error getting account info: {e}")
+            logger.info(f"Error getting account info: {e}")
             return None
 
     async def place_order(self, symbol: str, side: str, order_type: str,
@@ -226,7 +229,7 @@ class BinanceArbitrageClient:
             return await self._make_request('POST', endpoint, params, signed=True)
 
         except Exception as e:
-            print(f"Error placing order: {e}")
+            logger.info(f"Error placing order: {e}")
             return None
 
     async def get_multiple_prices(self, symbols: List[str]) -> Dict[str, BinancePrice]:
@@ -242,67 +245,67 @@ class BinanceArbitrageClient:
 
 async def test_binance_integration():
     """Test Binance integration"""
-    print("🔍 Testing Binance Integration")
-    print("=" * 40)
+    logger.info("🔍 Testing Binance Integration")
+    logger.info("=" * 40)
 
     config = BinanceConfig()
 
     if not config.is_configured():
-        print("❌ BINANCE_API_KEY and BINANCE_API_SECRET not configured")
-        print("   Current values are dummy ('y')")
-        print("   Get real keys from: https://www.binance.com/en/my/settings/api-management")
-        print("   For testnet: https://testnet.binance.vision/")
+        logger.info("❌ BINANCE_API_KEY and BINANCE_API_SECRET not configured")
+        logger.info("   Current values are dummy ('y')")
+        logger.info("   Get real keys from: https://www.binance.com/en/my/settings/api-management")
+        logger.info("   For testnet: https://testnet.binance.vision/")
         return
 
-    print(f"✅ API Key configured: {config.api_key[:8]}...")
-    print(f"🏭 Testnet mode: {'ON' if config.testnet else 'OFF'}")
+    logger.info(f"✅ API Key configured: {config.api_key[:8]}...")
+    logger.info(f"🏭 Testnet mode: {'ON' if config.testnet else 'OFF'}")
 
     async with BinanceArbitrageClient(config) as client:
         # Test basic price fetching
-        print("\n📈 Testing Price Data:")
+        logger.info("\n📈 Testing Price Data:")
         symbols = ['BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'ADAUSDT']
 
         prices = await client.get_multiple_prices(symbols)
 
         for symbol, price_data in prices.items():
-            print(f"   {symbol}: ${price_data.price:.2f}")
+            logger.info(f"   {symbol}: ${price_data.price:.2f}")
 
         # Test order book
-        print("\n📊 Testing Order Book (BTCUSDT):")
+        logger.info("\n📊 Testing Order Book (BTCUSDT):")
         order_book = await client.get_order_book('BTCUSDT', limit=5)
 
         if order_book:
-            print(f"   Best Bid: ${order_book.bids[0][0]:.2f} (Qty: {order_book.bids[0][1]:.4f})")
-            print(f"   Best Ask: ${order_book.asks[0][0]:.2f} (Qty: {order_book.asks[0][1]:.4f})")
-            print(f"   Spread: ${(order_book.asks[0][0] - order_book.bids[0][0]):.2f}")
+            logger.info(f"   Best Bid: ${order_book.bids[0][0]:.2f} (Qty: {order_book.bids[0][1]:.4f})")
+            logger.info(f"   Best Ask: ${order_book.asks[0][0]:.2f} (Qty: {order_book.asks[0][1]:.4f})")
+            logger.info(f"   Spread: ${(order_book.asks[0][0] - order_book.bids[0][0]):.2f}")
 
         # Test 24hr stats
-        print("\n📈 Testing 24hr Statistics (BTCUSDT):")
+        logger.info("\n📈 Testing 24hr Statistics (BTCUSDT):")
         stats = await client.get_24hr_stats('BTCUSDT')
 
         if stats:
-            print(f"   Price Change: {float(stats['priceChangePercent']):+.2f}%")
-            print(f"   Volume: {float(stats['volume']):,.0f} BTC")
-            print(f"   High: ${float(stats['highPrice']):.2f}")
-            print(f"   Low: ${float(stats['lowPrice']):.2f}")
+            logger.info(f"   Price Change: {float(stats['priceChangePercent']):+.2f}%")
+            logger.info(f"   Volume: {float(stats['volume']):,.0f} BTC")
+            logger.info(f"   High: ${float(stats['highPrice']):.2f}")
+            logger.info(f"   Low: ${float(stats['lowPrice']):.2f}")
 
         # Test account info (if configured properly)
-        print("\n👤 Testing Account Info:")
+        logger.info("\n👤 Testing Account Info:")
         account = await client.get_account_info()
 
         if account:
-            print("✅ Account access successful")
+            logger.info("✅ Account access successful")
             balances = [b for b in account['balances'] if float(b['free']) > 0 or float(b['locked']) > 0]
             if balances:
-                print("   Balances:")
+                logger.info("   Balances:")
                 for balance in balances[:5]:  # Show first 5
-                    print(f"     {balance['asset']}: {balance['free']} free, {balance['locked']} locked")
+                    logger.info(f"     {balance['asset']}: {balance['free']} free, {balance['locked']} locked")
             else:
-                print("   No balances found (testnet account)")
+                logger.info("   No balances found (testnet account)")
         else:
-            print("❌ Account access failed (check API keys)")
+            logger.info("❌ Account access failed (check API keys)")
 
-    print("\n✅ Binance integration test complete!")
+    logger.info("\n✅ Binance integration test complete!")
 
 class CrossExchangeArbitrage:
     """Cross-exchange arbitrage detector"""
@@ -392,35 +395,35 @@ class CrossExchangeArbitrage:
 
 async def arbitrage_demo():
     """Demo cross-exchange arbitrage detection"""
-    print("\n🎯 Cross-Exchange Arbitrage Demo")
-    print("=" * 40)
+    logger.info("\n🎯 Cross-Exchange Arbitrage Demo")
+    logger.info("=" * 40)
 
     arbitrage_detector = CrossExchangeArbitrage()
     await arbitrage_detector.initialize_clients()
 
     if not arbitrage_detector.binance_client:
-        print("❌ Binance client not configured")
+        logger.info("❌ Binance client not configured")
         return
 
     symbols = ['BTCUSDT', 'ETHUSDT', 'BNBUSDT']
 
-    print(f"🔍 Scanning {len(symbols)} symbols for arbitrage opportunities...")
+    logger.info(f"🔍 Scanning {len(symbols)} symbols for arbitrage opportunities...")
 
     opportunities = await arbitrage_detector.detect_cross_exchange_arbitrage(symbols)
 
-    print(f"\n📊 Found {len(opportunities)} arbitrage opportunities:")
+    logger.info(f"\n📊 Found {len(opportunities)} arbitrage opportunities:")
 
     for opp in opportunities:
-        print(f"\n🎯 {opp.symbol} - {opp.type.replace('_', ' ').title()}")
-        print(f"   {opp.description}")
-        print(f"   Confidence: {opp.confidence:.1f}")
-        print(f"   Exchanges: {', '.join(opp.exchanges)}")
+        logger.info(f"\n🎯 {opp.symbol} - {opp.type.replace('_', ' ').title()}")
+        logger.info(f"   {opp.description}")
+        logger.info(f"   Confidence: {opp.confidence:.1f}")
+        logger.info(f"   Exchanges: {', '.join(opp.exchanges)}")
 
     if opportunities:
-        print("\nThese opportunities represent potential profits after fees")
-        print("   In production, you'd execute these trades automatically")
+        logger.info("\nThese opportunities represent potential profits after fees")
+        logger.info("   In production, you'd execute these trades automatically")
     else:
-        print("\n✅ No arbitrage opportunities found (markets efficient)")
+        logger.info("\n✅ No arbitrage opportunities found (markets efficient)")
 
 if __name__ == "__main__":
     print("🚀 AAC Binance Arbitrage Integration")

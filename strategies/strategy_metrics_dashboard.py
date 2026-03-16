@@ -27,6 +27,8 @@ from dash import html, dcc, Input, Output, State
 import dash_bootstrap_components as dbc
 import os
 
+logger = logging.getLogger(__name__)
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
@@ -777,24 +779,24 @@ async def main():
     await initialize_metrics_dashboard()
 
     if args.command == 'dashboard':
-        print("🚀 Starting Strategy Metrics Dashboard...")
-        print(f"📊 Dashboard will be available at http://{args.host}:{args.port}")
+        logger.info("🚀 Starting Strategy Metrics Dashboard...")
+        logger.info(f"📊 Dashboard will be available at http://{args.host}:{args.port}")
         await metrics_dashboard.run_dashboard(args.host, args.port)
 
     elif args.command == 'report':
         strategy_ids = args.strategy_ids or list(strategy_testing_lab.strategy_configs.keys())[:5]
-        print(f"📊 Generating metrics report for {len(strategy_ids)} strategies...")
+        logger.info(f"📊 Generating metrics report for {len(strategy_ids)} strategies...")
         report_path = await metrics_dashboard.generate_metrics_report(strategy_ids, args.output_dir)
-        print(f"📄 Report generated: {report_path}")
+        logger.info(f"📄 Report generated: {report_path}")
 
     elif args.command == 'analyze':
         strategy_ids = args.strategy_ids or ['s26']
         for strategy_id in strategy_ids:
-            print(f"🔍 Deep dive analysis for {strategy_id}...")
+            logger.info(f"🔍 Deep dive analysis for {strategy_id}...")
             deep_dive = await metrics_dashboard._perform_deep_dive(strategy_id)
-            print(f"Risk Level: {deep_dive['risk_level']}")
-            print(f"Recommendations: {len(deep_dive['recommendations'])}")
-            print()
+            logger.info(f"Risk Level: {deep_dive['risk_level']}")
+            logger.info(f"Recommendations: {len(deep_dive['recommendations'])}")
+            logger.info("")
 
 
 if __name__ == "__main__":

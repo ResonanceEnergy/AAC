@@ -30,6 +30,9 @@ from dataclasses import dataclass
 import json
 import os
 from dotenv import load_dotenv
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
@@ -74,9 +77,9 @@ class AACWallStreetOddsIntegration:
         self.session = requests.Session()
 
         if self.api_key:
-            print("✅ AAC WallStreetOdds integration initialized")
+            logger.info("✅ AAC WallStreetOdds integration initialized")
         else:
-            print("⚠️  WallStreetOdds API key not configured")
+            logger.info("⚠️  WallStreetOdds API key not configured")
 
     def _make_request(self, endpoint: str, params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """
@@ -90,7 +93,7 @@ class AACWallStreetOddsIntegration:
             JSON response or None if failed
         """
         if not self.api_key:
-            print("❌ WallStreetOdds API key not configured")
+            logger.info("❌ WallStreetOdds API key not configured")
             return None
 
         # Add authentication
@@ -110,7 +113,7 @@ class AACWallStreetOddsIntegration:
                 return {'raw_data': response.text}
 
         except Exception as e:
-            print(f"❌ WallStreetOdds API error: {e}")
+            logger.info(f"❌ WallStreetOdds API error: {e}")
             return None
 
     def get_real_time_stock_prices(self, symbols: Union[str, List[str]],
@@ -390,7 +393,7 @@ class AACWallStreetOddsIntegration:
                         signals.append(sentiment_signal)
 
         except Exception as e:
-            print(f"❌ Error generating arbitrage signals: {e}")
+            logger.info(f"❌ Error generating arbitrage signals: {e}")
 
         return signals
 
@@ -434,7 +437,7 @@ class AACWallStreetOddsIntegration:
                 )
 
         except Exception as e:
-            print(f"❌ Error analyzing SMA signal: {e}")
+            logger.info(f"❌ Error analyzing SMA signal: {e}")
 
         return None
 
@@ -478,7 +481,7 @@ class AACWallStreetOddsIntegration:
                 )
 
         except Exception as e:
-            print(f"❌ Error analyzing odds signal: {e}")
+            logger.info(f"❌ Error analyzing odds signal: {e}")
 
         return None
 
@@ -506,7 +509,7 @@ class AACWallStreetOddsIntegration:
                 )
 
         except Exception as e:
-            print(f"❌ Error analyzing sentiment signal: {e}")
+            logger.info(f"❌ Error analyzing sentiment signal: {e}")
 
         return None
 
@@ -542,14 +545,14 @@ class AACWallStreetOddsIntegration:
                 # Merge with existing signals
                 enhanced_signals = pd.concat([existing_signals, signals_df], ignore_index=True)
 
-                print(f"✅ Integrated {len(new_signals)} WallStreetOdds signals")
+                logger.info(f"✅ Integrated {len(new_signals)} WallStreetOdds signals")
                 return enhanced_signals
             else:
-                print("⚠️  No new WallStreetOdds signals to integrate")
+                logger.info("⚠️  No new WallStreetOdds signals to integrate")
                 return existing_signals
 
         except Exception as e:
-            print(f"❌ Error integrating WallStreetOdds signals: {e}")
+            logger.info(f"❌ Error integrating WallStreetOdds signals: {e}")
             return existing_signals
 
 
@@ -567,118 +570,118 @@ wso = AACWallStreetOddsIntegration()
 
 # Get real-time prices
 prices = wso.get_real_time_stock_prices(['AAPL', 'TSLA', 'NVDA'])
-print(prices.head())
+logger.info(str(prices.head()))
 
 # Get technical analysis
 tech_data = wso.get_technical_stock_data(['AAPL', 'MSFT'])
-print(tech_data.head())
+logger.info(str(tech_data.head()))
 
 # Get analyst ratings
 ratings = wso.get_analyst_ratings(['AAPL', 'AMZN'], limit=20)
-print(ratings.head())
+logger.info(str(ratings.head()))
 
 # Generate arbitrage signals
 signals = wso.generate_arbitrage_signals(['AAPL', 'TSLA', 'NVDA'])
 for signal in signals:
-    print(f"{signal.symbol}: {signal.signal_type} (strength: {signal.strength:.2f})")
+    logger.info(f"{signal.symbol}: {signal.signal_type} (strength: {signal.strength:.2f})")
 """
 '''
 
     with open('aac_wallstreetodds_integration.py', 'w', encoding='utf-8') as f:
         f.write(integration_code)
 
-    print("✅ AAC WallStreetOdds integration code created: aac_wallstreetodds_integration.py")
+    logger.info("✅ AAC WallStreetOdds integration code created: aac_wallstreetodds_integration.py")
 
 
 def demo_wallstreetodds_integration():
     """Demonstrate WallStreetOdds integration capabilities"""
-    print("AAC WallStreetOdds Integration Demo")
-    print("=" * 45)
+    logger.info("AAC WallStreetOdds Integration Demo")
+    logger.info("=" * 45)
 
     wso = AACWallStreetOddsIntegration()
 
     # Test real-time data
-    print("🔍 Testing Real-Time Stock Prices...")
+    logger.info("🔍 Testing Real-Time Stock Prices...")
     try:
         prices = wso.get_real_time_stock_prices(['AAPL', 'TSLA'])
         if prices is not None:
-            print("✅ Real-time prices retrieved:")
-            print(prices[['symbol', 'price', 'percentChange']].head())
+            logger.info("✅ Real-time prices retrieved:")
+            logger.info(str(prices[['symbol', 'price', 'percentChange']].head()))
         else:
-            print("⚠️  Real-time prices not available (API key not configured)")
+            logger.info("⚠️  Real-time prices not available (API key not configured)")
     except Exception as e:
-        print(f"❌ Real-time prices test failed: {e}")
+        logger.info(f"❌ Real-time prices test failed: {e}")
 
-    print()
+    logger.info("")
 
     # Test technical data
-    print("📊 Testing Technical Analysis Data...")
+    logger.info("📊 Testing Technical Analysis Data...")
     try:
         tech_data = wso.get_technical_stock_data(['AAPL', 'MSFT'])
         if tech_data is not None:
-            print("✅ Technical data retrieved:")
-            print(tech_data[['symbol', 'sma20', 'sma50', 'perOffSma20']].head())
+            logger.info("✅ Technical data retrieved:")
+            logger.info(str(tech_data[['symbol', 'sma20', 'sma50', 'perOffSma20']].head()))
         else:
-            print("⚠️  Technical data not available (API key not configured)")
+            logger.info("⚠️  Technical data not available (API key not configured)")
     except Exception as e:
-        print(f"❌ Technical data test failed: {e}")
+        logger.info(f"❌ Technical data test failed: {e}")
 
-    print()
+    logger.info("")
 
     # Test odds analysis
-    print("🎲 Testing Live Odds Analysis...")
+    logger.info("🎲 Testing Live Odds Analysis...")
     try:
         odds_data = wso.get_live_odds(['AAPL', 'TSLA'])
         if odds_data is not None:
-            print("✅ Odds analysis retrieved:")
-            print(odds_data[['symbol', 'oneDayUpOdds', 'oneWeekUpOdds']].head())
+            logger.info("✅ Odds analysis retrieved:")
+            logger.info(str(odds_data[['symbol', 'oneDayUpOdds', 'oneWeekUpOdds']].head()))
         else:
-            print("⚠️  Odds data not available (API key not configured)")
+            logger.info("⚠️  Odds data not available (API key not configured)")
     except Exception as e:
-        print(f"❌ Odds analysis test failed: {e}")
+        logger.info(f"❌ Odds analysis test failed: {e}")
 
-    print()
+    logger.info("")
 
     # Test sentiment data
-    print("💬 Testing StockTwits Sentiment...")
+    logger.info("💬 Testing StockTwits Sentiment...")
     try:
         sentiment_data = wso.get_stocktwits_sentiment(['AAPL', 'TSLA'])
         if sentiment_data is not None:
-            print("✅ Sentiment data retrieved:")
-            print(sentiment_data[['symbol', 'watchers', 'dayChange']].head())
+            logger.info("✅ Sentiment data retrieved:")
+            logger.info(str(sentiment_data[['symbol', 'watchers', 'dayChange']].head()))
         else:
-            print("⚠️  Sentiment data not available (API key not configured)")
+            logger.info("⚠️  Sentiment data not available (API key not configured)")
     except Exception as e:
-        print(f"❌ Sentiment analysis test failed: {e}")
+        logger.info(f"❌ Sentiment analysis test failed: {e}")
 
-    print()
+    logger.info("")
 
     # Test analyst ratings
-    print("📈 Testing Analyst Ratings...")
+    logger.info("📈 Testing Analyst Ratings...")
     try:
         ratings = wso.get_analyst_ratings(['AAPL'], limit=5)
         if ratings is not None:
-            print("✅ Analyst ratings retrieved:")
-            print(ratings[['symbol', 'firm', 'ratingStandardized', 'priceTarget']].head())
+            logger.info("✅ Analyst ratings retrieved:")
+            logger.info(str(ratings[['symbol', 'firm', 'ratingStandardized', 'priceTarget']].head()))
         else:
-            print("⚠️  Analyst ratings not available (API key not configured)")
+            logger.info("⚠️  Analyst ratings not available (API key not configured)")
     except Exception as e:
-        print(f"❌ Analyst ratings test failed: {e}")
+        logger.info(f"❌ Analyst ratings test failed: {e}")
 
-    print()
+    logger.info("")
 
     # Show integration summary
-    print("🔧 WallStreetOdds Integration Summary:")
-    print("   • Real-Time Market Data: ✅ Available")
-    print("   • Technical Indicators: ✅ Available")
-    print("   • Historical Odds Analysis: ✅ Available")
-    print("   • Social Sentiment: ✅ Available")
-    print("   • Analyst Recommendations: ✅ Available")
-    print("   • News Sentiment: ✅ Available")
-    print("   • Arbitrage Signal Generation: ✅ Available")
+    logger.info("🔧 WallStreetOdds Integration Summary:")
+    logger.info("   • Real-Time Market Data: ✅ Available")
+    logger.info("   • Technical Indicators: ✅ Available")
+    logger.info("   • Historical Odds Analysis: ✅ Available")
+    logger.info("   • Social Sentiment: ✅ Available")
+    logger.info("   • Analyst Recommendations: ✅ Available")
+    logger.info("   • News Sentiment: ✅ Available")
+    logger.info("   • Arbitrage Signal Generation: ✅ Available")
 
-    print()
-    print("🚀 Ready to enhance AAC arbitrage with WallStreetOdds data!")
+    logger.info("")
+    logger.info("🚀 Ready to enhance AAC arbitrage with WallStreetOdds data!")
 
 
 if __name__ == "__main__":

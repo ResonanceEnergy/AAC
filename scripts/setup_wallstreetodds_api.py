@@ -8,17 +8,20 @@ This script helps you configure the WallStreetOdds API key for the AAC arbitrage
 import os
 import sys
 from pathlib import Path
+import logging
+
+logger = logging.getLogger(__name__)
 
 def setup_wallstreetodds_api():
     """Setup WallStreetOdds API configuration"""
 
-    print("🔑 AAC WallStreetOdds API Setup")
-    print("=" * 40)
+    logger.info("🔑 AAC WallStreetOdds API Setup")
+    logger.info("=" * 40)
 
     # Check if .env file exists
     env_file = Path(".env")
     if not env_file.exists():
-        print("📄 Creating .env file...")
+        logger.info("📄 Creating .env file...")
         env_file.touch()
 
     # Read existing .env content
@@ -28,29 +31,29 @@ def setup_wallstreetodds_api():
 
     # Check if WallStreetOdds key already exists
     if "WALLSTREETODDS_API_KEY" in existing_content:
-        print("⚠️  WallStreetOdds API key already configured!")
+        logger.info("⚠️  WallStreetOdds API key already configured!")
         overwrite = input("Do you want to update it? (y/N): ").lower().strip()
         if overwrite != 'y':
-            print("✅ Setup cancelled. Existing configuration preserved.")
+            logger.info("✅ Setup cancelled. Existing configuration preserved.")
             return
 
     # Get API key from user
-    print("\n📝 To get your WallStreetOdds API key:")
-    print("   1. Visit: https://wallstreetodds.com/register-api/")
-    print("   2. Create a free account")
-    print("   3. Generate an API key in your dashboard")
-    print("   4. Copy the key below")
-    print()
+    logger.info("\n📝 To get your WallStreetOdds API key:")
+    logger.info("   1. Visit: https://wallstreetodds.com/register-api/")
+    logger.info("   2. Create a free account")
+    logger.info("   3. Generate an API key in your dashboard")
+    logger.info("   4. Copy the key below")
+    logger.info("")
 
     api_key = input("Enter your WallStreetOdds API key: ").strip()
 
     if not api_key:
-        print("❌ No API key provided. Setup cancelled.")
+        logger.info("❌ No API key provided. Setup cancelled.")
         return
 
     # Validate API key format (basic check)
     if len(api_key) < 10:
-        print("❌ API key seems too short. Please check and try again.")
+        logger.info("❌ API key seems too short. Please check and try again.")
         return
 
     # Update .env file
@@ -70,8 +73,8 @@ def setup_wallstreetodds_api():
     new_content = '\n'.join(lines) + '\n'
     env_file.write_text(new_content)
 
-    print("✅ WallStreetOdds API key configured successfully!")
-    print("\n🧪 Testing configuration...")
+    logger.info("✅ WallStreetOdds API key configured successfully!")
+    logger.info("\n🧪 Testing configuration...")
 
     # Test the configuration
     try:
@@ -80,25 +83,25 @@ def setup_wallstreetodds_api():
 
         # Try a simple test
         if hasattr(wso, '_get_api_key') and wso._get_api_key():
-            print("✅ Configuration test passed!")
-            print("\n🚀 You can now use WallStreetOdds data in AAC arbitrage!")
-            print("   Run: python aac_wallstreetodds_integration.py")
+            logger.info("✅ Configuration test passed!")
+            logger.info("\n🚀 You can now use WallStreetOdds data in AAC arbitrage!")
+            logger.info("   Run: python aac_wallstreetodds_integration.py")
         else:
-            print("❌ Configuration test failed. Please check your API key.")
+            logger.info("❌ Configuration test failed. Please check your API key.")
 
     except Exception as e:
-        print(f"❌ Configuration test failed: {e}")
-        print("   Please verify your API key and try again.")
+        logger.info(f"❌ Configuration test failed: {e}")
+        logger.info("   Please verify your API key and try again.")
 
 def main():
     """Main setup function"""
     try:
         setup_wallstreetodds_api()
     except KeyboardInterrupt:
-        print("\n\n❌ Setup cancelled by user.")
+        logger.info("\n\n❌ Setup cancelled by user.")
         sys.exit(1)
     except Exception as e:
-        print(f"\n❌ Setup failed: {e}")
+        logger.info(f"\n❌ Setup failed: {e}")
         sys.exit(1)
 
 if __name__ == "__main__":

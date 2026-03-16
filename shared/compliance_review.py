@@ -18,6 +18,8 @@ from enum import Enum
 import sys
 import yaml
 
+logger = logging.getLogger(__name__)
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
@@ -608,22 +610,22 @@ compliance_review_system = ComplianceReviewSystem()
 
 async def initialize_compliance_review():
     """Initialize the compliance review system"""
-    print("[COMPLIANCE] Initializing Compliance Review System...")
+    logger.info("[COMPLIANCE] Initializing Compliance Review System...")
 
     # Run initial compliance review
     report = await compliance_review_system.run_compliance_review()
 
-    print("[OK] Compliance review system initialized")
-    print(f"  Compliance Level: {compliance_review_system.compliance_level.value}")
-    print(f"  Overall Compliant: {'YES' if report.overall_compliant else 'NO'}")
-    print(f"  Report ID: {report.report_id}")
+    logger.info("[OK] Compliance review system initialized")
+    logger.info(f"  Compliance Level: {compliance_review_system.compliance_level.value}")
+    logger.info(f"  Overall Compliant: {'YES' if report.overall_compliant else 'NO'}")
+    logger.info(f"  Report ID: {report.report_id}")
 
     status = compliance_review_system.get_compliance_status()
     check_summary = status.get("check_summary", {})
-    print(f"  Checks Passed: {check_summary.get('passed_checks', 0)}/{check_summary.get('total_checks', 0)}")
+    logger.info(f"  Checks Passed: {check_summary.get('passed_checks', 0)}/{check_summary.get('total_checks', 0)}")
 
     if not report.overall_compliant:
-        print("  [WARN] COMPLIANCE ISSUES DETECTED - Review required before production deployment")
+        logger.info("  [WARN] COMPLIANCE ISSUES DETECTED - Review required before production deployment")
 
     return report.report_id
 

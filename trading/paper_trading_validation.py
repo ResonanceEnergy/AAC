@@ -564,40 +564,40 @@ class PaperTradingValidationEngine:
             json.dump(report, f, indent=2, default=str)
 
         # Print summary
-        print("\n" + "="*80)
-        print("PAPER TRADING VALIDATION REPORT")
-        print("="*80)
-        print(f"Execution Time: {duration}")
-        print(f"Market Data Connected: {'YES' if report['summary']['market_data_connected'] else 'NO'}")
-        print(f"Strategies Initialized: {report['summary']['strategies_initialized']}/{report['summary']['total_strategies']}")
-        print(f"Signals Generated: {report['summary']['total_signals_generated']}")
-        print(f"Trades Executed: {report['summary']['total_trades_executed']}")
+        logger.info("\n" + "="*80)
+        logger.info("PAPER TRADING VALIDATION REPORT")
+        logger.info("="*80)
+        logger.info(f"Execution Time: {duration}")
+        logger.info(f"Market Data Connected: {'YES' if report['summary']['market_data_connected'] else 'NO'}")
+        logger.info(f"Strategies Initialized: {report['summary']['strategies_initialized']}/{report['summary']['total_strategies']}")
+        logger.info(f"Signals Generated: {report['summary']['total_signals_generated']}")
+        logger.info(f"Trades Executed: {report['summary']['total_trades_executed']}")
 
         # Security status
         if 'security_validation' in self.validation_results:
             sec = self.validation_results['security_validation']
             security_status = "✅ SECURE" if sec.get('security_system_active', False) else "❌ VULNERABLE"
-            print(f"Security Status: {security_status}")
+            logger.info(f"Security Status: {security_status}")
 
         if 'performance_metrics' in self.validation_results:
             perf = self.validation_results['performance_metrics']
             if 'win_rate_percent' in perf:
-                print(f"Win Rate: {perf['win_rate_percent']:.1f}%")
+                logger.info(f"Win Rate: {perf['win_rate_percent']:.1f}%")
             if 'total_pnl' in perf:
-                print(f"Total P&L: ${perf['total_pnl']:.2f}")
+                logger.info(f"Total P&L: ${perf['total_pnl']:.2f}")
 
         success_rate = report['summary']['validation_success']
-        print(f"Overall Success Rate: {success_rate:.1f}%")
+        logger.info(f"Overall Success Rate: {success_rate:.1f}%")
 
         if success_rate >= 80:
-            print("VALIDATION SUCCESSFUL: Paper trading with real market data operational!")
+            logger.info("VALIDATION SUCCESSFUL: Paper trading with real market data operational!")
         elif success_rate >= 60:
-            print("PARTIAL SUCCESS: Core functionality working, some issues to address")
+            logger.info("PARTIAL SUCCESS: Core functionality working, some issues to address")
         else:
-            print("VALIDATION ISSUES: Further testing and fixes required")
+            logger.info("VALIDATION ISSUES: Further testing and fixes required")
 
-        print(f"\nDetailed report saved to: {report_file}")
-        print("="*80)
+        logger.info(f"\nDetailed report saved to: {report_file}")
+        logger.info("="*80)
 
     def _calculate_validation_success(self):
         """Calculate overall validation success rate"""

@@ -25,6 +25,9 @@ from dataclasses import dataclass
 import json
 import os
 from dotenv import load_dotenv
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
@@ -76,7 +79,7 @@ class AACAlgoTrading101Hub:
             'Authorization': f'Bearer {self.openbb_api_key}'
         } if self.openbb_api_key else {}
 
-        print("✅ AAC AlgoTrading101 Hub initialized")
+        logger.info("✅ AAC AlgoTrading101 Hub initialized")
 
     def get_openbb_stock_data(self, symbol: str, start_date: str = None,
                             end_date: str = None) -> Optional[pd.DataFrame]:
@@ -92,7 +95,7 @@ class AACAlgoTrading101Hub:
             DataFrame with OHLCV data or None if failed
         """
         if not self.openbb_api_key:
-            print("❌ OpenBB API key not configured")
+            logger.info("❌ OpenBB API key not configured")
             return None
 
         try:
@@ -119,7 +122,7 @@ class AACAlgoTrading101Hub:
             return None
 
         except Exception as e:
-            print(f"❌ Error fetching OpenBB data: {e}")
+            logger.info(f"❌ Error fetching OpenBB data: {e}")
             return None
 
     def get_quiverquant_data(self, data_type: str = "wallstreetbets",
@@ -135,7 +138,7 @@ class AACAlgoTrading101Hub:
             DataFrame with alternative data
         """
         if not self.quiverquant_api_key:
-            print("❌ QuiverQuant API key not configured")
+            logger.info("❌ QuiverQuant API key not configured")
             return None
 
         try:
@@ -162,7 +165,7 @@ class AACAlgoTrading101Hub:
             return None
 
         except Exception as e:
-            print(f"❌ Error fetching QuiverQuant data: {e}")
+            logger.info(f"❌ Error fetching QuiverQuant data: {e}")
             return None
 
     def create_custom_backtester(self, strategy_func, initial_capital: float = 100000):
@@ -227,7 +230,7 @@ class AACAlgoTrading101Hub:
             )
 
         except Exception as e:
-            print(f"❌ Error in strategy analysis: {e}")
+            logger.info(f"❌ Error in strategy analysis: {e}")
             return None
 
     def get_ai_finance_analysis(self, query: str, model: str = "gemini") -> Optional[str]:
@@ -247,18 +250,18 @@ class AACAlgoTrading101Hub:
             elif model == "bing":
                 return self._query_bing_chat(query)
             else:
-                print(f"❌ Unsupported AI model: {model}")
+                logger.info(f"❌ Unsupported AI model: {model}")
                 return None
 
         except Exception as e:
-            print(f"❌ Error in AI analysis: {e}")
+            logger.info(f"❌ Error in AI analysis: {e}")
             return None
 
     def _query_gemini(self, query: str) -> Optional[str]:
         """Query Google Gemini for finance analysis"""
         gemini_api_key = os.getenv('GEMINI_API_KEY') or os.getenv('GOOGLE_AI_KEY')
         if not gemini_api_key:
-            print("❌ Gemini API key not configured")
+            logger.info("❌ Gemini API key not configured")
             return None
 
         try:
@@ -282,7 +285,7 @@ class AACAlgoTrading101Hub:
             return None
 
         except Exception as e:
-            print(f"❌ Gemini API error: {e}")
+            logger.info(f"❌ Gemini API error: {e}")
             return None
 
     def _query_bing_chat(self, query: str) -> Optional[str]:
@@ -295,7 +298,7 @@ class AACAlgoTrading101Hub:
             return f"Bing Chat Analysis: {finance_query[:100]}..."
 
         except Exception as e:
-            print(f"❌ Bing Chat error: {e}")
+            logger.info(f"❌ Bing Chat error: {e}")
             return None
 
     def integrate_quantconnect_strategy(self, strategy_code: str,
@@ -408,7 +411,7 @@ class CustomBacktester:
             }
 
         except Exception as e:
-            print(f"❌ Backtest error: {e}")
+            logger.info(f"❌ Backtest error: {e}")
             return {}
 
     def _execute_trade(self, signal: Dict, prices: Dict) -> Optional[Dict]:
@@ -454,7 +457,7 @@ class CustomBacktester:
             return None
 
         except Exception as e:
-            print(f"❌ Trade execution error: {e}")
+            logger.info(f"❌ Trade execution error: {e}")
             return None
 
     def _calculate_portfolio_value(self, prices: Dict) -> float:
@@ -524,29 +527,29 @@ def create_arbitrage_strategy(price_spread_threshold: float = 0.02):
 
 def run_aac_algotrading101_demo():
     """Run the AAC AlgoTrading101 integration demo"""
-    print("AAC AlgoTrading101 Integration Demo")
-    print("=" * 50)
-    print("Leveraging AlgoTrading101 resources for enhanced arbitrage")
-    print()
+    logger.info("AAC AlgoTrading101 Integration Demo")
+    logger.info("=" * 50)
+    logger.info("Leveraging AlgoTrading101 resources for enhanced arbitrage")
+    logger.info("")
 
     hub = AACAlgoTrading101Hub()
 
     # Test OpenBB integration
-    print("🔍 Testing OpenBB Platform Integration...")
+    logger.info("🔍 Testing OpenBB Platform Integration...")
     try:
         aapl_data = hub.get_openbb_stock_data('AAPL', '2024-01-01', '2024-01-31')
         if aapl_data is not None:
-            print(f"✅ Retrieved {len(aapl_data)} days of AAPL data")
-            print(f"   Latest close: ${aapl_data['close'].iloc[-1]:.2f}")
+            logger.info(f"✅ Retrieved {len(aapl_data)} days of AAPL data")
+            logger.info(f"   Latest close: ${aapl_data['close'].iloc[-1]:.2f}")
         else:
-            print("⚠️  OpenBB data not available (API key not configured)")
+            logger.info("⚠️  OpenBB data not available (API key not configured)")
     except Exception as e:
-        print(f"❌ OpenBB test failed: {e}")
+        logger.info(f"❌ OpenBB test failed: {e}")
 
-    print()
+    logger.info("")
 
     # Test backtesting
-    print("📊 Testing Custom Backtesting Framework...")
+    logger.info("📊 Testing Custom Backtesting Framework...")
     try:
         # Create sample price data
         dates = pd.date_range('2024-01-01', '2024-01-31', freq='D')
@@ -575,36 +578,36 @@ def run_aac_algotrading101_demo():
         results = backtester.run_backtest(sample_data)
 
         if results:
-            print("✅ Backtest completed successfully")
-            print(f"   Total return: {results['total_return']:.1%}")
-            print(f"   Final portfolio value: ${results['final_value']:,.2f}")
-            print(f"   Total trades: {len(results['trades'])}")
+            logger.info("✅ Backtest completed successfully")
+            logger.info(f"   Total return: {results['total_return']:.1%}")
+            logger.info(f"   Final portfolio value: ${results['final_value']:,.2f}")
+            logger.info(f"   Total trades: {len(results['trades'])}")
         else:
-            print("❌ Backtest failed")
+            logger.info("❌ Backtest failed")
 
     except Exception as e:
-        print(f"❌ Backtesting test failed: {e}")
+        logger.info(f"❌ Backtesting test failed: {e}")
 
-    print()
+    logger.info("")
 
     # Test AI analysis
-    print("🤖 Testing AI Finance Analysis...")
+    logger.info("🤖 Testing AI Finance Analysis...")
     try:
         query = "What are the current market conditions for tech stocks?"
         gemini_response = hub.get_ai_finance_analysis(query, "gemini")
         if gemini_response:
-            print("✅ Gemini analysis available")
-            print(f"   Response: {gemini_response[:100]}...")
+            logger.info("✅ Gemini analysis available")
+            logger.info(f"   Response: {gemini_response[:100]}...")
         else:
-            print("⚠️  Gemini analysis not available (API key not configured)")
+            logger.info("⚠️  Gemini analysis not available (API key not configured)")
 
     except Exception as e:
-        print(f"❌ AI analysis test failed: {e}")
+        logger.info(f"❌ AI analysis test failed: {e}")
 
-    print()
+    logger.info("")
 
     # Show integration status
-    print("🔧 Integration Status:")
+    logger.info("🔧 Integration Status:")
     apis = {
         'OpenBB Platform': bool(hub.openbb_api_key),
         'QuiverQuant': bool(hub.quiverquant_api_key),
@@ -615,18 +618,18 @@ def run_aac_algotrading101_demo():
 
     for api, configured in apis.items():
         status = "✅ Configured" if configured else "❌ Not configured"
-        print(f"   {api}: {status}")
+        logger.info(f"   {api}: {status}")
 
-    print()
-    print("📚 AlgoTrading101 Resources Available:")
-    print("   • Custom Backtesting Framework")
-    print("   • OpenBB Platform Integration")
-    print("   • Alternative Data Sources")
-    print("   • AI-Powered Market Analysis")
-    print("   • Live Trading with QuantConnect")
-    print("   • Interactive Brokers Integration")
-    print()
-    print("🚀 Ready to enhance AAC arbitrage strategies!")
+    logger.info("")
+    logger.info("📚 AlgoTrading101 Resources Available:")
+    logger.info("   • Custom Backtesting Framework")
+    logger.info("   • OpenBB Platform Integration")
+    logger.info("   • Alternative Data Sources")
+    logger.info("   • AI-Powered Market Analysis")
+    logger.info("   • Live Trading with QuantConnect")
+    logger.info("   • Interactive Brokers Integration")
+    logger.info("")
+    logger.info("🚀 Ready to enhance AAC arbitrage strategies!")
 
 
 if __name__ == "__main__":

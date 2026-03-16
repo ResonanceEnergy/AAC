@@ -28,6 +28,8 @@ import base64
 import uuid
 import sys
 
+logger = logging.getLogger(__name__)
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
@@ -803,18 +805,18 @@ security_monitoring = SecurityMonitoring()
 
 async def initialize_security_framework():
     """Initialize the complete security framework"""
-    print("[SECURITY] Initializing Advanced Security Framework...")
+    logger.info("[SECURITY] Initializing Advanced Security Framework...")
 
     # Create default admin user
     admin_user = rbac.create_user("admin", "admin@aac.com", "super_admin", "default_password_123!")
     if admin_user:
-        print("✅ Created default admin user")
+        logger.info("✅ Created default admin user")
 
         # Enable MFA for admin (in production, this would be done through UI)
         mfa_uri = rbac.enable_mfa(admin_user.user_id)
         if mfa_uri:
-            print("✅ MFA setup initiated for admin user")
-            print(f"   MFA URI: {mfa_uri}")
+            logger.info("✅ MFA setup initiated for admin user")
+            logger.info(f"   MFA URI: {mfa_uri}")
 
     # Create API key for system
     system_key = api_security.create_api_key(
@@ -824,25 +826,25 @@ async def initialize_security_framework():
         rate_limit=1000
     )
     if system_key:
-        print("✅ Created system API key")
+        logger.info("✅ Created system API key")
 
     # Test encryption
     test_data = "sensitive_test_data"
     encrypted = advanced_encryption.encrypt_data(test_data)
     decrypted = advanced_encryption.decrypt_data(encrypted)
     if decrypted == test_data:
-        print("✅ Encryption/decryption working")
+        logger.info("✅ Encryption/decryption working")
     else:
-        print("❌ Encryption test failed")
+        logger.info("❌ Encryption test failed")
 
     security_status = security_monitoring.get_security_status()
 
-    print("[OK] Security framework initialized")
-    print(f"  Users: {len(rbac.users)}")
-    print(f"  Roles: {len(rbac.roles)}")
-    print(f"  API Keys: {len(api_security.api_keys)}")
-    print(f"  Security Events (last hour): {security_status['total_events_last_hour']}")
-    print(f"  Active Alerts: {security_status['active_alerts']}")
+    logger.info("[OK] Security framework initialized")
+    logger.info(f"  Users: {len(rbac.users)}")
+    logger.info(f"  Roles: {len(rbac.roles)}")
+    logger.info(f"  API Keys: {len(api_security.api_keys)}")
+    logger.info(f"  Security Events (last hour): {security_status['total_events_last_hour']}")
+    logger.info(f"  Active Alerts: {security_status['active_alerts']}")
 
     return True
 
