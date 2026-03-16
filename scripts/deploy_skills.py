@@ -14,6 +14,9 @@ import argparse
 import os
 import sys
 from pathlib import Path
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Ensure project root is importable
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -40,12 +43,12 @@ def deploy(target_dir: Path, dry_run: bool = False) -> int:
     Returns:
         Number of skills deployed.
     """
-    print(f"\n{'=' * 60}")
-    print(f"  BARREN WUFFET — SKILL.md Deployment")
-    print(f"  Target: {target_dir}")
-    print(f"  Skills: {len(BARREN_WUFFET_SKILLS)}")
-    print(f"  Mode:   {'DRY RUN' if dry_run else 'LIVE'}")
-    print(f"{'=' * 60}\n")
+    logger.info(f"\n{'=' * 60}")
+    logger.info(f"  BARREN WUFFET — SKILL.md Deployment")
+    logger.info(f"  Target: {target_dir}")
+    logger.info(f"  Skills: {len(BARREN_WUFFET_SKILLS)}")
+    logger.info(f"  Mode:   {'DRY RUN' if dry_run else 'LIVE'}")
+    logger.info(f"{'=' * 60}\n")
 
     deployed = 0
     for slug, defn in BARREN_WUFFET_SKILLS.items():
@@ -54,21 +57,21 @@ def deploy(target_dir: Path, dry_run: bool = False) -> int:
         md = generate_skill_md(defn)
 
         if dry_run:
-            print(f"  [DRY] {slug}/SKILL.md ({len(md)} bytes)")
+            logger.info(f"  [DRY] {slug}/SKILL.md ({len(md)} bytes)")
         else:
             skill_dir.mkdir(parents=True, exist_ok=True)
             skill_file.write_text(md, encoding="utf-8")
-            print(f"  [OK]  {slug}/SKILL.md ({len(md)} bytes)")
+            logger.info(f"  [OK]  {slug}/SKILL.md ({len(md)} bytes)")
 
         deployed += 1
 
-    print(f"\n{'=' * 60}")
-    print(f"  Deployed: {deployed}/{len(BARREN_WUFFET_SKILLS)} skills")
+    logger.info(f"\n{'=' * 60}")
+    logger.info(f"  Deployed: {deployed}/{len(BARREN_WUFFET_SKILLS)} skills")
     if dry_run:
-        print(f"  (Dry run — no files written)")
+        logger.info(f"  (Dry run — no files written)")
     else:
-        print(f"  Location: {target_dir}")
-    print(f"{'=' * 60}\n")
+        logger.info(f"  Location: {target_dir}")
+    logger.info(f"{'=' * 60}\n")
 
     return deployed
 

@@ -16,6 +16,8 @@ from typing import Dict, List, Optional, Any, Callable, Tuple
 from dataclasses import dataclass, field
 from enum import Enum
 
+logger = logging.getLogger(__name__)
+
 
 # ── Safe expression evaluator (replaces eval) ──────────────────────────
 
@@ -726,7 +728,7 @@ live_trading_safeguards = LiveTradingSafeguards()
 
 async def initialize_live_trading_safeguards():
     """Initialize the live trading safeguards system"""
-    print("[SHIELD]️  Initializing Live Trading Safeguards...")
+    logger.info("[SHIELD]️  Initializing Live Trading Safeguards...")
 
     # Initialize the safeguards instance
     await live_trading_safeguards.initialize()
@@ -734,15 +736,15 @@ async def initialize_live_trading_safeguards():
     # Wait a moment for initialization
     await asyncio.sleep(1)
 
-    print("[OK] Live trading safeguards initialized")
+    logger.info("[OK] Live trading safeguards initialized")
     status = live_trading_safeguards.get_safety_status()
-    print(f"  Trading halted: {status['trading_halted']}")
-    print(f"  Emergency shutdown: {status['emergency_shutdown']}")
+    logger.info(f"  Trading halted: {status['trading_halted']}")
+    logger.info(f"  Emergency shutdown: {status['emergency_shutdown']}")
     status = live_trading_safeguards.get_safety_status()
-    print(f"  Trading halted: {status['trading_halted']}")
-    print(f"  Emergency shutdown: {status['emergency_shutdown']}")
-    print(f"  Active alerts: {status['active_alerts']}")
-    print(f"  Risk limits loaded: {len(status['risk_limits'])} parameters")
+    logger.info(f"  Trading halted: {status['trading_halted']}")
+    logger.info(f"  Emergency shutdown: {status['emergency_shutdown']}")
+    logger.info(f"  Active alerts: {status['active_alerts']}")
+    logger.info(f"  Risk limits loaded: {len(status['risk_limits'])} parameters")
 
 
 if __name__ == "__main__":

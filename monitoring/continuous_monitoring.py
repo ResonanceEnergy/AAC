@@ -25,6 +25,8 @@ from pathlib import Path
 import json
 import psutil
 
+logger = logging.getLogger(__name__)
+
 # Add project root
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
@@ -606,10 +608,10 @@ async def main():
         await service.initialize()
         await service.start_monitoring()
     except KeyboardInterrupt:
-        print("\n🛑 Shutting down continuous monitoring...")
+        logger.info("\n🛑 Shutting down continuous monitoring...")
         await service.stop_monitoring()
     except Exception as e:
-        print(f"[CROSS] Continuous monitoring failed: {e}")
+        logger.info(f"[CROSS] Continuous monitoring failed: {e}")
         await service.stop_monitoring()
 
 

@@ -14,6 +14,8 @@ from typing import Dict, List, Any, Optional
 import json
 import numpy as np
 
+logger = logging.getLogger(__name__)
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
@@ -45,8 +47,8 @@ class ProductionReadinessSystem:
 
     async def initialize_all_systems(self):
         """Initialize all production systems"""
-        print("[ROCKET] Initializing Production Readiness System")
-        print("=" * 50)
+        logger.info("[ROCKET] Initializing Production Readiness System")
+        logger.info("=" * 50)
 
         # Initialize core trading systems
         await initialize_paper_trading()
@@ -58,19 +60,19 @@ class ProductionReadinessSystem:
         await initialize_production_monitoring()
         await initialize_compliance_review()
 
-        print("[OK] All production systems initialized")
+        logger.info("[OK] All production systems initialized")
 
     async def run_strategy_development_pipeline(self):
         """Complete strategy development pipeline"""
-        print("\n[TARGET] Starting Strategy Development Pipeline")
-        print("-" * 40)
+        logger.info("\n[TARGET] Starting Strategy Development Pipeline")
+        logger.info("-" * 40)
 
         # Step 1: AI generates strategies
-        print("Step 1: AI Strategy Generation")
+        logger.info("Step 1: AI Strategy Generation")
         opportunities = await self.ai_generator.scan_for_opportunities()
 
         if not opportunities:
-            print("No arbitrage opportunities found, using simulated data")
+            logger.info("No arbitrage opportunities found, using simulated data")
             # Create a mock opportunity for demonstration
             from shared.ai_strategy_generator import ArbitrageOpportunity, StrategyType, RiskLevel
             opportunities = [
@@ -93,16 +95,16 @@ class ProductionReadinessSystem:
         for opp in opportunities[:3]:  # Limit to 3 for demo
             strategy = await self.ai_generator.generate_strategy_from_opportunity(opp)
             strategies.append(strategy)
-            print(f"  [OK] Generated strategy: {strategy.strategy_id}")
+            logger.info(f"  [OK] Generated strategy: {strategy.strategy_id}")
 
         # Step 1.5: Parameter Optimization (R&D Phase)
-        print("\nStep 1.5: Parameter Optimization (R&D)")
+        logger.info("\nStep 1.5: Parameter Optimization (R&D)")
         from shared.strategy_parameter_tester import strategy_parameter_tester, initialize_strategy_parameter_testing
         await initialize_strategy_parameter_testing()
 
         optimized_strategies = []
         for strategy in strategies:
-            print(f"    Optimizing parameters for: {strategy.strategy_id}")
+            logger.info(f"    Optimizing parameters for: {strategy.strategy_id}")
 
             # Run parameter sweep for this strategy type
             from shared.strategy_parameter_tester import OptimizationMethod
@@ -121,27 +123,27 @@ class ProductionReadinessSystem:
                 )
                 optimized_strategy.strategy_id = f"{strategy.strategy_id}_optimized"
                 optimized_strategies.append(optimized_strategy)
-                print(f"      [OK] Optimized strategy: {optimized_strategy.strategy_id} (Score: {optimization_results[0].score:.4f})")
+                logger.info(f"      [OK] Optimized strategy: {optimized_strategy.strategy_id} (Score: {optimization_results[0].score:.4f})")
             else:
                 optimized_strategies.append(strategy)
-                print(f"      [WARN] Using original strategy (optimization failed)")
+                logger.info(f"      [WARN] Using original strategy (optimization failed)")
 
         strategies = optimized_strategies
 
         # Step 2: Paper trading validation
-        print("\nStep 2: Paper Trading Validation")
+        logger.info("\nStep 2: Paper Trading Validation")
         validation_results = await self._validate_strategies_in_paper_trading(strategies)
-        print(f"  [OK] Validated {len(validation_results)} strategies")
+        logger.info(f"  [OK] Validated {len(validation_results)} strategies")
 
         # Step 3: Risk assessment
-        print("\nStep 3: Risk Assessment")
+        logger.info("\nStep 3: Risk Assessment")
         risk_assessment = await self._assess_strategy_risks(strategies, validation_results)
-        print(f"  [OK] Risk assessment complete for {len(risk_assessment)} strategies")
+        logger.info(f"  [OK] Risk assessment complete for {len(risk_assessment)} strategies")
 
         # Step 4: Production readiness check
-        print("\nStep 4: Production Readiness Check")
+        logger.info("\nStep 4: Production Readiness Check")
         production_ready = await self._check_production_readiness(strategies, validation_results, risk_assessment)
-        print(f"  [OK] {len(production_ready)} strategies ready for production")
+        logger.info(f"  [OK] {len(production_ready)} strategies ready for production")
 
         return {
             "opportunities_found": len(opportunities),
@@ -158,7 +160,7 @@ class ProductionReadinessSystem:
         validation_results = {}
 
         for strategy in strategies:
-            print(f"    Testing strategy: {strategy.strategy_id}")
+            logger.info(f"    Testing strategy: {strategy.strategy_id}")
 
             # Reset paper account for clean test
             await self.paper_trading.reset_account()
@@ -221,7 +223,7 @@ class ProductionReadinessSystem:
                 )
             }
 
-            print(".3f"".3f"".1%")
+            logger.info(".3f"".3f"".1%")
 
         return validation_results
 
@@ -334,19 +336,19 @@ class ProductionReadinessSystem:
 
     async def run_live_trading_simulation(self, production_strategies: List[Dict]):
         """Simulate live trading with safety systems"""
-        print("\n[MONEY] Starting Live Trading Simulation")
-        print("-" * 35)
+        logger.info("\n[MONEY] Starting Live Trading Simulation")
+        logger.info("-" * 35)
 
         if not production_strategies:
-            print("No production-ready strategies available")
+            logger.info("No production-ready strategies available")
             return
 
         # Select best strategy
         best_strategy = max(production_strategies, key=lambda x: x['readiness_score'])
         strategy = best_strategy['strategy']
 
-        print(f"Selected strategy for live simulation: {strategy.strategy_id}")
-        print(".1%")
+        logger.info(f"Selected strategy for live simulation: {strategy.strategy_id}")
+        logger.info(".1%")
 
         # Simulate live trading with safety checks
         simulation_results = await self._simulate_live_trading_with_safety(strategy)
@@ -359,7 +361,7 @@ class ProductionReadinessSystem:
         safety_interventions = 0
         pnl = 0.0
 
-        print("  Executing trades with safety monitoring...")
+        logger.info("  Executing trades with safety monitoring...")
 
         # Simulate 10 trades
         for i in range(10):
@@ -384,15 +386,15 @@ class ProductionReadinessSystem:
                 )
                 trades_executed += 1
                 pnl += 50.0  # Simplified P&L
-                print(f"    [OK] Trade {i+1} executed: {order_id}")
+                logger.info(f"    [OK] Trade {i+1} executed: {order_id}")
             else:
                 safety_interventions += 1
-                print(f"    [WARNING]  Trade {i+1} blocked by safety: {message}")
+                logger.info(f"    [WARNING]  Trade {i+1} blocked by safety: {message}")
 
             # Run safety checks
             alerts = await self.safety_system.execute_safety_check()
             if alerts:
-                print(f"    [ALERT] Safety alerts triggered: {len(alerts)}")
+                logger.info(f"    [ALERT] Safety alerts triggered: {len(alerts)}")
 
             await asyncio.sleep(0.2)  # Simulate time between trades
 
@@ -406,8 +408,8 @@ class ProductionReadinessSystem:
 
     async def generate_production_report(self, pipeline_results: Dict, live_results: Optional[Dict] = None) -> str:
         """Generate comprehensive production readiness report"""
-        print("\n[CHART] Generating Production Readiness Report")
-        print("-" * 42)
+        logger.info("\n[CHART] Generating Production Readiness Report")
+        logger.info("-" * 42)
 
         report = []
         report.append("# Production Readiness Report")
@@ -508,13 +510,13 @@ class ProductionReadinessSystem:
             with open(report_file, 'w') as f:
                 f.write(report)
 
-            print(f"\n[DOCUMENT] Report saved to: {report_file}")
+            logger.info(f"\n[DOCUMENT] Report saved to: {report_file}")
 
             # Print summary
-            print("\n[TARGET] Production Readiness Summary:")
-            print(f"  Strategies Ready: {pipeline_results['strategies_production_ready']}")
-            print(f"  Safety System: {'[CHECK] OK' if not self.safety_system.emergency_shutdown else '[CROSS] ISSUES'}")
-            print(f"  Report Generated: [CHECK]")
+            logger.info("\n[TARGET] Production Readiness Summary:")
+            logger.info(f"  Strategies Ready: {pipeline_results['strategies_production_ready']}")
+            logger.info(f"  Safety System: {'[CHECK] OK' if not self.safety_system.emergency_shutdown else '[CROSS] ISSUES'}")
+            logger.info(f"  Report Generated: [CHECK]")
 
             return {
                 "success": True,
@@ -538,17 +540,17 @@ async def main():
 
     system = ProductionReadinessSystem()
 
-    print("ACCELERATED ARBITRAGE CORP - Production Readiness System")
-    print("=" * 65)
+    logger.info("ACCELERATED ARBITRAGE CORP - Production Readiness System")
+    logger.info("=" * 65)
 
     results = await system.run_full_production_readiness_check()
 
     if results["success"]:
-        print("\n[CELEBRATION] Production readiness assessment completed successfully!")
+        logger.info("\n[CELEBRATION] Production readiness assessment completed successfully!")
     else:
-        print(f"\n[CROSS] Production readiness assessment failed: {results['error']}")
+        logger.info(f"\n[CROSS] Production readiness assessment failed: {results['error']}")
 
-    print("\n" + "=" * 65)
+    logger.info("\n" + "=" * 65)
 
 
 if __name__ == "__main__":

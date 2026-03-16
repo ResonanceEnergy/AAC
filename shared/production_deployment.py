@@ -16,6 +16,8 @@ from pathlib import Path
 import sys
 import yaml
 
+logger = logging.getLogger(__name__)
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
@@ -329,16 +331,16 @@ production_deployment_system = ProductionDeploymentSystem()
 
 async def initialize_production_deployment():
     """Initialize the production deployment system"""
-    print("[DEPLOY] Initializing Production Deployment System...")
+    logger.info("[DEPLOY] Initializing Production Deployment System...")
 
     deployment_id = await production_deployment_system.initialize_deployment()
 
-    print("[OK] Production deployment system initialized")
-    print(f"  Deployment ID: {deployment_id}")
+    logger.info("[OK] Production deployment system initialized")
+    logger.info(f"  Deployment ID: {deployment_id}")
 
     status = production_deployment_system.get_deployment_status()
-    print(f"  Phase: {status['phase_name']}")
-    print(f"  Allocated Capital: ${status['allocated_capital']:,.2f}")
+    logger.info(f"  Phase: {status['phase_name']}")
+    logger.info(f"  Allocated Capital: ${status['allocated_capital']:,.2f}")
 
     return deployment_id
 

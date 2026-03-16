@@ -70,7 +70,7 @@ class AACProductionDeployer:
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         log_entry = f"[{timestamp}] {level}: {message}"
         self.deployment_log.append(log_entry)
-        print(log_entry)
+        logger.info(str(log_entry))
 
     async def validate_environment(self) -> bool:
         """Validate system environment"""
@@ -383,26 +383,26 @@ async def main():
 
     args = parser.parse_args()
 
-    print("🚀 AAC Production Deployment Script")
-    print("=" * 50)
+    logger.info("🚀 AAC Production Deployment Script")
+    logger.info("=" * 50)
 
     deployer = AACProductionDeployer(mode=args.mode)
 
     if args.status:
         # Show current status
         status = deployer.get_system_status()
-        print(json.dumps(status, indent=2))
+        logger.info(str(json.dumps(status, indent=2)))
         return
 
     if args.health_check:
         # Run health check
         health = await deployer.run_health_check()
-        print(json.dumps(health, indent=2))
+        logger.info(str(json.dumps(health, indent=2)))
         return
 
     # Validation phase
-    print("\n📋 Phase 1: Validation")
-    print("-" * 30)
+    logger.info("\n📋 Phase 1: Validation")
+    logger.info("-" * 30)
 
     validations = [
         ('Environment', deployer.validate_environment()),
@@ -415,50 +415,50 @@ async def main():
         try:
             result = await validation_coro
             status = "✅ PASS" if result else "❌ FAIL"
-            print(f"{name}: {status}")
+            logger.info(f"{name}: {status}")
             if not result:
                 all_valid = False
         except Exception as e:
-            print(f"{name}: ❌ ERROR - {e}")
+            logger.info(f"{name}: ❌ ERROR - {e}")
             all_valid = False
 
     if not all_valid:
-        print("\n❌ Validation failed. Please fix issues and try again.")
+        logger.info("\n❌ Validation failed. Please fix issues and try again.")
         sys.exit(1)
 
     deployer.config_validated = True
-    print("\n✅ All validations passed!")
+    logger.info("\n✅ All validations passed!")
 
     if args.validate_only:
-        print("🎯 Validation complete. Use --mode live to deploy.")
+        logger.info("🎯 Validation complete. Use --mode live to deploy.")
         return
 
     # Deployment phase
-    print("\n🚀 Phase 2: Deployment")
-    print("-" * 30)
+    logger.info("\n🚀 Phase 2: Deployment")
+    logger.info("-" * 30)
 
     if args.mode == 'live':
-        print("⚠️  LIVE MODE: This will execute real trades!")
+        logger.info("⚠️  LIVE MODE: This will execute real trades!")
         confirm = input("Are you sure you want to continue? (yes/no): ")
         if confirm.lower() != 'yes':
-            print("❌ Deployment cancelled.")
+            logger.info("❌ Deployment cancelled.")
             return
 
     try:
         success = await deployer.deploy_system()
         if success:
-            print("\n✅ AAC system deployed successfully!")
-            print(f"📊 Mode: {args.mode.upper()}")
-            print("🎯 System is now running continuous arbitrage trading")
-            print("📈 Check the monitoring dashboard for real-time status")
+            logger.info("\n✅ AAC system deployed successfully!")
+            logger.info(f"📊 Mode: {args.mode.upper()}")
+            logger.info("🎯 System is now running continuous arbitrage trading")
+            logger.info("📈 Check the monitoring dashboard for real-time status")
         else:
-            print("\n❌ Deployment failed. Check logs above.")
+            logger.info("\n❌ Deployment failed. Check logs above.")
             sys.exit(1)
 
     except KeyboardInterrupt:
-        print("\n🛑 Deployment interrupted by user")
+        logger.info("\n🛑 Deployment interrupted by user")
     except Exception as e:
-        print(f"\n❌ Deployment error: {e}")
+        logger.info(f"\n❌ Deployment error: {e}")
         sys.exit(1)
 
 if __name__ == "__main__":

@@ -9,12 +9,15 @@ enterprise, including operational departments and specialized arbitrage division
 
 import os
 from pathlib import Path
+import logging
+
+logger = logging.getLogger(__name__)
 
 def audit_divisions():
     """Complete audit of AAC organizational divisions"""
 
-    print("🏢 AAC ORGANIZATIONAL DIVISIONS AUDIT")
-    print("=" * 80)
+    logger.info("🏢 AAC ORGANIZATIONAL DIVISIONS AUDIT")
+    logger.info("=" * 80)
 
     # Core Operational Departments (5 Main Divisions)
     core_departments = {
@@ -210,64 +213,64 @@ def audit_divisions():
     }
 
     # Display Core Operational Departments
-    print("🏛️  CORE OPERATIONAL DEPARTMENTS (5 Divisions)")
-    print("-" * 80)
+    logger.info("🏛️  CORE OPERATIONAL DEPARTMENTS (5 Divisions)")
+    logger.info("-" * 80)
 
     for dept_name, dept_info in core_departments.items():
-        print(f"🏢 {dept_name}")
-        print(f"   Mission: {dept_info['mission']}")
-        print(f"   Status: {dept_info['status']}")
-        print(f"   Key Metrics: {', '.join(dept_info['key_metrics'])}")
-        print()
-        print("   📋 Responsibilities:")
+        logger.info(f"🏢 {dept_name}")
+        logger.info(f"   Mission: {dept_info['mission']}")
+        logger.info(f"   Status: {dept_info['status']}")
+        logger.info(f"   Key Metrics: {', '.join(dept_info['key_metrics'])}")
+        logger.info("")
+        logger.info("   📋 Responsibilities:")
         for resp in dept_info['responsibilities']:
-            print(f"     • {resp}")
-        print()
-        print("   🔗 Integration Points:")
+            logger.info(f"     • {resp}")
+        logger.info("")
+        logger.info("   🔗 Integration Points:")
         for integration in dept_info['integration_points']:
-            print(f"     • {integration}")
-        print("-" * 80)
+            logger.info(f"     • {integration}")
+        logger.info("-" * 80)
 
     # Display Specialized Arbitrage Divisions
-    print("\n[TARGET] SPECIALIZED ARBITRAGE DIVISIONS (4 Core Strategies)")
-    print("-" * 80)
+    logger.info("\n[TARGET] SPECIALIZED ARBITRAGE DIVISIONS (4 Core Strategies)")
+    logger.info("-" * 80)
 
     for div_name, div_info in arbitrage_divisions.items():
-        print(f"[TARGET] {div_name.replace('Division', '').replace('Arbitrage', ' Arbitrage')}")
-        print(f"   Focus: {div_info['focus']}")
-        print(f"   Status: {div_info['status']}")
-        print()
-        print("   📈 Key Strategies:")
+        logger.info(f"[TARGET] {div_name.replace('Division', '').replace('Arbitrage', ' Arbitrage')}")
+        logger.info(f"   Focus: {div_info['focus']}")
+        logger.info(f"   Status: {div_info['status']}")
+        logger.info("")
+        logger.info("   📈 Key Strategies:")
         for strategy in div_info['strategies']:
-            print(f"     • {strategy}")
-        print()
-        print("   🛠️  Technologies:")
+            logger.info(f"     • {strategy}")
+        logger.info("")
+        logger.info("   🛠️  Technologies:")
         for tech in div_info['technologies']:
-            print(f"     • {tech}")
-        print("-" * 80)
+            logger.info(f"     • {tech}")
+        logger.info("-" * 80)
 
     # Display Support Divisions
-    print("\n[SHIELD]️  SUPPORT & BUSINESS DIVISIONS (8 Divisions)")
-    print("-" * 80)
+    logger.info("\n[SHIELD]️  SUPPORT & BUSINESS DIVISIONS (8 Divisions)")
+    logger.info("-" * 80)
 
     for div_name, div_info in support_divisions.items():
-        print(f"[SHIELD]️  {div_name.replace('_', ' ').replace('Division', '')}")
+        logger.info(f"[SHIELD]️  {div_name.replace('_', ' ').replace('Division', '')}")
         if 'mission' in div_info:
-            print(f"   Mission: {div_info['mission']}")
+            logger.info(f"   Mission: {div_info['mission']}")
         if 'focus' in div_info:
-            print(f"   Focus: {div_info['focus']}")
-        print(f"   Status: {div_info['status']}")
+            logger.info(f"   Focus: {div_info['focus']}")
+        logger.info(f"   Status: {div_info['status']}")
 
         if 'responsibilities' in div_info:
-            print()
-            print("   📋 Responsibilities:")
+            logger.info("")
+            logger.info("   📋 Responsibilities:")
             for resp in div_info['responsibilities']:
-                print(f"     • {resp}")
-        print("-" * 80)
+                logger.info(f"     • {resp}")
+        logger.info("-" * 80)
 
     # Summary Statistics
-    print("\n[MONITOR] DIVISION PORTFOLIO SUMMARY")
-    print("-" * 80)
+    logger.info("\n[MONITOR] DIVISION PORTFOLIO SUMMARY")
+    logger.info("-" * 80)
 
     total_divisions = len(core_departments) + len(arbitrage_divisions) + len(support_divisions)
     operational_count = sum(1 for d in core_departments.values() if d['status'] == 'FULLY OPERATIONAL')
@@ -275,26 +278,26 @@ def audit_divisions():
     structured_count = sum(1 for d in arbitrage_divisions.values() if d['status'] == 'STRUCTURE CREATED')
     structured_count += sum(1 for d in support_divisions.values() if d['status'] == 'STRUCTURE CREATED')
 
-    print(f"🏢 Total Divisions: {total_divisions}")
-    print(f"✅ Fully Operational: {operational_count}")
-    print(f"🏗️  Structure Created: {structured_count}")
-    print()
+    logger.info(f"🏢 Total Divisions: {total_divisions}")
+    logger.info(f"✅ Fully Operational: {operational_count}")
+    logger.info(f"🏗️  Structure Created: {structured_count}")
+    logger.info("")
 
-    print("📈 DIVISION CATEGORIES:")
-    print(f"   Core Operations: {len(core_departments)} departments")
-    print(f"   Arbitrage Strategies: {len(arbitrage_divisions)} divisions")
-    print(f"   Support Services: {len(support_divisions)} divisions")
-    print()
+    logger.info("📈 DIVISION CATEGORIES:")
+    logger.info(f"   Core Operations: {len(core_departments)} departments")
+    logger.info(f"   Arbitrage Strategies: {len(arbitrage_divisions)} divisions")
+    logger.info(f"   Support Services: {len(support_divisions)} divisions")
+    logger.info("")
 
-    print("[TARGET] STRATEGIC VALUE PROPOSITION:")
-    print("   • Complete enterprise arbitrage ecosystem")
-    print("   • Institutional-grade operational framework")
-    print("   • Multi-strategy arbitrage capabilities")
-    print("   • Comprehensive risk and compliance management")
-    print("   • Technology-driven competitive advantages")
-    print("   • Future-proof 2100 organizational structure")
+    logger.info("[TARGET] STRATEGIC VALUE PROPOSITION:")
+    logger.info("   • Complete enterprise arbitrage ecosystem")
+    logger.info("   • Institutional-grade operational framework")
+    logger.info("   • Multi-strategy arbitrage capabilities")
+    logger.info("   • Comprehensive risk and compliance management")
+    logger.info("   • Technology-driven competitive advantages")
+    logger.info("   • Future-proof 2100 organizational structure")
 
-    print("\n✅ AUDIT COMPLETE - All AAC divisions cataloged and assessed")
+    logger.info("\n✅ AUDIT COMPLETE - All AAC divisions cataloged and assessed")
 
 if __name__ == "__main__":
     audit_divisions()

@@ -24,6 +24,8 @@ from pathlib import Path
 import sys
 import json
 
+logger = logging.getLogger(__name__)
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
@@ -543,44 +545,44 @@ async def main():
                 price=450.0
             )
 
-            print("🧪 Testing Order Generation...")
+            logger.info("🧪 Testing Order Generation...")
 
             # Generate order
             validated_order = await generator.generate_order_from_signal(test_signal)
 
             if validated_order:
-                print(f"📋 Order Generated: {validated_order.order.order_id}")
-                print(f"   Symbol: {validated_order.order.symbol}")
-                print(f"   Side: {validated_order.order.side.value}")
-                print(f"   Quantity: {validated_order.order.quantity}")
-                print(f"   Price: ${validated_order.order.price}")
-                print(f"   Validation: {validated_order.validation_result.value}")
+                logger.info(f"📋 Order Generated: {validated_order.order.order_id}")
+                logger.info(f"   Symbol: {validated_order.order.symbol}")
+                logger.info(f"   Side: {validated_order.order.side.value}")
+                logger.info(f"   Quantity: {validated_order.order.quantity}")
+                logger.info(f"   Price: ${validated_order.order.price}")
+                logger.info(f"   Validation: {validated_order.validation_result.value}")
 
                 if validated_order.validation_errors:
-                    print(f"   Errors: {validated_order.validation_errors}")
+                    logger.info(f"   Errors: {validated_order.validation_errors}")
 
                 # Submit if valid
                 if validated_order.validation_result == OrderValidationResult.VALID:
                     success = await generator.submit_validated_order(validated_order)
-                    print(f"   Submission: {'✅ Success' if success else '❌ Failed'}")
+                    logger.info(f"   Submission: {'✅ Success' if success else '❌ Failed'}")
 
                     # Get status
                     status = await generator.get_order_status(validated_order.order.order_id)
                     if status:
-                        print(f"   Status: {status['status']}")
+                        logger.info(f"   Status: {status['status']}")
 
             # Get portfolio status
             portfolio = await generator.get_portfolio_status()
-            print(f"\n💼 Portfolio Status:")
-            print(f"   Open Positions: {portfolio.get('total_positions', 0)}")
-            print(f"   Daily Trades: {portfolio.get('daily_trade_count', 0)}")
-            print(f"   Daily Volume: ${portfolio.get('daily_volume', 0):.2f}")
+            logger.info(f"\n💼 Portfolio Status:")
+            logger.info(f"   Open Positions: {portfolio.get('total_positions', 0)}")
+            logger.info(f"   Daily Trades: {portfolio.get('daily_trade_count', 0)}")
+            logger.info(f"   Daily Volume: ${portfolio.get('daily_volume', 0):.2f}")
 
         else:
-            print("Order Generation System initialized. Use --test-signal to test order generation.")
+            logger.info("Order Generation System initialized. Use --test-signal to test order generation.")
 
     except Exception as e:
-        print(f"❌ Error: {e}")
+        logger.info(f"❌ Error: {e}")
         raise
 
 

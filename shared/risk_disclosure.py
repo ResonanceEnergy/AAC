@@ -17,6 +17,8 @@ from enum import Enum
 import sys
 import yaml
 
+logger = logging.getLogger(__name__)
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
@@ -545,7 +547,7 @@ I, {client_id}, hereby acknowledge that:
 
     async def initialize_risk_disclosure(self):
         """Initialize the risk disclosure framework and enforce compliance"""
-        print("[RISK] Initializing Risk Disclosure Framework...")
+        logger.info("[RISK] Initializing Risk Disclosure Framework...")
 
         # Create default client profile for system
         await self.create_client_risk_profile(
@@ -559,11 +561,11 @@ I, {client_id}, hereby acknowledge that:
         # Enforce compliance for all clients
         summary = await self.enforce_compliance()
 
-        print("[OK] Risk disclosure framework initialized")
-        print(f"  Total Disclosures: {summary['total_disclosures']}")
-        print(f"  Total Clients: {summary['total_clients']}")
-        print(f"  Compliant Clients: {summary['compliant_clients']}")
-        print(f"  Compliance Rate: {summary['compliance_rate']:.1%}")
+        logger.info("[OK] Risk disclosure framework initialized")
+        logger.info(f"  Total Disclosures: {summary['total_disclosures']}")
+        logger.info(f"  Total Clients: {summary['total_clients']}")
+        logger.info(f"  Compliant Clients: {summary['compliant_clients']}")
+        logger.info(f"  Compliance Rate: {summary['compliance_rate']:.1%}")
 
         return True
 

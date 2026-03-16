@@ -45,13 +45,15 @@ import psutil
 import logging
 import queue
 
+logger = logging.getLogger(__name__)
+
 # Try to import curses, fallback for Windows
 try:
     import curses
     CURSES_AVAILABLE = True
 except ImportError:
     CURSES_AVAILABLE = False
-    print("Warning: curses not available, using text-based dashboard")
+    logger.info("Warning: curses not available, using text-based dashboard")
 
 # Optional imports for different display modes
 try:
@@ -902,46 +904,46 @@ class AACMasterMonitoringDashboard:
     def _display_text_dashboard(self, data: Dict[str, Any]):
         """Display dashboard in text mode for Windows compatibility"""
         print("\033[2J\033[H", end="")  # ANSI clear screen
-        print("="*80)
-        print("AAC 2100 MASTER MONITORING DASHBOARD")
-        print("="*80)
-        print(f"Last update: {data.get('timestamp', datetime.now()).strftime('%Y-%m-%d %H:%M:%S')}")
-        print()
+        logger.info("="*80)
+        logger.info("AAC 2100 MASTER MONITORING DASHBOARD")
+        logger.info("="*80)
+        logger.info(f"Last update: {data.get('timestamp', datetime.now()).strftime('%Y-%m-%d %H:%M:%S')}")
+        logger.info("")
 
         # System Health
         health = data.get('health', {})
-        print("🔍 SYSTEM HEALTH")
-        print("-" * 20)
+        logger.info("🔍 SYSTEM HEALTH")
+        logger.info("-" * 20)
         status = health.get('overall_status', 'unknown')
         status_emoji = {'healthy': '🟢', 'warning': '🟡', 'critical': '🔴', 'unknown': '⚪'}.get(status, '⚪')
-        print(f"Overall Status: {status_emoji} {status.upper()}")
+        logger.info(f"Overall Status: {status_emoji} {status.upper()}")
 
         # Department status
         departments = health.get('departments', {})
         if departments:
-            print("\nDepartments:")
+            logger.info("\nDepartments:")
             for dept, info in departments.items():
                 dept_status = info.get('status', 'unknown')
                 emoji = {'healthy': '🟢', 'warning': '🟡', 'critical': '🔴', 'unknown': '⚪'}.get(dept_status, '⚪')
-                print(f"  {emoji} {dept}: {dept_status}")
+                logger.info(f"  {emoji} {dept}: {dept_status}")
 
         # Infrastructure
         infra = health.get('infrastructure', {})
         if infra:
-            print("\nInfrastructure:")
+            logger.info("\nInfrastructure:")
             for component, status in infra.items():
                 if isinstance(status, dict):
                     comp_status = status.get('status', 'unknown')
                 else:
                     comp_status = 'healthy' if status else 'critical'
                 emoji = {'healthy': '🟢', 'warning': '🟡', 'critical': '🔴', 'unknown': '⚪'}.get(comp_status, '⚪')
-                print(f"  {emoji} {component}: {comp_status}")
+                logger.info(f"  {emoji} {component}: {comp_status}")
 
         # Doctrine Compliance
         doctrine = data.get('doctrine', {})
         if doctrine:
-            print("\n[DOCTRINE] COMPLIANCE MATRIX")
-            print("-" * 25)
+            logger.info("\n[DOCTRINE] COMPLIANCE MATRIX")
+            logger.info("-" * 25)
             compliance_score = doctrine.get('compliance_score', 0)
             barren_wuffet_state = doctrine.get('barren_wuffet_state', 'unknown')
 
@@ -952,7 +954,7 @@ class AACMasterMonitoringDashboard:
                 score_emoji = '🟡'
             else:
                 score_emoji = '🔴'
-            print(f"Compliance Score: {score_emoji} {compliance_score}%")
+            logger.info(f"Compliance Score: {score_emoji} {compliance_score}%")
 
             # BARREN WUFFET state
             if barren_wuffet_state in ['CRITICAL', 'error']:
@@ -961,54 +963,54 @@ class AACMasterMonitoringDashboard:
                 az_emoji = '🟡'
             else:
                 az_emoji = '🟢'
-            print(f"BARREN WUFFET State: {az_emoji} {barren_wuffet_state.upper()}")
+            logger.info(f"BARREN WUFFET State: {az_emoji} {barren_wuffet_state.upper()}")
 
             # Compliance metrics
             compliant = doctrine.get('compliant', 0)
             warnings = doctrine.get('warnings', 0)
             violations = doctrine.get('violations', 0)
-            print(f"[OK] Compliant: {compliant} | [WARN] Warnings: {warnings} | [ERROR] Violations: {violations}")
+            logger.info(f"[OK] Compliant: {compliant} | [WARN] Warnings: {warnings} | [ERROR] Violations: {violations}")
 
             # Monitoring status
             monitoring_active = doctrine.get('monitoring_active', False)
             monitor_status = '[ACTIVE]' if monitoring_active else '[INACTIVE]'
-            print(f"Monitoring: {monitor_status}")
+            logger.info(f"Monitoring: {monitor_status}")
 
         # P&L Data
         pnl = data.get('pnl', {})
         if pnl:
-            print("\n[MONEY] P&L SUMMARY")
-            print("-" * 15)
+            logger.info("\n[MONEY] P&L SUMMARY")
+            logger.info("-" * 15)
             daily_pnl = pnl.get('daily_pnl', 0)
             total_pnl = pnl.get('total_pnl', 0)
-            print(f"Daily P&L: ${daily_pnl:,.2f}")
-            print(f"Total P&L: ${total_pnl:,.2f}")
+            logger.info(f"Daily P&L: ${daily_pnl:,.2f}")
+            logger.info(f"Total P&L: ${total_pnl:,.2f}")
 
         # Risk Metrics
         risk = data.get('risk', {})
         if risk:
-            print("\n[WARN]️  RISK METRICS")
-            print("-" * 15)
+            logger.info("\n[WARN]️  RISK METRICS")
+            logger.info("-" * 15)
             var_95 = risk.get('var_95', 0)
             max_drawdown = risk.get('max_drawdown', 0)
-            print(f"VaR (95%): ${var_95:,.2f}")
-            print(f"Max Drawdown: ${max_drawdown:,.2f}")
+            logger.info(f"VaR (95%): ${var_95:,.2f}")
+            logger.info(f"Max Drawdown: ${max_drawdown:,.2f}")
 
         # Trading Activity
         trading = data.get('trading', {})
         if trading:
-            print("\n📈 TRADING ACTIVITY")
-            print("-" * 20)
+            logger.info("\n📈 TRADING ACTIVITY")
+            logger.info("-" * 20)
             active_positions = trading.get('active_positions', 0)
             pending_orders = trading.get('pending_orders', 0)
-            print(f"Active Positions: {active_positions}")
-            print(f"Pending Orders: {pending_orders}")
+            logger.info(f"Active Positions: {active_positions}")
+            logger.info(f"Pending Orders: {pending_orders}")
 
         # Security Status
         security = data.get('security', {})
         if security and security.get('status') != 'not_available':
-            print("\n[SHIELD] SECURITY STATUS")
-            print("-" * 20)
+            logger.info("\n[SHIELD] SECURITY STATUS")
+            logger.info("-" * 20)
             security_score = security.get('overall_score', 0)
             if security_score >= 90:
                 sec_emoji = '🟢'
@@ -1016,7 +1018,7 @@ class AACMasterMonitoringDashboard:
                 sec_emoji = '🟡'
             else:
                 sec_emoji = '🔴'
-            print(f"Security Score: {sec_emoji} {security_score:.1f}%")
+            logger.info(f"Security Score: {sec_emoji} {security_score:.1f}%")
 
             components = security.get('components', {})
             for comp_name, comp_data in components.items():
@@ -1028,43 +1030,43 @@ class AACMasterMonitoringDashboard:
                         comp_emoji = '🟡'
                     else:
                         comp_emoji = '🔴'
-                    print(f"  {comp_emoji} {comp_name.upper()}: {comp_score}%")
+                    logger.info(f"  {comp_emoji} {comp_name.upper()}: {comp_score}%")
 
         # Safeguards
         safeguards = data.get('safeguards', {})
         if safeguards:
-            print("\n[SHIELD]️  PRODUCTION SAFEGUARDS")
-            print("-" * 25)
+            logger.info("\n[SHIELD]️  PRODUCTION SAFEGUARDS")
+            logger.info("-" * 25)
             circuit_breaker = safeguards.get('circuit_breaker_active', False)
             rate_limited = safeguards.get('rate_limited', False)
-            print(f"Circuit Breaker: {'🔴 ACTIVE' if circuit_breaker else '🟢 NORMAL'}")
-            print(f"Rate Limiting: {'🟡 ACTIVE' if rate_limited else '🟢 NORMAL'}")
+            logger.info(f"Circuit Breaker: {'🔴 ACTIVE' if circuit_breaker else '🟢 NORMAL'}")
+            logger.info(f"Rate Limiting: {'🟡 ACTIVE' if rate_limited else '🟢 NORMAL'}")
 
         # Strategy Metrics
         strategy = data.get('strategy', {})
         if strategy and strategy.get('status') != 'not_available':
-            print("\n[STRATEGY] STRATEGY METRICS")
-            print("-" * 20)
+            logger.info("\n[STRATEGY] STRATEGY METRICS")
+            logger.info("-" * 20)
             total_strategies = strategy.get('total_strategies', 0)
             active_strategies = strategy.get('active_strategies', 0)
             avg_return = strategy.get('average_return', 0.0)
-            print(f"Total Strategies: {total_strategies}")
-            print(f"Active Strategies: {active_strategies}")
-            print(f"Average Return: {avg_return:.2%}")
+            logger.info(f"Total Strategies: {total_strategies}")
+            logger.info(f"Active Strategies: {active_strategies}")
+            logger.info(f"Average Return: {avg_return:.2%}")
 
         # Alerts
         alerts = data.get('alerts', [])
         if alerts:
-            print("\n[ALERT] ACTIVE ALERTS")
-            print("-" * 15)
+            logger.info("\n[ALERT] ACTIVE ALERTS")
+            logger.info("-" * 15)
             for alert in alerts[:5]:  # Show first 5 alerts
                 severity = alert.get('severity', 'info')
                 emoji = {'critical': '🔴', 'warning': '🟡', 'info': 'ℹ️'}.get(severity, 'ℹ️')
-                print(f"  {emoji} {alert.get('title', 'Unknown alert')}")
+                logger.info(f"  {emoji} {alert.get('title', 'Unknown alert')}")
 
-        print("\n" + "="*80)
-        print("Press Ctrl+C to quit | Auto-refresh: 1s")
-        print("="*80)
+        logger.info("\n" + "="*80)
+        logger.info("Press Ctrl+C to quit | Auto-refresh: 1s")
+        logger.info("="*80)
 
     def _run_curses_dashboard(self, stdscr):
         """Run the curses-based dashboard"""
@@ -1102,11 +1104,11 @@ class AACMasterMonitoringDashboard:
 
     def _run_text_dashboard_loop(self):
         """Run the text-based dashboard loop"""
-        print("\n" + "="*80)
-        print("AAC 2100 MASTER MONITORING DASHBOARD (Text Mode)")
-        print("="*80)
-        print("Press Ctrl+C to quit | Auto-refresh: 1s")
-        print()
+        logger.info("\n" + "="*80)
+        logger.info("AAC 2100 MASTER MONITORING DASHBOARD (Text Mode)")
+        logger.info("="*80)
+        logger.info("Press Ctrl+C to quit | Auto-refresh: 1s")
+        logger.info("")
 
         while self.running:
             try:
@@ -1124,7 +1126,7 @@ class AACMasterMonitoringDashboard:
                 self.running = False
                 break
             except Exception as e:
-                print(f"Dashboard error: {e}")
+                logger.info(f"Dashboard error: {e}")
                 time.sleep(2)
 
     async def run_dashboard(self):
@@ -1176,53 +1178,53 @@ class AACMasterMonitoringDashboard:
             except KeyboardInterrupt:
                 self.running = False
             except Exception as e:
-                print(f"Monitoring error: {e}")
+                logger.info(f"Monitoring error: {e}")
                 await asyncio.sleep(5)
 
     async def _run_web_dashboard(self):
         """Run Streamlit web dashboard"""
         if not STREAMLIT_AVAILABLE:
-            print("Streamlit not available. Install with: pip install streamlit")
+            logger.info("Streamlit not available. Install with: pip install streamlit")
             return
 
         # This would implement Streamlit dashboard
-        print("Web dashboard not yet implemented")
+        logger.info("Web dashboard not yet implemented")
         await asyncio.sleep(1)
 
     async def _run_dash_dashboard(self):
         """Run Plotly Dash analytics dashboard"""
         if not DASH_AVAILABLE:
-            print("Dash not available. Install with: pip install dash")
+            logger.info("Dash not available. Install with: pip install dash")
             return
 
         # This would implement Dash dashboard
-        print("Dash analytics dashboard not yet implemented")
+        logger.info("Dash analytics dashboard not yet implemented")
         await asyncio.sleep(1)
 
     async def _run_api_dashboard(self):
         """Run REST API dashboard"""
         # This would implement REST API
-        print("API dashboard not yet implemented")
+        logger.info("API dashboard not yet implemented")
         await asyncio.sleep(1)
 
     async def start_monitoring(self):
         """Start the master monitoring system"""
-        print("[START] Starting AAC Master Monitoring Dashboard...")
+        logger.info("[START] Starting AAC Master Monitoring Dashboard...")
 
         # Initialize
         if not await self.initialize():
-            print("[ERROR] Failed to initialize monitoring dashboard")
+            logger.info("[ERROR] Failed to initialize monitoring dashboard")
             return
 
         # Start monitoring loop
         await self.run_dashboard()
 
-        print("[SUCCESS] Master monitoring dashboard started")
+        logger.info("[SUCCESS] Master monitoring dashboard started")
 
     def stop_monitoring(self):
         """Stop monitoring"""
         self.running = False
-        print("[STOP] Master monitoring dashboard stopped")
+        logger.info("[STOP] Master monitoring dashboard stopped")
 
 
 class AACStreamlitDashboard:
@@ -1244,10 +1246,10 @@ class AACStreamlitDashboard:
                 asyncio.run(self.execution_system.initialize())
                 return True
             else:
-                print("Arbitrage components not available")
+                logger.info("Arbitrage components not available")
                 return False
         except Exception as e:
-            print(f"Failed to initialize system: {e}")
+            logger.info(f"Failed to initialize system: {e}")
             return False
 
     def start_monitoring(self):
@@ -1341,7 +1343,7 @@ class AACDashDashboard:
     def _create_dashboard_app(self):
         """Create the Dash dashboard application"""
         if not DASH_AVAILABLE:
-            print("Dash not available, cannot create dashboard")
+            logger.info("Dash not available, cannot create dashboard")
             return None
 
         import dash
@@ -1483,7 +1485,7 @@ class AACDashDashboard:
         if self.dashboard_app:
             self.dashboard_app.run_server(debug=os.environ.get('DASH_DEBUG', '').lower() == 'true', port=port)
         else:
-            print("Dashboard not initialized")
+            logger.info("Dashboard not initialized")
 
 
 # Global instance
@@ -1495,13 +1497,13 @@ def get_master_dashboard(display_mode: str = DisplayMode.TERMINAL):
         if STREAMLIT_AVAILABLE:
             return AACStreamlitDashboard()
         else:
-            print("Streamlit not available, falling back to terminal mode")
+            logger.info("Streamlit not available, falling back to terminal mode")
             return AACMasterMonitoringDashboard(DisplayMode.TERMINAL)
     elif display_mode == DisplayMode.DASH:
         if DASH_AVAILABLE:
             return AACDashDashboard()
         else:
-            print("Dash not available, falling back to terminal mode")
+            logger.info("Dash not available, falling back to terminal mode")
             return AACMasterMonitoringDashboard(DisplayMode.TERMINAL)
     else:
         return AACMasterMonitoringDashboard(display_mode)
@@ -1534,22 +1536,22 @@ async def _async_main():
             if hasattr(dashboard, 'run_dashboard'):
                 dashboard.run_dashboard(port=args.port)
             else:
-                print("Streamlit dashboard not available")
+                logger.info("Streamlit dashboard not available")
         elif display_mode == DisplayMode.DASH:
             # Dash dashboard
             if hasattr(dashboard, 'run_dashboard'):
                 dashboard.run_dashboard(port=args.port)
             else:
-                print("Dash dashboard not available")
+                logger.info("Dash dashboard not available")
         else:
             # Terminal dashboard
             await dashboard.start_monitoring()
     except KeyboardInterrupt:
-        print("\n🛑 Shutting down master monitoring dashboard...")
+        logger.info("\n🛑 Shutting down master monitoring dashboard...")
         if hasattr(dashboard, 'stop_monitoring'):
             dashboard.stop_monitoring()
     except Exception as e:
-        print(f"[CROSS] Master monitoring dashboard failed: {e}")
+        logger.info(f"[CROSS] Master monitoring dashboard failed: {e}")
         if hasattr(dashboard, 'stop_monitoring'):
             dashboard.stop_monitoring()
 
@@ -1622,7 +1624,7 @@ def play_audio_response(text: str):
 def run_streamlit_dashboard():
     """Run the Streamlit dashboard as a standalone app"""
     if not STREAMLIT_AVAILABLE:
-        print("Streamlit not available")
+        logger.info("Streamlit not available")
         return
 
     st.set_page_config(

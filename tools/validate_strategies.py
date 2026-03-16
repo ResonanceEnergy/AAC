@@ -52,120 +52,120 @@ class StrategyValidator:
 
     async def check_strategies(self):
         """Basic strategy check - loads and validates all strategies"""
-        print("🔍 Checking 50 Arbitrage Strategies")
-        print("=" * 50)
+        logger.info("🔍 Checking 50 Arbitrage Strategies")
+        logger.info("=" * 50)
 
         try:
             strategies = await self.loader.load_strategies()
             valid = [s for s in strategies if s.is_valid]
             invalid = [s for s in strategies if not s.is_valid]
 
-            print(f"✅ Loaded {len(strategies)} strategies")
-            print(f"✅ Valid strategies: {len(valid)}")
-            print(f"[CROSS] Invalid strategies: {len(invalid)}")
+            logger.info(f"✅ Loaded {len(strategies)} strategies")
+            logger.info(f"✅ Valid strategies: {len(valid)}")
+            logger.info(f"[CROSS] Invalid strategies: {len(invalid)}")
 
             if invalid:
-                print("\n[CROSS] Invalid Strategies:")
+                logger.info("\n[CROSS] Invalid Strategies:")
                 for strategy in invalid:
-                    print(f"  - {strategy.id}: {strategy.name}")
+                    logger.info(f"  - {strategy.id}: {strategy.name}")
                     for error in strategy.validation_errors:
-                        print(f"    • {error}")
+                        logger.info(f"    • {error}")
 
             if len(valid) == 50:
-                print("\n[CELEBRATION] All 50 strategies are valid and ready for implementation!")
+                logger.info("\n[CELEBRATION] All 50 strategies are valid and ready for implementation!")
             else:
-                print(f"\n[WARN]️  {len(valid)}/50 strategies are valid. Review invalid strategies above.")
+                logger.info(f"\n[WARN]️  {len(valid)}/50 strategies are valid. Review invalid strategies above.")
 
         except Exception as e:
-            print(f"[CROSS] Error checking strategies: {e}")
+            logger.info(f"[CROSS] Error checking strategies: {e}")
             return False
 
         return True
 
     async def show_summary(self):
         """Show detailed summary of strategy distribution"""
-        print("[MONITOR] Strategy Summary Report")
-        print("=" * 50)
+        logger.info("[MONITOR] Strategy Summary Report")
+        logger.info("=" * 50)
 
         try:
             summary = await self.loader.get_strategy_summary()
 
-            print(f"Total Strategies: {summary['total_strategies']}")
-            print(f"Valid Strategies: {summary['valid_strategies']}")
-            print(f"Invalid Strategies: {summary['invalid_strategies']}")
-            print(".1%")
+            logger.info(f"Total Strategies: {summary['total_strategies']}")
+            logger.info(f"Valid Strategies: {summary['valid_strategies']}")
+            logger.info(f"Invalid Strategies: {summary['invalid_strategies']}")
+            logger.info(".1%")
 
-            print("\n📂 Strategy Categories:")
+            logger.info("\n📂 Strategy Categories:")
             for category, count in summary['categories'].items():
-                print(f"  {category.replace('_', ' ').title()}: {count}")
+                logger.info(f"  {category.replace('_', ' ').title()}: {count}")
 
         except Exception as e:
-            print(f"[CROSS] Error generating summary: {e}")
+            logger.info(f"[CROSS] Error generating summary: {e}")
 
     async def show_category(self, category_name: str):
         """Show strategies in a specific category"""
         try:
             category = StrategyCategory(category_name.lower().replace(' ', '_'))
         except ValueError:
-            print(f"[CROSS] Invalid category: {category_name}")
-            print("Available categories:")
+            logger.info(f"[CROSS] Invalid category: {category_name}")
+            logger.info("Available categories:")
             for cat in StrategyCategory:
-                print(f"  - {cat.value.replace('_', ' ').title()}")
+                logger.info(f"  - {cat.value.replace('_', ' ').title()}")
             return
 
-        print(f"📂 Strategies in {category.value.replace('_', ' ').title()} Category")
-        print("=" * 50)
+        logger.info(f"📂 Strategies in {category.value.replace('_', ' ').title()} Category")
+        logger.info("=" * 50)
 
         try:
             strategies = await self.loader.get_strategies_by_category(category)
 
             if not strategies:
-                print("No strategies found in this category.")
+                logger.info("No strategies found in this category.")
                 return
 
             for strategy in strategies:
                 status_icon = "✅" if strategy.is_valid else "[CROSS]"
-                print(f"{status_icon} {strategy.id}: {strategy.name}")
-                print(f"   {strategy.description}")
+                logger.info(f"{status_icon} {strategy.id}: {strategy.name}")
+                logger.info(f"   {strategy.description}")
                 if strategy.sources:
-                    print(f"   Sources: {', '.join(strategy.sources)}")
-                print()
+                    logger.info(f"   Sources: {', '.join(strategy.sources)}")
+                logger.info("")
 
         except Exception as e:
-            print(f"[CROSS] Error showing category: {e}")
+            logger.info(f"[CROSS] Error showing category: {e}")
 
     async def validate_strategies(self):
         """Run comprehensive validation and show detailed results"""
-        print("🔬 Comprehensive Strategy Validation")
-        print("=" * 50)
+        logger.info("🔬 Comprehensive Strategy Validation")
+        logger.info("=" * 50)
 
         try:
             results = await self.loader.validate_all_strategies()
 
-            print(f"✅ Passed: {len(results['passed'])} strategies")
-            print(f"[CROSS] Failed: {len(results['failed'])} strategies")
-            print(f"[WARN]️  Warnings: {len(results['warnings'])} strategies")
+            logger.info(f"✅ Passed: {len(results['passed'])} strategies")
+            logger.info(f"[CROSS] Failed: {len(results['failed'])} strategies")
+            logger.info(f"[WARN]️  Warnings: {len(results['warnings'])} strategies")
 
             if results['failed']:
-                print("\n[CROSS] Failed Strategies:")
+                logger.info("\n[CROSS] Failed Strategies:")
                 for failure in results['failed']:
-                    print(f"\n  Strategy {failure['id']}: {failure['name']}")
+                    logger.info(f"\n  Strategy {failure['id']}: {failure['name']}")
                     for error in failure['errors']:
-                        print(f"    • {error}")
+                        logger.info(f"    • {error}")
 
             if results['passed']:
-                print("\n✅ Passed Strategies:")
+                logger.info("\n✅ Passed Strategies:")
                 for strategy in results['passed'][:10]:  # Show first 10
-                    print(f"  • {strategy['id']}: {strategy['name']} ({strategy['category']})")
+                    logger.info(f"  • {strategy['id']}: {strategy['name']} ({strategy['category']})")
                 if len(results['passed']) > 10:
-                    print(f"  ... and {len(results['passed']) - 10} more")
+                    logger.info(f"  ... and {len(results['passed']) - 10} more")
 
         except Exception as e:
-            print(f"[CROSS] Error during validation: {e}")
+            logger.info(f"[CROSS] Error during validation: {e}")
 
     async def export_strategies(self, format_type: str, output_file: str):
         """Export strategies in specified format"""
-        print(f"📤 Exporting strategies to {output_file} in {format_type} format")
+        logger.info(f"📤 Exporting strategies to {output_file} in {format_type} format")
 
         try:
             strategies = await self.loader.load_strategies()
@@ -177,13 +177,13 @@ class StrategyValidator:
             elif format_type == 'markdown':
                 await self._export_markdown(strategies, output_file)
             else:
-                print(f"[CROSS] Unsupported format: {format_type}")
+                logger.info(f"[CROSS] Unsupported format: {format_type}")
                 return
 
-            print("✅ Export completed successfully")
+            logger.info("✅ Export completed successfully")
 
         except Exception as e:
-            print(f"[CROSS] Error exporting strategies: {e}")
+            logger.info(f"[CROSS] Error exporting strategies: {e}")
 
     async def _export_json(self, strategies, output_file: str):
         """Export strategies as JSON"""
@@ -210,8 +210,8 @@ class StrategyValidator:
 
     async def simulate_strategies(self, duration: int, strategy_ids: Optional[List[str]], category: Optional[str]):
         """Run strategies in simulation mode"""
-        print(f"[TARGET] Running Strategy Simulation ({duration}s)")
-        print("=" * 50)
+        logger.info(f"[TARGET] Running Strategy Simulation ({duration}s)")
+        logger.info("=" * 50)
 
         try:
             # Load strategies
@@ -226,16 +226,16 @@ class StrategyValidator:
                     cat_enum = StrategyCategory(category.lower().replace(' ', '_'))
                     strategies = [s for s in strategies if s.category == cat_enum]
                 except ValueError:
-                    print(f"[CROSS] Invalid category: {category}")
+                    logger.info(f"[CROSS] Invalid category: {category}")
                     return
             
             valid_strategies = [s for s in strategies if s.is_valid]
             
             if not valid_strategies:
-                print("[CROSS] No valid strategies found matching criteria")
+                logger.info("[CROSS] No valid strategies found matching criteria")
                 return
             
-            print(f"Simulating {len(valid_strategies)} strategies...")
+            logger.info(f"Simulating {len(valid_strategies)} strategies...")
             
             # Run simulation
             results = await self._run_simulation(valid_strategies, duration)
@@ -244,7 +244,7 @@ class StrategyValidator:
             self._display_simulation_results(results)
             
         except Exception as e:
-            print(f"[CROSS] Error during simulation: {e}")
+            logger.info(f"[CROSS] Error during simulation: {e}")
 
     async def _run_simulation(self, strategies: List[Any], duration: int) -> Dict[str, Any]:
         """Run the actual simulation"""
@@ -300,16 +300,16 @@ class StrategyValidator:
 
     def _display_simulation_results(self, results: Dict[str, Any]):
         """Display simulation results in a formatted way"""
-        print("\n[MONITOR] Simulation Results")
-        print(f"Duration: {results['duration']}s")
-        print(f"Total Trades: {results['total_trades']}")
-        print(f"Total P&L: ${results['total_pnl']:.2f}")
-        print()
+        logger.info("\n[MONITOR] Simulation Results")
+        logger.info(f"Duration: {results['duration']}s")
+        logger.info(f"Total Trades: {results['total_trades']}")
+        logger.info(f"Total P&L: ${results['total_pnl']:.2f}")
+        logger.info("")
         
-        print("Strategy Performance:")
-        print("-" * 80)
-        print(f"{'Strategy':<35} {'Trades':<8} {'Win Rate':<10} {'P&L':<12}")
-        print("-" * 80)
+        logger.info("Strategy Performance:")
+        logger.info("-" * 80)
+        logger.info(f"{'Strategy':<35} {'Trades':<8} {'Win Rate':<10} {'P&L':<12}")
+        logger.info("-" * 80)
         
         for strategy_name, data in results['strategies'].items():
             print(f"{strategy_name[:34]:<35} "
@@ -317,14 +317,14 @@ class StrategyValidator:
                   f"{data['win_rate']:<10.1f} "
                   f"${data['pnl']:<12.1f}")
         
-        print("-" * 80)
+        logger.info("-" * 80)
         print(f"{'TOTAL':<35} "
               f"{results['total_trades']:<8} "
               f"{'N/A':<10} "
               f"${results['total_pnl']:<12.1f}")
         
         # Category breakdown
-        print("\n📂 By Category:")
+        logger.info("\n📂 By Category:")
         categories = {}
         for strategy_name, data in results['strategies'].items():
             cat = data['category']

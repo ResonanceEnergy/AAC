@@ -232,45 +232,45 @@ class AACRedditIntegration:
 
 def demo_reddit_integration():
     """Demonstrate Reddit data integration"""
-    print("AAC Reddit Data Integration Demo")
-    print("=" * 40)
+    logger.info("AAC Reddit Data Integration Demo")
+    logger.info("=" * 40)
 
     integration = AACRedditIntegration()
 
     if integration.load_latest_data():
-        print("✅ Successfully loaded Reddit data")
+        logger.info("✅ Successfully loaded Reddit data")
 
         # Show market summary
         summary = integration.get_market_sentiment_summary()
-        print(f"\n📊 Market Summary:")
-        print(f"   Total Tickers: {summary['total_tickers']}")
-        print(f"   Total Mentions: {summary['total_mentions']}")
-        print(".2f")
-        print(f"   Sentiment Trend: {summary['sentiment_trend']}")
-        print(f"   Arbitrage Signals: {summary['arbitrage_signals']}")
+        logger.info(f"\n📊 Market Summary:")
+        logger.info(f"   Total Tickers: {summary['total_tickers']}")
+        logger.info(f"   Total Mentions: {summary['total_mentions']}")
+        logger.info(".2f")
+        logger.info(f"   Sentiment Trend: {summary['sentiment_trend']}")
+        logger.info(f"   Arbitrage Signals: {summary['arbitrage_signals']}")
 
         # Show top tickers
-        print(f"\n🔥 Top 10 Tickers:")
+        logger.info(f"\n🔥 Top 10 Tickers:")
         for i, ticker_data in enumerate(summary['top_tickers'][:10], 1):
-            print("2d")
+            logger.info("2d")
 
         # Show arbitrage signals
         signals = integration.get_arbitrage_signals(0.3)
         if signals:
-            print(f"\n🎯 Arbitrage Signals (confidence > 0.3):")
+            logger.info(f"\n🎯 Arbitrage Signals (confidence > 0.3):")
             for signal in signals[:5]:  # Show top 5
-                print(f"   {signal.signal_type}: {signal.description[:60]}...")
-                print(".2f")
+                logger.info(f"   {signal.signal_type}: {signal.description[:60]}...")
+                logger.info(".2f")
 
         # Export for trading engine
         trading_data = integration.export_for_trading_engine()
-        print(f"\n📤 Trading Engine Export:")
-        print(f"   Sentiment Signals: {len(trading_data['sentiment_signals'])}")
-        print(f"   Arbitrage Opportunities: {len(trading_data['arbitrage_opportunities'])}")
+        logger.info(f"\n📤 Trading Engine Export:")
+        logger.info(f"   Sentiment Signals: {len(trading_data['sentiment_signals'])}")
+        logger.info(f"   Arbitrage Opportunities: {len(trading_data['arbitrage_opportunities'])}")
 
     else:
-        print("❌ Failed to load Reddit data")
-        print("Make sure the scraper has run and generated data files")
+        logger.info("❌ Failed to load Reddit data")
+        logger.info("Make sure the scraper has run and generated data files")
 
 
 if __name__ == "__main__":

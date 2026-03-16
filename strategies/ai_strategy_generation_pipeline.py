@@ -405,8 +405,8 @@ def get_ai_strategy_generator(data_aggregator: DataAggregator = None,
 
 async def run_ai_strategy_pipeline():
     """Run the complete AI strategy generation pipeline"""
-    print("🤖 AAC AI Strategy Generation Pipeline")
-    print("=" * 50)
+    logger.info("🤖 AAC AI Strategy Generation Pipeline")
+    logger.info("=" * 50)
 
     # Time-seeded deterministic demo data
     _demo_seed = int(__import__('time').time()) // 3600
@@ -449,11 +449,11 @@ async def run_ai_strategy_pipeline():
     # Run pipeline
     results = await generator.run_ai_pipeline(df)
 
-    print("\n📊 AI Pipeline Results:")
-    print(f"   Strategies Generated: {results['total_generated']}")
-    print(f"   Strategies Validated: {results['validated']}")
-    print(f"   Strategies Deployed: {results['deployed']}")
-    print(".1%")
+    logger.info("\n📊 AI Pipeline Results:")
+    logger.info(f"   Strategies Generated: {results['total_generated']}")
+    logger.info(f"   Strategies Validated: {results['validated']}")
+    logger.info(f"   Strategies Deployed: {results['deployed']}")
+    logger.info(".1%")
 
     return results
 

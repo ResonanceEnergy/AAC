@@ -144,51 +144,51 @@ class RedditScraperLauncher:
 
     def run_interactive(self):
         """Run in interactive mode with menu"""
-        print("AAC Reddit Scraper Launcher")
-        print("=" * 40)
+        logger.info("AAC Reddit Scraper Launcher")
+        logger.info("=" * 40)
 
         while True:
-            print("\nOptions:")
-            print("1. Start continuous scraping (15-min intervals)")
-            print("2. Run single scrape cycle (test mode)")
-            print("3. Stop scraper")
-            print("4. Check scraper status")
-            print("5. View recent logs")
-            print("6. Exit")
+            logger.info("\nOptions:")
+            logger.info("1. Start continuous scraping (15-min intervals)")
+            logger.info("2. Run single scrape cycle (test mode)")
+            logger.info("3. Stop scraper")
+            logger.info("4. Check scraper status")
+            logger.info("5. View recent logs")
+            logger.info("6. Exit")
 
             try:
                 choice = input("\nSelect option (1-6): ").strip()
 
                 if choice == "1":
                     if self.running:
-                        print("❌ Scraper is already running")
+                        logger.info("❌ Scraper is already running")
                     else:
                         if self.start_scraper("continuous"):
-                            print("✅ Continuous scraping started")
+                            logger.info("✅ Continuous scraping started")
                         else:
-                            print("❌ Failed to start scraper")
+                            logger.info("❌ Failed to start scraper")
 
                 elif choice == "2":
                     if self.running:
-                        print("❌ Scraper is already running")
+                        logger.info("❌ Scraper is already running")
                     else:
-                        print("🧪 Running single scrape cycle...")
+                        logger.info("🧪 Running single scrape cycle...")
                         if self.start_scraper("single"):
                             # Wait for completion
                             while self.monitor_scraper():
                                 time.sleep(1)
-                            print("✅ Single scrape cycle completed")
+                            logger.info("✅ Single scrape cycle completed")
                         else:
-                            print("❌ Failed to run single cycle")
+                            logger.info("❌ Failed to run single cycle")
 
                 elif choice == "3":
                     self.stop_scraper()
 
                 elif choice == "4":
                     if self.monitor_scraper():
-                        print(f"✅ Scraper is running (PID: {self.process.pid})")
+                        logger.info(f"✅ Scraper is running (PID: {self.process.pid})")
                     else:
-                        print("❌ Scraper is not running")
+                        logger.info("❌ Scraper is not running")
 
                 elif choice == "5":
                     self.show_recent_logs()
@@ -198,18 +198,18 @@ class RedditScraperLauncher:
                         confirm = input("Scraper is running. Stop it? (y/N): ").strip().lower()
                         if confirm == "y":
                             self.stop_scraper()
-                    print("Goodbye!")
+                    logger.info("Goodbye!")
                     break
 
                 else:
-                    print("❌ Invalid option")
+                    logger.info("❌ Invalid option")
 
             except KeyboardInterrupt:
-                print("\n🛑 Interrupted by user")
+                logger.info("\n🛑 Interrupted by user")
                 self.stop_scraper()
                 break
             except Exception as e:
-                print(f"❌ Error: {e}")
+                logger.info(f"❌ Error: {e}")
 
     def show_recent_logs(self):
         """Show recent log entries"""
@@ -218,14 +218,14 @@ class RedditScraperLauncher:
             try:
                 with open(log_file, 'r', encoding='utf-8') as f:
                     lines = f.readlines()[-20:]  # Last 20 lines
-                    print("\nRecent Log Entries:")
-                    print("-" * 50)
+                    logger.info("\nRecent Log Entries:")
+                    logger.info("-" * 50)
                     for line in lines:
-                        print(line.strip())
+                        logger.info(str(line.strip()))
             except Exception as e:
-                print(f"❌ Error reading log file: {e}")
+                logger.info(f"❌ Error reading log file: {e}")
         else:
-            print("❌ Log file not found")
+            logger.info("❌ Log file not found")
 
 def main():
     """Main entry point"""
@@ -243,12 +243,12 @@ def main():
             launcher.stop_scraper()
         elif command == "status":
             if launcher.monitor_scraper():
-                print(f"✅ Scraper is running (PID: {launcher.process.pid})")
+                logger.info(f"✅ Scraper is running (PID: {launcher.process.pid})")
             else:
-                print("❌ Scraper is not running")
+                logger.info("❌ Scraper is not running")
         else:
-            print("Usage: python reddit_scraper_launcher.py [start|single|stop|status]")
-            print("Or run without arguments for interactive mode")
+            logger.info("Usage: python reddit_scraper_launcher.py [start|single|stop|status]")
+            logger.info("Or run without arguments for interactive mode")
             sys.exit(1)
     else:
         # Interactive mode

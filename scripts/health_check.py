@@ -15,6 +15,9 @@ import os
 import platform
 import sys
 from pathlib import Path
+import logging
+
+logger = logging.getLogger(__name__)
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
@@ -30,17 +33,17 @@ BOLD = "\033[1m"
 
 def ok(msg: str) -> None:
     """Ok."""
-    print(f"  {GREEN}[OK]{RESET} {msg}")
+    logger.info(f"  {GREEN}[OK]{RESET} {msg}")
 
 
 def fail(msg: str) -> None:
     """Fail."""
-    print(f"  {RED}[FAIL]{RESET} {msg}")
+    logger.info(f"  {RED}[FAIL]{RESET} {msg}")
 
 
 def warn(msg: str) -> None:
     """Warn."""
-    print(f"  {YELLOW}[WARN]{RESET} {msg}")
+    logger.info(f"  {YELLOW}[WARN]{RESET} {msg}")
 
 
 # ── Checks ────────────────────────────────────────────────────────────────────
@@ -181,35 +184,35 @@ def main() -> int:
     if platform.system() == "Windows":
         os.system("")
 
-    print(f"\n{BOLD}BARREN WUFFET — System Health Check{RESET}")
-    print(f"  Platform: {platform.system()} {platform.release()}")
-    print("=" * 50)
+    logger.info(f"\n{BOLD}BARREN WUFFET — System Health Check{RESET}")
+    logger.info(f"  Platform: {platform.system()} {platform.release()}")
+    logger.info("=" * 50)
 
     total_failures = 0
 
-    print(f"\n{BOLD}1. Environment{RESET}")
+    logger.info(f"\n{BOLD}1. Environment{RESET}")
     if not check_python_version():
         total_failures += 1
     check_venv()
     check_env_file()
     check_env_vars()
 
-    print(f"\n{BOLD}2. Directory Structure{RESET}")
+    logger.info(f"\n{BOLD}2. Directory Structure{RESET}")
     total_failures += check_directory_structure()
 
-    print(f"\n{BOLD}3. Required Packages{RESET}")
+    logger.info(f"\n{BOLD}3. Required Packages{RESET}")
     total_failures += check_required_packages()
 
-    print(f"\n{BOLD}4. Core Module Imports{RESET}")
+    logger.info(f"\n{BOLD}4. Core Module Imports{RESET}")
     total_failures += check_core_imports()
 
     # Summary
-    print("\n" + "=" * 50)
+    logger.info("\n" + "=" * 50)
     if total_failures == 0:
-        print(f"{GREEN}{BOLD}All checks passed! System is healthy.{RESET}")
+        logger.info(f"{GREEN}{BOLD}All checks passed! System is healthy.{RESET}")
     else:
-        print(f"{RED}{BOLD}{total_failures} check(s) failed.{RESET}")
-        print("Run: pip install -r requirements.txt")
+        logger.info(f"{RED}{BOLD}{total_failures} check(s) failed.{RESET}")
+        logger.info("Run: pip install -r requirements.txt")
 
     return 1 if total_failures > 0 else 0
 

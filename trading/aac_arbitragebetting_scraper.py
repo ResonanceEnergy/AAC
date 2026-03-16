@@ -21,6 +21,9 @@ import os
 import csv
 import json
 from dotenv import load_dotenv
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
@@ -73,7 +76,7 @@ class AACArbitrageBettingScraper:
             )
         else:
             self.reddit = None
-            print("⚠️  Reddit credentials not found. Please set REDDIT_CLIENT_ID and REDDIT_CLIENT_SECRET in .env")
+            logger.info("⚠️  Reddit credentials not found. Please set REDDIT_CLIENT_ID and REDDIT_CLIENT_SECRET in .env")
 
     def fetch_daily_posts(self, limit: int = 25, sort: str = 'hot') -> List[ArbitragePost]:
         """
@@ -89,7 +92,7 @@ class AACArbitrageBettingScraper:
         posts = []
 
         if not self.reddit:
-            print("❌ Reddit client not initialized")
+            logger.info("❌ Reddit client not initialized")
             return []
 
         try:
@@ -118,10 +121,10 @@ class AACArbitrageBettingScraper:
                 )
                 posts.append(post)
 
-                print(f"📄 {submission.id} -- {submission.title[:60]}...")
+                logger.info(f"📄 {submission.id} -- {submission.title[:60]}...")
 
         except Exception as e:
-            print(f"❌ Error fetching posts: {e}")
+            logger.info(f"❌ Error fetching posts: {e}")
             return []
 
         return posts
@@ -214,18 +217,18 @@ class AACArbitrageBettingScraper:
                 writer.writeheader()
                 writer.writerows(opportunities)
 
-        print(f"✅ Exported {len(posts)} posts to {posts_filename}")
-        print(f"✅ Exported {len(opportunities)} opportunities to {opportunities_filename}")
+        logger.info(f"✅ Exported {len(posts)} posts to {posts_filename}")
+        logger.info(f"✅ Exported {len(opportunities)} opportunities to {opportunities_filename}")
 
     def run_daily_scrape(self):
         """Run the complete daily scraping pipeline"""
-        print(f"🚀 Starting daily scrape for r/arbitragebetting - {date.today()}")
+        logger.info(f"🚀 Starting daily scrape for r/arbitragebetting - {date.today()}")
 
         # Fetch posts
         posts = self.fetch_daily_posts(limit=50, sort='hot')
 
         if not posts:
-            print("❌ No posts fetched")
+            logger.info("❌ No posts fetched")
             return
 
         # Analyze for opportunities
@@ -235,13 +238,13 @@ class AACArbitrageBettingScraper:
         self.export_to_csv(posts, opportunities)
 
         # Summary
-        print("\n📊 Daily Scrape Summary:")
-        print(f"   Posts scraped: {len(posts)}")
-        print(f"   Arbitrage opportunities found: {len(opportunities)}")
-        print(f"   Average post score: {sum(p.score for p in posts) / len(posts):.1f}")
-        print(f"   Total comments: {sum(p.num_comments for p in posts)}")
+        logger.info("\n📊 Daily Scrape Summary:")
+        logger.info(f"   Posts scraped: {len(posts)}")
+        logger.info(f"   Arbitrage opportunities found: {len(opportunities)}")
+        logger.info(f"   Average post score: {sum(p.score for p in posts) / len(posts):.1f}")
+        logger.info(f"   Total comments: {sum(p.num_comments for p in posts)}")
 
-        print("✅ Daily scrape completed successfully")
+        logger.info("✅ Daily scrape completed successfully")
 
 
 def main():

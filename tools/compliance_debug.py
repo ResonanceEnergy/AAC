@@ -2,15 +2,18 @@
 
 import asyncio
 from aac.doctrine.doctrine_integration import DoctrineOrchestrator
+import logging
+
+logger = logging.getLogger(__name__)
 
 async def main():
     """Main."""
     orch = DoctrineOrchestrator()
     result = await orch.run_compliance_check()
-    print("\n=== WARNING METRICS ===")
+    logger.info("\n=== WARNING METRICS ===")
     for m in result.get('details', []):
         if m.get('status') == 'warning':
-            print(f"{m['metric']}: value={m.get('value')} | message={m.get('message')}")
+            logger.info(f"{m['metric']}: value={m.get('value')} | message={m.get('message')}")
 
 if __name__ == "__main__":
     asyncio.run(main())

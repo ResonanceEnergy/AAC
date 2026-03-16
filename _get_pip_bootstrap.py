@@ -21,6 +21,9 @@
 # `scripts/generate.py` in https://github.com/pypa/get-pip.
 
 import sys
+import logging
+
+logger = logging.getLogger(__name__)
 
 this_python = sys.version_info[:2]
 min_version = (3, 9)
@@ -30,7 +33,7 @@ if this_python < min_version:
         "The minimum supported Python version is {}.{}.".format(*min_version),
         "Please use https://bootstrap.pypa.io/pip/{}.{}/get-pip.py instead.".format(*this_python),
     ]
-    print("ERROR: " + " ".join(message_parts))
+    logger.info("ERROR: " + " ".join(message_parts))
     sys.exit(1)
 
 

@@ -11,6 +11,9 @@ import sys
 import asyncio
 import os
 from typing import List
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Add project root to path
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -61,7 +64,7 @@ async def run_agent_scan(agent_name: str) -> List[str]:
 def main():
     """Main entry point for PowerShell integration."""
     if len(sys.argv) < 2:
-        print("ERROR: Agent name required")
+        logger.info("ERROR: Agent name required")
         sys.exit(1)
 
     agent_name = sys.argv[1]
@@ -69,9 +72,9 @@ def main():
     try:
         results = asyncio.run(run_agent_scan(agent_name))
         for result in results:
-            print(result)
+            logger.info(str(result))
     except Exception as e:
-        print(f"ERROR: {str(e)}")
+        logger.info(f"ERROR: {str(e)}")
 
 
 if __name__ == "__main__":

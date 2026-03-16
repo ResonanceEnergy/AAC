@@ -10,6 +10,9 @@ These provide raw data for enhanced arbitrage strategies.
 import requests
 import json
 from datetime import datetime
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Additional Data Sources for Arbitrage
 ADDITIONAL_DATA_SOURCES = {
@@ -226,19 +229,19 @@ ADDITIONAL_DATA_SOURCES = {
 def test_additional_data_sources():
     """Test additional data sources for AAC arbitrage"""
 
-    print("🔍 ADDITIONAL RAW DATA SOURCES FOR AAC ARBITRAGE")
-    print("=" * 70)
-    print()
+    logger.info("🔍 ADDITIONAL RAW DATA SOURCES FOR AAC ARBITRAGE")
+    logger.info("=" * 70)
+    logger.info("")
 
-    print("🎯 WHY ADD MORE DATA SOURCES?")
-    print("-" * 40)
-    print("• Diverse data for cross-validation")
-    print("• Specialized data for specific arbitrage strategies")
-    print("• Alternative data for alpha generation")
-    print("• Economic indicators for macro arbitrage")
-    print("• News sentiment for timing strategies")
-    print("• Options data for volatility arbitrage")
-    print()
+    logger.info("🎯 WHY ADD MORE DATA SOURCES?")
+    logger.info("-" * 40)
+    logger.info("• Diverse data for cross-validation")
+    logger.info("• Specialized data for specific arbitrage strategies")
+    logger.info("• Alternative data for alpha generation")
+    logger.info("• Economic indicators for macro arbitrage")
+    logger.info("• News sentiment for timing strategies")
+    logger.info("• Options data for volatility arbitrage")
+    logger.info("")
 
     # Test some APIs that don't require keys
     test_apis = {
@@ -247,46 +250,46 @@ def test_additional_data_sources():
         "CBOE Options": "https://cdn.cboe.com/api/global/delayed_quotes/options/_SPX.json"
     }
 
-    print("🧪 TESTING FREE DATA SOURCES:")
-    print("-" * 40)
+    logger.info("🧪 TESTING FREE DATA SOURCES:")
+    logger.info("-" * 40)
 
     for name, url in test_apis.items():
-        print(f"\n🔍 Testing {name}...")
+        logger.info(f"\n🔍 Testing {name}...")
         try:
             response = requests.get(url, timeout=10)
 
             if response.status_code == 200:
-                print(f"   ✅ {name}: Connected successfully!")
+                logger.info(f"   ✅ {name}: Connected successfully!")
 
                 # Show sample data
                 if name == "Federal Reserve FRED":
                     data = response.json()
                     if 'observations' in data and data['observations']:
                         latest = data['observations'][-1]
-                        print(f"   📊 Latest 30-year mortgage rate: {latest.get('value', 'N/A')}%")
-                        print(f"   📅 Date: {latest.get('date', 'N/A')}")
+                        logger.info(f"   📊 Latest 30-year mortgage rate: {latest.get('value', 'N/A')}%")
+                        logger.info(f"   📅 Date: {latest.get('date', 'N/A')}")
 
                 elif name == "OECD Data":
                     data = response.json()
-                    print(f"   📊 OECD data structure available")
+                    logger.info(f"   📊 OECD data structure available")
                     if 'dataSets' in data:
-                        print(f"   📈 Data points available")
+                        logger.info(f"   📈 Data points available")
 
                 elif name == "CBOE Options":
                     data = response.json()
                     if 'data' in data and data['data']:
-                        print(f"   📊 S&P 500 options data available")
-                        print(f"   📈 Options chain length: {len(data['data'])}")
+                        logger.info(f"   📊 S&P 500 options data available")
+                        logger.info(f"   📈 Options chain length: {len(data['data'])}")
 
             else:
-                print(f"   ❌ {name}: HTTP {response.status_code}")
+                logger.info(f"   ❌ {name}: HTTP {response.status_code}")
 
         except Exception as e:
-            print(f"   ❌ {name}: {e}")
+            logger.info(f"   ❌ {name}: {e}")
 
-    print()
-    print("📋 RECOMMENDED ADDITIONAL DATA SOURCES:")
-    print("-" * 50)
+    logger.info("")
+    logger.info("📋 RECOMMENDED ADDITIONAL DATA SOURCES:")
+    logger.info("-" * 50)
 
     categories = {
         "🔥 HIGH PRIORITY (Immediate Value)": ["polygon", "finnhub", "federal_reserve"],
@@ -298,37 +301,37 @@ def test_additional_data_sources():
     }
 
     for category, apis in categories.items():
-        print(f"\n{category}")
-        print("-" * 60)
+        logger.info(f"\n{category}")
+        logger.info("-" * 60)
 
         for api_key in apis:
             if api_key in ADDITIONAL_DATA_SOURCES:
                 api = ADDITIONAL_DATA_SOURCES[api_key]
-                print(f"🔹 {api['name']}")
-                print(f"   🌐 {api['website']}")
-                print(f"   🆓 {api['free_tier']}")
-                print(f"   🎯 {api['relevance']}")
-                print(f"   ✨ Key Features: {', '.join(api['features'][:2])}")
-                print()
+                logger.info(f"🔹 {api['name']}")
+                logger.info(f"   🌐 {api['website']}")
+                logger.info(f"   🆓 {api['free_tier']}")
+                logger.info(f"   🎯 {api['relevance']}")
+                logger.info(f"   ✨ Key Features: {', '.join(api['features'][:2])}")
+                logger.info("")
 
-    print("🚀 INTEGRATION STRATEGY:")
-    print("-" * 30)
-    print("1. Start with Polygon.io for high-quality US market data")
-    print("2. Add Finnhub for real-time quotes and news")
-    print("3. Integrate Federal Reserve data for economic signals")
-    print("4. Add CBOE for options and volatility data")
-    print("5. Include Glassnode for crypto on-chain analytics")
-    print("6. Use NewsAPI for market sentiment analysis")
-    print()
+    logger.info("🚀 INTEGRATION STRATEGY:")
+    logger.info("-" * 30)
+    logger.info("1. Start with Polygon.io for high-quality US market data")
+    logger.info("2. Add Finnhub for real-time quotes and news")
+    logger.info("3. Integrate Federal Reserve data for economic signals")
+    logger.info("4. Add CBOE for options and volatility data")
+    logger.info("5. Include Glassnode for crypto on-chain analytics")
+    logger.info("6. Use NewsAPI for market sentiment analysis")
+    logger.info("")
 
-    print("💡 ARBITRAGE APPLICATIONS:")
-    print("-" * 30)
-    print("• Cross-market arbitrage with Polygon + Twelve Data")
-    print("• Statistical arbitrage with options data")
-    print("• Macro arbitrage with economic indicators")
-    print("• Sentiment-based arbitrage with news data")
-    print("• Volatility arbitrage with CBOE data")
-    print("• Crypto arbitrage with on-chain metrics")
+    logger.info("💡 ARBITRAGE APPLICATIONS:")
+    logger.info("-" * 30)
+    logger.info("• Cross-market arbitrage with Polygon + Twelve Data")
+    logger.info("• Statistical arbitrage with options data")
+    logger.info("• Macro arbitrage with economic indicators")
+    logger.info("• Sentiment-based arbitrage with news data")
+    logger.info("• Volatility arbitrage with CBOE data")
+    logger.info("• Crypto arbitrage with on-chain metrics")
 
 if __name__ == "__main__":
     test_additional_data_sources()

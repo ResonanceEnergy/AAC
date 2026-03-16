@@ -739,37 +739,37 @@ async def initialize_super_agent_network(agent_ids: List[str]) -> bool:
 async def demo_super_agent_capabilities():
     """Demonstrate super agent capabilities"""
 
-    print("[DEPLOY] AAC Super Agent Capabilities Demonstration")
-    print("=" * 55)
+    logger.info("[DEPLOY] AAC Super Agent Capabilities Demonstration")
+    logger.info("=" * 55)
 
     # Create a test super agent
     test_agent_id = "DEMO-SUPER-AGENT"
     core = get_super_agent_core(test_agent_id)
 
     # Enhance to super agent
-    print("🧬 Enhancing agent to super agent...")
+    logger.info("🧬 Enhancing agent to super agent...")
     success = await core.enhance_agent("maximum")
 
     if success:
-        print("✅ Agent successfully enhanced!")
+        logger.info("✅ Agent successfully enhanced!")
 
         # Show capabilities
-        print("\\n[TARGET] Super Capabilities Activated:")
+        logger.info("\\n[TARGET] Super Capabilities Activated:")
         for capability in core.super_capabilities:
-            print(f"  • {capability.value.replace('_', ' ').title()}")
+            logger.info(f"  • {capability.value.replace('_', ' ').title()}")
 
         # Show metrics
         metrics = core.get_super_metrics()
-        print("\\n[MONITOR] Performance Metrics:")
+        logger.info("\\n[MONITOR] Performance Metrics:")
         perf_metrics = metrics["performance_metrics"]
         for key, value in perf_metrics.items():
             if isinstance(value, float):
-                print(f"  • {key.replace('_', ' ').title()}: {value:.3f}")
+                logger.info(f"  • {key.replace('_', ' ').title()}: {value:.3f}")
             else:
-                print(f"  • {key.replace('_', ' ').title()}: {value}")
+                logger.info(f"  • {key.replace('_', ' ').title()}: {value}")
 
         # Execute super analysis
-        print("\\n🔬 Executing Super Analysis...")
+        logger.info("\\n🔬 Executing Super Analysis...")
         test_data = {
             "market_data": {"price": 50000, "volume": 1000000},
             "technical_indicators": {"rsi": 65, "macd": 0.5},
@@ -778,18 +778,18 @@ async def demo_super_agent_capabilities():
 
         analysis_result = await core.execute_super_analysis(test_data)
 
-        print("✅ Super analysis completed!")
-        print(f"  • Confidence score: {analysis_result['confidence_score']:.2f}")
-        print(f"  • Quantum insights: {len(analysis_result['quantum_insights']['insights'])}")
-        print(f"  • AI predictions: {len(analysis_result['ai_predictions']['predictions'])}")
-        print(f"  • Swarm insights: {analysis_result['swarm_insights']['collective_insights']}")
-        print(f"  • Temporal insights: {analysis_result['temporal_insights']['temporal_patterns']}")
-        print(f"  • Autonomous decisions: {len(analysis_result['autonomous_decisions']['decisions'])}")
+        logger.info("✅ Super analysis completed!")
+        logger.info(f"  • Confidence score: {analysis_result['confidence_score']:.2f}")
+        logger.info(f"  • Quantum insights: {len(analysis_result['quantum_insights']['insights'])}")
+        logger.info(f"  • AI predictions: {len(analysis_result['ai_predictions']['predictions'])}")
+        logger.info(f"  • Swarm insights: {analysis_result['swarm_insights']['collective_insights']}")
+        logger.info(f"  • Temporal insights: {analysis_result['temporal_insights']['temporal_patterns']}")
+        logger.info(f"  • Autonomous decisions: {len(analysis_result['autonomous_decisions']['decisions'])}")
 
     else:
-        print("[CROSS] Agent enhancement failed")
+        logger.info("[CROSS] Agent enhancement failed")
 
-    print("\\n[CELEBRATION] Super Agent demonstration complete!")
+    logger.info("\\n[CELEBRATION] Super Agent demonstration complete!")
 
 class SuperAgent:
     """Base SuperAgent class for AAC divisions"""

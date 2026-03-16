@@ -26,6 +26,8 @@ import sys
 import random
 import time
 
+logger = logging.getLogger(__name__)
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
@@ -497,54 +499,54 @@ async def main():
             # Monitor price updates
             async def price_callback(data: MarketData):
                 """Price callback."""
-                print(f"📈 {data.symbol}: ${data.price:.2f} (Bid: ${data.bid:.2f}, Ask: ${data.ask:.2f})")
+                logger.info(f"📈 {data.symbol}: ${data.price:.2f} (Bid: ${data.bid:.2f}, Ask: ${data.ask:.2f})")
 
             await feed.subscribe_to_price_updates(args.symbol, price_callback)
 
-            print(f"Monitoring {args.symbol} price updates... Press Ctrl+C to stop")
+            logger.info(f"Monitoring {args.symbol} price updates... Press Ctrl+C to stop")
 
             while True:
                 await asyncio.sleep(1)
 
         else:
             # Single data request
-            print(f"Getting data for {args.symbol}...")
+            logger.info(f"Getting data for {args.symbol}...")
 
             # Get price
             price_data = await feed.get_latest_price(args.symbol)
             if price_data:
-                print(f"💰 Price: ${price_data.price:.2f}")
-                print(f"📊 Bid/Ask: ${price_data.bid:.2f} / ${price_data.ask:.2f}")
-                print(f"📈 Volume: {price_data.volume:,}")
-                print(f"🏛️  Exchange: {price_data.exchange.value}")
+                logger.info(f"💰 Price: ${price_data.price:.2f}")
+                logger.info(f"📊 Bid/Ask: ${price_data.bid:.2f} / ${price_data.ask:.2f}")
+                logger.info(f"📈 Volume: {price_data.volume:,}")
+                logger.info(f"🏛️  Exchange: {price_data.exchange.value}")
 
             # Get order book
             order_book = await feed.get_order_book(args.symbol)
             if order_book:
-                print(f"\n📋 Order Book (Top 5):")
-                print("Bids:")
+                logger.info(f"\n📋 Order Book (Top 5):")
+                logger.info("Bids:")
                 for price, qty in order_book.bids[:5]:
-                    print(f"  ${price:.2f} x {qty}")
-                print("Asks:")
+                    logger.info(f"  ${price:.2f} x {qty}")
+                logger.info("Asks:")
                 for price, qty in order_book.asks[:5]:
-                    print(f"  ${price:.2f} x {qty}")
+                    logger.info(f"  ${price:.2f} x {qty}")
 
             # Get sentiment
             sentiment = await feed.get_market_sentiment(args.symbol)
             if sentiment:
-                print(f"\n😊 Sentiment:")
-                print(f"  1-Day Momentum: {sentiment['momentum_1d']:.1%}")
-                print(f"  5-Day Momentum: {sentiment['momentum_5d']:.1%}")
-                print(f"  5-Day Volatility: {sentiment['volatility_5d']:.1%}")
+                logger.info(f"\n😊 Sentiment:")
+                logger.info(f"  1-Day Momentum: {sentiment['momentum_1d']:.1%}")
+                logger.info(f"  5-Day Momentum: {sentiment['momentum_5d']:.1%}")
+                logger.info(f"  5-Day Volatility: {sentiment['volatility_5d']:.1%}")
 
         await feed.close()
 
     except KeyboardInterrupt:
         if _market_data_feed:
             await _market_data_feed.close()
-        print("\nMarket data feed stopped.")
+        logger.info("\nMarket data feed stopped.")
     except Exception as e:
-        print(f"❌ Error: {e}")
+        logger.info(f"❌ Error: {e}")
         raise
 
 

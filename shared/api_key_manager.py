@@ -19,6 +19,8 @@ from pathlib import Path
 import sys
 import secrets
 
+logger = logging.getLogger(__name__)
+
 try:
     import keyring
 except ImportError:
@@ -504,9 +506,9 @@ async def initialize_api_key_system():
     # Import keys from environment if available
     imported = await mgr.import_from_environment()
     if imported > 0:
-        print(f"[OK] Imported {imported} API keys from environment")
+        logger.info(f"[OK] Imported {imported} API keys from environment")
 
-    print("[OK] API key management system initialized")
+    logger.info("[OK] API key management system initialized")
 
 
 if __name__ == "__main__":

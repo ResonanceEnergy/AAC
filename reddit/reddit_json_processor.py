@@ -16,6 +16,9 @@ from datetime import datetime
 from typing import List, Dict, Any
 from dataclasses import dataclass
 from collections import Counter
+import logging
+
+logger = logging.getLogger(__name__)
 
 @dataclass
 class RedditPost:
@@ -113,12 +116,12 @@ class RedditJSONProcessor:
                         )
                         posts.append(post)
 
-            print(f"✅ Processed {len(posts)} posts from Reddit JSON")
+            logger.info(f"✅ Processed {len(posts)} posts from Reddit JSON")
             self.posts = posts
             return posts
 
         except Exception as e:
-            print(f"❌ Error processing Reddit JSON: {e}")
+            logger.info(f"❌ Error processing Reddit JSON: {e}")
             return []
 
     def analyze_sentiment(self, text: str) -> float:
@@ -220,14 +223,14 @@ class RedditJSONProcessor:
 
 def process_reddit_json_demo(json_text: str):
     """Demonstrate processing of Reddit JSON data"""
-    print("🚀 AAC Reddit JSON Processing Demo")
-    print("=" * 50)
+    logger.info("🚀 AAC Reddit JSON Processing Demo")
+    logger.info("=" * 50)
 
     # Parse JSON
     try:
         reddit_data = json.loads(json_text)
     except json.JSONDecodeError as e:
-        print(f"❌ Invalid JSON: {e}")
+        logger.info(f"❌ Invalid JSON: {e}")
         return
 
     # Process the data
@@ -235,24 +238,24 @@ def process_reddit_json_demo(json_text: str):
     posts = processor.process_reddit_json(reddit_data)
 
     if not posts:
-        print("❌ No posts found in JSON data")
+        logger.info("❌ No posts found in JSON data")
         return
 
     # Show sample posts
-    print(f"\n📊 Sample Posts ({len(posts)} total):")
-    print("-" * 40)
+    logger.info(f"\n📊 Sample Posts ({len(posts)} total):")
+    logger.info("-" * 40)
     for i, post in enumerate(posts[:5], 1):  # Show first 5
-        print(f"{i}. {post.title[:60]}{'...' if len(post.title) > 60 else ''}")
-        print(f"   Score: {post.score}, Comments: {post.num_comments}")
-        print(f"   Tickers: {post.tickers}")
-        print(f"   Author: {post.author}")
-        print()
+        logger.info(f"{i}. {post.title[:60]}{'...' if len(post.title) > 60 else ''}")
+        logger.info(f"   Score: {post.score}, Comments: {post.num_comments}")
+        logger.info(f"   Tickers: {post.tickers}")
+        logger.info(f"   Author: {post.author}")
+        logger.info("")
 
     # Analyze sentiment
     ticker_data = processor.analyze_ticker_sentiment(posts)
 
-    print("📈 Ticker Sentiment Analysis:")
-    print("-" * 40)
+    logger.info("📈 Ticker Sentiment Analysis:")
+    logger.info("-" * 40)
     for ticker, data in sorted(ticker_data.items(), key=lambda x: x[1]['mentions'], reverse=True)[:10]:
         print(f"{ticker}: {data['mentions']} mentions, "
               f"Avg Sentiment: {data['avg_sentiment']:.2f}, "
@@ -261,17 +264,17 @@ def process_reddit_json_demo(json_text: str):
     # Generate signals
     signals = processor.generate_arbitrage_signals(ticker_data)
 
-    print(f"\n🎯 Arbitrage Signals Generated: {len(signals)}")
-    print("-" * 40)
+    logger.info(f"\n🎯 Arbitrage Signals Generated: {len(signals)}")
+    logger.info("-" * 40)
     for i, signal in enumerate(signals[:5], 1):  # Show top 5
         sentiment_icon = "🚀" if signal.sentiment_score > 0 else "📉"
-        print(f"{i}. {sentiment_icon} {signal.ticker}")
-        print(f"   Sentiment: {signal.sentiment_score:.2f} (Confidence: {signal.confidence:.2f})")
-        print(f"   Mentions: {signal.mentions}, Avg Score: {signal.avg_score:.1f}")
-        print(f"   {signal.description}")
-        print()
+        logger.info(f"{i}. {sentiment_icon} {signal.ticker}")
+        logger.info(f"   Sentiment: {signal.sentiment_score:.2f} (Confidence: {signal.confidence:.2f})")
+        logger.info(f"   Mentions: {signal.mentions}, Avg Score: {signal.avg_score:.1f}")
+        logger.info(f"   {signal.description}")
+        logger.info("")
 
-    print("✅ Reddit JSON processing demo completed!")
+    logger.info("✅ Reddit JSON processing demo completed!")
 
 if __name__ == "__main__":
     # This would be called with the JSON string provided by the user

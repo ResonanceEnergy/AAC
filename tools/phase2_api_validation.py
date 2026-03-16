@@ -10,6 +10,9 @@ import os
 import sys
 from pathlib import Path
 from typing import Dict, List, Any
+import logging
+
+logger = logging.getLogger(__name__)
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
@@ -169,8 +172,8 @@ class APIIntegrationGuide:
 
     async def validate_api_integrations(self) -> Dict[str, Any]:
         """Validate all configured API integrations"""
-        print("🔗 Validating API Integrations...")
-        print("=" * 50)
+        logger.info("🔗 Validating API Integrations...")
+        logger.info("=" * 50)
 
         # Get system status from integration hub
         system_status = await api_integration_hub.get_system_status()
@@ -178,34 +181,34 @@ class APIIntegrationGuide:
         # Get configuration status
         config_status = self.get_configuration_status()
 
-        print("📊 Configuration Status:")
-        print(f"  Total APIs: {config_status['total_apis']}")
-        print(f"  Configured: {config_status['configured_apis']}")
-        print(f"  Configuration Rate: {config_status['configuration_rate']:.1f}%")
-        print(f"  Critical APIs: {config_status['critical_apis']['configured']}/{config_status['critical_apis']['total']} ({config_status['critical_apis']['rate']:.1f}%)")
-        print(f"  High Priority: {config_status['high_apis']['configured']}/{config_status['high_apis']['total']} ({config_status['high_apis']['rate']:.1f}%)")
-        print(f"  Medium Priority: {config_status['medium_apis']['configured']}/{config_status['medium_apis']['total']} ({config_status['medium_apis']['rate']:.1f}%)")
-        print()
+        logger.info("📊 Configuration Status:")
+        logger.info(f"  Total APIs: {config_status['total_apis']}")
+        logger.info(f"  Configured: {config_status['configured_apis']}")
+        logger.info(f"  Configuration Rate: {config_status['configuration_rate']:.1f}%")
+        logger.info(f"  Critical APIs: {config_status['critical_apis']['configured']}/{config_status['critical_apis']['total']} ({config_status['critical_apis']['rate']:.1f}%)")
+        logger.info(f"  High Priority: {config_status['high_apis']['configured']}/{config_status['high_apis']['total']} ({config_status['high_apis']['rate']:.1f}%)")
+        logger.info(f"  Medium Priority: {config_status['medium_apis']['configured']}/{config_status['medium_apis']['total']} ({config_status['medium_apis']['rate']:.1f}%)")
+        logger.info("")
 
-        print("🧪 Connection Test Results:")
-        print(f"  Tests Run: {system_status['connection_tests_run']}")
-        print(f"  Successful: {system_status['successful_connections']}")
-        print(f"  Success Rate: {system_status['connection_success_rate']:.1f}%")
-        print()
+        logger.info("🧪 Connection Test Results:")
+        logger.info(f"  Tests Run: {system_status['connection_tests_run']}")
+        logger.info(f"  Successful: {system_status['successful_connections']}")
+        logger.info(f"  Success Rate: {system_status['connection_success_rate']:.1f}%")
+        logger.info("")
 
         # Show detailed results
         if system_status['connection_details']:
-            print("🔧 API Connection Details:")
+            logger.info("🔧 API Connection Details:")
             for api_name, details in system_status['connection_details'].items():
                 status_icon = "✅" if details['success'] else "❌"
                 config_status = config_status['api_details'].get(api_name.replace('_', '').upper(), {})
                 priority = config_status.get('priority', 'UNKNOWN') if config_status else 'UNKNOWN'
 
-                print(f"  {status_icon} {api_name} ({priority}): {details['response_time']:.2f}s")
+                logger.info(f"  {status_icon} {api_name} ({priority}): {details['response_time']:.2f}s")
                 if not details['success'] and details.get('error'):
-                    print(f"    Error: {details['error']}")
+                    logger.info(f"    Error: {details['error']}")
 
-        print()
+        logger.info("")
 
         # Phase 2 readiness assessment
         critical_ready = config_status['critical_apis']['rate'] >= 100
@@ -214,20 +217,20 @@ class APIIntegrationGuide:
 
         phase2_ready = critical_ready and high_ready and connection_ready
 
-        print("🎯 PHASE 2 READINESS ASSESSMENT:")
-        print("=" * 50)
+        logger.info("🎯 PHASE 2 READINESS ASSESSMENT:")
+        logger.info("=" * 50)
 
         if phase2_ready:
-            print("🎉 PHASE 2: API INTEGRATION COMPLETE!")
-            print("✅ All critical APIs configured and tested")
-            print("✅ Ready for live trading infrastructure")
-            print()
-            print("🚀 NEXT: Phase 2 Priority 4 - Live Trading Infrastructure")
+            logger.info("🎉 PHASE 2: API INTEGRATION COMPLETE!")
+            logger.info("✅ All critical APIs configured and tested")
+            logger.info("✅ Ready for live trading infrastructure")
+            logger.info("")
+            logger.info("🚀 NEXT: Phase 2 Priority 4 - Live Trading Infrastructure")
         else:
-            print("⚠️  PHASE 2: INCOMPLETE")
-            print("❌ Missing critical API configurations")
-            print()
-            print("🔧 REQUIRED ACTIONS:")
+            logger.info("⚠️  PHASE 2: INCOMPLETE")
+            logger.info("❌ Missing critical API configurations")
+            logger.info("")
+            logger.info("🔧 REQUIRED ACTIONS:")
 
             # Show missing critical APIs
             requirements = config_status['api_details']
@@ -237,11 +240,11 @@ class APIIntegrationGuide:
             ]
 
             if missing_critical:
-                print("Critical APIs (REQUIRED):")
+                logger.info("Critical APIs (REQUIRED):")
                 for api in missing_critical:
                     info = requirements[api]
-                    print(f"  • {api}: {info['purpose']}")
-                    print(f"    Setup: {info['docs']}")
+                    logger.info(f"  • {api}: {info['purpose']}")
+                    logger.info(f"    Setup: {info['docs']}")
 
             # Show missing high priority APIs
             missing_high = [
@@ -250,13 +253,13 @@ class APIIntegrationGuide:
             ]
 
             if missing_high:
-                print("High Priority APIs (RECOMMENDED):")
+                logger.info("High Priority APIs (RECOMMENDED):")
                 for api in missing_high:
                     info = requirements[api]
-                    print(f"  • {api}: {info['purpose']}")
+                    logger.info(f"  • {api}: {info['purpose']}")
 
-        print()
-        print("=" * 50)
+        logger.info("")
+        logger.info("=" * 50)
 
         return {
             "phase2_ready": phase2_ready,
@@ -272,10 +275,10 @@ async def show_api_setup_guide():
     """Display comprehensive API setup guide"""
     guide = APIIntegrationGuide()
 
-    print("🔗 PHASE 2: API INTEGRATION SETUP GUIDE")
-    print("=" * 60)
-    print("Complete guide for configuring all critical APIs for live trading")
-    print()
+    logger.info("🔗 PHASE 2: API INTEGRATION SETUP GUIDE")
+    logger.info("=" * 60)
+    logger.info("Complete guide for configuring all critical APIs for live trading")
+    logger.info("")
 
     requirements = guide.get_api_requirements()
 
@@ -288,38 +291,38 @@ async def show_api_setup_guide():
         if not apis:
             continue
 
-        print(f"🚨 {priority} PRIORITY APIs:")
-        print("-" * 40)
+        logger.info(f"🚨 {priority} PRIORITY APIs:")
+        logger.info("-" * 40)
 
         for api_name, info in apis.items():
             configured = "✅ CONFIGURED" if info["configured"] else "❌ NOT CONFIGURED"
-            print(f"\n🔧 {api_name} - {configured}")
-            print(f"   Purpose: {info['purpose']}")
-            print(f"   Documentation: {info['docs']}")
-            print("   Setup Steps:")
+            logger.info(f"\n🔧 {api_name} - {configured}")
+            logger.info(f"   Purpose: {info['purpose']}")
+            logger.info(f"   Documentation: {info['docs']}")
+            logger.info("   Setup Steps:")
             for step in info['setup_steps']:
-                print(f"     {step}")
-            print(f"   Environment Variables: {', '.join(info['env_vars'])}")
+                logger.info(f"     {step}")
+            logger.info(f"   Environment Variables: {', '.join(info['env_vars'])}")
 
-        print()
+        logger.info("")
 
-    print("📝 CONFIGURATION INSTRUCTIONS:")
-    print("-" * 40)
-    print("1. Copy .env.example to .env")
-    print("2. Fill in API keys for required services")
-    print("3. Test configuration with: python phase2_api_validation.py")
-    print("4. Ensure all CRITICAL APIs are configured before live trading")
-    print()
+    logger.info("📝 CONFIGURATION INSTRUCTIONS:")
+    logger.info("-" * 40)
+    logger.info("1. Copy .env.example to .env")
+    logger.info("2. Fill in API keys for required services")
+    logger.info("3. Test configuration with: python phase2_api_validation.py")
+    logger.info("4. Ensure all CRITICAL APIs are configured before live trading")
+    logger.info("")
 
     # Show current status
     status = guide.get_configuration_status()
-    print("📊 CURRENT CONFIGURATION STATUS:")
-    print(f"   Critical APIs: {status['critical_apis']['configured']}/{status['critical_apis']['total']} ({status['critical_apis']['rate']:.1f}%)")
-    print(f"   High Priority: {status['high_apis']['configured']}/{status['high_apis']['total']}")
-    print(f"   Medium Priority: {status['medium_apis']['configured']}/{status['medium_apis']['total']}")
+    logger.info("📊 CURRENT CONFIGURATION STATUS:")
+    logger.info(f"   Critical APIs: {status['critical_apis']['configured']}/{status['critical_apis']['total']} ({status['critical_apis']['rate']:.1f}%)")
+    logger.info(f"   High Priority: {status['high_apis']['configured']}/{status['high_apis']['total']}")
+    logger.info(f"   Medium Priority: {status['medium_apis']['configured']}/{status['medium_apis']['total']}")
 
-    print()
-    print("=" * 60)
+    logger.info("")
+    logger.info("=" * 60)
 
 
 if __name__ == "__main__":

@@ -25,6 +25,8 @@ import pandas as pd
 import numpy as np
 import logging
 
+logger = logging.getLogger(__name__)
+
 arb_logger = logging.getLogger(__name__)
 
 # Load environment variables
@@ -60,7 +62,7 @@ class AdvancedArbitrageEngine:
 
     async def collect_multi_source_data(self, symbols: List[str]) -> Dict[str, Dict[str, Any]]:
         """Collect data from multiple sources for given symbols"""
-        print(f"📊 Collecting multi-source data for {len(symbols)} symbols...")
+        logger.info(f"📊 Collecting multi-source data for {len(symbols)} symbols...")
 
         # Initialize data collectors
         collectors = {
@@ -82,11 +84,11 @@ class AdvancedArbitrageEngine:
                     data = await collector(symbol)
                     if data:
                         all_data[symbol][source_name] = data
-                        print(f"   ✅ {symbol} from {source_name}")
+                        logger.info(f"   ✅ {symbol} from {source_name}")
                     else:
-                        print(f"   ❌ {symbol} from {source_name} (no data)")
+                        logger.info(f"   ❌ {symbol} from {source_name} (no data)")
                 except Exception as e:
-                    print(f"   ⚠️  {symbol} from {source_name}: {str(e)[:50]}...")
+                    logger.info(f"   ⚠️  {symbol} from {source_name}: {str(e)[:50]}...")
 
         return all_data
 
@@ -345,8 +347,8 @@ class AdvancedArbitrageEngine:
 
 async def run_advanced_arbitrage_demo():
     """Run comprehensive arbitrage analysis demo"""
-    print("🚀 AAC Advanced Multi-Source Arbitrage Analysis")
-    print("=" * 60)
+    logger.info("🚀 AAC Advanced Multi-Source Arbitrage Analysis")
+    logger.info("=" * 60)
 
     engine = AdvancedArbitrageEngine()
 
@@ -357,57 +359,57 @@ async def run_advanced_arbitrage_demo():
     all_symbols = stock_symbols + economic_symbols
 
     # Collect multi-source data
-    print(f"\n📊 Phase 1: Collecting Data from {len(all_symbols)} Symbols")
-    print("-" * 50)
+    logger.info(f"\n📊 Phase 1: Collecting Data from {len(all_symbols)} Symbols")
+    logger.info("-" * 50)
 
     multi_source_data = await engine.collect_multi_source_data(all_symbols)
 
     # Analyze different types of arbitrage
-    print("\n🎯 Phase 2: Analyzing Arbitrage Opportunities")
-    print("-" * 50)
+    logger.info("\n🎯 Phase 2: Analyzing Arbitrage Opportunities")
+    logger.info("-" * 50)
 
     # Cross-source price discrepancies
-    print("\n🔄 Cross-Source Price Discrepancies:")
+    logger.info("\n🔄 Cross-Source Price Discrepancies:")
     cross_opportunities = engine.analyze_cross_source_arbitrage(multi_source_data)
     for opp in cross_opportunities:
-        print(f"   {opp.symbol}: {opp.description}")
-        print(f"      Expected Return: {opp.expected_return:.1%}")
-        print(f"      Confidence: {opp.confidence:.1f}, Sources: {', '.join(opp.data_sources)}")
+        logger.info(f"   {opp.symbol}: {opp.description}")
+        logger.info(f"      Expected Return: {opp.expected_return:.1%}")
+        logger.info(f"      Confidence: {opp.confidence:.1f}, Sources: {', '.join(opp.data_sources)}")
 
     # Sentiment-based opportunities
-    print("\n📰 Sentiment-Based Opportunities:")
+    logger.info("\n📰 Sentiment-Based Opportunities:")
     sentiment_opportunities = engine.analyze_sentiment_arbitrage(multi_source_data)
     for opp in sentiment_opportunities:
-        print(f"   {opp.symbol}: {opp.description}")
-        print(f"      Expected Return: {opp.expected_return:.1%}")
-        print(f"      Confidence: {opp.confidence:.1f}")
+        logger.info(f"   {opp.symbol}: {opp.description}")
+        logger.info(f"      Expected Return: {opp.expected_return:.1%}")
+        logger.info(f"      Confidence: {opp.confidence:.1f}")
 
     # Macro arbitrage opportunities
-    print("\n📊 Macro Arbitrage Opportunities:")
+    logger.info("\n📊 Macro Arbitrage Opportunities:")
     macro_opportunities = engine.analyze_macro_arbitrage(multi_source_data)
     for opp in macro_opportunities:
-        print(f"   {opp.symbol}: {opp.description}")
-        print(f"      Expected Return: {opp.expected_return:.1%}")
-        print(f"      Confidence: {opp.confidence:.1f}")
+        logger.info(f"   {opp.symbol}: {opp.description}")
+        logger.info(f"      Expected Return: {opp.expected_return:.1%}")
+        logger.info(f"      Confidence: {opp.confidence:.1f}")
 
     # Summary
     all_opportunities = cross_opportunities + sentiment_opportunities + macro_opportunities
 
-    print("\n📈 Summary:")
-    print(f"   Total opportunities found: {len(all_opportunities)}")
-    print(f"   Cross-source: {len(cross_opportunities)}")
-    print(f"   Sentiment-based: {len(sentiment_opportunities)}")
-    print(f"   Macro: {len(macro_opportunities)}")
+    logger.info("\n📈 Summary:")
+    logger.info(f"   Total opportunities found: {len(all_opportunities)}")
+    logger.info(f"   Cross-source: {len(cross_opportunities)}")
+    logger.info(f"   Sentiment-based: {len(sentiment_opportunities)}")
+    logger.info(f"   Macro: {len(macro_opportunities)}")
 
     if all_opportunities:
         # Sort by expected return
         sorted_opps = sorted(all_opportunities, key=lambda x: x.expected_return, reverse=True)
-        print("\n🏆 Top Opportunity:")
+        logger.info("\n🏆 Top Opportunity:")
         top = sorted_opps[0]
-        print(f"   {top.symbol} ({top.type}): {top.expected_return:.1%} expected return")
+        logger.info(f"   {top.symbol} ({top.type}): {top.expected_return:.1%} expected return")
 
     # Data source coverage
-    print("\n📊 Data Source Coverage:")
+    logger.info("\n📊 Data Source Coverage:")
     total_symbols = len(all_symbols)
     sources_count = {}
     for symbol_data in multi_source_data.values():
@@ -416,14 +418,14 @@ async def run_advanced_arbitrage_demo():
 
     for source, count in sources_count.items():
         coverage = count / total_symbols * 100
-        print(f"   {source}: {count}/{total_symbols} symbols ({coverage:.1f}%)")
+        logger.info(f"   {source}: {count}/{total_symbols} symbols ({coverage:.1f}%)")
 
-    print("\n💡 Integration Recommendations:")
-    print("   1. Add POLYGON_API_KEY and FINNHUB_API_KEY to .env for full coverage")
-    print("   2. Implement real-time monitoring for detected opportunities")
-    print("   3. Add risk management for multi-source arbitrage strategies")
-    print("   4. Combine with existing AAC arbitrage strategies")
-    print("   5. Add automated execution for high-confidence opportunities")
+    logger.info("\n💡 Integration Recommendations:")
+    logger.info("   1. Add POLYGON_API_KEY and FINNHUB_API_KEY to .env for full coverage")
+    logger.info("   2. Implement real-time monitoring for detected opportunities")
+    logger.info("   3. Add risk management for multi-source arbitrage strategies")
+    logger.info("   4. Combine with existing AAC arbitrage strategies")
+    logger.info("   5. Add automated execution for high-confidence opportunities")
 
 if __name__ == "__main__":
     asyncio.run(run_advanced_arbitrage_demo())

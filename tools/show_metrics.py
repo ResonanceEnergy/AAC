@@ -7,13 +7,16 @@ Shows current system status and what's missing
 import os
 import sys
 from pathlib import Path
+import logging
+
+logger = logging.getLogger(__name__)
 
 def show_metrics():
     """Show metrics."""
-    print("ACC - Accelerated Arbitrage Corp")
-    print("METRICS & DEEP DIVE ANALYSIS SYSTEM")
-    print("=" * 50)
-    print()
+    logger.info("ACC - Accelerated Arbitrage Corp")
+    logger.info("METRICS & DEEP DIVE ANALYSIS SYSTEM")
+    logger.info("=" * 50)
+    logger.info("")
 
     # Check file counts
     workspace = Path(".")
@@ -21,20 +24,20 @@ def show_metrics():
     csv_files = list(workspace.rglob("*.csv"))
     md_files = list(workspace.rglob("*.md"))
 
-    print("SYSTEM STATUS:")
-    print(f"Python files: {len(py_files)}")
-    print(f"CSV files: {len(csv_files)}")
-    print(f"Documentation files: {len(md_files)}")
-    print()
+    logger.info("SYSTEM STATUS:")
+    logger.info(f"Python files: {len(py_files)}")
+    logger.info(f"CSV files: {len(csv_files)}")
+    logger.info(f"Documentation files: {len(md_files)}")
+    logger.info("")
 
     # Check strategy files
     strategy_dir = Path("strategies")
     if strategy_dir.exists():
         strategy_files = list(strategy_dir.glob("*.py"))
-        print(f"Strategy implementations: {len(strategy_files)}")
+        logger.info(f"Strategy implementations: {len(strategy_files)}")
     else:
-        print("Strategy implementations: 0 (directory missing)")
-    print()
+        logger.info("Strategy implementations: 0 (directory missing)")
+    logger.info("")
 
     # Check CSV for strategies
     csv_path = Path("50_arbitrage_strategies.csv")
@@ -42,10 +45,10 @@ def show_metrics():
         with open(csv_path, 'r', encoding='utf-8') as f:
             lines = f.readlines()
             strategy_count = len(lines) - 1  # minus header
-        print(f"Strategies defined in CSV: {strategy_count}")
+        logger.info(f"Strategies defined in CSV: {strategy_count}")
     else:
-        print("Strategies CSV: Missing")
-    print()
+        logger.info("Strategies CSV: Missing")
+    logger.info("")
 
     # Check key components
     components = [
@@ -56,13 +59,13 @@ def show_metrics():
         "requirements.txt"
     ]
 
-    print("KEY COMPONENTS:")
+    logger.info("KEY COMPONENTS:")
     for comp in components:
         if Path(comp).exists():
-            print(f"✓ {comp}")
+            logger.info(f"✓ {comp}")
         else:
-            print(f"✗ {comp} - MISSING")
-    print()
+            logger.info(f"✗ {comp} - MISSING")
+    logger.info("")
 
     # Check dependencies
     try:
@@ -70,17 +73,17 @@ def show_metrics():
         import plotly
         import pandas
         import numpy
-        print("DEPENDENCIES:")
-        print("✓ Dash installed")
-        print("✓ Plotly installed")
-        print("✓ Pandas installed")
-        print("✓ NumPy installed")
+        logger.info("DEPENDENCIES:")
+        logger.info("✓ Dash installed")
+        logger.info("✓ Plotly installed")
+        logger.info("✓ Pandas installed")
+        logger.info("✓ NumPy installed")
     except ImportError as e:
-        print(f"DEPENDENCIES: Missing - {e}")
-    print()
+        logger.info(f"DEPENDENCIES: Missing - {e}")
+    logger.info("")
 
     # What's missing
-    print("WHAT'S MISSING:")
+    logger.info("WHAT'S MISSING:")
     missing = []
 
     if not strategy_dir.exists():
@@ -108,16 +111,16 @@ def show_metrics():
 
     if missing:
         for item in missing:
-            print(f"- {item}")
+            logger.info(f"- {item}")
     else:
-        print("✓ All core components present")
+        logger.info("✓ All core components present")
 
-    print()
-    print("NEXT STEPS:")
-    print("1. Fix file encoding issues (remove emojis)")
-    print("2. Implement remaining strategies")
-    print("3. Launch metrics dashboard")
-    print("4. Run comprehensive analysis")
+    logger.info("")
+    logger.info("NEXT STEPS:")
+    logger.info("1. Fix file encoding issues (remove emojis)")
+    logger.info("2. Implement remaining strategies")
+    logger.info("3. Launch metrics dashboard")
+    logger.info("4. Run comprehensive analysis")
 
 if __name__ == "__main__":
     show_metrics()

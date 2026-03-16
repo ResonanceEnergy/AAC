@@ -651,12 +651,12 @@ async def initialize_paper_trading():
     """Initialize the paper trading environment"""
     await paper_trading_engine.initialize()
 
-    print("[OK] Paper trading environment initialized")
+    logger.info("[OK] Paper trading environment initialized")
     summary = paper_trading_engine.get_account_summary()
-    print(f"  Account: {summary['account_id']}")
-    print(f"  Equity: ${summary['equity']:,.2f}")
-    print(f"  Positions: {summary['positions_count']}")
-    print(f"  Total Trades: {summary['total_trades']}")
+    logger.info(f"  Account: {summary['account_id']}")
+    logger.info(f"  Equity: ${summary['equity']:,.2f}")
+    logger.info(f"  Positions: {summary['positions_count']}")
+    logger.info(f"  Total Trades: {summary['total_trades']}")
 
 
 if __name__ == "__main__":

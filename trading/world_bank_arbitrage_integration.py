@@ -25,6 +25,9 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass
 from dotenv import load_dotenv
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
@@ -136,7 +139,7 @@ class WorldBankIntegration:
             return countries
 
         except Exception as e:
-            print(f"[ERROR] Error fetching countries: {e}")
+            logger.info(f"[ERROR] Error fetching countries: {e}")
             return []
 
     def get_indicator_data(self, indicator_id: str, country_ids: List[str] = None,
@@ -180,7 +183,7 @@ class WorldBankIntegration:
             return indicators
 
         except Exception as e:
-            print(f"[ERROR] Error fetching indicator {indicator_id}: {e}")
+            logger.info(f"[ERROR] Error fetching indicator {indicator_id}: {e}")
             return []
 
     def get_economic_arbitrage_signals(self) -> Dict[str, Any]:
@@ -258,7 +261,7 @@ class WorldBankIntegration:
                     })
 
         except Exception as e:
-            print(f"[ERROR] Error generating economic signals: {e}")
+            logger.info(f"[ERROR] Error generating economic signals: {e}")
 
         return signals
 
@@ -329,60 +332,60 @@ class WorldBankIntegration:
                     risk_assessment[country]['recommendation'] = 'Favorable for investment'
 
         except Exception as e:
-            print(f"[ERROR] Error assessing country risk: {e}")
+            logger.info(f"[ERROR] Error assessing country risk: {e}")
 
         return risk_assessment
 
 def main():
     """Demo World Bank integration"""
-    print("🌍 AAC World Bank Data Integration Demo")
-    print("=" * 50)
+    logger.info("🌍 AAC World Bank Data Integration Demo")
+    logger.info("=" * 50)
 
     wb = WorldBankIntegration()
 
     if not wb.config.is_configured():
-        print("[ERROR] World Bank integration not configured")
+        logger.info("[ERROR] World Bank integration not configured")
         return
 
-    print("[SUCCESS] World Bank API: Connected (Free API - No key required)")
+    logger.info("[SUCCESS] World Bank API: Connected (Free API - No key required)")
 
     # Get sample countries
-    print("\n🌎 Sample Countries:")
+    logger.info("\n🌎 Sample Countries:")
     countries = wb.get_countries()[:10]  # Show first 10
     for country in countries:
-        print(f"   • {country.name} ({country.id}) - {country.region}")
+        logger.info(f"   • {country.name} ({country.id}) - {country.region}")
 
     # Get economic indicators
-    print("\n[DATA] Key Economic Indicators Available:")
+    logger.info("\n[DATA] Key Economic Indicators Available:")
     for indicator_id, name in list(wb.key_indicators.items())[:5]:
-        print(f"   • {indicator_id}: {name}")
+        logger.info(f"   • {indicator_id}: {name}")
 
     # Get sample GDP data
-    print("\n[FINANCE] Sample GDP Growth Data (2023):")
+    logger.info("\n[FINANCE] Sample GDP Growth Data (2023):")
     gdp_data = wb.get_indicator_data('NY.GDP.MKTP.KD.ZG', ['USA', 'CHN', 'DEU'], 2023, 2023)
     for data in gdp_data:
-        print(".1f")
+        logger.info(".1f")
 
     # Generate arbitrage signals
-    print("\n[TARGET] Economic Arbitrage Signals:")
+    logger.info("\n[TARGET] Economic Arbitrage Signals:")
     signals = wb.get_economic_arbitrage_signals()
 
     for signal_type, signal_list in signals.items():
         if signal_list:
-            print(f"   {signal_type.replace('_', ' ').title()}:")
+            logger.info(f"   {signal_type.replace('_', ' ').title()}:")
             for signal in signal_list:
-                print(f"     • {signal}")
+                logger.info(f"     • {signal}")
         else:
-            print(f"   {signal_type.replace('_', ' ').title()}: No signals detected")
+            logger.info(f"   {signal_type.replace('_', ' ').title()}: No signals detected")
 
     # Country risk assessment
-    print("\n[WARN] Country Risk Assessment:")
+    logger.info("\n[WARN] Country Risk Assessment:")
     risk_data = wb.get_country_risk_assessment(['USA', 'CHN', 'BRA', 'ZAF'])
     for country, assessment in risk_data.items():
-        print(f"   • {country}: {assessment['overall_risk']} risk - {assessment['recommendation']}")
+        logger.info(f"   • {country}: {assessment['overall_risk']} risk - {assessment['recommendation']}")
 
-    print("\n[SUCCESS] World Bank integration demo completed!")
-    print("[INFO] World Bank data can enhance arbitrage strategies with macroeconomic insights")
+    logger.info("\n[SUCCESS] World Bank integration demo completed!")
+    logger.info("[INFO] World Bank data can enhance arbitrage strategies with macroeconomic insights")
 
 if __name__ == "__main__":
     main()

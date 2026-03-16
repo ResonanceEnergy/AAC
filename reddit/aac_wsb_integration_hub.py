@@ -24,6 +24,9 @@ from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass
 import asyncio
 import warnings
+import logging
+
+logger = logging.getLogger(__name__)
 warnings.filterwarnings('ignore')
 
 # Import AAC components
@@ -77,18 +80,18 @@ class AACWSBIntegrationHub:
         self.key_terms = ['short', 'squeeze', 'citron', 'retail', 'tendies',
                          'diamond', 'hands', 'moon', 'rocket', 'crash']
 
-        print("✅ AAC WallStreetBets Integration Hub initialized")
+        logger.info("✅ AAC WallStreetBets Integration Hub initialized")
 
     async def analyze_current_wsb_sentiment(self, limit_posts: int = 100) -> WSBAnalysisResult:
         """Analyze current WallStreetBets sentiment for arbitrage signals"""
-        print("🔍 Analyzing current WallStreetBets sentiment...")
+        logger.info("🔍 Analyzing current WallStreetBets sentiment...")
 
         try:
             # Get recent Reddit data
             reddit_data = await self._get_recent_reddit_data(limit_posts)
 
             if not reddit_data:
-                print("⚠️  No Reddit data available")
+                logger.info("⚠️  No Reddit data available")
                 return self._create_empty_result()
 
             # Analyze sentiment
@@ -140,7 +143,7 @@ class AACWSBIntegrationHub:
             )
 
         except Exception as e:
-            print(f"❌ WSB analysis failed: {e}")
+            logger.info(f"❌ WSB analysis failed: {e}")
             return self._create_empty_result()
 
     async def _get_recent_reddit_data(self, limit: int) -> List[Dict[str, Any]]:
@@ -320,7 +323,7 @@ class AACWSBIntegrationHub:
 
     async def run_comprehensive_arbitrage_analysis(self) -> Dict[str, Any]:
         """Run comprehensive arbitrage analysis combining all AAC data sources"""
-        print("🚀 Running comprehensive AAC arbitrage analysis...")
+        logger.info("🚀 Running comprehensive AAC arbitrage analysis...")
 
         # Analyze WSB sentiment
         wsb_analysis = await self.analyze_current_wsb_sentiment()
@@ -332,7 +335,7 @@ class AACWSBIntegrationHub:
                 # This would get real signals from WallStreetOdds
                 wallstreetodds_signals = []  # Placeholder
             except Exception as e:
-                print(f"⚠️  WallStreetOdds integration failed: {e}")
+                logger.info(f"⚠️  WallStreetOdds integration failed: {e}")
 
         # Enhance signals
         enhanced_signals = self.enhance_arbitrage_signals(wsb_analysis, wallstreetodds_signals)
@@ -374,8 +377,8 @@ class AACWSBIntegrationHub:
 
 async def demo_comprehensive_wsb_integration():
     """Demo the comprehensive WSB integration with AAC arbitrage system"""
-    print("🎯 AAC WallStreetBets Integration Demo")
-    print("=" * 50)
+    logger.info("🎯 AAC WallStreetBets Integration Demo")
+    logger.info("=" * 50)
 
     hub = AACWSBIntegrationHub()
 
@@ -383,20 +386,20 @@ async def demo_comprehensive_wsb_integration():
     analysis_report = await hub.run_comprehensive_arbitrage_analysis()
 
     # Display results
-    print("\n📊 Analysis Summary:")
-    print(f"   Timestamp: {analysis_report['timestamp']}")
-    print(f"   Data Sources: {', '.join(analysis_report['data_sources'])}")
+    logger.info("\n📊 Analysis Summary:")
+    logger.info(f"   Timestamp: {analysis_report['timestamp']}")
+    logger.info(f"   Data Sources: {', '.join(analysis_report['data_sources'])}")
 
     sentiment = analysis_report['wsb_sentiment_summary']
     if sentiment:
-        print("\n💬 Sentiment Summary:")
-        print(f"   Total Posts Analyzed: {sentiment.get('total_posts', 0)}")
-        print(f"   Bullish Ratio: {sentiment.get('bullish_ratio', 0):.3f}")
-        print(f"   Sentiment Distribution: {sentiment.get('sentiment_distribution', {})}")
+        logger.info("\n💬 Sentiment Summary:")
+        logger.info(f"   Total Posts Analyzed: {sentiment.get('total_posts', 0)}")
+        logger.info(f"   Bullish Ratio: {sentiment.get('bullish_ratio', 0):.3f}")
+        logger.info(f"   Sentiment Distribution: {sentiment.get('sentiment_distribution', {})}")
 
     signals = analysis_report['enhanced_arbitrage_signals']
     if signals:
-        print("\n📈 Enhanced Arbitrage Signals:")
+        logger.info("\n📈 Enhanced Arbitrage Signals:")
         for signal in signals[:5]:  # Show top 5
             print(f"   🎯 {signal['ticker']}: {signal['signal_type']} "
                   f"Confidence: {signal.get('confidence', 0):.2f} "
@@ -404,18 +407,18 @@ async def demo_comprehensive_wsb_integration():
 
     manipulation = analysis_report['manipulation_signals']
     if manipulation:
-        print("\n🚨 Market Manipulation Signals:")
+        logger.info("\n🚨 Market Manipulation Signals:")
         for signal in manipulation:
-            print(f"   ⚠️  {signal['type']}: {signal['description']}")
+            logger.info(f"   ⚠️  {signal['type']}: {signal['description']}")
 
     squeeze = analysis_report['squeeze_analysis']
     if squeeze and squeeze.get('squeeze_probability', 0) > 0:
-        print("\n🧹 Short Squeeze Analysis:")
-        print(f"   Squeeze Probability: {squeeze.get('squeeze_probability', 0):.2f}")
-        print(f"   Short Interest: {squeeze.get('short_interest', 0):.3f}")
-        print(f"   Days to Cover: {squeeze.get('days_to_cover', 0):.3f}")
-    print("\n✅ Comprehensive WSB integration analysis complete!")
-    print("This demonstrates how GME-style sentiment analysis enhances AAC arbitrage detection.")
+        logger.info("\n🧹 Short Squeeze Analysis:")
+        logger.info(f"   Squeeze Probability: {squeeze.get('squeeze_probability', 0):.2f}")
+        logger.info(f"   Short Interest: {squeeze.get('short_interest', 0):.3f}")
+        logger.info(f"   Days to Cover: {squeeze.get('days_to_cover', 0):.3f}")
+    logger.info("\n✅ Comprehensive WSB integration analysis complete!")
+    logger.info("This demonstrates how GME-style sentiment analysis enhances AAC arbitrage detection.")
 
 
 if __name__ == "__main__":

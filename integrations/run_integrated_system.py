@@ -123,8 +123,8 @@ def print_barren_wuffet_states():
 
 async def run_single_check(orchestrator: DoctrineOrchestrator):
     """Run a single compliance check."""
-    print("\n🔍 Running Compliance Check...")
-    print("─" * 77)
+    logger.info("\n🔍 Running Compliance Check...")
+    logger.info("─" * 77)
     
     result = await orchestrator.run_compliance_check()
     
@@ -157,43 +157,43 @@ async def run_status(orchestrator: DoctrineOrchestrator):
     """Display current system status."""
     status = orchestrator.get_system_status()
     
-    print("\n[MONITOR] SYSTEM STATUS")
-    print("─" * 77)
-    print(f"  BARREN WUFFET State: {status['barren_wuffet_state']}")
-    print(f"  Last Check: {status['last_check'] or 'Never'}")
-    print(f"  Monitoring: {'Active' if status['monitoring_active'] else 'Inactive'}")
+    logger.info("\n[MONITOR] SYSTEM STATUS")
+    logger.info("─" * 77)
+    logger.info(f"  BARREN WUFFET State: {status['barren_wuffet_state']}")
+    logger.info(f"  Last Check: {status['last_check'] or 'Never'}")
+    logger.info(f"  Monitoring: {'Active' if status['monitoring_active'] else 'Inactive'}")
     
-    print("\n📋 DEPARTMENT STATUS")
-    print("─" * 77)
+    logger.info("\n📋 DEPARTMENT STATUS")
+    logger.info("─" * 77)
     
     for dept_name, info in status['departments'].items():
         packs = info.get('doctrine_packs', [])
         metrics = info.get('total_metrics', 0)
         failures = info.get('total_failure_modes', 0)
         
-        print(f"\n  🏢 {dept_name}")
-        print(f"     Metrics: {metrics} | Failure Modes: {failures}")
+        logger.info(f"\n  🏢 {dept_name}")
+        logger.info(f"     Metrics: {metrics} | Failure Modes: {failures}")
         for pack in packs:
-            print(f"     • Pack {pack['pack_id']}: {pack['name']}")
+            logger.info(f"     • Pack {pack['pack_id']}: {pack['name']}")
 
 
 async def run_monitor(orchestrator: DoctrineOrchestrator):
     """Run continuous monitoring."""
-    print("\n🔄 Starting Continuous Monitoring (Ctrl+C to stop)...")
-    print("─" * 77)
+    logger.info("\n🔄 Starting Continuous Monitoring (Ctrl+C to stop)...")
+    logger.info("─" * 77)
     
     try:
         await orchestrator.start_monitoring()
     except KeyboardInterrupt:
         orchestrator.stop_monitoring()
-        print("\n⏹️  Monitoring stopped")
+        logger.info("\n⏹️  Monitoring stopped")
 
 
 async def main():
     """Main entry point."""
-    print("⚠️  DEPRECATED: run_integrated_system.py is deprecated!")
-    print("   Use: python aac_master_launcher.py --doctrine-only")
-    print()
+    logger.info("⚠️  DEPRECATED: run_integrated_system.py is deprecated!")
+    logger.info("   Use: python aac_master_launcher.py --doctrine-only")
+    logger.info("")
 
     parser = argparse.ArgumentParser(description="AAC Doctrine Integrated System (DEPRECATED)")
     parser.add_argument(
@@ -226,9 +226,9 @@ async def main():
     elif args.mode == 'monitor':
         await run_monitor(orchestrator)
     
-    print("\n" + "═" * 77)
-    print("✅ AAC Doctrine System - Integration Complete")
-    print("═" * 77 + "\n")
+    logger.info("\n" + "═" * 77)
+    logger.info("✅ AAC Doctrine System - Integration Complete")
+    logger.info("═" * 77 + "\n")
 
 
 if __name__ == "__main__":

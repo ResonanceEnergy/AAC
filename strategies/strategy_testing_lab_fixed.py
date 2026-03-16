@@ -30,6 +30,8 @@ import seaborn as sns
 from dataclasses import dataclass, field
 from enum import Enum
 
+logger = logging.getLogger(__name__)
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
@@ -578,34 +580,34 @@ async def main():
     await initialize_strategy_testing_lab()
 
     if args.command == 'scan':
-        print("🔬 Scanning system for strategy-related content...")
+        logger.info("🔬 Scanning system for strategy-related content...")
         results = await strategy_testing_lab.scan_system_for_strategies()
 
-        print(f"📁 Strategy Files: {len(results['strategy_files'])}")
-        print(f"🧪 Test Files: {len(results['test_files'])}")
-        print(f"⚙️ Config Files: {len(results['config_files'])}")
-        print(f"📊 Analysis Files: {len(results['analysis_files'])}")
-        print(f"📝 Parameter Files: {len(results['parameter_files'])}")
+        logger.info(f"📁 Strategy Files: {len(results['strategy_files'])}")
+        logger.info(f"🧪 Test Files: {len(results['test_files'])}")
+        logger.info(f"⚙️ Config Files: {len(results['config_files'])}")
+        logger.info(f"📊 Analysis Files: {len(results['analysis_files'])}")
+        logger.info(f"📝 Parameter Files: {len(results['parameter_files'])}")
 
-        print(f"\n✅ Implemented Strategies: {sum(results['implementation_status'].values())}")
-        print(f"❌ Missing Implementations: {len(results['missing_implementations'])}")
+        logger.info(f"\n✅ Implemented Strategies: {sum(results['implementation_status'].values())}")
+        logger.info(f"❌ Missing Implementations: {len(results['missing_implementations'])}")
 
     elif args.command == 'simulate':
         if not args.strategy_id:
-            print("❌ Strategy ID required for simulation")
+            logger.info("❌ Strategy ID required for simulation")
             return
 
-        print(f"🔬 Running ARB simulation for {args.strategy_id}...")
+        logger.info(f"🔬 Running ARB simulation for {args.strategy_id}...")
         results = await strategy_testing_lab.run_strategy_simulation(
             args.strategy_id, args.timeframe
         )
 
-        print("📊 Simulation Results:")
-        print(f"Strategy: {results['strategy_name']}")
-        print(f"Initial Balance: ${results['initial_balance']:,.2f} ARB")
-        print(f"Final Balance: ${results['final_balance']:,.2f} ARB")
-        print(f"Total Return: {results['total_return_pct']:.1f}%")
-        print(f"Sharpe Ratio: {results['sharpe_ratio']:.2f}")
+        logger.info("📊 Simulation Results:")
+        logger.info(f"Strategy: {results['strategy_name']}")
+        logger.info(f"Initial Balance: ${results['initial_balance']:,.2f} ARB")
+        logger.info(f"Final Balance: ${results['final_balance']:,.2f} ARB")
+        logger.info(f"Total Return: {results['total_return_pct']:.1f}%")
+        logger.info(f"Sharpe Ratio: {results['sharpe_ratio']:.2f}")
 
     elif args.command == 'experiment':
         config = {}
@@ -613,26 +615,26 @@ async def main():
             with open(args.experiment_config, 'r') as f:
                 config = json.load(f)
 
-        print("🔬 Running comprehensive lab experiment...")
+        logger.info("🔬 Running comprehensive lab experiment...")
         results = await strategy_testing_lab.run_comprehensive_lab_experiment(config)
 
-        print(f"✅ Experiment completed: {results['experiment_id']}")
+        logger.info(f"✅ Experiment completed: {results['experiment_id']}")
 
         # Generate report
         report_path = await strategy_testing_lab.generate_lab_report(
             results['experiment_id'], args.output_dir
         )
-        print(f"📄 Report generated: {report_path}")
+        logger.info(f"📄 Report generated: {report_path}")
 
     elif args.command == 'report':
         if not args.experiment_id:
-            print("❌ Experiment ID required for report generation")
+            logger.info("❌ Experiment ID required for report generation")
             return
 
         report_path = await strategy_testing_lab.generate_lab_report(
             args.experiment_id, args.output_dir
         )
-        print(f"📄 Report generated: {report_path}")
+        logger.info(f"📄 Report generated: {report_path}")
 
 
 if __name__ == "__main__":

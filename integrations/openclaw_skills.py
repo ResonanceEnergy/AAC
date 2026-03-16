@@ -36,6 +36,9 @@ import json
 import warnings
 from pathlib import Path
 from typing import Dict, List, Optional
+import logging
+
+logger = logging.getLogger(__name__)
 
 warnings.warn(
     "integrations.openclaw_skills is deprecated — use "
@@ -578,7 +581,7 @@ def write_all_skills(base_dir: Optional[str] = None) -> List[str]:
         skill_md_path.write_text(content, encoding="utf-8")
 
         written.append(str(skill_dir))
-        print(f"  ✅ {skill_name} → {skill_md_path}")
+        logger.info(f"  ✅ {skill_name} → {skill_md_path}")
 
     return written
 

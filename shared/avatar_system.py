@@ -15,6 +15,9 @@ from typing import Optional, Tuple, List
 from pathlib import Path
 import base64
 import io
+import logging
+
+logger = logging.getLogger(__name__)
 
 try:
     import cv2
@@ -51,7 +54,7 @@ class AACAvatarSystem:
             # Create a simple avatar programmatically
             self.avatar_image = self._create_base_avatar()
         except Exception as e:
-            print(f"Warning: Could not create avatar: {e}")
+            logger.info(f"Warning: Could not create avatar: {e}")
             # Fallback to a simple colored rectangle
             self.avatar_image = np.zeros((200, 200, 3), dtype=np.uint8)
             self.avatar_image[:] = [100, 150, 200]  # Blue background

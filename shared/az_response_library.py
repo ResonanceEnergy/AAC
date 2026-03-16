@@ -15,6 +15,9 @@ from typing import Dict, List, Optional
 from pathlib import Path
 from datetime import datetime
 import random
+import logging
+
+logger = logging.getLogger(__name__)
 
 class AACAZResponseLibrary:
     """
@@ -43,7 +46,7 @@ class AACAZResponseLibrary:
                         self.engine.setProperty('voice', voice.id)
                         break
         except Exception as e:
-            print(f"Warning: Could not initialize TTS engine: {e}")
+            logger.info(f"Warning: Could not initialize TTS engine: {e}")
 
     def _load_questions(self) -> List[Dict]:
         """Load the 100 strategic questions from JSON file"""
@@ -52,7 +55,7 @@ class AACAZResponseLibrary:
             with open(questions_file, 'r') as f:
                 return json.load(f)
         except FileNotFoundError:
-            print(f"Warning: Questions file not found at {questions_file}")
+            logger.info(f"Warning: Questions file not found at {questions_file}")
             return []
 
     def _generate_responses(self) -> Dict[int, str]:
@@ -214,7 +217,7 @@ class AACAZResponseLibrary:
     def speak_response(self, question_id: int):
         """Speak the response for a specific question"""
         if not self.engine:
-            print("TTS engine not available")
+            logger.info("TTS engine not available")
             return
 
         response = self.get_response(question_id)
@@ -225,7 +228,7 @@ class AACAZResponseLibrary:
                 self.engine.say(response)
                 self.engine.runAndWait()
             except Exception as e:
-                print(f"TTS error: {e}")
+                logger.info(f"TTS error: {e}")
 
         # Run in background thread
         threading.Thread(target=speak, daemon=True).start()

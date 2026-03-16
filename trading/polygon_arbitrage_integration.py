@@ -23,6 +23,9 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
 from dotenv import load_dotenv
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
@@ -106,7 +109,7 @@ class PolygonArbitrageClient:
                     conditions=[]
                 )
         except Exception as e:
-            print(f"Error getting quote for {symbol}: {e}")
+            logger.info(f"Error getting quote for {symbol}: {e}")
         return None
 
     async def get_options_chain(self, underlying: str, expiration: str = None) -> Optional[OptionsChain]:
@@ -173,7 +176,7 @@ class PolygonArbitrageClient:
             )
 
         except Exception as e:
-            print(f"Error getting options chain for {underlying}: {e}")
+            logger.info(f"Error getting options chain for {underlying}: {e}")
         return None
 
     async def get_multiple_quotes(self, symbols: List[str]) -> Dict[str, MarketData]:
@@ -189,54 +192,54 @@ class PolygonArbitrageClient:
 
 async def test_polygon_integration():
     """Test Polygon.io integration"""
-    print("🔍 Testing Polygon.io Integration")
-    print("=" * 50)
+    logger.info("🔍 Testing Polygon.io Integration")
+    logger.info("=" * 50)
 
     config = PolygonConfig()
 
     if not config.is_configured():
-        print("❌ POLYGON_API_KEY not found in .env file")
-        print("   Get your free API key from: https://polygon.io")
-        print("   Add to .env: POLYGON_API_KEY=your_key_here")
+        logger.info("❌ POLYGON_API_KEY not found in .env file")
+        logger.info("   Get your free API key from: https://polygon.io")
+        logger.info("   Add to .env: POLYGON_API_KEY=your_key_here")
         return
 
     async with PolygonArbitrageClient(config) as client:
         # Test basic quote
-        print("\n📈 Testing Real-time Quotes:")
+        logger.info("\n📈 Testing Real-time Quotes:")
         symbols = ['AAPL', 'GOOGL', 'MSFT', 'TSLA']
 
         quotes = await client.get_multiple_quotes(symbols)
 
         for symbol, quote in quotes.items():
-            print(f"   {symbol}: ${quote.price:.2f} (Vol: {quote.volume:,})")
+            logger.info(f"   {symbol}: ${quote.price:.2f} (Vol: {quote.volume:,})")
 
         # Test options chain
-        print("\n📊 Testing Options Chain (AAPL):")
+        logger.info("\n📊 Testing Options Chain (AAPL):")
         chain = await client.get_options_chain('AAPL')
 
         if chain:
-            print(f"   Underlying: {chain.underlying_symbol}")
-            print(f"   Expiration: {chain.expiration_date}")
-            print(f"   Strikes: {len(chain.strikes)} available")
-            print(f"   Sample strike: ${chain.strikes[len(chain.strikes)//2]:.2f}")
+            logger.info(f"   Underlying: {chain.underlying_symbol}")
+            logger.info(f"   Expiration: {chain.expiration_date}")
+            logger.info(f"   Strikes: {len(chain.strikes)} available")
+            logger.info(f"   Sample strike: ${chain.strikes[len(chain.strikes)//2]:.2f}")
 
             # Show some call/put data
             mid_strike = str(chain.strikes[len(chain.strikes)//2])
             if mid_strike in chain.calls:
                 call = chain.calls[mid_strike]
-                print(f"   Call @ ${mid_strike}: Bid ${call['bid']:.2f}, Ask ${call['ask']:.2f}")
+                logger.info(f"   Call @ ${mid_strike}: Bid ${call['bid']:.2f}, Ask ${call['ask']:.2f}")
             if mid_strike in chain.puts:
                 put = chain.puts[mid_strike]
-                print(f"   Put @ ${mid_strike}: Bid ${put['bid']:.2f}, Ask ${put['ask']:.2f}")
+                logger.info(f"   Put @ ${mid_strike}: Bid ${put['bid']:.2f}, Ask ${put['ask']:.2f}")
         else:
-            print("   ❌ No options chain data available")
+            logger.info("   ❌ No options chain data available")
 
-    print("\n✅ Polygon.io integration test complete!")
+    logger.info("\n✅ Polygon.io integration test complete!")
 
 async def arbitrage_opportunities_demo():
     """Demo arbitrage opportunities using Polygon.io data"""
-    print("\n🎯 Arbitrage Opportunities Demo")
-    print("=" * 50)
+    logger.info("\n🎯 Arbitrage Opportunities Demo")
+    logger.info("=" * 50)
 
     config = PolygonConfig()
     if not config.is_configured():
@@ -244,7 +247,7 @@ async def arbitrage_opportunities_demo():
 
     async with PolygonArbitrageClient(config) as client:
         # Cross-market arbitrage example
-        print("\n🔄 Cross-Market Arbitrage Check:")
+        logger.info("\n🔄 Cross-Market Arbitrage Check:")
         symbols = ['AAPL', 'GOOGL', 'MSFT']
 
         quotes = await client.get_multiple_quotes(symbols)
@@ -256,16 +259,16 @@ async def arbitrage_opportunities_demo():
             min_price = min(prices.values())
             spread = max_price - min_price
 
-            print(f"   Price range: ${min_price:.2f} - ${max_price:.2f}")
-            print(f"   Spread: ${spread:.2f} ({spread/min_price*100:.2f}%)")
+            logger.info(f"   Price range: ${min_price:.2f} - ${max_price:.2f}")
+            logger.info(f"   Spread: ${spread:.2f} ({spread/min_price*100:.2f}%)")
 
             if spread/min_price > 0.001:  # 0.1% spread
-                print("   ⚠️  Potential arbitrage opportunity detected!")
+                logger.info("   ⚠️  Potential arbitrage opportunity detected!")
             else:
-                print("   ✅ Markets appear efficient")
+                logger.info("   ✅ Markets appear efficient")
 
         # Options arbitrage example
-        print("\n📊 Options Arbitrage Check (Put-Call Parity):")
+        logger.info("\n📊 Options Arbitrage Check (Put-Call Parity):")
         chain = await client.get_options_chain('AAPL')
 
         if chain and chain.strikes:
@@ -287,16 +290,16 @@ async def arbitrage_opportunities_demo():
                     # Simplified put-call parity check
                     parity_diff = abs((call_price - put_price) - (underlying_price - atm_strike))
 
-                    print(f"   ATM Strike: ${atm_strike:.2f}")
-                    print(f"   Underlying: ${underlying_price:.2f}")
-                    print(f"   Call Price: ${call_price:.2f}")
-                    print(f"   Put Price: ${put_price:.2f}")
-                    print(f"   Parity Difference: ${parity_diff:.2f}")
+                    logger.info(f"   ATM Strike: ${atm_strike:.2f}")
+                    logger.info(f"   Underlying: ${underlying_price:.2f}")
+                    logger.info(f"   Call Price: ${call_price:.2f}")
+                    logger.info(f"   Put Price: ${put_price:.2f}")
+                    logger.info(f"   Parity Difference: ${parity_diff:.2f}")
 
                     if parity_diff > 0.1:  # $0.10 threshold
-                        print("   ⚠️  Put-call parity violation detected!")
+                        logger.info("   ⚠️  Put-call parity violation detected!")
                     else:
-                        print("   ✅ Put-call parity holds")
+                        logger.info("   ✅ Put-call parity holds")
 
 if __name__ == "__main__":
     print("🚀 AAC Polygon.io Arbitrage Integration")

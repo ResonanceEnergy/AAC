@@ -2,6 +2,9 @@
 import os
 import sys
 import importlib
+import logging
+
+logger = logging.getLogger(__name__)
 
 root = r'c:\Users\gripa\OneDrive\Desktop\AAC_fresh'
 sys.path.insert(0, root)
@@ -36,9 +39,9 @@ for dirpath, dirnames, fnames in os.walk(root):
             emsg = str(e)[:120]
             fail.append((relpath, f"{ename}: {emsg}"))
 
-print(f"\n{'='*60}")
-print(f"IMPORT TEST RESULTS: {len(ok)}/{total} OK, {len(fail)} FAILED")
-print(f"{'='*60}")
+logger.info(f"\n{'='*60}")
+logger.info(f"IMPORT TEST RESULTS: {len(ok)}/{total} OK, {len(fail)} FAILED")
+logger.info(f"{'='*60}")
 
 if fail:
     # Categorize failures
@@ -56,15 +59,15 @@ if fail:
             cat = err.split(':')[0]
         categories.setdefault(cat, []).append(path)
     
-    print(f"\nFailures by category:")
+    logger.info(f"\nFailures by category:")
     for cat, paths in sorted(categories.items(), key=lambda x: -len(x[1])):
-        print(f"\n  [{len(paths)}] {cat}")
+        logger.info(f"\n  [{len(paths)}] {cat}")
         for p in paths[:5]:
-            print(f"       {p}")
+            logger.info(f"       {p}")
         if len(paths) > 5:
-            print(f"       ... and {len(paths)-5} more")
+            logger.info(f"       ... and {len(paths)-5} more")
 
-    print(f"\nAll failures:")
+    logger.info(f"\nAll failures:")
     for path, err in sorted(fail):
-        print(f"  {path}")
-        print(f"    {err}")
+        logger.info(f"  {path}")
+        logger.info(f"    {err}")

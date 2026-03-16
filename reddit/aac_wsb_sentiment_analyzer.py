@@ -39,6 +39,9 @@ import seaborn as sns
 from textblob import TextBlob
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 import warnings
+import logging
+
+logger = logging.getLogger(__name__)
 warnings.filterwarnings('ignore')
 
 # Download required NLTK data
@@ -122,7 +125,7 @@ class AACWSBSentimentAnalyzer:
                            'put', 'gamestop', 'gme', 'thing', 'made', 'wsb', 'would',
                            'get', 'one', 'also', 'even', 'go', 'us', 'will', 'see'}
 
-        print("✅ AAC WallStreetBets Sentiment Analyzer initialized")
+        logger.info("✅ AAC WallStreetBets Sentiment Analyzer initialized")
 
     def preprocess_text(self, text: str) -> str:
         """Clean and preprocess text for analysis"""
@@ -426,7 +429,7 @@ class AACWSBSentimentAnalyzer:
 
         if save_path:
             plt.savefig(save_path, dpi=300, bbox_inches='tight')
-            print(f"📊 Sentiment analysis visualization saved to {save_path}")
+            logger.info(f"📊 Sentiment analysis visualization saved to {save_path}")
 
         plt.show()
 
@@ -449,7 +452,7 @@ def demo_gme_sentiment_analysis():
         "GME short squeeze could be the biggest in history."
     ]
 
-    print("🔍 Analyzing GME-related WallStreetBets sentiment...")
+    logger.info("🔍 Analyzing GME-related WallStreetBets sentiment...")
 
     # Analyze each post
     results = []
@@ -461,25 +464,25 @@ def demo_gme_sentiment_analysis():
                   ".2f")
 
     # Word association analysis (like the original study)
-    print("\n🔗 Analyzing word associations with 'short'...")
+    logger.info("\n🔗 Analyzing word associations with 'short'...")
     assoc_short = analyzer.analyze_word_associations(sample_posts, 'short')
-    print(f"Target word: {assoc_short.target_word}")
-    print(f"Co-occurrence count: {assoc_short.cooccurrence_count}")
-    print(f"Sentiment correlation: {assoc_short.sentiment_correlation:.3f}")
-    print("Top associated words:")
+    logger.info(f"Target word: {assoc_short.target_word}")
+    logger.info(f"Co-occurrence count: {assoc_short.cooccurrence_count}")
+    logger.info(f"Sentiment correlation: {assoc_short.sentiment_correlation:.3f}")
+    logger.info("Top associated words:")
     for word, count in sorted(assoc_short.associated_words.items(), key=lambda x: x[1], reverse=True)[:10]:
-        print(f"  {word}: {count}")
+        logger.info(f"  {word}: {count}")
 
     # Generate arbitrage signals
-    print("\n📈 Generating arbitrage signals...")
+    logger.info("\n📈 Generating arbitrage signals...")
     signals = analyzer.generate_arbitrage_signals(results)
     for signal in signals:
         print(f"🎯 {signal['ticker']}: {signal['signal_type']} "
               ".2f"
               ".2f")
 
-    print("\n✅ GME-style sentiment analysis demo complete!")
-    print("This analysis methodology can be applied to current market data for arbitrage signals.")
+    logger.info("\n✅ GME-style sentiment analysis demo complete!")
+    logger.info("This analysis methodology can be applied to current market data for arbitrage signals.")
 
 
 if __name__ == "__main__":

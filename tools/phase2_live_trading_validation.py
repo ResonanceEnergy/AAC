@@ -21,6 +21,8 @@ from pathlib import Path
 import sys
 import os
 
+logger = logging.getLogger(__name__)
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
@@ -52,42 +54,42 @@ class LiveTradingValidator:
 
     async def run_full_validation(self) -> Dict:
         """Run complete validation suite"""
-        print("🔍 Starting AAC Live Trading Infrastructure Validation...")
-        print("=" * 60)
+        logger.info("🔍 Starting AAC Live Trading Infrastructure Validation...")
+        logger.info("=" * 60)
 
         try:
             # Initialize infrastructure
             self.infrastructure = await get_live_trading_infrastructure()
 
             # Test 1: Exchange Connectivity
-            print("1️⃣ Testing Exchange Connectivity...")
+            logger.info("1️⃣ Testing Exchange Connectivity...")
             await self._test_connectivity()
 
             # Test 2: Order Validation
-            print("2️⃣ Testing Order Validation...")
+            logger.info("2️⃣ Testing Order Validation...")
             await self._test_order_validation()
 
             # Test 3: Emergency Systems
-            print("3️⃣ Testing Emergency Systems...")
+            logger.info("3️⃣ Testing Emergency Systems...")
             await self._test_emergency_systems()
 
             # Test 4: Circuit Breakers
-            print("4️⃣ Testing Circuit Breakers...")
+            logger.info("4️⃣ Testing Circuit Breakers...")
             await self._test_circuit_breakers()
 
             # Test 5: Market Data Feeds
-            print("5️⃣ Testing Market Data Feeds...")
+            logger.info("5️⃣ Testing Market Data Feeds...")
             await self._test_market_data_feeds()
 
             # Calculate overall status
             self._calculate_overall_status()
 
-            print("\n" + "=" * 60)
-            print("✅ Validation Complete!")
-            print(f"📊 Overall Status: {self.validation_results['overall_status'].upper()}")
+            logger.info("\n" + "=" * 60)
+            logger.info("✅ Validation Complete!")
+            logger.info(f"📊 Overall Status: {self.validation_results['overall_status'].upper()}")
 
         except Exception as e:
-            print(f"❌ Validation failed with error: {e}")
+            logger.info(f"❌ Validation failed with error: {e}")
             self.validation_results['overall_status'] = 'failed'
             self.audit_logger.log_event(
                 AuditCategory.SYSTEM,
@@ -103,7 +105,7 @@ class LiveTradingValidator:
 
         for exchange in Exchange:
             try:
-                print(f"   Testing {exchange.value} connectivity...")
+                logger.info(f"   Testing {exchange.value} connectivity...")
 
                 if exchange not in self.infrastructure.exchanges:
                     results[exchange.value] = {
@@ -122,14 +124,14 @@ class LiveTradingValidator:
                     'latency_ms': round(latency, 2)
                 }
 
-                print(f"   ✅ {exchange.value}: Connected ({latency:.1f}ms)")
+                logger.info(f"   ✅ {exchange.value}: Connected ({latency:.1f}ms)")
 
             except Exception as e:
                 results[exchange.value] = {
                     'status': 'failed',
                     'error': str(e)
                 }
-                print(f"   ❌ {exchange.value}: Failed - {e}")
+                logger.info(f"   ❌ {exchange.value}: Failed - {e}")
 
         self.validation_results['connectivity_tests'] = results
 
@@ -167,7 +169,7 @@ class LiveTradingValidator:
 
         for test_case in test_cases:
             try:
-                print(f"   Testing {test_case['name']}...")
+                logger.info(f"   Testing {test_case['name']}...")
 
                 # Test validation (without actually placing order)
                 await self.infrastructure._validate_order(
@@ -184,9 +186,9 @@ class LiveTradingValidator:
                 }
 
                 if test_case['name'] == 'valid_market_order':
-                    print(f"   ✅ {test_case['name']}: Validation passed")
+                    logger.info(f"   ✅ {test_case['name']}: Validation passed")
                 else:
-                    print(f"   ❌ {test_case['name']}: Should have failed validation")
+                    logger.info(f"   ❌ {test_case['name']}: Should have failed validation")
 
             except Exception as e:
                 results[test_case['name']] = {
@@ -196,9 +198,9 @@ class LiveTradingValidator:
                 }
 
                 if 'invalid' in test_case['name'] or 'unconfigured' in test_case['name']:
-                    print(f"   ✅ {test_case['name']}: Correctly rejected - {e}")
+                    logger.info(f"   ✅ {test_case['name']}: Correctly rejected - {e}")
                 else:
-                    print(f"   ❌ {test_case['name']}: Unexpected validation failure - {e}")
+                    logger.info(f"   ❌ {test_case['name']}: Unexpected validation failure - {e}")
 
         self.validation_results['order_validation_tests'] = results
 
@@ -216,7 +218,7 @@ class LiveTradingValidator:
 
         for action in test_actions:
             try:
-                print(f"   Testing {action.value} emergency action...")
+                logger.info(f"   Testing {action.value} emergency action...")
 
                 # Test that emergency action is recognized and queued
                 # (We won't actually execute to avoid real trading)
@@ -225,20 +227,20 @@ class LiveTradingValidator:
                         'status': 'recognized',
                         'handler_exists': True
                     }
-                    print(f"   ✅ {action.value}: Emergency handler exists")
+                    logger.info(f"   ✅ {action.value}: Emergency handler exists")
                 else:
                     results[action.value] = {
                         'status': 'failed',
                         'error': 'No handler found'
                     }
-                    print(f"   ❌ {action.value}: No emergency handler")
+                    logger.info(f"   ❌ {action.value}: No emergency handler")
 
             except Exception as e:
                 results[action.value] = {
                     'status': 'error',
                     'error': str(e)
                 }
-                print(f"   ❌ {action.value}: Error - {e}")
+                logger.info(f"   ❌ {action.value}: Error - {e}")
 
         # Test emergency mode flag
         initial_mode = self.infrastructure.emergency_mode
@@ -255,7 +257,7 @@ class LiveTradingValidator:
 
         for exchange in Exchange:
             try:
-                print(f"   Testing {exchange.value} circuit breaker...")
+                logger.info(f"   Testing {exchange.value} circuit breaker...")
 
                 cb = self.infrastructure.circuit_breakers[exchange]
                 initial_state = cb.state
@@ -268,14 +270,14 @@ class LiveTradingValidator:
                     'recovery_timeout': cb.recovery_timeout
                 }
 
-                print(f"   ✅ {exchange.value}: Circuit breaker OK (state: {initial_state.value})")
+                logger.info(f"   ✅ {exchange.value}: Circuit breaker OK (state: {initial_state.value})")
 
             except Exception as e:
                 results[exchange.value] = {
                     'status': 'failed',
                     'error': str(e)
                 }
-                print(f"   ❌ {exchange.value}: Circuit breaker error - {e}")
+                logger.info(f"   ❌ {exchange.value}: Circuit breaker error - {e}")
 
         self.validation_results['circuit_breaker_tests'] = results
 
@@ -285,7 +287,7 @@ class LiveTradingValidator:
 
         for exchange, feed in self.infrastructure.websocket_feeds.items():
             try:
-                print(f"   Testing {exchange.value} market data feed...")
+                logger.info(f"   Testing {exchange.value} market data feed...")
 
                 # Check if feed has connection status
                 if hasattr(feed, 'is_connected'):
@@ -296,23 +298,23 @@ class LiveTradingValidator:
                     }
 
                     if is_connected:
-                        print(f"   ✅ {exchange.value}: Market data feed connected")
+                        logger.info(f"   ✅ {exchange.value}: Market data feed connected")
                     else:
-                        print(f"   ⚠️  {exchange.value}: Market data feed disconnected")
+                        logger.info(f"   ⚠️  {exchange.value}: Market data feed disconnected")
 
                 else:
                     results[exchange.value] = {
                         'status': 'no_connection_check',
                         'has_connection_check': False
                     }
-                    print(f"   ⚠️  {exchange.value}: No connection status available")
+                    logger.info(f"   ⚠️  {exchange.value}: No connection status available")
 
             except Exception as e:
                 results[exchange.value] = {
                     'status': 'error',
                     'error': str(e)
                 }
-                print(f"   ❌ {exchange.value}: Market data feed error - {e}")
+                logger.info(f"   ❌ {exchange.value}: Market data feed error - {e}")
 
         self.validation_results['market_data_tests'] = results
 
@@ -355,11 +357,11 @@ class LiveTradingValidator:
 
     def print_validation_report(self):
         """Print detailed validation report"""
-        print("\n📋 DETAILED VALIDATION REPORT")
-        print("=" * 60)
+        logger.info("\n📋 DETAILED VALIDATION REPORT")
+        logger.info("=" * 60)
 
         # Connectivity Tests
-        print("🔗 CONNECTIVITY TESTS:")
+        logger.info("🔗 CONNECTIVITY TESTS:")
         for exchange, result in self.validation_results['connectivity_tests'].items():
             status_icon = "✅" if result['status'] == 'connected' else "❌" if result['status'] == 'failed' else "⚠️"
             status_text = f"{status_icon} {exchange}: {result['status']}"
@@ -367,20 +369,20 @@ class LiveTradingValidator:
                 status_text += f" ({result['latency_ms']}ms)"
             if 'error' in result:
                 status_text += f" - {result['error']}"
-            print(f"   {status_text}")
+            logger.info(f"   {status_text}")
 
         # Order Validation Tests
-        print("\n📝 ORDER VALIDATION TESTS:")
+        logger.info("\n📝 ORDER VALIDATION TESTS:")
         for test_name, result in self.validation_results['order_validation_tests'].items():
             status_icon = "✅" if result['status'] == 'passed' else "❌"
             expected = result.get('expected', 'unknown')
             status_text = f"{status_icon} {test_name}: {result['status']} (expected: {expected})"
             if 'error' in result:
                 status_text += f" - {result['error']}"
-            print(f"   {status_text}")
+            logger.info(f"   {status_text}")
 
         # Emergency Systems
-        print("\n🚨 EMERGENCY SYSTEMS:")
+        logger.info("\n🚨 EMERGENCY SYSTEMS:")
         for test_name, result in self.validation_results['emergency_system_tests'].items():
             if test_name == 'emergency_mode':
                 status_icon = "✅"
@@ -388,42 +390,42 @@ class LiveTradingValidator:
             else:
                 status_icon = "✅" if result['status'] == 'recognized' else "❌"
                 status_text = f"{status_icon} {test_name}: {result['status']}"
-            print(f"   {status_text}")
+            logger.info(f"   {status_text}")
 
         # Circuit Breakers
-        print("\n🔌 CIRCUIT BREAKERS:")
+        logger.info("\n🔌 CIRCUIT BREAKERS:")
         for exchange, result in self.validation_results['circuit_breaker_tests'].items():
             status_icon = "✅" if result['status'] == 'ok' else "❌"
             status_text = f"{status_icon} {exchange}: {result['status']} (state: {result.get('initial_state', 'unknown')})"
-            print(f"   {status_text}")
+            logger.info(f"   {status_text}")
 
         # Market Data Feeds
-        print("\n📊 MARKET DATA FEEDS:")
+        logger.info("\n📊 MARKET DATA FEEDS:")
         for exchange, result in self.validation_results['market_data_tests'].items():
             status_icon = "✅" if result['status'] == 'connected' else "⚠️" if result['status'] == 'disconnected' else "❌"
             status_text = f"{status_icon} {exchange}: {result['status']}"
-            print(f"   {status_text}")
+            logger.info(f"   {status_text}")
 
         # Summary
-        print(f"\n📊 SUMMARY:")
-        print(f"   Total Tests: {self.validation_results.get('total_tests', 0)}")
-        print(f"   Passed Tests: {self.validation_results.get('passed_tests', 0)}")
-        print(f"   Success Rate: {self.validation_results.get('success_rate', 0):.1%}")
-        print(f"   Overall Status: {self.validation_results['overall_status'].upper()}")
+        logger.info(f"\n📊 SUMMARY:")
+        logger.info(f"   Total Tests: {self.validation_results.get('total_tests', 0)}")
+        logger.info(f"   Passed Tests: {self.validation_results.get('passed_tests', 0)}")
+        logger.info(f"   Success Rate: {self.validation_results.get('success_rate', 0):.1%}")
+        logger.info(f"   Overall Status: {self.validation_results['overall_status'].upper()}")
 
         # Phase 2 Priority 4 Readiness
         success_rate = self.validation_results.get('success_rate', 0)
         if success_rate >= 0.8:
-            print("\n🎯 PHASE 2 PRIORITY 4 READINESS: ✅ READY FOR LIVE TRADING")
-            print("   • Multi-exchange integration: Implemented")
-            print("   • Emergency systems: Functional")
-            print("   • Circuit breakers: Active")
-            print("   • Market connectivity: Monitoring")
+            logger.info("\n🎯 PHASE 2 PRIORITY 4 READINESS: ✅ READY FOR LIVE TRADING")
+            logger.info("   • Multi-exchange integration: Implemented")
+            logger.info("   • Emergency systems: Functional")
+            logger.info("   • Circuit breakers: Active")
+            logger.info("   • Market connectivity: Monitoring")
         else:
-            print(f"\n🎯 PHASE 2 PRIORITY 4 READINESS: ⚠️ NEEDS ATTENTION ({success_rate:.1%} success rate)")
-            print("   • Review failed tests above")
-            print("   • Configure missing API credentials")
-            print("   • Test in staging environment first")
+            logger.info(f"\n🎯 PHASE 2 PRIORITY 4 READINESS: ⚠️ NEEDS ATTENTION ({success_rate:.1%} success rate)")
+            logger.info("   • Review failed tests above")
+            logger.info("   • Configure missing API credentials")
+            logger.info("   • Test in staging environment first")
 
 
 async def main():
@@ -439,7 +441,7 @@ async def main():
     with open(results_file, 'w') as f:
         json.dump(results, f, indent=2, default=str)
 
-    print(f"\n💾 Results saved to: {results_file}")
+    logger.info(f"\n💾 Results saved to: {results_file}")
 
 
 if __name__ == "__main__":

@@ -12,6 +12,8 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Any
 from pathlib import Path
 
+logger = logging.getLogger(__name__)
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
@@ -257,55 +259,55 @@ async def display_security_dashboard():
     """Display the security dashboard"""
     dashboard = SecurityDashboard()
 
-    print("🔒 AAC Security Dashboard")
-    print("=" * 50)
+    logger.info("🔒 AAC Security Dashboard")
+    logger.info("=" * 50)
 
     # Get status report
     report = await dashboard.get_security_status_report()
 
-    print(f"📊 Overall Security Score: {report['overall_security_score']}/100")
-    print()
+    logger.info(f"📊 Overall Security Score: {report['overall_security_score']}/100")
+    logger.info("")
 
     # Component status
-    print("🛡️  Security Components:")
+    logger.info("🛡️  Security Components:")
     for component, status in report["security_components"].items():
         score = status.get("score", 0)
         comp_status = status.get("status", "unknown")
         status_icon = "✅" if score >= 80 else "⚠️" if score >= 60 else "❌"
-        print(f"  {status_icon} {component}: {comp_status} ({score}%)")
+        logger.info(f"  {status_icon} {component}: {comp_status} ({score}%)")
 
-    print()
+    logger.info("")
 
     # Active alerts
     alerts = report["active_alerts"]
     if alerts:
-        print(f"🚨 Active Alerts: {len(alerts)}")
+        logger.info(f"🚨 Active Alerts: {len(alerts)}")
         for alert in alerts:
-            print(f"  • {alert['event_type']}: {alert.get('count', 0)} events")
+            logger.info(f"  • {alert['event_type']}: {alert.get('count', 0)} events")
     else:
-        print("✅ No active security alerts")
+        logger.info("✅ No active security alerts")
 
-    print()
+    logger.info("")
 
     # Recent events
     events = report["recent_events"]
-    print(f"📋 Recent Security Events (24h): {len(events)}")
+    logger.info(f"📋 Recent Security Events (24h): {len(events)}")
     for event in events[-3:]:  # Show last 3
-        print(f"  • {event['timestamp'].strftime('%H:%M')}: {event['event_type']}")
+        logger.info(f"  • {event['timestamp'].strftime('%H:%M')}: {event['event_type']}")
 
-    print()
+    logger.info("")
 
     # Recommendations
     recommendations = report["recommendations"]
     if recommendations:
-        print("💡 Security Recommendations:")
+        logger.info("💡 Security Recommendations:")
         for rec in recommendations:
-            print(f"  • {rec}")
+            logger.info(f"  • {rec}")
     else:
-        print("✅ All security checks passed - no recommendations")
+        logger.info("✅ All security checks passed - no recommendations")
 
-    print()
-    print("=" * 50)
+    logger.info("")
+    logger.info("=" * 50)
 
     # Export option
     export = input("Export detailed report? (json/text/no): ").lower().strip()
@@ -314,7 +316,7 @@ async def display_security_dashboard():
         filename = f"security_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{export}"
         with open(filename, 'w') as f:
             f.write(report_content)
-        print(f"Report exported to: {filename}")
+        logger.info(f"Report exported to: {filename}")
 
 
 if __name__ == "__main__":

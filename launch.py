@@ -47,6 +47,9 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+import logging
+
+logger = logging.getLogger(__name__)
 
 # ── Python Version Guard ────────────────────────────────────────────────────
 # Python 3.14+ causes aiohttp and other C-extension packages to hang.
@@ -54,10 +57,10 @@ from pathlib import Path
 if sys.version_info[:2] >= (3, 14):
     print(f"\033[93m  [!] Python {sys.version_info[0]}.{sys.version_info[1]} detected — "
           f"AAC requires Python 3.9–3.13.\033[0m")
-    print(f"\033[93m      Run: python setup_machine.py  to create a .venv with Python 3.12\033[0m")
+    logger.info(f"\033[93m      Run: python setup_machine.py  to create a .venv with Python 3.12\033[0m")
     _venv_py = Path(__file__).resolve().parent / ".venv" / ("Scripts" if os.name == "nt" else "bin") / ("python.exe" if os.name == "nt" else "python")
     if _venv_py.exists():
-        print(f"\033[92m  [+] Found .venv — re-launching with {_venv_py}\033[0m")
+        logger.info(f"\033[92m  [+] Found .venv — re-launching with {_venv_py}\033[0m")
         os.execv(str(_venv_py), [str(_venv_py)] + sys.argv)
     # If no venv, continue but warn
 
@@ -127,8 +130,8 @@ def _red(text: str) -> str:
 
 def _banner() -> None:
     for line in BANNER.strip().splitlines():
-        print(_cyan(line))
-    print()
+        logger.info(str(_cyan(line)))
+    logger.info("")
 
 
 def _activate_venv() -> None:
@@ -139,13 +142,13 @@ def _activate_venv() -> None:
         venv_python = PROJECT_ROOT / ".venv" / "bin" / "python"
 
     if venv_python.exists():
-        print(_green("  [+] Virtual environment detected"))
+        logger.info(str(_green("  [+] Virtual environment detected")))
         # On Windows the .venv/Scripts dir; on Unix .venv/bin
         venv_bin = str(venv_python.parent)
         os.environ["PATH"] = venv_bin + os.pathsep + os.environ.get("PATH", "")
         os.environ["VIRTUAL_ENV"] = str(PROJECT_ROOT / ".venv")
     else:
-        print(_yellow("  [!] No .venv found — using system Python"))
+        logger.info(str(_yellow("  [!] No .venv found — using system Python")))
 
 
 def _load_env() -> None:
@@ -154,7 +157,7 @@ def _load_env() -> None:
     template = PROJECT_ROOT / ".env.template"
 
     if not env_file.exists() and template.exists():
-        print(_yellow("  [!] No .env found — copying from .env.template"))
+        logger.info(str(_yellow("  [!] No .env found — copying from .env.template")))
         import shutil
         shutil.copy2(template, env_file)
 
@@ -162,9 +165,9 @@ def _load_env() -> None:
         try:
             from dotenv import load_dotenv
             load_dotenv(env_file)
-            print(_green("  [+] Loaded .env"))
+            logger.info(str(_green("  [+] Loaded .env")))
         except ImportError:
-            print(_yellow("  [!] python-dotenv not installed — .env not loaded"))
+            logger.info(str(_yellow("  [!] python-dotenv not installed — .env not loaded")))
 
 
 def _python() -> str:
@@ -174,8 +177,8 @@ def _python() -> str:
 
 def _run(cmd: list[str], **kwargs) -> int:
     """Run a subprocess, streaming output. Returns exit code."""
-    print(_green(f"  [>] {' '.join(cmd)}"))
-    print()
+    logger.info(str(_green(f"  [>] {' '.join(cmd)}")))
+    logger.info("")
     result = subprocess.run(cmd, cwd=str(PROJECT_ROOT), **kwargs)
     return result.returncode
 
@@ -229,16 +232,16 @@ def _start_gateway(key: str) -> bool:
 
     # Already listening?
     if _port_open(host, port):
-        print(_green(f"  [+] {name}: already running on {host}:{port}"))
+        logger.info(str(_green(f"  [+] {name}: already running on {host}:{port}")))
         return True
 
     # Exe exists?
     if not cfg["exe"].exists():
-        print(_yellow(f"  [!] {name}: not installed ({cfg['exe']})"))
+        logger.info(str(_yellow(f"  [!] {name}: not installed ({cfg['exe']})")))
         return False
 
     # Launch
-    print(_cyan(f"  [>] Starting {name} ..."))
+    logger.info(str(_cyan(f"  [>] Starting {name} ...")))
     try:
         subprocess.Popen(
             [str(cfg["exe"])],
@@ -256,17 +259,17 @@ def _start_gateway(key: str) -> bool:
     dots = 0
     while time.time() < deadline:
         if _port_open(host, port, timeout=1.0):
-            print(_green(f"\n  [+] {name}: LIVE on {host}:{port}"))
+            logger.info(str(_green(f"\n  [+] {name}: LIVE on {host}:{port}")))
             return True
         dots += 1
-        print(".", end="", flush=True)
+        logger.info(".", end="", flush=True)
         time.sleep(2)
 
     # Port not ready — process may need manual login
     if _is_process_running(cfg["process_name"]):
-        print(_yellow(f"\n  [!] {name}: running but port {port} not ready — log in to the GUI"))
+        logger.info(str(_yellow(f"\n  [!] {name}: running but port {port} not ready — log in to the GUI")))
     else:
-        print(_red(f"\n  [X] {name}: failed to start"))
+        logger.info(str(_red(f"\n  [X] {name}: failed to start")))
     return False
 
 
@@ -282,32 +285,32 @@ def _start_all_gateways() -> dict[str, bool]:
 
 def _mode_gateways() -> int:
     """Start all trading gateways and verify connectivity."""
-    print(_cyan("  ════════════════════════════════════════"))
-    print(_cyan("  Starting Trading Gateways"))
-    print(_cyan("  ════════════════════════════════════════"))
-    print()
+    logger.info(str(_cyan("  ════════════════════════════════════════")))
+    logger.info(str(_cyan("  Starting Trading Gateways")))
+    logger.info(str(_cyan("  ════════════════════════════════════════")))
+    logger.info("")
 
     results = _start_all_gateways()
-    print()
+    logger.info("")
 
     live = sum(1 for v in results.values() if v)
     total = len(results)
-    print(_green(f"  Gateways: {live}/{total} live"))
+    logger.info(str(_green(f"  Gateways: {live}/{total} live")))
     for key, ok in results.items():
         cfg = _GATEWAY_CONFIGS[key]
         status = _green("LIVE") if ok else _yellow("WAITING")
-        print(f"    {cfg['name']:<20s} {cfg['host']}:{cfg['port']}  {status}")
-    print()
+        logger.info(f"    {cfg['name']:<20s} {cfg['host']}:{cfg['port']}  {status}")
+    logger.info("")
     return 0
 
 
 def _mode_dashboard() -> int:
-    print(_cyan("  Starting Dashboard ..."))
+    logger.info(str(_cyan("  Starting Dashboard ...")))
     return _run([_python(), "-m", "core.command_center", "--mode", "dashboard"])
 
 
 def _mode_monitor() -> int:
-    print(_cyan("  Starting System Monitor ..."))
+    logger.info(str(_cyan("  Starting System Monitor ...")))
     return _run([_python(), "-m", "shared.system_monitor"])
 
 
@@ -316,16 +319,16 @@ def _start_health_endpoint():
     try:
         from health_server import start_health_server
         start_health_server(background=True)
-        print(_green("  [+] Health endpoint: http://localhost:8080/health"))
+        logger.info(str(_green("  [+] Health endpoint: http://localhost:8080/health")))
     except Exception as e:
-        print(_red(f"  [!] Health endpoint failed: {e}"))
+        logger.info(str(_red(f"  [!] Health endpoint failed: {e}")))
 
 
 def _mode_paper() -> int:
-    print(_cyan("  Starting Paper Trading Engine ..."))
-    print(_cyan("  Pre-flight: checking gateways ..."))
+    logger.info(str(_cyan("  Starting Paper Trading Engine ...")))
+    logger.info(str(_cyan("  Pre-flight: checking gateways ...")))
     _start_all_gateways()
-    print()
+    logger.info("")
     os.environ["PAPER_TRADING"] = "true"
     os.environ["LIVE_TRADING_ENABLED"] = "false"
     _start_health_endpoint()
@@ -333,13 +336,13 @@ def _mode_paper() -> int:
 
 
 def _mode_core() -> int:
-    print(_cyan("  Starting Core Orchestrator ..."))
+    logger.info(str(_cyan("  Starting Core Orchestrator ...")))
     _start_health_endpoint()
     return _run([_python(), "-m", "core.orchestrator"])
 
 
 def _mode_full() -> int:
-    print(_cyan("  Starting Full System ..."))
+    logger.info(str(_cyan("  Starting Full System ...")))
     _start_health_endpoint()
     _run_compliance_preflight()
     return _run([_python(), "-m", "core.aac_master_launcher"])
@@ -350,21 +353,21 @@ def _run_compliance_preflight() -> None:
     try:
         import asyncio
         from shared.compliance_review import ComplianceReviewSystem
-        print(_cyan("  Running compliance pre-flight checks ..."))
+        logger.info(str(_cyan("  Running compliance pre-flight checks ...")))
         system = ComplianceReviewSystem()
         report = asyncio.run(system.run_compliance_review())
         if report.overall_compliant:
-            print(_green("  [OK] Compliance pre-flight passed"))
+            logger.info(str(_green("  [OK] Compliance pre-flight passed")))
         else:
             failed = [k for k, v in report.check_results.items() if not v.get("passed")]
-            print(_red(f"  [!] Compliance pre-flight: {len(failed)} check(s) failed: {', '.join(failed)}"))
-            print(_red("  Review compliance before going live."))
+            logger.info(str(_red(f"  [!] Compliance pre-flight: {len(failed)} check(s) failed: {', '.join(failed)}")))
+            logger.info(str(_red("  Review compliance before going live.")))
     except Exception as exc:
-        print(_red(f"  [!] Compliance pre-flight skipped: {exc}"))
+        logger.info(str(_red(f"  [!] Compliance pre-flight skipped: {exc}")))
 
 
 def _mode_test(extra_args: list[str] | None = None) -> int:
-    print(_cyan("  Running Test Suite ..."))
+    logger.info(str(_cyan("  Running Test Suite ...")))
     cmd = [
         _python(), "-m", "pytest", "tests/",
         "-q", "--tb=short",
@@ -377,20 +380,20 @@ def _mode_test(extra_args: list[str] | None = None) -> int:
 
 
 def _mode_health() -> int:
-    print(_cyan("  Running Health Check ..."))
+    logger.info(str(_cyan("  Running Health Check ...")))
     script = PROJECT_ROOT / "scripts" / "health_check.py"
     if not script.exists():
-        print(_red("  [X] scripts/health_check.py not found"))
+        logger.info(str(_red("  [X] scripts/health_check.py not found")))
         return 1
     return _run([_python(), str(script)])
 
 
 def _mode_git_sync() -> int:
     """Git add → commit → push, then launch dashboard."""
-    print(_cyan("  ════════════════════════════════════════"))
-    print(_cyan("  Git Sync + Dashboard Launch"))
-    print(_cyan("  ════════════════════════════════════════"))
-    print()
+    logger.info(str(_cyan("  ════════════════════════════════════════")))
+    logger.info(str(_cyan("  Git Sync + Dashboard Launch")))
+    logger.info(str(_cyan("  ════════════════════════════════════════")))
+    logger.info("")
 
     # Check git status
     result = subprocess.run(
@@ -398,38 +401,38 @@ def _mode_git_sync() -> int:
         capture_output=True, text=True, cwd=str(PROJECT_ROOT),
     )
     if result.returncode != 0:
-        print(_red("  [X] Not a git repository"))
+        logger.info(str(_red("  [X] Not a git repository")))
         return 1
 
     if not result.stdout.strip():
-        print(_green("  [+] Working tree clean — nothing to commit"))
+        logger.info(str(_green("  [+] Working tree clean — nothing to commit")))
     else:
         # Add all
-        print(_green("  [+] Adding changes ..."))
+        logger.info(str(_green("  [+] Adding changes ...")))
         subprocess.run(["git", "add", "."], cwd=str(PROJECT_ROOT))
 
         # Commit
         from datetime import datetime
         msg = f"Auto-commit: AAC system update — {datetime.now():%Y-%m-%d %H:%M:%S}"
-        print(_green(f"  [+] Committing: {msg}"))
+        logger.info(str(_green(f"  [+] Committing: {msg}")))
         commit = subprocess.run(
             ["git", "commit", "-m", msg],
             capture_output=True, text=True, cwd=str(PROJECT_ROOT),
         )
         if commit.returncode == 0:
-            print(_green("  [+] Commit successful"))
+            logger.info(str(_green("  [+] Commit successful")))
             push = subprocess.run(
                 ["git", "push", "origin", "main"],
                 capture_output=True, text=True, cwd=str(PROJECT_ROOT),
             )
             if push.returncode == 0:
-                print(_green("  [+] Push successful"))
+                logger.info(str(_green("  [+] Push successful")))
             else:
-                print(_yellow("  [!] Push failed — check remote configuration"))
+                logger.info(str(_yellow("  [!] Push failed — check remote configuration")))
         else:
-            print(_yellow("  [!] Nothing to commit"))
+            logger.info(str(_yellow("  [!] Nothing to commit")))
 
-    print()
+    logger.info("")
     return _mode_dashboard()
 
 
@@ -478,9 +481,9 @@ def main() -> int:
     _banner()
 
     # Show Python + mode
-    print(_green(f"  [+] Python: {sys.executable}"))
-    print(_green(f"  [+] Mode:   {args.mode}"))
-    print()
+    logger.info(str(_green(f"  [+] Python: {sys.executable}")))
+    logger.info(str(_green(f"  [+] Mode:   {args.mode}")))
+    logger.info("")
 
     # Environment setup
     os.chdir(PROJECT_ROOT)
@@ -492,13 +495,13 @@ def main() -> int:
         try:
             from shared.config_loader import validate_startup_requirements
             if not validate_startup_requirements():
-                print(_red("  [!] Configuration validation FAILED — check .env"))
-                print(_red("  [!] Set exchange API keys or DRY_RUN=true"))
+                logger.info(str(_red("  [!] Configuration validation FAILED — check .env")))
+                logger.info(str(_red("  [!] Set exchange API keys or DRY_RUN=true")))
                 return 1
         except Exception as e:
-            print(_red(f"  [!] Config validation error: {e}"))
+            logger.info(str(_red(f"  [!] Config validation error: {e}")))
 
-    print()
+    logger.info("")
 
     # Dispatch
     handler = MODE_DISPATCH[args.mode]

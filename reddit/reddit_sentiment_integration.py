@@ -25,6 +25,9 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
 from dotenv import load_dotenv
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
@@ -69,7 +72,7 @@ class RedditSentimentClient:
         if self.request_count >= self.config.rate_limit:
             wait_time = 60 - (now - self.rate_limit_reset).seconds
             if wait_time > 0:
-                print(f"Rate limit reached, waiting {wait_time} seconds...")
+                logger.info(f"Rate limit reached, waiting {wait_time} seconds...")
                 await asyncio.sleep(wait_time)
                 self.request_count = 0
                 self.rate_limit_reset = datetime.now()
@@ -96,7 +99,7 @@ class RedditSentimentClient:
                     error_text = await response.text()
                     raise Exception(f"Reddit API Error {response.status}: {error_text}")
         except Exception as e:
-            print(f"Error fetching Reddit sentiment: {e}")
+            logger.info(f"Error fetching Reddit sentiment: {e}")
             return []
 
 class RedditSentimentAnalyzer:
@@ -205,8 +208,8 @@ class RedditSentimentAnalyzer:
 
 async def test_reddit_sentiment_integration():
     """Test Reddit sentiment integration"""
-    print("🧪 Testing Reddit Sentiment Integration")
-    print("=" * 45)
+    logger.info("🧪 Testing Reddit Sentiment Integration")
+    logger.info("=" * 45)
 
     config = RedditSentimentConfig()
     analyzer = RedditSentimentAnalyzer(config)
@@ -214,14 +217,14 @@ async def test_reddit_sentiment_integration():
     async with analyzer.client:
         try:
             # Get sentiment data
-            print("📊 Fetching Reddit sentiment data...")
+            logger.info("📊 Fetching Reddit sentiment data...")
             sentiment_data = await analyzer.client.get_reddit_sentiment()
 
             if sentiment_data:
-                print(f"✅ Retrieved sentiment data for {len(sentiment_data)} stocks")
+                logger.info(f"✅ Retrieved sentiment data for {len(sentiment_data)} stocks")
 
                 # Show top 5 stocks
-                print("\n🔥 Top 5 Most Discussed Stocks:")
+                logger.info("\n🔥 Top 5 Most Discussed Stocks:")
                 top_stocks = sorted(sentiment_data, key=lambda x: x.get('no_of_comments', 0), reverse=True)[:5]
 
                 for i, stock in enumerate(top_stocks, 1):
@@ -229,39 +232,39 @@ async def test_reddit_sentiment_integration():
                     comments = stock.get('no_of_comments', 0)
                     sentiment = stock.get('sentiment', 'N/A')
                     score = stock.get('sentiment_score', 0)
-                    print(f"   {i}. {ticker}: {comments} comments, {sentiment} ({score:.3f})")
+                    logger.info(f"   {i}. {ticker}: {comments} comments, {sentiment} ({score:.3f})")
 
                 # Get market overview
-                print("\n📈 Market Sentiment Overview:")
+                logger.info("\n📈 Market Sentiment Overview:")
                 overview = await analyzer.get_market_sentiment_overview(sentiment_data)
 
-                print(f"   Total Stocks: {overview.get('total_stocks', 0)}")
-                print(f"   Total Comments: {overview.get('total_comments', 0)}")
-                print(f"   Bullish Stocks: {overview.get('bullish_stocks', 0)}")
-                print(f"   Bearish Stocks: {overview.get('bearish_stocks', 0)}")
-                print(f"   Average Sentiment: {overview.get('average_sentiment', 0):.3f}")
-                print(f"   Market Sentiment: {overview.get('market_sentiment', 'unknown').upper()}")
+                logger.info(f"   Total Stocks: {overview.get('total_stocks', 0)}")
+                logger.info(f"   Total Comments: {overview.get('total_comments', 0)}")
+                logger.info(f"   Bullish Stocks: {overview.get('bullish_stocks', 0)}")
+                logger.info(f"   Bearish Stocks: {overview.get('bearish_stocks', 0)}")
+                logger.info(f"   Average Sentiment: {overview.get('average_sentiment', 0):.3f}")
+                logger.info(f"   Market Sentiment: {overview.get('market_sentiment', 'unknown').upper()}")
 
                 # Analyze arbitrage opportunities
-                print("\n🎯 Sentiment-Based Arbitrage Opportunities:")
+                logger.info("\n🎯 Sentiment-Based Arbitrage Opportunities:")
                 opportunities = await analyzer.analyze_sentiment_opportunities(sentiment_data)
 
                 if opportunities:
                     for opp in opportunities[:5]:  # Show top 5
-                        print(f"   🎯 {opp['symbol']}: {opp['sentiment']} ({opp['sentiment_score']:.3f})")
-                        print(f"      Comments: {opp['comment_volume']}, Confidence: {opp['confidence']:.1%}")
+                        logger.info(f"   🎯 {opp['symbol']}: {opp['sentiment']} ({opp['sentiment_score']:.3f})")
+                        logger.info(f"      Comments: {opp['comment_volume']}, Confidence: {opp['confidence']:.1%}")
                 else:
-                    print("   No strong sentiment opportunities detected")
+                    logger.info("   No strong sentiment opportunities detected")
 
             else:
-                print("❌ No sentiment data received")
+                logger.info("❌ No sentiment data received")
                 return
 
         except Exception as e:
-            print(f"❌ Test failed: {e}")
+            logger.info(f"❌ Test failed: {e}")
             return
 
-    print("\n✅ Reddit sentiment integration test complete!")
+    logger.info("\n✅ Reddit sentiment integration test complete!")
 
 if __name__ == "__main__":
     print("🚀 AAC Reddit Sentiment Integration")

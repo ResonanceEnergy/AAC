@@ -22,6 +22,8 @@ from cryptography.exceptions import InvalidSignature
 import sys
 import uuid
 
+logger = logging.getLogger(__name__)
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
@@ -566,7 +568,7 @@ audit_trail_integrity_system = AuditTrailIntegritySystem()
 
 async def initialize_audit_trail_integrity():
     """Initialize the audit trail integrity system"""
-    print("[AUDIT] Initializing Audit Trail Integrity System...")
+    logger.info("[AUDIT] Initializing Audit Trail Integrity System...")
 
     # Create initial audit block if needed
     if not audit_trail_integrity_system.audit_blocks:
@@ -584,11 +586,11 @@ async def initialize_audit_trail_integrity():
 
     summary = audit_trail_integrity_system.get_audit_trail_summary()
 
-    print("[OK] Audit trail integrity system initialized")
-    print(f"  Total Blocks: {summary['total_blocks']}")
-    print(f"  Total Events: {summary['total_events']}")
-    print(f"  Cryptographic Signing: {summary['cryptographic_signing']}")
-    print(f"  Integrity Verified: {integrity_results['overall_integrity']}")
+    logger.info("[OK] Audit trail integrity system initialized")
+    logger.info(f"  Total Blocks: {summary['total_blocks']}")
+    logger.info(f"  Total Events: {summary['total_events']}")
+    logger.info(f"  Cryptographic Signing: {summary['cryptographic_signing']}")
+    logger.info(f"  Integrity Verified: {integrity_results['overall_integrity']}")
 
     return True
 

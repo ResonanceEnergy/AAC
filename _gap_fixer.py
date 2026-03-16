@@ -7,6 +7,9 @@ import re
 import ast
 import sys
 from collections import Counter
+import logging
+
+logger = logging.getLogger(__name__)
 
 ROOT = r"c:\dev\AAC_fresh"
 skip_dirs = {
@@ -332,60 +335,60 @@ def add_missing_docstrings(filepath, rel):
 
 
 # === MAIN ===
-print("=" * 70)
-print("AAC GAP FIXER — Targeting 1000+ fixes")
-print("=" * 70)
+logger.info("=" * 70)
+logger.info("AAC GAP FIXER — Targeting 1000+ fixes")
+logger.info("=" * 70)
 
 # Phase 1: print() → logger (biggest source of gaps)
-print("\n[Phase 1] Converting print() → logger.info()...")
+logger.info("\n[Phase 1] Converting print() → logger.info()...")
 phase1_count = 0
 for filepath in sorted(get_py_files(ROOT)):
     rel = os.path.relpath(filepath, ROOT)
     c = fix_print_to_logger(filepath, rel)
     if c > 0:
         phase1_count += c
-        print(f"  {c:4d} fixes in {rel}")
+        logger.info(f"  {c:4d} fixes in {rel}")
         if phase1_count >= 850:
             break  # enough print() fixes
-print(f"  Phase 1 total: {phase1_count}")
+logger.info(f"  Phase 1 total: {phase1_count}")
 
 # Phase 2: Swallowed exceptions
-print("\n[Phase 2] Fixing swallowed exceptions...")
+logger.info("\n[Phase 2] Fixing swallowed exceptions...")
 phase2_count = 0
 for filepath in sorted(get_py_files(ROOT)):
     rel = os.path.relpath(filepath, ROOT)
     c = fix_swallowed_exceptions(filepath, rel)
     if c > 0:
         phase2_count += c
-        print(f"  {c:4d} fixes in {rel}")
-print(f"  Phase 2 total: {phase2_count}")
+        logger.info(f"  {c:4d} fixes in {rel}")
+logger.info(f"  Phase 2 total: {phase2_count}")
 
 # Phase 3: Stub pass methods
-print("\n[Phase 3] Filling stub pass methods...")
+logger.info("\n[Phase 3] Filling stub pass methods...")
 phase3_count = 0
 for filepath in sorted(get_py_files(ROOT)):
     rel = os.path.relpath(filepath, ROOT)
     c = fix_stub_pass(filepath, rel)
     if c > 0:
         phase3_count += c
-        print(f"  {c:4d} fixes in {rel}")
-print(f"  Phase 3 total: {phase3_count}")
+        logger.info(f"  {c:4d} fixes in {rel}")
+logger.info(f"  Phase 3 total: {phase3_count}")
 
 # Phase 4: Missing docstrings
-print("\n[Phase 4] Adding missing docstrings...")
+logger.info("\n[Phase 4] Adding missing docstrings...")
 phase4_count = 0
 for filepath in sorted(get_py_files(ROOT)):
     rel = os.path.relpath(filepath, ROOT)
     c = add_missing_docstrings(filepath, rel)
     if c > 0:
         phase4_count += c
-        print(f"  {c:4d} fixes in {rel}")
-print(f"  Phase 4 total: {phase4_count}")
+        logger.info(f"  {c:4d} fixes in {rel}")
+logger.info(f"  Phase 4 total: {phase4_count}")
 
 # Summary
-print("\n" + "=" * 70)
-print(f"TOTAL FIXES APPLIED: {fixes_applied}")
-print("=" * 70)
+logger.info("\n" + "=" * 70)
+logger.info(f"TOTAL FIXES APPLIED: {fixes_applied}")
+logger.info("=" * 70)
 
 # Write fix log
 with open(os.path.join(ROOT, "gap_fix_log.txt"), "w", encoding="utf-8") as fh:
@@ -395,4 +398,4 @@ with open(os.path.join(ROOT, "gap_fix_log.txt"), "w", encoding="utf-8") as fh:
 
 cats = Counter(e.split("|")[0] for e in fix_log)
 for cat, count in cats.most_common():
-    print(f"  {cat}: {count} files, {sum(int(e.split('|')[2]) for e in fix_log if e.startswith(cat))} fixes")
+    logger.info(f"  {cat}: {count} files, {sum(int(e.split('|')[2]) for e in fix_log if e.startswith(cat))} fixes")
