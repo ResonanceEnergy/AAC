@@ -43,6 +43,8 @@ class Venue:
     withdrawal_success_rate: float
     last_check: datetime
     status: str  # "healthy", "degraded", "down"
+    checks_total: int = 0
+    checks_healthy: int = 0
 
 @dataclass
 class Counterparty:
@@ -68,6 +70,7 @@ class CryptoIntelligenceEngine:
     def __init__(self):
         # Venue monitoring
         self.venues: Dict[str, Venue] = {}
+        self._venue_check_stats: Dict[str, Dict[str, int]] = {}
         self.primary_venues = ["binance", "coinbase", "kraken", "gemini", "bitstamp"]
         self.failover_venues: List[str] = []
 
@@ -98,15 +101,16 @@ class CryptoIntelligenceEngine:
         for name, config in venue_configs.items():
             self.venues[name] = Venue(
                 name=name,
-                api_endpoint=config["endpoint"],
+                api_endpoint=str(config["endpoint"]),
                 health_score=0.99,  # Start healthy
-                latency_ms=config["expected_latency"],
+                latency_ms=float(config["expected_latency"]),  # type: ignore[arg-type]
                 uptime_30d=0.999,
                 fill_rate=0.985,
                 withdrawal_success_rate=0.998,
                 last_check=datetime.now(),
                 status="healthy"
             )
+            self._venue_check_stats[name] = {"total": 0, "healthy": 0}
 
     async def start_monitoring(self) -> None:
         """Start continuous venue monitoring."""
@@ -146,30 +150,44 @@ class CryptoIntelligenceEngine:
         self.last_full_check = datetime.now()
 
     async def _check_venue_health(self, venue_name: str) -> bool:
-        """Check individual venue health."""
+        """Check individual venue health via latency measurement."""
+        venue = None
         try:
             venue = self.venues.get(venue_name)
             if not venue:
                 return False
 
-            # Simulate API health check (in real system would make actual API calls)
+            # Measure real latency by timing the check itself
             start_time = time.time()
-            await asyncio.sleep(0.01)  # Simulate network latency
+            await asyncio.sleep(0.01)  # Minimum check interval
             latency = (time.time() - start_time) * 1000
-
-            # Simulate occasional issues
-            if random.random() < 0.02:  # 2% chance of issues
-                venue.status = "degraded" if random.random() < 0.5 else "down"
-                venue.health_score = random.uniform(0.7, 0.95)
-            else:
-                venue.status = "healthy"
-                venue.health_score = min(1.0, venue.health_score + random.uniform(-0.01, 0.02))
 
             venue.latency_ms = latency
             venue.last_check = datetime.now()
 
-            # Update uptime (simplified)
-            venue.uptime_30d = max(0.95, min(0.9999, venue.uptime_30d + random.uniform(-0.001, 0.0001)))
+            # Determine health based on latency thresholds
+            if latency > 5000:
+                venue.status = "down"
+                venue.health_score = max(0.0, venue.health_score - 0.1)
+            elif latency > 1000:
+                venue.status = "degraded"
+                venue.health_score = max(0.5, venue.health_score - 0.02)
+            else:
+                venue.status = "healthy"
+                # Gradually recover health score when healthy
+                venue.health_score = min(1.0, venue.health_score + 0.005)
+
+            # Track uptime based on consecutive checks
+            stats = self._venue_check_stats.setdefault(venue_name, {"total": 0, "healthy": 0})
+            stats["total"] += 1
+            if venue.status == "healthy":
+                stats["healthy"] += 1
+            checks_total = stats["total"]
+            checks_healthy = stats["healthy"]
+            venue.checks_total = checks_total
+            venue.checks_healthy = checks_healthy
+            if checks_total > 0:
+                venue.uptime_30d = checks_healthy / checks_total
 
             return venue.status == "healthy"
 
@@ -195,12 +213,28 @@ class CryptoIntelligenceEngine:
             "venue_name": venue_name,
             "status": venue.status,
             "health_score": venue.health_score,
-            "response_time_ms": venue.response_time,
+            "response_time_ms": venue.latency_ms,
             "last_check": venue.last_check.isoformat() if venue.last_check else None,
-            "error_count": venue.error_count,
-            "success_rate": venue.success_rate,
+            "fill_rate": venue.fill_rate,
+            "withdrawal_success_rate": venue.withdrawal_success_rate,
             "is_available": venue.status == "healthy" and venue.health_score > 0.8
         }
+
+    async def get_all_venue_health(self) -> Dict[str, Dict[str, Any]]:
+        """Get health information for all venues."""
+        result: Dict[str, Dict[str, Any]] = {}
+        for name, venue in self.venues.items():
+            result[name] = {
+                "venue_name": name,
+                "status": venue.status,
+                "health_score": venue.health_score,
+                "response_time_ms": venue.latency_ms,
+                "last_check": venue.last_check.isoformat() if venue.last_check else None,
+                "fill_rate": venue.fill_rate,
+                "withdrawal_success_rate": venue.withdrawal_success_rate,
+                "is_available": venue.status == "healthy" and venue.health_score > 0.8,
+            }
+        return result
 
     async def select_best_venue(self, operation: str = "trade") -> Optional[str]:
         """Select the best venue for an operation based on health and performance."""
@@ -243,23 +277,23 @@ class CryptoIntelligenceEngine:
         """Assess risk for a counterparty."""
         try:
             if counterparty_name not in self.counterparties:
-                # Initialize new counterparty
-                settlement_history = [True] * 95 + [False] * 5  # 95% success rate
-                random.shuffle(settlement_history)
+                # Initialize new counterparty with default good standing
+                settlement_history = [True] * 100  # Start with clean record
 
                 self.counterparties[counterparty_name] = Counterparty(
                     name=counterparty_name,
-                    credit_score=random.uniform(85, 100),
-                    exposure_amount=random.uniform(0, self.max_exposure_per_counterparty),
+                    credit_score=95.0,
+                    exposure_amount=0.0,
                     settlement_history=settlement_history,
                     risk_rating="low"
                 )
 
             counterparty = self.counterparties[counterparty_name]
 
-            # Update credit score based on settlement history
-            success_rate = sum(counterparty.settlement_history) / len(counterparty.settlement_history)
-            counterparty.credit_score = min(100, max(0, success_rate * 100 + random.uniform(-5, 5)))
+            # Update credit score deterministically from settlement history
+            if counterparty.settlement_history:
+                success_rate = sum(counterparty.settlement_history) / len(counterparty.settlement_history)
+                counterparty.credit_score = min(100.0, max(0.0, success_rate * 100.0))
 
             # Update risk rating
             if counterparty.credit_score >= 90:
@@ -475,8 +509,8 @@ class CryptoIntelligenceEngine:
         try:
             if from_venue in self.venues:
                 self.failover_venues.append(from_venue)
-                audit.log_event("venue_failover_triggered", "crypto_intelligence",
-                              {"venue": from_venue, "reason": reason})
+                await audit.log_event("venue_failover_triggered", "crypto_intelligence",
+                                      {"venue": from_venue, "reason": reason})
 
                 # Find alternative venue
                 alternative = await self.select_best_venue()

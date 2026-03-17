@@ -572,10 +572,10 @@ class CommandCenterInterface:
                     await self._show_financial_insights()
                     input("\n⏎ Press Enter to return to main menu...")
                 elif cmd == '6':
-                    logger.info("\n⚠️  Risk Management - Feature coming soon...")
-                    await asyncio.sleep(1)
+                    await self._show_risk_management()
+                    input("\n\u23ce Press Enter to return to main menu...")
                 elif cmd == '7':
-                    logger.info("\n🎯 Starting Agent Contest...")
+                    logger.info("\n\U0001f3af Starting Agent Contest...")
                     logger.info("Agent contest feature not yet available")
                     logger.info("\u2139\ufe0f  Agent contest feature not yet available.")
                     await asyncio.sleep(1)
@@ -870,6 +870,66 @@ class CommandCenterInterface:
         except Exception as e:
             logging.getLogger(__name__).debug(f"Status summary error: {e}")
             return "Status: Unknown"
+
+    async def _show_risk_management(self):
+        """Show risk management dashboard"""
+        logger.info("")
+        logger.info("=" * 60)
+        logger.info("  RISK MANAGEMENT DASHBOARD")
+        logger.info("=" * 60)
+
+        try:
+            status = await self.command_center.get_command_center_status()
+            risk_metrics = status.get("real_time_metrics", {}).get("risk", {})
+            baselines = getattr(self.command_center, 'monitoring_baselines', {})
+            baseline_risk = baselines.get("risk_metrics", {})
+
+            # Portfolio Risk
+            logger.info("\n  PORTFOLIO RISK")
+            logger.info("  ----------------------------------------")
+            portfolio_var = risk_metrics.get("portfolio_var", 0)
+            max_drawdown = risk_metrics.get("max_drawdown", 0)
+            sharpe = risk_metrics.get("sharpe_ratio", 0)
+            logger.info(f"  Portfolio VaR (95%%): ${portfolio_var:,.0f}")
+            logger.info(f"  Max Drawdown:        {max_drawdown:.2%}")
+            logger.info(f"  Sharpe Ratio:        {sharpe:.2f}")
+
+            # Position Limits
+            logger.info("\n  POSITION LIMITS")
+            logger.info("  ----------------------------------------")
+            exposure = risk_metrics.get("total_exposure", 0)
+            concentration = risk_metrics.get("concentration_risk", 0)
+            leverage = risk_metrics.get("leverage", 0)
+            logger.info(f"  Total Exposure:      ${exposure:,.0f}")
+            logger.info(f"  Concentration Risk:  {concentration:.2%}")
+            logger.info(f"  Current Leverage:    {leverage:.1f}x")
+
+            # Risk Alerts
+            alerts = risk_metrics.get("alerts", [])
+            if alerts:
+                logger.info("\n  ACTIVE RISK ALERTS")
+                logger.info("  ----------------------------------------")
+                for alert in alerts[:5]:
+                    severity = alert.get("severity", "info").upper()
+                    msg = alert.get("message", "Unknown alert")
+                    logger.info(f"  [{severity}] {msg}")
+            else:
+                logger.info("\n  No active risk alerts")
+
+            # Baseline comparison
+            if baseline_risk:
+                logger.info("\n  BASELINE COMPARISON")
+                logger.info("  ----------------------------------------")
+                baseline_var = baseline_risk.get("portfolio_var", portfolio_var)
+                if baseline_var:
+                    var_change = ((portfolio_var - baseline_var) / baseline_var * 100) if baseline_var else 0
+                    logger.info(f"  VaR vs Baseline:     {var_change:+.1f}%%")
+
+            logger.info("")
+            logger.info("=" * 60)
+
+        except Exception as e:
+            logger.error(f"Error retrieving risk data: {e}")
 
     async def _shutdown(self):
         """Shutdown the interface"""

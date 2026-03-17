@@ -63,6 +63,9 @@ class UnusualWhalesClient(APIClient):
 
     BASE_URL = "https://api.unusualwhales.com/api"
 
+    # Cloudflare blocks default Python User-Agent
+    _USER_AGENT = "AAC/2.7.0 UnusualWhalesClient"
+
     def __init__(self, api_key: str = ''):
         config = get_config()
         self.api_key = api_key or config.__dict__.get('unusual_whales_key', '')
@@ -80,6 +83,11 @@ class UnusualWhalesClient(APIClient):
         super().__init__(endpoint)
         self.logger = logging.getLogger("UnusualWhales")
 
+    def _get_auth_headers(self) -> Dict[str, str]:
+        headers = super()._get_auth_headers()
+        headers["User-Agent"] = self._USER_AGENT
+        return headers
+
     async def get_flow(
         self,
         ticker: Optional[str] = None,
@@ -94,7 +102,7 @@ class UnusualWhalesClient(APIClient):
             min_premium: Minimum premium filter
             limit: Max results
         """
-        url = f"{self.BASE_URL}/stock/{ticker}/options-flow" if ticker else f"{self.BASE_URL}/options-flow"
+        url = f"{self.BASE_URL}/stock/{ticker}/flow-recent" if ticker else f"{self.BASE_URL}/option-trades/flow-alerts"
         params = {'limit': str(limit)}
 
         response = await self._make_request("GET", url, params=params)
@@ -137,7 +145,7 @@ class UnusualWhalesClient(APIClient):
             ticker: Filter by ticker (None for all)
             limit: Max results
         """
-        url = f"{self.BASE_URL}/stock/{ticker}/darkpool" if ticker else f"{self.BASE_URL}/darkpool"
+        url = f"{self.BASE_URL}/darkpool/{ticker}" if ticker else f"{self.BASE_URL}/darkpool/recent"
         params = {'limit': str(limit)}
 
         response = await self._make_request("GET", url, params=params)
@@ -162,8 +170,8 @@ class UnusualWhalesClient(APIClient):
         return results
 
     async def get_market_flow_summary(self) -> Dict[str, Any]:
-        """Get market-wide options flow summary (put/call ratio, volume, etc.)"""
-        url = f"{self.BASE_URL}/market/overview"
+        """Get market-wide options flow summary (market tide data)."""
+        url = f"{self.BASE_URL}/market/market-tide"
 
         response = await self._make_request("GET", url)
 
@@ -174,8 +182,8 @@ class UnusualWhalesClient(APIClient):
         return response.data if isinstance(response.data, dict) else {}
 
     async def get_ticker_overview(self, ticker: str) -> Dict[str, Any]:
-        """Get comprehensive overview for a ticker (flow, sentiment, Greeks)"""
-        url = f"{self.BASE_URL}/stock/{ticker}"
+        """Get comprehensive overview for a ticker (info, sector, marketcap)."""
+        url = f"{self.BASE_URL}/stock/{ticker}/info"
 
         response = await self._make_request("GET", url)
 
@@ -186,8 +194,8 @@ class UnusualWhalesClient(APIClient):
         return response.data if isinstance(response.data, dict) else {}
 
     async def get_congress_trades(self, limit: int = 50) -> List[Dict[str, Any]]:
-        """Get recent Congressional / Senate trading disclosures"""
-        url = f"{self.BASE_URL}/congress/trades"
+        """Get recent Congressional / Senate trading disclosures."""
+        url = f"{self.BASE_URL}/congress/recent-trades"
         params = {'limit': str(limit)}
 
         response = await self._make_request("GET", url, params=params)
@@ -206,8 +214,8 @@ class UnusualWhalesClient(APIClient):
         return await self.get_ticker_overview(etf_ticker)
 
     async def get_hottest_chains(self, limit: int = 20) -> List[Dict[str, Any]]:
-        """Get hottest options chains by volume"""
-        url = f"{self.BASE_URL}/options/hottest"
+        """Get hottest options chains by volume."""
+        url = f"{self.BASE_URL}/market/spike"
         params = {'limit': str(limit)}
 
         response = await self._make_request("GET", url, params=params)
@@ -215,6 +223,60 @@ class UnusualWhalesClient(APIClient):
         if not response.success:
             return []
 
+        data = response.data
+        if isinstance(data, dict):
+            return data.get('data', [])[:limit]
+        return data[:limit] if isinstance(data, list) else []
+
+    async def get_sector_etfs(self) -> List[Dict[str, Any]]:
+        """Get sector ETF performance data."""
+        url = f"{self.BASE_URL}/market/sector-etfs"
+        response = await self._make_request("GET", url)
+        if not response.success:
+            return []
+        data = response.data
+        if isinstance(data, dict):
+            return data.get('data', [])
+        return data if isinstance(data, list) else []
+
+    async def get_insider_transactions(self, limit: int = 50) -> List[Dict[str, Any]]:
+        """Get recent insider buy/sell transactions."""
+        url = f"{self.BASE_URL}/insider/transactions"
+        params = {'limit': str(limit)}
+        response = await self._make_request("GET", url, params=params)
+        if not response.success:
+            return []
+        data = response.data
+        if isinstance(data, dict):
+            return data.get('data', [])[:limit]
+        return data[:limit] if isinstance(data, list) else []
+
+    async def get_news_headlines(self, limit: int = 50) -> List[Dict[str, Any]]:
+        """Get latest financial news headlines."""
+        url = f"{self.BASE_URL}/news/headlines"
+        params = {'limit': str(limit)}
+        response = await self._make_request("GET", url, params=params)
+        if not response.success:
+            return []
+        data = response.data
+        if isinstance(data, dict):
+            return data.get('data', [])[:limit]
+        return data[:limit] if isinstance(data, list) else []
+
+    async def get_max_pain(self, ticker: str) -> Dict[str, Any]:
+        """Get max pain data for a ticker."""
+        url = f"{self.BASE_URL}/stock/{ticker}/max-pain"
+        response = await self._make_request("GET", url)
+        if not response.success:
+            return {}
+        return response.data if isinstance(response.data, dict) else {}
+
+    async def get_flow_alerts(self, limit: int = 50) -> List[Dict[str, Any]]:
+        """Get latest options flow alerts (unusual activity)."""
+        url = f"{self.BASE_URL}/option-trades/flow-alerts"
+        response = await self._make_request("GET", url)
+        if not response.success:
+            return []
         data = response.data
         if isinstance(data, dict):
             return data.get('data', [])[:limit]

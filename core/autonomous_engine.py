@@ -343,6 +343,7 @@ class AutonomousEngine:
         self._accounting_db = None
         self._data_aggregator = None
         self._openclaw = None
+        self._recommendation_engine = None
         self._connectors: Dict[str, Any] = {}
 
         # Register core components for health tracking
@@ -469,6 +470,17 @@ class AutonomousEngine:
             logger.error(f"Strategy init failed: {e}")
             return False
 
+    async def _init_recommendation_engine(self) -> bool:
+        """Initialize the daily recommendation engine."""
+        try:
+            from core.daily_recommendation_engine import DailyRecommendationEngine
+            self._recommendation_engine = DailyRecommendationEngine()
+            logger.info("DailyRecommendationEngine initialized")
+            return True
+        except Exception as e:
+            logger.warning(f"DailyRecommendationEngine init failed (non-critical): {e}")
+            return False
+
     async def _init_openclaw(self) -> bool:
         """Connect to OpenClaw Gateway for multi-channel messaging."""
         try:
@@ -520,6 +532,7 @@ class AutonomousEngine:
         self.register_task("status_report", self.REPORT_INTERVAL, self._task_status_report)
         self.register_task("daily_pnl_reset", 86400.0, self._task_daily_reset)
         self.register_task("gap_analysis", 600.0, self._task_gap_analysis)
+        self.register_task("daily_brief", 86400.0, self._task_daily_brief)
 
     def register_task(self, name: str, interval: float, callback, critical: bool = False):
         """Register task."""
@@ -586,6 +599,7 @@ class AutonomousEngine:
             ("ibkr", self._init_ibkr),
             ("moomoo", self._init_moomoo),
             ("openclaw", self._init_openclaw),
+            ("recommendation_engine", self._init_recommendation_engine),
         ]:
             try:
                 results[name] = await init_fn()
@@ -881,6 +895,32 @@ class AutonomousEngine:
                     ))
             except Exception as e:
                 logger.warning(f"ETH strategy error: {e}")
+
+        # Daily Recommendation Engine signals (RSI, MACD, MA, Volume, Bollinger, UW)
+        if self._recommendation_engine:
+            try:
+                rec_signals = await self._recommendation_engine.generate_signals()
+                for rsig in rec_signals:
+                    action_map = {
+                        "BUY": SignalAction.BUY,
+                        "SELL": SignalAction.SELL,
+                        "HOLD": SignalAction.HOLD,
+                    }
+                    action = action_map.get(rsig.direction.value, SignalAction.HOLD)
+                    price = rsig.metadata.get("current_price", 0.0)
+                    if not price and rsig.symbol in market_data:
+                        price = market_data[rsig.symbol].price
+                    signals.append(TradingSignal(
+                        strategy_name=rsig.generator,
+                        symbol=rsig.symbol,
+                        action=action,
+                        confidence=rsig.confidence,
+                        price=price,
+                        reason=rsig.reason,
+                        metadata=rsig.metadata,
+                    ))
+            except Exception as e:
+                logger.warning(f"Recommendation engine signals error: {e}")
 
         # Store signals
         for sig in signals:
@@ -1237,6 +1277,19 @@ class AutonomousEngine:
             f"gaps={len(self.gaps)}"
         )
         await self._notify(report_summary)
+
+    async def _task_daily_brief(self):
+        """Generate and distribute the daily trade recommendation brief."""
+        if not self._recommendation_engine:
+            logger.warning("DailyRecommendationEngine not available — skipping daily brief")
+            return
+        try:
+            brief = await self._recommendation_engine.generate_daily_brief()
+            logger.info(f"Daily brief generated ({len(brief)} chars)")
+            # Send via OpenClaw / Telegram if available
+            await self._notify(brief[:2000])  # Truncate for notification channels
+        except Exception as e:
+            logger.error(f"Daily brief generation failed: {e}")
 
     async def _task_daily_reset(self):
         """Reset daily metrics at midnight UTC (runs every 24h)."""

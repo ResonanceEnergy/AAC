@@ -71,6 +71,13 @@ class APIClient:
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         if self.session:
             await self.session.close()
+            self.session = None
+
+    async def close(self) -> None:
+        """Close any persistent session."""
+        if self.session:
+            await self.session.close()
+            self.session = None
 
     def _check_rate_limit(self) -> bool:
         """Check if we're within rate limits"""
@@ -110,72 +117,71 @@ class APIClient:
                 status_code=429
             )
 
-        if not self.session:
-            return APIResponse(
-                success=False,
-                error="No active session",
-                status_code=500
-            )
-
         start_time = time.time()
         last_error = None
+        owns_session = self.session is None
+        session = self.session or aiohttp.ClientSession(
+            timeout=aiohttp.ClientTimeout(total=self.endpoint.timeout)
+        )
 
-        for attempt in range(self.endpoint.retries):
-            try:
-                headers = self._get_auth_headers()
-                if 'headers' in kwargs:
-                    headers.update(kwargs['headers'])
-                kwargs['headers'] = headers
+        try:
+            for attempt in range(self.endpoint.retries):
+                try:
+                    headers = self._get_auth_headers()
+                    if 'headers' in kwargs:
+                        headers.update(kwargs['headers'])
+                    kwargs['headers'] = headers
 
-                async with self.session.request(method, url, **kwargs) as response:
-                    response_time = time.time() - start_time
+                    async with session.request(method, url, **kwargs) as response:
+                        response_time = time.time() - start_time
 
-                    if response.status == 200:
-                        try:
-                            data = await response.json()
-                        except (json.JSONDecodeError, ValueError) as e:
-                            self.logger.warning(f"JSON parse error: {e}")
-                            data = await response.text()
+                        if response.status == 200:
+                            try:
+                                data = await response.json()
+                            except (json.JSONDecodeError, ValueError) as e:
+                                self.logger.warning(f"JSON parse error: {e}")
+                                data = await response.text()
 
-                        # Audit successful API call
-                        await self.audit_logger.log_event(
-                            category="api",
-                            action="api_call_success",
-                            details={
-                                "endpoint": self.endpoint.name,
-                                "method": method,
-                                "url": url,
-                                "response_time": response_time
-                            }
-                        )
+                            await self.audit_logger.log_event(
+                                category="api",
+                                action="api_call_success",
+                                details={
+                                    "endpoint": self.endpoint.name,
+                                    "method": method,
+                                    "url": url,
+                                    "response_time": response_time
+                                }
+                            )
 
-                        return APIResponse(
-                            success=True,
-                            data=data,
-                            status_code=response.status,
-                            response_time=response_time
-                        )
-                    else:
+                            return APIResponse(
+                                success=True,
+                                data=data,
+                                status_code=response.status,
+                                response_time=response_time
+                            )
+
                         error_text = await response.text()
                         last_error = f"HTTP {response.status}: {error_text}"
 
-                        if response.status == 429:  # Rate limited
-                            await asyncio.sleep(60)  # Wait before retry
+                        if response.status == 429:
+                            await asyncio.sleep(60)
                             continue
-                        elif response.status >= 500:  # Server error, retry
-                            await asyncio.sleep(2 ** attempt)  # Exponential backoff
+                        if response.status >= 500:
+                            await asyncio.sleep(2 ** attempt)
                             continue
-                        else:  # Client error, don't retry
-                            break
+                        break
 
-            except asyncio.TimeoutError:
-                last_error = "Request timeout"
-                await asyncio.sleep(2 ** attempt)
-                continue
-            except Exception as e:
-                last_error = str(e)
-                await asyncio.sleep(2 ** attempt)
-                continue
+                except asyncio.TimeoutError:
+                    last_error = "Request timeout"
+                    await asyncio.sleep(2 ** attempt)
+                    continue
+                except Exception as e:
+                    last_error = str(e)
+                    await asyncio.sleep(2 ** attempt)
+                    continue
+        finally:
+            if owns_session:
+                await session.close()
 
         # All retries failed
         await self.audit_logger.log_event(

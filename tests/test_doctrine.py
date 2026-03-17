@@ -14,6 +14,7 @@ from aac.doctrine.doctrine_engine import (
     BarrenWuffetState,
     ComplianceState,
     Department,
+    DOCTRINE_PACKS,
     DoctrineComplianceReport,
     DoctrineEngine,
     DoctrineViolation,
@@ -111,16 +112,55 @@ class TestDoctrineEngine:
 
     def test_engine_loads_fallback_packs(self):
         engine = DoctrineEngine(config_path=Path("/nonexistent/path.yaml"))
-        result = engine.load_doctrine_packs()
-        # Should use DOCTRINE_PACKS fallback
+        engine.load_doctrine_packs()
+        # Should use built-in registry fallback
         assert engine._loaded is True
+        assert len(engine.doctrine_packs) >= 11
+
+    def test_builtin_registry_includes_pack_11(self):
+        assert 11 in DOCTRINE_PACKS
+        assert "stablecoin_peg_health" in DOCTRINE_PACKS[11]["key_metrics"]
+
+    def test_finds_strategic_and_ffd_metric_definitions(self):
+        engine = DoctrineEngine(config_path=Path("/nonexistent/path.yaml"))
+        engine.load_doctrine_packs()
+
+        strategic_metric = engine._find_metric_definition("terrain_favorability")
+        ffd_metric = engine._find_metric_definition("stablecoin_peg_health")
+
+        assert strategic_metric is not None
+        assert ffd_metric is not None
+
+    def test_ffd_metric_breaches_create_violation(self):
+        engine = DoctrineEngine(config_path=Path("/nonexistent/path.yaml"))
+        engine.load_doctrine_packs()
+
+        mv = engine.update_metric(
+            name="regulatory_shock_score",
+            value=75.0,
+            department=Department.CENTRAL_ACCOUNTING,
+        )
+
+        assert mv.state == ComplianceState.VIOLATION
+        assert any(v.pack_id == 11 for v in engine.active_violations)
+
+    def test_department_summary_includes_strategic_packs(self):
+        engine = DoctrineEngine(config_path=Path("/nonexistent/path.yaml"))
+        engine.load_doctrine_packs()
+
+        summary = engine.get_department_doctrine_summary(Department.TRADING_EXECUTION)
+        pack_ids = {pack["pack_id"] for pack in summary["primary_packs"]}
+
+        assert 5 in pack_ids
+        assert 9 in pack_ids
+        assert 10 in pack_ids
 
     def test_register_action_handler(self):
         engine = DoctrineEngine()
 
         def mock_handler():
             """Mock handler."""
-            logger.debug("mock_handler called")
+            pass
 
         engine.register_action_handler(ActionType.A_STOP_EXECUTION, mock_handler)
         assert ActionType.A_STOP_EXECUTION in engine.action_handlers

@@ -50,19 +50,35 @@ from .base_connector import (
     OrderError,
 )
 
-# Try to import ib_insync
+# ib_insync symbols — defaults for when not installed
+IB: Any = None
+Stock: Any = None
+Forex: Any = None
+Crypto: Any = None
+Future: Any = None
+Option: Any = None
+Contract: Any = None
+ComboLeg: Any = None
+MarketOrder: Any = None
+LimitOrder: Any = None
+StopOrder: Any = None
+StopLimitOrder: Any = None
+TrailingStopOrder: Any = None
+Trade: Any = None
+IBOrder: Any = None
+_ib_util: Any = None
+
+IB_INSYNC_AVAILABLE = False
 try:
     from ib_insync import (
         IB, Stock, Forex, Contract, Order as IBOrder,
         LimitOrder, MarketOrder, StopOrder, StopLimitOrder,
-        Trade, util,
+        Option, ComboLeg,
+        Trade, util as _ib_util,
     )
     IB_INSYNC_AVAILABLE = True
 except (ImportError, RuntimeError):
-    IB_INSYNC_AVAILABLE = False
-    IB = None
-    Stock = Forex = Crypto = Future = Option = Contract = None
-    MarketOrder = LimitOrder = StopOrder = StopLimitOrder = TrailingStopOrder = None
+    pass
 
 
 # Symbol mapping: AAC format -> IBKR contract
@@ -157,7 +173,7 @@ class IBKRConnector(BaseExchangeConnector):
         self.paper = paper if paper is not True else get_env_bool('IBKR_PAPER', True)
         self.timeout = timeout
 
-        self._ib: Optional[Any] = None  # IB instance
+        self._ib: Any = None  # IB instance, guarded by _ensure_connected()
         self._account_values: Dict[str, Any] = {}
 
     async def connect(self) -> bool:
@@ -227,7 +243,7 @@ class IBKRConnector(BaseExchangeConnector):
             raise ConnectionError(
                 f"Cannot connect to TWS/Gateway at {self.host}:{self.port}: {e}. "
                 f"Ensure TWS or IB Gateway is running."
-            )
+            ) from e
 
     async def disconnect(self) -> None:
         """Disconnect from TWS/Gateway."""
@@ -242,6 +258,12 @@ class IBKRConnector(BaseExchangeConnector):
         if not self._ib or not self._ib.isConnected():
             raise ConnectionError("Not connected to IBKR. Call connect() first.")
 
+    @property
+    def _conn(self) -> Any:
+        """Return the IB connection, guaranteed non-None after _ensure_connected()."""
+        assert self._ib is not None  # guarded by _ensure_connected
+        return self._ib
+
     async def get_ticker(self, symbol: str) -> Ticker:
         """Get current market data for a symbol."""
         self._ensure_connected()
@@ -253,13 +275,13 @@ class IBKRConnector(BaseExchangeConnector):
             contract = _make_contract(parsed)
 
             # Qualify the contract (resolve to specific exchange contract)
-            qualified = self._ib.qualifyContracts(contract)
+            qualified = self._conn.qualifyContracts(contract)
             if not qualified:
                 raise ExchangeError(f"Could not qualify contract for {symbol}")
             contract = qualified[0]
 
             # Request market data snapshot
-            ticker_data = self._ib.reqMktData(contract, '', True, False)
+            ticker_data = self._conn.reqMktData(contract, '', True, False)
 
             # Wait for data to arrive (snapshot mode)
             await asyncio.sleep(2)
@@ -270,7 +292,7 @@ class IBKRConnector(BaseExchangeConnector):
             volume = ticker_data.volume if ticker_data.volume and ticker_data.volume > 0 else 0.0
 
             # Cancel market data subscription
-            self._ib.cancelMktData(contract)
+            self._conn.cancelMktData(contract)
 
             duration_ms = (time.time() - start_time) * 1000
             await self._audit_api_call("get_ticker", "GET", "success", duration_ms)
@@ -288,7 +310,7 @@ class IBKRConnector(BaseExchangeConnector):
             raise
         except Exception as e:
             self.logger.error(f"Failed to get ticker for {symbol}: {e}")
-            raise ExchangeError(f"Ticker fetch failed for {symbol}: {e}")
+            raise ExchangeError(f"Ticker fetch failed for {symbol}: {e}") from e
 
     async def get_orderbook(self, symbol: str, limit: int = 20) -> OrderBook:
         """Get order book (market depth) for a symbol."""
@@ -299,22 +321,22 @@ class IBKRConnector(BaseExchangeConnector):
         try:
             parsed = _parse_symbol(symbol)
             contract = _make_contract(parsed)
-            qualified = self._ib.qualifyContracts(contract)
+            qualified = self._conn.qualifyContracts(contract)
             if not qualified:
                 raise ExchangeError(f"Could not qualify contract for {symbol}")
             contract = qualified[0]
 
             # Request market depth
-            depth_data = self._ib.reqMktDepth(contract, numRows=limit)
+            depth_data = self._conn.reqMktDepth(contract, numRows=limit)
             await asyncio.sleep(2)  # wait for depth data
 
             # Collect depth entries
             bids = []
             asks = []
-            for entry in self._ib.ticker(contract).domBids or []:
+            for entry in self._conn.ticker(contract).domBids or []:
                 if entry.price > 0:
                     bids.append((entry.price, entry.size))
-            for entry in self._ib.ticker(contract).domAsks or []:
+            for entry in self._conn.ticker(contract).domAsks or []:
                 if entry.price > 0:
                     asks.append((entry.price, entry.size))
 
@@ -323,7 +345,7 @@ class IBKRConnector(BaseExchangeConnector):
             asks.sort(key=lambda x: x[0])
 
             # Cancel depth subscription
-            self._ib.cancelMktDepth(contract)
+            self._conn.cancelMktDepth(contract)
 
             duration_ms = (time.time() - start_time) * 1000
             await self._audit_api_call("get_orderbook", "GET", "success", duration_ms)
@@ -339,7 +361,7 @@ class IBKRConnector(BaseExchangeConnector):
             raise
         except Exception as e:
             self.logger.error(f"Failed to get order book for {symbol}: {e}")
-            raise ExchangeError(f"Order book fetch failed for {symbol}: {e}")
+            raise ExchangeError(f"Order book fetch failed for {symbol}: {e}") from e
 
     async def get_balances(self) -> Dict[str, Balance]:
         """
@@ -353,7 +375,7 @@ class IBKRConnector(BaseExchangeConnector):
 
         try:
             # Request account summary
-            account_values = self._ib.accountValues(self.account)
+            account_values = self._conn.accountValues(self.account)
 
             result = {}
 
@@ -383,7 +405,7 @@ class IBKRConnector(BaseExchangeConnector):
                     )
 
             # Get portfolio positions
-            positions = self._ib.positions(self.account)
+            positions = self._conn.positions(self.account)
             for pos in positions:
                 symbol = pos.contract.symbol
                 qty = pos.position
@@ -402,7 +424,7 @@ class IBKRConnector(BaseExchangeConnector):
 
         except Exception as e:
             self.logger.error(f"Failed to get balances: {e}")
-            raise ExchangeError(f"Balance fetch failed: {e}")
+            raise ExchangeError(f"Balance fetch failed: {e}") from e
 
     async def create_order(
         self,
@@ -431,7 +453,7 @@ class IBKRConnector(BaseExchangeConnector):
         try:
             parsed = _parse_symbol(symbol)
             contract = _make_contract(parsed)
-            qualified = self._ib.qualifyContracts(contract)
+            qualified = self._conn.qualifyContracts(contract)
             if not qualified:
                 raise OrderError(f"Could not qualify contract for {symbol}")
             contract = qualified[0]
@@ -439,6 +461,7 @@ class IBKRConnector(BaseExchangeConnector):
             # Build IBKR order
             action = 'BUY' if side.lower() == 'buy' else 'SELL'
 
+            ib_order: Any = None
             if order_type.lower() == 'market':
                 ib_order = MarketOrder(action, quantity)
             elif order_type.lower() == 'limit':
@@ -452,7 +475,7 @@ class IBKRConnector(BaseExchangeConnector):
             ib_order.account = self.account
 
             # Place the order
-            trade: Trade = self._ib.placeOrder(contract, ib_order)
+            trade = self._conn.placeOrder(contract, ib_order)
 
             # Wait briefly for order acknowledgment
             await asyncio.sleep(0.5)
@@ -482,7 +505,7 @@ class IBKRConnector(BaseExchangeConnector):
             await self._audit_api_call(
                 "create_order", "POST", "failure", duration_ms, error_message=str(e)
             )
-            raise ExchangeError(f"Order creation failed: {e}")
+            raise ExchangeError(f"Order creation failed: {e}") from e
 
     async def cancel_order(self, order_id: str, symbol: str) -> bool:
         """Cancel an open order by order ID."""
@@ -491,9 +514,9 @@ class IBKRConnector(BaseExchangeConnector):
 
         try:
             # Find the trade by order ID
-            for trade in self._ib.openTrades():
+            for trade in self._conn.openTrades():
                 if str(trade.order.orderId) == str(order_id):
-                    self._ib.cancelOrder(trade.order)
+                    self._conn.cancelOrder(trade.order)
                     await asyncio.sleep(0.5)
                     self.logger.info(f"Order {order_id} cancelled")
                     return True
@@ -503,7 +526,7 @@ class IBKRConnector(BaseExchangeConnector):
 
         except Exception as e:
             self.logger.error(f"Failed to cancel order {order_id}: {e}")
-            raise ExchangeError(f"Cancel failed for order {order_id}: {e}")
+            raise ExchangeError(f"Cancel failed for order {order_id}: {e}") from e
 
     async def get_order(self, order_id: str, symbol: str) -> ExchangeOrder:
         """Get details of a specific order."""
@@ -512,12 +535,12 @@ class IBKRConnector(BaseExchangeConnector):
 
         try:
             # Search open trades
-            for trade in self._ib.openTrades():
+            for trade in self._conn.openTrades():
                 if str(trade.order.orderId) == str(order_id):
                     return self._parse_trade(trade, symbol)
 
             # Search completed trades
-            for trade in self._ib.trades():
+            for trade in self._conn.trades():
                 if str(trade.order.orderId) == str(order_id):
                     return self._parse_trade(trade, symbol)
 
@@ -527,7 +550,7 @@ class IBKRConnector(BaseExchangeConnector):
             raise
         except Exception as e:
             self.logger.error(f"Failed to get order {order_id}: {e}")
-            raise ExchangeError(f"Order lookup failed for {order_id}: {e}")
+            raise ExchangeError(f"Order lookup failed for {order_id}: {e}") from e
 
     async def get_open_orders(self, symbol: Optional[str] = None) -> List[ExchangeOrder]:
         """Get all open orders, optionally filtered by symbol."""
@@ -535,7 +558,7 @@ class IBKRConnector(BaseExchangeConnector):
         await self._rate_limit_wait()
 
         try:
-            trades = self._ib.openTrades()
+            trades = self._conn.openTrades()
             result = []
 
             for trade in trades:
@@ -555,7 +578,7 @@ class IBKRConnector(BaseExchangeConnector):
 
         except Exception as e:
             self.logger.error(f"Failed to get open orders: {e}")
-            raise ExchangeError(f"Open orders fetch failed: {e}")
+            raise ExchangeError(f"Open orders fetch failed: {e}") from e
 
     async def get_trade_fee(self, symbol: str) -> Dict[str, float]:
         """
@@ -593,20 +616,21 @@ class IBKRConnector(BaseExchangeConnector):
         try:
             parsed = _parse_symbol(symbol)
             contract = _make_contract(parsed)
-            qualified = self._ib.qualifyContracts(contract)
+            qualified = self._conn.qualifyContracts(contract)
             if not qualified:
                 raise OrderError(f"Could not qualify contract for {symbol}")
             contract = qualified[0]
 
             action = 'BUY' if side.lower() == 'buy' else 'SELL'
 
+            ib_order: Any = None
             if limit_price:
                 ib_order = StopLimitOrder(action, quantity, limit_price, stop_price)
             else:
                 ib_order = StopOrder(action, quantity, stop_price)
 
             ib_order.account = self.account
-            trade = self._ib.placeOrder(contract, ib_order)
+            trade = self._conn.placeOrder(contract, ib_order)
             await asyncio.sleep(0.5)
 
             result = self._parse_trade(trade, symbol)
@@ -624,7 +648,7 @@ class IBKRConnector(BaseExchangeConnector):
             raise
         except Exception as e:
             self.logger.error(f"Failed to create stop-loss: {e}")
-            raise ExchangeError(f"Stop-loss creation failed: {e}")
+            raise ExchangeError(f"Stop-loss creation failed: {e}") from e
 
     async def get_account_summary(self) -> Dict[str, Any]:
         """
@@ -636,7 +660,7 @@ class IBKRConnector(BaseExchangeConnector):
         self._ensure_connected()
 
         try:
-            account_values = self._ib.accountValues(self.account)
+            account_values = self._conn.accountValues(self.account)
             summary = {}
 
             important_tags = {
@@ -655,14 +679,14 @@ class IBKRConnector(BaseExchangeConnector):
 
         except Exception as e:
             self.logger.error(f"Failed to get account summary: {e}")
-            raise ExchangeError(f"Account summary failed: {e}")
+            raise ExchangeError(f"Account summary failed: {e}") from e
 
     async def get_positions(self) -> List[Dict[str, Any]]:
         """Get all current positions with P&L."""
         self._ensure_connected()
 
         try:
-            positions = self._ib.positions(self.account)
+            positions = self._conn.positions(self.account)
             result = []
 
             for pos in positions:
@@ -680,7 +704,223 @@ class IBKRConnector(BaseExchangeConnector):
 
         except Exception as e:
             self.logger.error(f"Failed to get positions: {e}")
-            raise ExchangeError(f"Positions fetch failed: {e}")
+            raise ExchangeError(f"Positions fetch failed: {e}") from e
+
+    # ── OPTIONS TRADING ─────────────────────────────────────────────────
+
+    def _make_option_contract(
+        self,
+        symbol: str,
+        expiry: str,
+        strike: float,
+        right: str,
+        exchange: str = 'SMART',
+        currency: str = 'USD',
+    ):
+        """
+        Create an ib_insync Option contract.
+
+        Args:
+            symbol: Underlying (e.g. 'SPY', 'QQQ', 'IWM')
+            expiry: Expiration date as 'YYYYMMDD'
+            strike: Strike price
+            right: 'C' for call, 'P' for put
+            exchange: Exchange (default SMART)
+            currency: Currency (default USD)
+        """
+        if not IB_INSYNC_AVAILABLE:
+            raise ExchangeError("ib_insync not installed. Run: pip install ib_insync")
+        return Option(symbol, expiry, strike, right, exchange, currency=currency)
+
+    async def get_option_chain(
+        self, symbol: str, expiry: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
+        """
+        Get available option expirations and strikes for a symbol.
+
+        Args:
+            symbol: Underlying ticker (e.g. 'SPY')
+            expiry: Optional filter to specific expiration 'YYYYMMDD'
+
+        Returns:
+            List of dicts with expiry, strikes, and multiplier info.
+        """
+        self._ensure_connected()
+        await self._rate_limit_wait()
+
+        try:
+            stock = Stock(symbol, 'SMART', 'USD')
+            qualified = self._conn.qualifyContracts(stock)
+            if not qualified:
+                raise OrderError(f"Could not qualify underlying {symbol}")
+
+            chains = self._conn.reqSecDefOptParams(
+                qualified[0].symbol, '', qualified[0].secType, qualified[0].conId
+            )
+
+            results = []
+            for chain in chains:
+                if chain.exchange != 'SMART':
+                    continue
+                expirations = sorted(chain.expirations)
+                if expiry:
+                    expirations = [e for e in expirations if e == expiry]
+                for exp in expirations:
+                    results.append({
+                        'expiry': exp,
+                        'strikes': sorted(chain.strikes),
+                        'multiplier': chain.multiplier,
+                        'exchange': chain.exchange,
+                    })
+            return results
+
+        except Exception as e:
+            self.logger.error(f"Failed to get option chain for {symbol}: {e}")
+            raise ExchangeError(f"Option chain fetch failed: {e}") from e
+
+    async def get_option_quote(
+        self,
+        symbol: str,
+        expiry: str,
+        strike: float,
+        right: str,
+    ) -> Dict[str, Any]:
+        """
+        Get a real-time quote for a specific option contract.
+
+        Args:
+            symbol: Underlying (e.g. 'SPY')
+            expiry: 'YYYYMMDD'
+            strike: Strike price
+            right: 'C' or 'P'
+
+        Returns:
+            Dict with bid, ask, last, volume, open_interest, iv.
+        """
+        self._ensure_connected()
+        await self._rate_limit_wait()
+        start_time = time.time()
+
+        try:
+            contract = self._make_option_contract(symbol, expiry, strike, right)
+            qualified = self._conn.qualifyContracts(contract)
+            if not qualified:
+                raise OrderError(
+                    f"Could not qualify option {symbol} {expiry} {strike} {right}"
+                )
+
+            ticker = self._conn.reqMktData(qualified[0], genericTickList='106')
+            await asyncio.sleep(2)  # Wait for data
+
+            result = {
+                'symbol': symbol,
+                'expiry': expiry,
+                'strike': strike,
+                'right': right,
+                'bid': ticker.bid if ticker.bid != -1 else None,
+                'ask': ticker.ask if ticker.ask != -1 else None,
+                'last': ticker.last if ticker.last != -1 else None,
+                'volume': ticker.volume if ticker.volume != -1 else 0,
+                'open_interest': getattr(ticker, 'callOpenInterest', 0)
+                    if right == 'C' else getattr(ticker, 'putOpenInterest', 0),
+                'iv': getattr(ticker, 'impliedVolatility', None),
+            }
+
+            self._conn.cancelMktData(qualified[0])
+            duration_ms = (time.time() - start_time) * 1000
+            await self._audit_api_call("get_option_quote", "GET", "success", duration_ms)
+            return result
+
+        except Exception as e:
+            duration_ms = (time.time() - start_time) * 1000
+            self.logger.error(f"Failed to get option quote: {e}")
+            await self._audit_api_call(
+                "get_option_quote", "GET", "failure", duration_ms, error_message=str(e)
+            )
+            raise ExchangeError(f"Option quote failed: {e}") from e
+
+    async def create_option_order(
+        self,
+        symbol: str,
+        expiry: str,
+        strike: float,
+        right: str,
+        side: str,
+        quantity: int,
+        order_type: str = 'limit',
+        price: Optional[float] = None,
+    ) -> ExchangeOrder:
+        """
+        Place an options order on IBKR.
+
+        Args:
+            symbol: Underlying (e.g. 'SPY')
+            expiry: 'YYYYMMDD'
+            strike: Strike price
+            right: 'C' for call, 'P' for put
+            side: 'buy' or 'sell'
+            quantity: Number of contracts
+            order_type: 'market' or 'limit'
+            price: Limit price per contract (required for limit orders)
+        """
+        self._ensure_connected()
+        await self._rate_limit_wait()
+        start_time = time.time()
+
+        try:
+            contract = self._make_option_contract(symbol, expiry, strike, right)
+            qualified = self._conn.qualifyContracts(contract)
+            if not qualified:
+                raise OrderError(
+                    f"Could not qualify option {symbol} {expiry} {strike} {right}"
+                )
+            contract = qualified[0]
+
+            action = 'BUY' if side.lower() == 'buy' else 'SELL'
+
+            ib_order: Any = None
+            if order_type.lower() == 'market':
+                ib_order = MarketOrder(action, quantity)
+            elif order_type.lower() == 'limit':
+                if price is None:
+                    raise OrderError("Price required for limit option orders")
+                ib_order = LimitOrder(action, quantity, price)
+            else:
+                raise OrderError(f"Unsupported order type: {order_type}")
+
+            ib_order.account = self.account
+
+            trade = self._conn.placeOrder(contract, ib_order)
+            await asyncio.sleep(0.5)
+
+            opt_symbol = f"{symbol} {expiry} {strike}{right}"
+            result = self._parse_trade(trade, opt_symbol)
+
+            duration_ms = (time.time() - start_time) * 1000
+            await self._audit_api_call("create_option_order", "POST", "success", duration_ms)
+            await self._audit_order(
+                opt_symbol, side, order_type, quantity, price,
+                result.order_id, "created"
+            )
+
+            self.logger.info(
+                f"Option order placed: {side} {quantity}x {symbol} "
+                f"{expiry} ${strike} {right} @ "
+                f"{'MKT' if order_type == 'market' else price} "
+                f"-> order_id={result.order_id}"
+            )
+
+            return result
+
+        except (OrderError, ExchangeError):
+            raise
+        except Exception as e:
+            duration_ms = (time.time() - start_time) * 1000
+            self.logger.error(f"Failed to create option order: {e}")
+            await self._audit_api_call(
+                "create_option_order", "POST", "failure", duration_ms, error_message=str(e)
+            )
+            raise ExchangeError(f"Option order creation failed: {e}") from e
 
     def _parse_trade(self, trade, symbol: str) -> ExchangeOrder:
         """Convert an ib_insync Trade to ExchangeOrder."""

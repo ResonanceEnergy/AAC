@@ -44,6 +44,41 @@ class AuditSeverity(str, Enum):
     CRITICAL = "critical"
 
 
+_CATEGORY_ALIASES = {
+    "api": AuditCategory.API_CALL,
+    "api_call": AuditCategory.API_CALL,
+    "auth": AuditCategory.AUTHENTICATION,
+    "authentication": AuditCategory.AUTHENTICATION,
+    "config": AuditCategory.CONFIGURATION,
+    "configuration": AuditCategory.CONFIGURATION,
+    "security": AuditCategory.SECURITY,
+    "error": AuditCategory.ERROR,
+    "system": AuditCategory.SYSTEM,
+    "order": AuditCategory.ORDER,
+    "trade": AuditCategory.TRADE,
+    "balance": AuditCategory.BALANCE,
+}
+
+
+_SEVERITY_ALIASES = {
+    "debug": AuditSeverity.DEBUG,
+    "trace": AuditSeverity.DEBUG,
+    "info": AuditSeverity.INFO,
+    "notice": AuditSeverity.INFO,
+    "warning": AuditSeverity.WARNING,
+    "warn": AuditSeverity.WARNING,
+    "medium": AuditSeverity.WARNING,
+    "high": AuditSeverity.ERROR,
+    "error": AuditSeverity.ERROR,
+    "critical": AuditSeverity.CRITICAL,
+    "fatal": AuditSeverity.CRITICAL,
+    "sev1": AuditSeverity.CRITICAL,
+    "sev2": AuditSeverity.ERROR,
+    "sev3": AuditSeverity.WARNING,
+    "sev4": AuditSeverity.INFO,
+}
+
+
 @dataclass
 class AuditEvent:
     """Individual audit event record"""
@@ -69,7 +104,7 @@ class AuditEvent:
         data = asdict(self)
         data['timestamp'] = self.timestamp.isoformat()
         data['category'] = self.category.value
-        data['severity'] = self.severity.value
+        data['severity'] = self.severity.value if hasattr(self.severity, 'value') else str(self.severity)
         return data
     
     def to_json(self) -> str:
@@ -249,14 +284,44 @@ class AuditLogger:
         
         else:
             return data
+
+    @staticmethod
+    def _normalize_category(category: AuditCategory | str | None) -> AuditCategory:
+        """Coerce string and alias inputs into an AuditCategory."""
+        if isinstance(category, AuditCategory):
+            return category
+        if isinstance(category, str):
+            normalized = category.strip().lower()
+            if normalized in _CATEGORY_ALIASES:
+                return _CATEGORY_ALIASES[normalized]
+            try:
+                return AuditCategory(normalized)
+            except ValueError:
+                pass
+        return AuditCategory.SYSTEM
+
+    @staticmethod
+    def _normalize_severity(severity: AuditSeverity | str | None) -> AuditSeverity:
+        """Coerce string and alias inputs into an AuditSeverity."""
+        if isinstance(severity, AuditSeverity):
+            return severity
+        if isinstance(severity, str):
+            normalized = severity.strip().lower()
+            if normalized in _SEVERITY_ALIASES:
+                return _SEVERITY_ALIASES[normalized]
+            try:
+                return AuditSeverity(normalized)
+            except ValueError:
+                pass
+        return AuditSeverity.INFO
     
     async def _log_full_event(
         self,
-        category: AuditCategory,
+        category: AuditCategory | str,
         action: str,
         resource: str,
         status: str = "success",
-        severity: AuditSeverity = AuditSeverity.INFO,
+        severity: AuditSeverity | str = AuditSeverity.INFO,
         user: str = "system",
         details: Optional[Dict] = None,
         request_data: Optional[Dict] = None,
@@ -288,11 +353,13 @@ class AuditLogger:
             Created AuditEvent
         """
         async with self._lock:
+            category_enum = self._normalize_category(category)
+            severity_enum = self._normalize_severity(severity)
             event = AuditEvent(
                 event_id=self._generate_event_id(),
                 timestamp=datetime.now(),
-                category=category,
-                severity=severity,
+                category=category_enum,
+                severity=severity_enum,
                 action=action,
                 user=user,
                 resource=resource,
@@ -346,7 +413,8 @@ class AuditLogger:
         # Replace any remaining Unicode characters with '?'
         log_message = ''.join(c if ord(c) < 128 else '?' for c in log_message)
 
-        level = getattr(logging, event.severity.value.upper(), logging.INFO)
+        sev = event.severity.value if hasattr(event.severity, 'value') else str(event.severity)
+        level = getattr(logging, sev.upper(), logging.INFO)
         self.logger.log(level, log_message)
     
     def _write_to_database(self, event: AuditEvent) -> None:
@@ -362,8 +430,8 @@ class AuditLogger:
                 """, (
                     event.event_id,
                     event.timestamp.isoformat(),
-                    event.category.value,
-                    event.severity.value,
+                    event.category.value if hasattr(event.category, 'value') else str(event.category),
+                    event.severity.value if hasattr(event.severity, 'value') else str(event.severity),
                     event.action,
                     event.user,
                     event.resource,
@@ -509,7 +577,7 @@ class AuditLogger:
         action: str = "",
         details: Optional[Dict] = None,
         status: str = "success",
-        severity: AuditSeverity = AuditSeverity.INFO,
+        severity: AuditSeverity | str = AuditSeverity.INFO,
         user: str = "system",
         resource: Optional[str] = None,
         event_type: Optional[str] = None,
@@ -522,24 +590,15 @@ class AuditLogger:
         """
         # Determine action — callers may use event_type instead of action
         resolved_action = action or event_type or "unknown"
-
-        # Convert category to enum
-        if isinstance(category, AuditCategory):
-            category_enum = category
-        elif isinstance(category, str):
-            try:
-                category_enum = AuditCategory(category.upper())
-            except ValueError:
-                category_enum = AuditCategory.SYSTEM
-        else:
-            category_enum = AuditCategory.SYSTEM
+        category_enum = self._normalize_category(category)
+        severity_enum = self._normalize_severity(severity)
 
         return await self._log_full_event(
             category=category_enum,
             action=resolved_action,
             resource=resource or (category if isinstance(category, str) else category_enum.value),
             status=status,
-            severity=severity,
+            severity=severity_enum,
             user=user,
             details=details,
         )
