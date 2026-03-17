@@ -27,6 +27,7 @@ import yaml
 import json
 import sys
 import argparse
+from .pack_registry import build_builtin_doctrine_packs, normalize_loaded_doctrine_packs
 
 # Add project root to path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -134,333 +135,10 @@ class DoctrineComplianceReport:
 
 # ═══════════════════════════════════════════════════════════════════════════
 # DOCTRINE PACK DEFINITIONS
-# Complete metric registry aligned with all department adapters
+# Shared registry aligned with department adapters plus strategic doctrine and FFD.
 # ═══════════════════════════════════════════════════════════════════════════
 
-DOCTRINE_PACKS = {
-    1: {
-        "name": "Risk Envelope & Capital Allocation",
-        "owner": Department.CENTRAL_ACCOUNTING,
-        "key_metrics": [
-            # Core risk metrics
-            "max_drawdown_pct", "daily_loss_pct", "tail_loss_p99",
-            "capital_utilization", "margin_buffer", "strategy_correlation_matrix",
-            "stressed_var_99", "portfolio_heat"
-        ],
-        "required_metrics": [
-            {
-                "metric": "max_drawdown_pct",
-                "thresholds": {"good": "<5", "warning": "5-10", "critical": ">10"}
-            },
-            {
-                "metric": "daily_loss_pct",
-                "thresholds": {"good": "<1", "warning": "1-2", "critical": ">2"}
-            },
-            {
-                "metric": "tail_loss_p99",
-                "thresholds": {"good": "<3", "warning": "3-5", "critical": ">5"}
-            },
-            {
-                "metric": "capital_utilization",
-                "thresholds": {"good": "<50", "warning": "50-75", "critical": ">75"}
-            },
-            {
-                "metric": "margin_buffer",
-                "thresholds": {"good": ">50", "warning": "25-50", "critical": "<25"}
-            },
-            {
-                "metric": "strategy_correlation_matrix",
-                "thresholds": {"good": "<0.5", "warning": "0.5-0.7", "critical": ">0.7"}
-            },
-            {
-                "metric": "stressed_var_99",
-                "thresholds": {"good": "<3", "warning": "3-5", "critical": ">5"}
-            },
-            {
-                "metric": "portfolio_heat",
-                "thresholds": {"good": "<50", "warning": "50-75", "critical": ">75"}
-            }
-        ],
-        "failure_modes": [
-            "cascading_liquidation", "correlated_drawdown", "leverage_trap"
-        ],
-        "barren_wuffet_triggers": [
-            ("drawdown_exceeds_5pct", BarrenWuffetState.CAUTION, ActionType.A_THROTTLE_RISK),
-            ("drawdown_exceeds_10pct", BarrenWuffetState.SAFE_MODE, ActionType.A_STOP_EXECUTION),
-            ("daily_loss_exceeds_2pct", BarrenWuffetState.HALT, ActionType.A_STOP_EXECUTION),
-        ]
-    },
-    2: {
-        "name": "Security / Secrets / IAM / Key Custody",
-        "owner": Department.SHARED_INFRASTRUCTURE,
-        "key_metrics": [
-            "key_age_days", "failed_auth_rate", "audit_log_completeness",
-            "mfa_compliance_rate", "secret_scan_coverage"
-        ],
-        "required_metrics": [
-            {
-                "metric": "key_age_days",
-                "thresholds": {"good": "<30", "warning": "30-60", "critical": ">60"}
-            },
-            {
-                "metric": "failed_auth_rate",
-                "thresholds": {"good": "<1", "warning": "1-5", "critical": ">5"}
-            },
-            {
-                "metric": "audit_log_completeness",
-                "thresholds": {"good": ">99.9", "warning": "99-99.9", "critical": "<99"}
-            },
-            {
-                "metric": "mfa_compliance_rate",
-                "thresholds": {"good": ">95", "warning": "90-95", "critical": "<90"}
-            },
-            {
-                "metric": "secret_scan_coverage",
-                "thresholds": {"good": ">95", "warning": "90-95", "critical": "<90"}
-            }
-        ],
-        "failure_modes": [
-            "key_compromise", "audit_gap"
-        ],
-        "barren_wuffet_triggers": [
-            ("failed_auth_count > 5/min", BarrenWuffetState.SAFE_MODE, ActionType.A_LOCK_KEYS),
-            ("key_exposure_detected", BarrenWuffetState.HALT, ActionType.A_LOCK_KEYS),
-        ]
-    },
-    3: {
-        "name": "Testing / Simulation / Replay / Chaos",
-        "owner": Department.BIGBRAIN_INTELLIGENCE,
-        "key_metrics": [
-            "backtest_vs_live_correlation", "chaos_test_pass_rate",
-            "regression_test_pass_rate", "replay_fidelity_score"
-        ],
-        "required_metrics": [
-            {
-                "metric": "backtest_vs_live_correlation",
-                "thresholds": {"good": ">0.8", "warning": "0.7-0.8", "critical": "<0.7"}
-            },
-            {
-                "metric": "chaos_test_pass_rate",
-                "thresholds": {"good": ">95", "warning": "90-95", "critical": "<90"}
-            },
-            {
-                "metric": "regression_test_pass_rate",
-                "thresholds": {"good": ">99", "warning": "95-99", "critical": "<95"}
-            },
-            {
-                "metric": "replay_fidelity_score",
-                "thresholds": {"good": ">0.95", "warning": "0.9-0.95", "critical": "<0.9"}
-            }
-        ],
-        "failure_modes": [
-            "test_environment_drift", "flaky_test_syndrome",
-            "backtest_overfitting", "replay_data_corruption"
-        ],
-        "barren_wuffet_triggers": [
-            ("test_coverage_pct < 70", BarrenWuffetState.CAUTION, ActionType.A_CREATE_INCIDENT),
-            ("regression_test_failures > 0", BarrenWuffetState.CAUTION, ActionType.A_STOP_EXECUTION),
-            ("chaos_test_failed", BarrenWuffetState.SAFE_MODE, ActionType.A_ENTER_SAFE_MODE),
-            ("backtest_vs_live_drift > 50%", BarrenWuffetState.CAUTION, ActionType.A_FREEZE_STRATEGY),
-        ]
-    },
-    4: {
-        "name": "Incident Response + On-Call + Postmortems",
-        "owner": Department.SHARED_INFRASTRUCTURE,
-        "key_metrics": [
-            "mttd_minutes", "mttr_minutes", "incident_recurrence_rate",
-            "active_sev1_count"
-        ],
-        "required_metrics": [
-            {
-                "metric": "mttd_minutes",
-                "thresholds": {"good": "<5", "warning": "5-15", "critical": ">15"}
-            },
-            {
-                "metric": "mttr_minutes",
-                "thresholds": {"good": "<30", "warning": "30-60", "critical": ">60"}
-            },
-            {
-                "metric": "incident_recurrence_rate",
-                "thresholds": {"good": "<2", "warning": "2-5", "critical": ">5"}
-            },
-            {
-                "metric": "active_sev1_count",
-                "thresholds": {"good": "<1", "warning": "1-2", "critical": ">2"}
-            }
-        ],
-        "failure_modes": [
-            "alert_fatigue", "escalation_failure",
-            "communication_breakdown", "incomplete_postmortem"
-        ],
-        "barren_wuffet_triggers": [
-            ("active_sev1_count > 0", BarrenWuffetState.CAUTION, ActionType.A_THROTTLE_RISK),
-            ("mttd > 10min for sev1", BarrenWuffetState.CAUTION, ActionType.A_CREATE_INCIDENT),
-            ("mttr > 60min for sev1", BarrenWuffetState.SAFE_MODE, ActionType.A_ENTER_SAFE_MODE),
-            ("incident_recurrence within 7 days", BarrenWuffetState.CAUTION, ActionType.A_CREATE_INCIDENT),
-        ]
-    },
-    5: {
-        "name": "Liquidity / Market Impact / Partial Fill Logic",
-        "owner": Department.TRADING_EXECUTION,
-        "key_metrics": [
-            "fill_rate", "time_to_fill_p95", "slippage_bps",
-            "partial_fill_rate", "adverse_selection_cost",
-            "market_impact_bps", "liquidity_available_pct"
-        ],
-        "required_metrics": [
-            {
-                "metric": "fill_rate",
-                "thresholds": {"good": ">95", "warning": "90-95", "critical": "<90"}
-            },
-            {
-                "metric": "time_to_fill_p95",
-                "thresholds": {"good": "<300", "warning": "300-600", "critical": ">600"}
-            },
-            {
-                "metric": "slippage_bps",
-                "thresholds": {"good": "<5", "warning": "5-10", "critical": ">10"}
-            },
-            {
-                "metric": "partial_fill_rate",
-                "thresholds": {"good": "<10", "warning": "10-20", "critical": ">20"}
-            },
-            {
-                "metric": "adverse_selection_cost",
-                "thresholds": {"good": "<1", "warning": "1-2", "critical": ">2"}
-            },
-            {
-                "metric": "market_impact_bps",
-                "thresholds": {"good": "<5", "warning": "5-10", "critical": ">10"}
-            },
-            {
-                "metric": "liquidity_available_pct",
-                "thresholds": {"good": ">80", "warning": "60-80", "critical": "<60"}
-            }
-        ],
-        "failure_modes": [
-            "liquidity_mirage", "market_impact_underestimation",
-            "partial_fill_cascade", "adverse_selection_trap"
-        ],
-        "barren_wuffet_triggers": [
-            ("slippage_bps_p95 > 10", BarrenWuffetState.CAUTION, ActionType.A_THROTTLE_RISK),
-            ("partial_fill_rate > 30%", BarrenWuffetState.CAUTION, ActionType.A_CREATE_INCIDENT),
-            ("market_impact_bps > 20", BarrenWuffetState.SAFE_MODE, ActionType.A_STOP_EXECUTION),
-            ("liquidity_available_pct < 100%", BarrenWuffetState.CAUTION, ActionType.A_THROTTLE_RISK),
-        ]
-    },
-    6: {
-        "name": "Counterparty Scoring + Venue Health + Withdrawal Risk",
-        "owner": Department.CRYPTO_INTELLIGENCE,
-        "key_metrics": [
-            "venue_health_score", "withdrawal_success_rate",
-            "counterparty_exposure_pct", "settlement_failure_rate",
-            "counterparty_credit_score"
-        ],
-        "required_metrics": [
-            {
-                "metric": "venue_health_score",
-                "thresholds": {"good": ">0.9", "warning": "0.8-0.9", "critical": "<0.8"}
-            },
-            {
-                "metric": "withdrawal_success_rate",
-                "thresholds": {"good": ">99", "warning": "97-99", "critical": "<97"}
-            },
-            {
-                "metric": "counterparty_exposure_pct",
-                "thresholds": {"good": "<20", "warning": "20-30", "critical": ">30"}
-            },
-            {
-                "metric": "settlement_failure_rate",
-                "thresholds": {"good": "<0.1", "warning": "0.1-0.5", "critical": ">0.5"}
-            },
-            {
-                "metric": "counterparty_credit_score",
-                "thresholds": {"good": ">80", "warning": "60-80", "critical": "<60"}
-            }
-        ],
-        "failure_modes": [
-            "venue_insolvency", "withdrawal_freeze"
-        ],
-        "barren_wuffet_triggers": [
-            ("venue_health_score < 0.70", BarrenWuffetState.CAUTION, ActionType.A_ROUTE_FAILOVER),
-            ("withdrawal_frozen", BarrenWuffetState.SAFE_MODE, ActionType.A_CREATE_INCIDENT),
-            ("settlement_failure_rate > 1%", BarrenWuffetState.CAUTION, ActionType.A_THROTTLE_RISK),
-            ("counterparty_credit_score < 50", BarrenWuffetState.SAFE_MODE, ActionType.A_ROUTE_FAILOVER),
-        ]
-    },
-    7: {
-        "name": "Research Factory + Experimentation + Strategy Retirement",
-        "owner": Department.BIGBRAIN_INTELLIGENCE,
-        "key_metrics": [
-            "research_pipeline_velocity", "strategy_survival_rate",
-            "feature_reuse_rate", "experiment_completion_rate"
-        ],
-        "required_metrics": [
-            {
-                "metric": "research_pipeline_velocity",
-                "thresholds": {"good": ">3", "warning": "2-3", "critical": "<2"}
-            },
-            {
-                "metric": "strategy_survival_rate",
-                "thresholds": {"good": ">60", "warning": "40-60", "critical": "<40"}
-            },
-            {
-                "metric": "feature_reuse_rate",
-                "thresholds": {"good": ">70", "warning": "50-70", "critical": "<50"}
-            },
-            {
-                "metric": "experiment_completion_rate",
-                "thresholds": {"good": ">80", "warning": "60-80", "critical": "<60"}
-            }
-        ],
-        "failure_modes": [
-            "research_stagnation", "strategy_overfitting",
-            "feature_bloat", "experiment_sprawl"
-        ],
-        "barren_wuffet_triggers": [
-            ("research_pipeline_velocity < 1", BarrenWuffetState.CAUTION, ActionType.A_CREATE_INCIDENT),
-            ("strategy_survival_rate < 25%", BarrenWuffetState.CAUTION, ActionType.A_FREEZE_STRATEGY),
-            ("experiment_completion_rate < 50%", BarrenWuffetState.CAUTION, ActionType.A_CREATE_INCIDENT),
-            ("model_version_rollback_count > 2 in 7 days", BarrenWuffetState.SAFE_MODE, ActionType.A_FREEZE_STRATEGY),
-        ]
-    },
-    8: {
-        "name": "Metric Canon + Truth Arbitration + Retention/Privacy",
-        "owner": Department.CENTRAL_ACCOUNTING,
-        "key_metrics": [
-            "data_quality_score", "metric_lineage_coverage",
-            "reconciliation_accuracy", "truth_arbitration_latency"
-        ],
-        "required_metrics": [
-            {
-                "metric": "data_quality_score",
-                "thresholds": {"good": ">0.95", "warning": "0.9-0.95", "critical": "<0.9"}
-            },
-            {
-                "metric": "metric_lineage_coverage",
-                "thresholds": {"good": ">90", "warning": "80-90", "critical": "<80"}
-            },
-            {
-                "metric": "reconciliation_accuracy",
-                "thresholds": {"good": ">99", "warning": "97-99", "critical": "<97"}
-            },
-            {
-                "metric": "truth_arbitration_latency",
-                "thresholds": {"good": "<1000", "warning": "1000-5000", "critical": ">5000"}
-            }
-        ],
-        "failure_modes": [
-            "metric_drift", "truth_conflict_stalemate",
-            "retention_policy_violation", "dashboard_stale_data"
-        ],
-        "barren_wuffet_triggers": [
-            ("data_quality_score < 0.85", BarrenWuffetState.CAUTION, ActionType.A_QUARANTINE_SOURCE),
-            ("reconciliation_accuracy < 95%", BarrenWuffetState.CAUTION, ActionType.A_FORCE_RECON),
-            ("truth_conflict_unresolved > 30min", BarrenWuffetState.SAFE_MODE, ActionType.A_PAGE_ONCALL),
-            ("metric_lineage_coverage < 70%", BarrenWuffetState.CAUTION, ActionType.A_CREATE_INCIDENT),
-        ]
-    },
-}
+DOCTRINE_PACKS = build_builtin_doctrine_packs(Department, BarrenWuffetState, ActionType)
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -487,6 +165,10 @@ class DoctrineEngine:
         self.metric_values: Dict[str, MetricValue] = {}
         self.action_handlers: Dict[ActionType, Callable] = {}
         self._loaded = False
+
+    def _get_active_packs(self) -> Dict[int, Dict[str, Any]]:
+        """Return the active doctrine pack registry."""
+        return self.doctrine_packs or DOCTRINE_PACKS
         
     def load_doctrine_packs(self) -> bool:
         """Load doctrine packs from YAML configuration."""
@@ -494,18 +176,23 @@ class DoctrineEngine:
             if self.config_path.exists():
                 with open(self.config_path, 'r', encoding='utf-8') as f:
                     raw = yaml.safe_load(f)
-                    self.doctrine_packs = raw.get('doctrine_packs', {})
+                    self.doctrine_packs = normalize_loaded_doctrine_packs(
+                        raw.get('doctrine_packs', {}),
+                        Department,
+                        BarrenWuffetState,
+                        ActionType,
+                    )
                     self._loaded = True
                     logger.info(f"Loaded {len(self.doctrine_packs)} doctrine packs from {self.config_path}")
                     return True
             else:
                 logger.warning(f"Doctrine config not found at {self.config_path}, using defaults")
-                self.doctrine_packs = DOCTRINE_PACKS
+                self.doctrine_packs = dict(DOCTRINE_PACKS)
                 self._loaded = True
                 return True
         except Exception as e:
             logger.error(f"Failed to load doctrine packs: {e}")
-            self.doctrine_packs = DOCTRINE_PACKS
+            self.doctrine_packs = dict(DOCTRINE_PACKS)
             self._loaded = True
             return False
     
@@ -542,23 +229,13 @@ class DoctrineEngine:
     def _find_metric_definition(self, name: str) -> Optional[Dict]:
         """Find a metric definition in doctrine packs."""
         # First try loaded doctrine packs (from YAML)
-        for pack_key, pack_data in self.doctrine_packs.items():
+        for pack_key, pack_data in self._get_active_packs().items():
             if isinstance(pack_data, dict):
                 metrics = pack_data.get('required_metrics', [])
                 if isinstance(metrics, list):
                     for m in metrics:
                         if isinstance(m, dict) and m.get('metric') == name:
                             return m
-        
-        # Fallback to built-in DOCTRINE_PACKS
-        for pack_key, pack_data in DOCTRINE_PACKS.items():
-            if isinstance(pack_data, dict):
-                metrics = pack_data.get('required_metrics', [])
-                if isinstance(metrics, list):
-                    for m in metrics:
-                        if isinstance(m, dict) and m.get('metric') == name:
-                            return m
-        
         return None
     
     def _evaluate_threshold(self, value: Any, good: str, warning: str, critical: str) -> ComplianceState:
@@ -608,7 +285,7 @@ class DoctrineEngine:
     def _create_violation_from_metric(self, metric: MetricValue) -> None:
         """Create a violation record from a metric breach."""
         # Find the pack this metric belongs to
-        for pack_id, pack_info in DOCTRINE_PACKS.items():
+        for pack_id, pack_info in self._get_active_packs().items():
             if metric.name in pack_info.get('key_metrics', []):
                 violation = DoctrineViolation(
                     pack_id=pack_id,
@@ -626,7 +303,7 @@ class DoctrineEngine:
     
     def _get_recommended_action(self, pack_id: int, metric_name: str) -> ActionType:
         """Get recommended action for a metric violation."""
-        pack = DOCTRINE_PACKS.get(pack_id, {})
+        pack = self._get_active_packs().get(pack_id, {})
         triggers = pack.get('barren_wuffet_triggers', [])
         
         for trigger_str, state, action in triggers:
@@ -645,6 +322,7 @@ class DoctrineEngine:
             8: ActionType.A_FORCE_RECON,
             9: ActionType.A_TACTICAL_RETREAT,
             10: ActionType.A_CONCEAL_POSITION,
+            11: ActionType.A_THROTTLE_RISK,
         }
         return default_actions.get(pack_id, ActionType.A_CREATE_INCIDENT)
     
@@ -653,7 +331,7 @@ class DoctrineEngine:
         triggered_actions: List[ActionType] = []
         worst_state = BarrenWuffetState.NORMAL
         
-        for pack_id, pack_info in DOCTRINE_PACKS.items():
+        for pack_id, pack_info in self._get_active_packs().items():
             triggers = pack_info.get('barren_wuffet_triggers', [])
             
             for trigger_str, target_state, action in triggers:
@@ -840,7 +518,7 @@ class DoctrineEngine:
         """Get a summary of doctrines applicable to a department."""
         applicable_packs = []
         
-        for pack_id, pack_info in DOCTRINE_PACKS.items():
+        for pack_id, pack_info in self._get_active_packs().items():
             if pack_info.get('owner') == department:
                 applicable_packs.append({
                     'pack_id': pack_id,
@@ -890,7 +568,7 @@ class DoctrineApplicationService:
     def _register_default_handlers(self) -> None:
         """Register default handlers for all action types."""
         if not hasattr(self, '_incident_log'):
-            self._incident_log = []
+            self._incident_log: List[Dict[str, Any]] = []
 
         def create_incident(ctx):
             """Create incident."""
@@ -918,25 +596,24 @@ class DoctrineApplicationService:
         def throttle_risk(ctx):
             """Throttle risk."""
             logger.warning(f"[RISK] Throttling risk: {ctx}")
-            metrics = ctx.get('metrics', {}) if isinstance(ctx, dict) else {}
             for v in self.engine.metric_values.values():
-                if v.state == MetricState.CRITICAL:
-                    v.state = MetricState.WARNING
+                if v.state == ComplianceState.VIOLATION:
+                    v.state = ComplianceState.WARNING
             self._incident_log.append({'type': 'throttle_risk', 'timestamp': datetime.now().isoformat(), 'context': str(ctx)})
             return True
 
         def stop_execution(ctx):
             """Stop execution."""
             logger.critical(f"[EXEC] Stopping execution: {ctx}")
-            self.engine.current_az_state = BarrenWuffetState.LOCKDOWN
+            self.engine.current_az_state = BarrenWuffetState.HALT
             self._incident_log.append({'type': 'stop_execution', 'timestamp': datetime.now().isoformat(), 'context': str(ctx)})
             return True
 
         def enter_safe_mode(ctx):
             """Enter safe mode."""
             logger.critical(f"[SAFE_MODE] Entering safe mode: {ctx}")
-            if self.engine._state_severity(self.engine.current_az_state) < self.engine._state_severity(BarrenWuffetState.DEFENSIVE):
-                self.engine.current_az_state = BarrenWuffetState.DEFENSIVE
+            if self.engine._state_severity(self.engine.current_az_state) < self.engine._state_severity(BarrenWuffetState.SAFE_MODE):
+                self.engine.current_az_state = BarrenWuffetState.SAFE_MODE
             self._incident_log.append({'type': 'enter_safe_mode', 'timestamp': datetime.now().isoformat(), 'context': str(ctx)})
             return True
 
@@ -977,8 +654,8 @@ class DoctrineApplicationService:
         def tactical_retreat(ctx):
             """Tactical retreat."""
             logger.warning(f"[STRATEGIC] Tactical retreat — reducing exposure: {ctx}")
-            if self.engine._state_severity(self.engine.current_az_state) < self.engine._state_severity(BarrenWuffetState.DEFENSIVE):
-                self.engine.current_az_state = BarrenWuffetState.DEFENSIVE
+            if self.engine._state_severity(self.engine.current_az_state) < self.engine._state_severity(BarrenWuffetState.CAUTION):
+                self.engine.current_az_state = BarrenWuffetState.CAUTION
             self._incident_log.append({'type': 'tactical_retreat', 'timestamp': datetime.now().isoformat(), 'context': str(ctx)})
             return True
 
@@ -1042,7 +719,7 @@ class DoctrineApplicationService:
     
     def _metric_to_department(self, metric_name: str) -> Department:
         """Map a metric name to its owning department."""
-        for pack_id, pack_info in DOCTRINE_PACKS.items():
+        for pack_id, pack_info in self.engine._get_active_packs().items():
             if metric_name in pack_info.get('key_metrics', []):
                 return pack_info['owner']
         return Department.SHARED_INFRASTRUCTURE
@@ -1118,11 +795,19 @@ class DoctrineApplicationService:
             "exchange_reputation": 0.9,
             "alpha_uniqueness": 0.65,
             "execution_unpredictability": 0.7,
+
+            # Pack 11: Future Financial Doctrine
+            "stablecoin_peg_health": 98.0,
+            "monetary_transition_index": 36.0,
+            "regulatory_shock_score": 22.0,
+            "capital_flight_signal": 18.0,
+            "cross_chain_settlement_score": 84.0,
+            "defi_yield_sustainability": 74.0,
         }
     
     def print_doctrine_summary(self) -> None:
         """Print a summary of all doctrine packs."""
-        logger.info("\n" + "═" * 80)
+        logger.info("\n%s", "═" * 80)
         logger.info("AAC DOCTRINE PACKS SUMMARY")
         logger.info("═" * 80)
         
@@ -1130,8 +815,9 @@ class DoctrineApplicationService:
         total_failure_modes = 0
         total_triggers = 0
         
-        for pack_id in sorted(DOCTRINE_PACKS.keys()):
-            pack = DOCTRINE_PACKS[pack_id]
+        packs = self.engine._get_active_packs()
+        for pack_id in sorted(packs.keys()):
+            pack = packs[pack_id]
             metrics = len(pack.get('key_metrics', []))
             failures = len(pack.get('failure_modes', []))
             triggers = len(pack.get('barren_wuffet_triggers', []))
@@ -1140,13 +826,13 @@ class DoctrineApplicationService:
             total_failure_modes += failures
             total_triggers += triggers
             
-            logger.info(f"\n📦 Pack {pack_id}: {pack['name']}")
-            logger.info(f"   Owner: {pack['owner'].value}")
-            logger.info(f"   Metrics: {metrics} | Failure Modes: {failures} | AZ Triggers: {triggers}")
+            logger.info("\n📦 Pack %s: %s", pack_id, pack['name'])
+            logger.info("   Owner: %s", pack['owner'].value)
+            logger.info("   Metrics: %s | Failure Modes: %s | AZ Triggers: %s", metrics, failures, triggers)
         
-        logger.info("\n" + "─" * 80)
-        logger.info(f"TOTALS: {total_metrics} metrics | {total_failure_modes} failure modes | {total_triggers} AZ triggers")
-        logger.info("═" * 80 + "\n")
+        logger.info("\n%s", "─" * 80)
+        logger.info("TOTALS: %s metrics | %s failure modes | %s AZ triggers", total_metrics, total_failure_modes, total_triggers)
+        logger.info("%s\n", "═" * 80)
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -1157,9 +843,9 @@ async def main(quiet_mode: bool = False):
     """Main entry point for doctrine engine demonstration."""
     
     import time
-    logger.info("\n" + "█" * 80)
+    logger.info("\n%s", "█" * 80)
     logger.info("  AAC DOCTRINE APPLICATION ENGINE")
-    logger.info("  Analyzing and Applying 8 Doctrine Packs")
+    logger.info("  Analyzing and Applying 11 Doctrine Packs")
     logger.info("█" * 80)
 
     # Initialize engine and service
@@ -1194,7 +880,7 @@ async def main(quiet_mode: bool = False):
             logger.info(f"   [CROSS] Violations: {report.violations}")
             logger.info(f"\n   📈 Compliance Score: {report.compliance_score}%")
             if report.violations_list:
-                logger.info(f"\n   Active Violations:")
+                logger.info("\n   Active Violations:")
                 for v in report.violations_list:
                     logger.info(f"   - [{v.pack_name}] {v.description}")
                     logger.info(f"     Action: {v.recommended_action.value}")

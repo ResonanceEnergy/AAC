@@ -79,6 +79,7 @@ from shared.audit_logger import get_audit_logger
 # Department engines
 from CentralAccounting.financial_analysis_engine import FinancialAnalysisEngine
 from CryptoIntelligence.crypto_intelligence_engine import CryptoIntelligenceEngine
+from integrations.unusual_whales_service import get_unusual_whales_snapshot_service
 
 # Doctrine integration
 from aac.doctrine.doctrine_integration import get_doctrine_integration
@@ -164,6 +165,7 @@ class AACMasterMonitoringDashboard:
         # Department engines
         self.financial_engine = FinancialAnalysisEngine()
         self.crypto_engine = CryptoIntelligenceEngine()
+        self.unusual_whales = get_unusual_whales_snapshot_service()
 
         # Optional components
         self.execution_system = None
@@ -244,6 +246,9 @@ class AACMasterMonitoringDashboard:
             # Doctrine compliance
             doctrine_data = await self._get_doctrine_compliance()
 
+            # Market intelligence
+            market_intelligence_data = await self._get_market_intelligence()
+
             # Security status
             security_data = await self._get_security_status()
 
@@ -263,6 +268,7 @@ class AACMasterMonitoringDashboard:
                 'risk': risk_data,
                 'trading': trading_data,
                 'doctrine': doctrine_data,
+                'market_intelligence': market_intelligence_data,
                 'security': security_data,
                 'strategy': strategy_data,
                 'safeguards': safeguards_data,
@@ -279,6 +285,7 @@ class AACMasterMonitoringDashboard:
                 'risk': {},
                 'trading': {},
                 'doctrine': {},
+                'market_intelligence': {},
                 'security': {},
                 'strategy': {},
                 'safeguards': {},
@@ -332,7 +339,7 @@ class AACMasterMonitoringDashboard:
                     'pending_reconciliations': db_status.get('pending_count', 0)
                 }
             elif department == 'CryptoIntelligence':
-                venue_status = await self.crypto_engine.get_venue_health()
+                venue_status = await self.crypto_engine.get_all_venue_health()
                 return {
                     'status': 'healthy',
                     'venues_monitored': len(venue_status),
@@ -377,16 +384,15 @@ class AACMasterMonitoringDashboard:
 
     async def _check_network_health(self) -> Dict[str, Any]:
         """Check network connectivity with actual latency measurement"""
-        import time as _t
-        start = _t.monotonic()
+        start = time.monotonic()
         try:
             import socket
             s = socket.create_connection(('8.8.8.8', 53), timeout=2)
             s.close()
-            latency = round((_t.monotonic() - start) * 1000, 1)
+            latency = round((time.monotonic() - start) * 1000, 1)
             return {'status': 'healthy' if latency < 200 else 'warning', 'latency_ms': latency, 'packet_loss': 0.0}
         except Exception:
-            latency = round((_t.monotonic() - start) * 1000, 1)
+            latency = round((time.monotonic() - start) * 1000, 1)
             return {'status': 'degraded', 'latency_ms': latency, 'packet_loss': 100.0}
 
     async def _check_memory_usage(self) -> Dict[str, Any]:
@@ -510,6 +516,18 @@ class AACMasterMonitoringDashboard:
                 'error': str(e)
             }
 
+    async def _get_market_intelligence(self) -> Dict[str, Any]:
+        """Get normalized Unusual Whales market-intelligence snapshot."""
+        try:
+            snapshot = await self.unusual_whales.get_snapshot()
+            return snapshot
+        except Exception as e:
+            return {
+                'status': 'error',
+                'as_of': datetime.now().isoformat(),
+                'error': str(e),
+            }
+
     async def _get_security_status(self) -> Dict[str, Any]:
         """Get security status data"""
         if not SECURITY_AVAILABLE or not self.security_framework:
@@ -555,7 +573,6 @@ class AACMasterMonitoringDashboard:
     def _check_mfa_status(self) -> Dict[str, Any]:
         """Check MFA status — queries actual auth config"""
         try:
-            from shared.config_loader import get_config
             cfg = get_config()
             mfa_enabled = getattr(cfg, 'mfa_enabled', False)
             return {
@@ -1064,9 +1081,9 @@ class AACMasterMonitoringDashboard:
                 emoji = {'critical': '🔴', 'warning': '🟡', 'info': 'ℹ️'}.get(severity, 'ℹ️')
                 logger.info(f"  {emoji} {alert.get('title', 'Unknown alert')}")
 
-        logger.info("\n" + "="*80)
+        logger.info("\n%s", "="*80)
         logger.info("Press Ctrl+C to quit | Auto-refresh: 1s")
-        logger.info("="*80)
+        logger.info("%s", "="*80)
 
     def _run_curses_dashboard(self, stdscr):
         """Run the curses-based dashboard"""
@@ -1104,9 +1121,9 @@ class AACMasterMonitoringDashboard:
 
     def _run_text_dashboard_loop(self):
         """Run the text-based dashboard loop"""
-        logger.info("\n" + "="*80)
+        logger.info("\n%s", "="*80)
         logger.info("AAC 2100 MASTER MONITORING DASHBOARD (Text Mode)")
-        logger.info("="*80)
+        logger.info("%s", "="*80)
         logger.info("Press Ctrl+C to quit | Auto-refresh: 1s")
         logger.info("")
 
@@ -1129,7 +1146,7 @@ class AACMasterMonitoringDashboard:
                 logger.info(f"Dashboard error: {e}")
                 time.sleep(2)
 
-    async def run_dashboard(self):
+    async def run_dashboard(self, port: int = 8050):
         """Run the monitoring dashboard based on display mode"""
         if self.display_mode == DisplayMode.WEB:
             await self._run_web_dashboard()
@@ -1182,30 +1199,135 @@ class AACMasterMonitoringDashboard:
                 await asyncio.sleep(5)
 
     async def _run_web_dashboard(self):
-        """Run Streamlit web dashboard"""
+        """Run Streamlit web dashboard via subprocess."""
         if not STREAMLIT_AVAILABLE:
             logger.info("Streamlit not available. Install with: pip install streamlit")
+            logger.info("Falling back to terminal mode.")
+            await self._run_terminal_dashboard()
             return
 
-        # This would implement Streamlit dashboard
-        logger.info("Web dashboard not yet implemented")
-        await asyncio.sleep(1)
+        import subprocess
+        dashboard_script = Path(__file__).parent / 'aac_master_monitoring_dashboard.py'
+        port = int(os.environ.get('STREAMLIT_PORT', '8501'))
+        logger.info(f"Launching Streamlit dashboard on port {port}...")
+        proc = subprocess.Popen(
+            [sys.executable, '-m', 'streamlit', 'run', str(dashboard_script),
+             '--server.port', str(port), '--server.headless', 'true'],
+            cwd=str(PROJECT_ROOT),
+        )
+        logger.info(f"Streamlit dashboard running (PID {proc.pid}) at http://localhost:{port}")
+
+        # Keep the async loop alive while Streamlit runs
+        self.running = True
+        try:
+            while self.running and proc.poll() is None:
+                data = await self.collect_monitoring_data()
+                self._latest_data = data
+                await asyncio.sleep(self.refresh_rate)
+        except KeyboardInterrupt:
+            self.running = False
+        finally:
+            proc.terminate()
 
     async def _run_dash_dashboard(self):
-        """Run Plotly Dash analytics dashboard"""
+        """Run Plotly Dash analytics dashboard."""
+        global DASH_AVAILABLE
         if not DASH_AVAILABLE:
-            logger.info("Dash not available. Install with: pip install dash")
-            return
+            try:
+                import dash  # noqa: F401
+                DASH_AVAILABLE = True
+            except ImportError:
+                logger.info("Dash not available. Install with: pip install dash dash-bootstrap-components")
+                logger.info("Falling back to terminal mode.")
+                await self._run_terminal_dashboard()
+                return
 
-        # This would implement Dash dashboard
-        logger.info("Dash analytics dashboard not yet implemented")
-        await asyncio.sleep(1)
+        dash_dashboard = AACDashDashboard()
+        if await dash_dashboard.initialize():
+            port = int(os.environ.get('DASH_PORT', '8050'))
+            logger.info(f"Starting Dash analytics dashboard on port {port}...")
+            dash_thread = threading.Thread(
+                target=dash_dashboard.run_dashboard,
+                kwargs={'port': port},
+                daemon=True,
+            )
+            dash_thread.start()
+
+            # Keep collecting data while Dash runs
+            self.running = True
+            try:
+                while self.running:
+                    data = await self.collect_monitoring_data()
+                    self._latest_data = data
+                    await asyncio.sleep(self.refresh_rate)
+            except KeyboardInterrupt:
+                self.running = False
+        else:
+            logger.info("Dash dashboard initialization failed, falling back to terminal")
+            await self._run_terminal_dashboard()
 
     async def _run_api_dashboard(self):
-        """Run REST API dashboard"""
-        # This would implement REST API
-        logger.info("API dashboard not yet implemented")
-        await asyncio.sleep(1)
+        """Run REST API dashboard exposing monitoring data as JSON."""
+        from http.server import HTTPServer, BaseHTTPRequestHandler
+
+        dashboard_ref = self
+
+        class MonitoringAPIHandler(BaseHTTPRequestHandler):
+            """Simple HTTP handler for monitoring API."""
+
+            def do_GET(self):
+                if self.path == '/health':
+                    self._json_response({'status': 'healthy', 'timestamp': datetime.now().isoformat()})
+                elif self.path == '/api/status':
+                    data = dashboard_ref._latest_data
+                    self._json_response(self._serializable(data))
+                elif self.path == '/api/alerts':
+                    data = dashboard_ref._latest_data
+                    alerts = data.get('alerts', []) if data else []
+                    self._json_response({'alerts': self._serializable(alerts)})
+                else:
+                    self.send_error(404, 'Not found. Endpoints: /health, /api/status, /api/alerts')
+
+            def _json_response(self, obj):
+                body = json.dumps(obj, default=str).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Content-Length', str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+
+            @staticmethod
+            def _serializable(obj):
+                """Convert non-serializable types."""
+                if isinstance(obj, dict):
+                    return {k: MonitoringAPIHandler._serializable(v) for k, v in obj.items()}
+                if isinstance(obj, (list, tuple)):
+                    return [MonitoringAPIHandler._serializable(i) for i in obj]
+                if isinstance(obj, datetime):
+                    return obj.isoformat()
+                return obj
+
+            def log_message(self, format, *args):
+                logger.debug(f"API: {format % args}")
+
+        port = int(os.environ.get('API_DASHBOARD_PORT', '8080'))
+        server = HTTPServer(('0.0.0.0', port), MonitoringAPIHandler)
+        api_thread = threading.Thread(target=server.serve_forever, daemon=True)
+        api_thread.start()
+        logger.info(f"API dashboard running on http://localhost:{port}")
+        logger.info("  Endpoints: /health, /api/status, /api/alerts")
+
+        # Main monitoring loop
+        self.running = True
+        try:
+            while self.running:
+                data = await self.collect_monitoring_data()
+                self._latest_data = data
+                await asyncio.sleep(self.refresh_rate)
+        except KeyboardInterrupt:
+            self.running = False
+        finally:
+            server.shutdown()
 
     async def start_monitoring(self):
         """Start the master monitoring system"""
@@ -1293,13 +1415,14 @@ class AACStreamlitDashboard:
 
     def get_latest_status(self):
         """Get the latest system status"""
+        latest = None
         try:
             while not self.status_queue.empty():
                 latest = self.status_queue.get_nowait()
             return latest
         except Exception as e:
             self.logger.debug(f"Status queue empty or error: {e}")
-            return None
+            return latest
 
 
 class AACDashDashboard:
@@ -1462,9 +1585,46 @@ class AACDashDashboard:
              Input("refresh-btn", "n_clicks")]
         )
         def update_metrics(strategy_id, timeframe, n_clicks):
-            # This would implement real metrics updating
-            """Update metrics."""
-            return html.Div("Metrics display coming soon..."), {}, {}
+            """Update metrics display with real data from cache."""
+            try:
+                # Build metrics display
+                metrics_data = self.metrics_cache.get(strategy_id, {})
+                if not metrics_data:
+                    metrics_children = html.Div([
+                        html.P(f"Strategy: {strategy_id or 'None selected'}"),
+                        html.P(f"Timeframe: {timeframe or 'N/A'}"),
+                        html.P("No metrics data available yet. Data will populate as the system runs."),
+                    ])
+                else:
+                    metrics_children = html.Div([
+                        html.H5(f"Strategy: {strategy_id}"),
+                        html.P(f"Timeframe: {timeframe}"),
+                        html.Ul([
+                            html.Li(f"{k}: {v}")
+                            for k, v in metrics_data.items()
+                        ])
+                    ])
+
+                # Build performance chart
+                perf_fig = go.Figure()
+                perf_fig.update_layout(
+                    title=f"Performance: {strategy_id or 'All Strategies'}",
+                    xaxis_title="Time",
+                    yaxis_title="Returns (%)",
+                    template="plotly_dark",
+                )
+
+                # Build risk chart
+                risk_fig = go.Figure()
+                risk_fig.update_layout(
+                    title="Risk Exposure",
+                    template="plotly_dark",
+                )
+
+                return metrics_children, perf_fig, risk_fig
+            except Exception as e:
+                self.logger.error(f"Error updating metrics: {e}")
+                return html.Div(f"Error loading metrics: {e}"), {}, {}
 
         @app.callback(
             Output("deep-dive-results", "children"),
@@ -1472,10 +1632,25 @@ class AACDashDashboard:
             [State("strategy-selector", "value")]
         )
         def perform_deep_dive(n_clicks, strategy_id):
-            """Perform deep dive."""
+            """Perform deep dive analysis on selected strategy."""
             if n_clicks and strategy_id:
-                # This would implement deep dive analysis
-                return html.Div("Deep dive analysis coming soon...")
+                try:
+                    cached = self.deep_dive_cache.get(strategy_id, {})
+                    if cached:
+                        return html.Div([
+                            html.H5(f"Deep Dive: {strategy_id}"),
+                            html.Ul([
+                                html.Li(f"{k}: {v}")
+                                for k, v in cached.items()
+                            ])
+                        ])
+                    return html.Div([
+                        html.H5(f"Deep Dive: {strategy_id}"),
+                        html.P("No cached analysis data. Run the strategy testing lab to generate data."),
+                    ])
+                except Exception as e:
+                    self.logger.error(f"Deep dive error: {e}")
+                    return html.Div(f"Error during deep dive: {e}")
             return html.Div("Select a strategy and click Deep Dive to analyze")
 
         return app
@@ -1601,7 +1776,6 @@ def play_audio_response(text: str):
     """Generate and play audio for the given text response"""
     try:
         import pyttsx3
-        import threading
 
         def speak():
             """Speak."""
@@ -1626,6 +1800,15 @@ def run_streamlit_dashboard():
     if not STREAMLIT_AVAILABLE:
         logger.info("Streamlit not available")
         return
+
+    try:
+        import pandas as pd
+        import plotly.graph_objects as go
+        from plotly.subplots import make_subplots
+    except ImportError:
+        pd = None  # type: ignore[assignment]
+        go = None  # type: ignore[assignment]
+        make_subplots = None  # type: ignore[assignment]
 
     st.set_page_config(
         page_title="AAC Matrix Monitor",
@@ -1864,7 +2047,7 @@ def run_streamlit_dashboard():
                 else:
                     st.markdown(f"**Copilot:** {message['message']}")
                     # Add audio button for responses
-                    if st.button(f"🔊 Play Audio", key=f"audio_{len(st.session_state.chat_history)}"):
+                    if st.button("🔊 Play Audio", key=f"audio_{len(st.session_state.chat_history)}"):
                         if audio_lib:
                             audio_lib.speak_response(message['message'])
                         else:
@@ -1972,7 +2155,6 @@ def run_streamlit_dashboard():
         # Update avatar animation in real-time
         if avatar and st.session_state.get('az_response'):
             # Update avatar frame every few seconds
-            import time
             time.sleep(0.1)  # Small delay for animation
             if avatar_placeholder:
                 avatar_placeholder.image(avatar.get_frame_as_base64(), width=150)

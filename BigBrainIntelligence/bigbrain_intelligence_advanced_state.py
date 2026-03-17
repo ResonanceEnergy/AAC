@@ -22,6 +22,8 @@ class ResearchFinding:
     evidence: List[Dict]
     timestamp: datetime
     strategy_potential: float
+    finding_type: str = 'general'
+    data: Optional[Dict] = None
 
 @dataclass
 class ExperimentResult:
@@ -32,6 +34,7 @@ class ExperimentResult:
     statistical_significance: float
     completion_time: datetime
     recommendation: str
+    performance_score: float = 0.0
 
 class BigBrainIntelligenceState:
     """
@@ -506,6 +509,14 @@ class AgentOrchestrator:
             agent['status'] = 'shutdown'
         self.agents.clear()
 
+    async def resume_all_agents(self):
+        """Resume all paused agents."""
+        self._logger.info(f"Resuming all agents ({len(self.agents)} registered)")
+        for agent in self.agents.values():
+            if agent.get('status') == 'paused':
+                agent['status'] = 'running'
+        self.scheduler_running = True
+
 class QuantumSignalGenerator:
     """QuantumSignalGenerator class."""
     def __init__(self):
@@ -595,7 +606,14 @@ class ExperimentManager:
 
     async def get_experiment_status(self, exp_id: str) -> Dict:
         """Get experiment status."""
-        return {'completed': False, 'failed': False}
+        if hasattr(self, '_active_experiments') and exp_id in self._active_experiments:
+            exp = self._active_experiments[exp_id]
+            return {
+                'completed': exp.get('status') == 'completed',
+                'failed': exp.get('status') == 'failed',
+                'status': exp.get('status', 'unknown'),
+            }
+        return {'completed': False, 'failed': False, 'status': 'not_found'}
 
     async def get_experiment_result(self, exp_id: str) -> ExperimentResult:
         """Get experiment result."""
@@ -607,6 +625,14 @@ class ExperimentManager:
         if hasattr(self, '_active_experiments'):
             for exp in self._active_experiments.values():
                 exp['status'] = 'paused'
+
+    async def resume_all_experiments(self):
+        """Resume all paused experiments."""
+        self._logger.info("Resuming all experiments")
+        if hasattr(self, '_active_experiments'):
+            for exp in self._active_experiments.values():
+                if exp.get('status') == 'paused':
+                    exp['status'] = 'running'
 
 class StrategyLifecycleManager:
     """StrategyLifecycleManager class."""

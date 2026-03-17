@@ -13,12 +13,15 @@ following the same pattern as CryptoIntelligenceDoctrineAdapter.
 """
 
 import logging
+import asyncio
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger("FFDEngine")
+
+from integrations.unusual_whales_service import get_unusual_whales_snapshot_service
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -701,6 +704,10 @@ class FFDEngine:
         self.cbdc_signals: List[CBDCSignal] = []
         self.regulatory_events: List[RegulatoryEvent] = []
         self._initialized = False
+        self.market_intelligence_snapshot: Dict[str, Any] = {
+            "status": "uninitialized",
+            "as_of": datetime.now().isoformat(),
+        }
         # Seed capital tracking — per-account balances
         self.account_balances: Dict[str, float] = {
             name: acct["initial_usd"] for name, acct in SEED_CAPITAL.items()
@@ -940,9 +947,68 @@ class FFDEngine:
             "cbdc_signals_count": len(self.cbdc_signals),
             "regulatory_events_count": len(self.regulatory_events),
             "halt_recommended": self.stablecoin_monitor.should_halt(),
+            "market_intelligence": self.market_intelligence_snapshot,
             "allocation_guidance": self.get_allocation_guidance(),
             "active_strategies": self.get_active_strategies(),
         }
+
+    async def refresh_market_intelligence(self, force_refresh: bool = False) -> Dict[str, Any]:
+        """Refresh market-intelligence data from Unusual Whales and project it into FFD metrics."""
+        service = get_unusual_whales_snapshot_service()
+        snapshot = await service.get_snapshot(force_refresh=force_refresh)
+        self.market_intelligence_snapshot = snapshot
+        self._apply_market_intelligence(snapshot)
+        return snapshot
+
+    def _apply_market_intelligence(self, snapshot: Dict[str, Any]) -> None:
+        """Project snapshot fields into FFD metrics and doctrine state."""
+        self.metrics.options_flow_signal_count = int(snapshot.get("options_flow_signal_count", 0) or 0)
+
+        tone = str(snapshot.get("market_tone", "neutral"))
+        if tone == "bearish":
+            self.metrics.capital_flight_signal = max(self.metrics.capital_flight_signal, 35.0)
+        elif tone == "bullish":
+            self.metrics.capital_flight_signal = min(self.metrics.capital_flight_signal, 15.0)
+
+        ratio = float(snapshot.get("put_call_ratio", 0.0) or 0.0)
+        if ratio > 1.5:
+            self.metrics.capital_flight_signal = max(self.metrics.capital_flight_signal, 55.0)
+        if snapshot.get("status") == "healthy":
+            self.metrics.cross_chain_settlement_score = max(self.metrics.cross_chain_settlement_score, 80.0)
+
+    def get_recommended_actions(self) -> List[Dict[str, str]]:
+        """Return FFD-specific remediation recommendations for the current state."""
+        actions: List[Dict[str, str]] = []
+
+        if self.stablecoin_monitor.should_halt():
+            actions.append({
+                "severity": "critical",
+                "action": "halt_execution",
+                "reason": "Systemic stablecoin depeg detected",
+            })
+
+        if self.metrics.regulatory_shock_score > 60:
+            actions.append({
+                "severity": "high",
+                "action": "enter_safe_mode",
+                "reason": "Regulatory shock score exceeded threshold",
+            })
+
+        if self.metrics.capital_flight_signal > 50:
+            actions.append({
+                "severity": "medium",
+                "action": "throttle_risk",
+                "reason": "Capital flight signal elevated",
+            })
+
+        if self.metrics.options_flow_signal_count > 100:
+            actions.append({
+                "severity": "medium",
+                "action": "increase_market_surveillance",
+                "reason": "Heavy options-flow activity detected",
+            })
+
+        return actions
 
     def should_trigger_state_change(self) -> Optional[str]:
         """

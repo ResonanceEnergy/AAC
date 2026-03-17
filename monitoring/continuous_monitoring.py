@@ -227,7 +227,7 @@ class ContinuousMonitoringService:
 
         try:
             # Crypto Intelligence
-            venue_health = await self.crypto_engine.get_venue_health()
+            venue_health = await self.crypto_engine.get_all_venue_health()
             avg_health = sum(v.get('health_score', 0) for v in venue_health.values()) / len(venue_health) if venue_health else 0
             departments['CryptoIntelligence'] = {
                 'status': 'healthy' if avg_health > 0.7 else 'warning',
@@ -254,13 +254,12 @@ class ContinuousMonitoringService:
     async def _check_database_health(self) -> Dict[str, Any]:
         """Check database connectivity and performance"""
         try:
-            import time as _t
             from CentralAccounting.database import AccountingDatabase
             db = AccountingDatabase()
-            start = _t.monotonic()
+            start = time.monotonic()
             conn = db.connect()
             connected = conn is not None
-            response_time = round((_t.monotonic() - start) * 1000, 1)
+            response_time = round((time.monotonic() - start) * 1000, 1)
             db.close()
             return {
                 'status': 'healthy' if connected else 'critical',
@@ -273,7 +272,6 @@ class ContinuousMonitoringService:
 
     async def _check_network_health(self) -> Dict[str, Any]:
         """Check network connectivity"""
-        import time
         # Measure actual latency via loopback check
         start = time.monotonic()
         try:
@@ -291,7 +289,6 @@ class ContinuousMonitoringService:
 
     async def _check_external_api_health(self) -> Dict[str, Any]:
         """Check external API health"""
-        import time
         apis = {}
         configured_exchanges = self.config.get_enabled_exchanges()
 
@@ -316,7 +313,7 @@ class ContinuousMonitoringService:
         pending_orders = 0
         try:
             from trading.order_generation_system import get_order_generator
-            og = get_order_generator()
+            og = await get_order_generator()
             if og:
                 status = await og.get_portfolio_status()
                 active_positions = status.get('total_positions', 0)
@@ -373,7 +370,6 @@ class ContinuousMonitoringService:
 
     async def _collect_performance_sample(self) -> Dict[str, Any]:
         """Collect a performance sample"""
-        import time
         # Measure response time with a quick self-check
         start = time.monotonic()
         _ = psutil.cpu_percent(interval=0.1)
@@ -523,29 +519,54 @@ class ContinuousMonitoringService:
         await self._send_alert(alert)
 
     async def _send_alert(self, alert: Dict[str, Any]):
-        """Send alert via configured channels"""
+        """Send alert via configured channels, with logging fallback."""
+        timestamp = alert.get('timestamp', datetime.now())
+        if isinstance(timestamp, datetime):
+            timestamp = timestamp.strftime('%Y-%m-%d %H:%M:%S')
+
+        message = (
+            f"[ALERT] AAC 2100 Alert\n"
+            f"Severity: {alert.get('severity', 'unknown')}\n"
+            f"{alert.get('message', 'No message')}\n"
+            f"Time: {timestamp}"
+        )
+
+        sent = False
+
+        # Try Telegram
         try:
-            from shared.monitoring import TelegramNotifier, SlackNotifier
-
-            message = f"[ALERT] AAC 2100 Alert\n{alert['message']}\nTime: {alert['timestamp'].strftime('%Y-%m-%d %H:%M:%S')}"
-
-            # Send via Telegram
             if self.config.notifications.telegram_enabled():
+                from shared.monitoring import TelegramNotifier
                 telegram = TelegramNotifier(
-                    token=self.config.notifications.telegram_token,
-                    chat_id=self.config.notifications.telegram_chat_id
+                    bot_token=self.config.notifications.telegram_token,
+                    chat_id=self.config.notifications.telegram_chat_id,
                 )
                 await telegram.send_message(message)
+                sent = True
+                self.logger.info(f"Alert sent via Telegram: {alert.get('id', 'unknown')}")
+        except ImportError:
+            self.logger.debug("TelegramNotifier not available")
+        except Exception as e:
+            self.logger.warning(f"Telegram alert delivery failed: {e}")
 
-            # Send via Slack
+        # Try Slack
+        try:
             if self.config.notifications.slack_enabled():
+                from shared.monitoring import SlackNotifier
                 slack = SlackNotifier(
-                    webhook_url=self.config.notifications.slack_webhook
+                    webhook_url=self.config.notifications.slack_webhook,
                 )
                 await slack.send_message(message)
-
+                sent = True
+                self.logger.info(f"Alert sent via Slack: {alert.get('id', 'unknown')}")
+        except ImportError:
+            self.logger.debug("SlackNotifier not available")
         except Exception as e:
-            self.logger.error(f"Failed to send alert: {e}")
+            self.logger.warning(f"Slack alert delivery failed: {e}")
+
+        # Always log the alert regardless of delivery channel success
+        if not sent:
+            self.logger.warning(f"ALERT (no delivery channel configured): {message}")
 
     async def _cleanup_resolved_alerts(self):
         """Clean up resolved alerts"""

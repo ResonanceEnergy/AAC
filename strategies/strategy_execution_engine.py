@@ -490,11 +490,14 @@ class StrategyExecutionEngine:
             self.logger.error(f"Error closing positions: {e}")
 
     async def _simulate_order_execution(self, order: Order):
-        """Simulate order execution for testing"""
+        """Simulate order execution for testing with deterministic slippage model"""
         self.logger.info(f"Simulating execution: {order}")
-        # Mark as filled with simulated fill price
-        fill_price = getattr(order, 'price', 100.0) * random.uniform(0.999, 1.001)
-        self.logger.info(f"Simulated fill at {fill_price:.4f}")
+        base_price = getattr(order, 'price', 100.0)
+        # Deterministic slippage: 1 basis point adverse based on order direction
+        direction = getattr(order, 'side', 'buy')
+        slippage = 0.0001 if direction == 'buy' else -0.0001
+        fill_price = base_price * (1.0 + slippage)
+        self.logger.info(f"Simulated fill at {fill_price:.4f} (slippage: {slippage:.4%})")
 
     # ===== STRATEGY ALGORITHMS =====
 

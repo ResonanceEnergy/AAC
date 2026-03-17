@@ -1,0 +1,601 @@
+doctrine_packs:
+  '1':
+    name: Risk Envelope & Capital Allocation
+    owner: CentralAccounting
+    key_metrics:
+    - max_drawdown_pct
+    - daily_loss_pct
+    - tail_loss_p99
+    - capital_utilization
+    - margin_buffer
+    - strategy_correlation_matrix
+    - stressed_var_99
+    - portfolio_heat
+    required_metrics:
+    - metric: max_drawdown_pct
+      thresholds:
+        good: <5
+        warning: 5-10
+        critical: '>10'
+    - metric: daily_loss_pct
+      thresholds:
+        good: <1
+        warning: 1-2
+        critical: '>2'
+    - metric: tail_loss_p99
+      thresholds:
+        good: <3
+        warning: 3-5
+        critical: '>5'
+    - metric: capital_utilization
+      thresholds:
+        good: <50
+        warning: 50-75
+        critical: '>75'
+    - metric: margin_buffer
+      thresholds:
+        good: '>50'
+        warning: 25-50
+        critical: <25
+    - metric: strategy_correlation_matrix
+      thresholds:
+        good: <0.5
+        warning: 0.5-0.7
+        critical: '>0.7'
+    - metric: stressed_var_99
+      thresholds:
+        good: <3
+        warning: 3-5
+        critical: '>5'
+    - metric: portfolio_heat
+      thresholds:
+        good: <50
+        warning: 50-75
+        critical: '>75'
+    failure_modes:
+    - cascading_liquidation
+    - correlated_drawdown
+    - leverage_trap
+    barren_wuffet_triggers:
+    - - drawdown_exceeds_5pct
+      - CAUTION
+      - A_THROTTLE_RISK
+    - - drawdown_exceeds_10pct
+      - SAFE_MODE
+      - A_STOP_EXECUTION
+    - - daily_loss_exceeds_2pct
+      - HALT
+      - A_STOP_EXECUTION
+  '2':
+    name: Security / Secrets / IAM / Key Custody
+    owner: SharedInfrastructure
+    key_metrics:
+    - key_age_days
+    - failed_auth_rate
+    - audit_log_completeness
+    - mfa_compliance_rate
+    - secret_scan_coverage
+    required_metrics:
+    - metric: key_age_days
+      thresholds:
+        good: <30
+        warning: 30-60
+        critical: '>60'
+    - metric: failed_auth_rate
+      thresholds:
+        good: <1
+        warning: 1-5
+        critical: '>5'
+    - metric: audit_log_completeness
+      thresholds:
+        good: '>99.9'
+        warning: 99-99.9
+        critical: <99
+    - metric: mfa_compliance_rate
+      thresholds:
+        good: '>95'
+        warning: 90-95
+        critical: <90
+    - metric: secret_scan_coverage
+      thresholds:
+        good: '>95'
+        warning: 90-95
+        critical: <90
+    failure_modes:
+    - key_compromise
+    - audit_gap
+    barren_wuffet_triggers:
+    - - failed_auth_count > 5/min
+      - SAFE_MODE
+      - A_LOCK_KEYS
+    - - key_exposure_detected
+      - HALT
+      - A_LOCK_KEYS
+  '3':
+    name: Testing / Simulation / Replay / Chaos
+    owner: BigBrainIntelligence
+    key_metrics:
+    - backtest_vs_live_correlation
+    - chaos_test_pass_rate
+    - regression_test_pass_rate
+    - replay_fidelity_score
+    required_metrics:
+    - metric: backtest_vs_live_correlation
+      thresholds:
+        good: '>0.8'
+        warning: 0.7-0.8
+        critical: <0.7
+    - metric: chaos_test_pass_rate
+      thresholds:
+        good: '>95'
+        warning: 90-95
+        critical: <90
+    - metric: regression_test_pass_rate
+      thresholds:
+        good: '>99'
+        warning: 95-99
+        critical: <95
+    - metric: replay_fidelity_score
+      thresholds:
+        good: '>0.95'
+        warning: 0.9-0.95
+        critical: <0.9
+    failure_modes:
+    - test_environment_drift
+    - flaky_test_syndrome
+    - backtest_overfitting
+    - replay_data_corruption
+    barren_wuffet_triggers:
+    - - test_coverage_pct < 70
+      - CAUTION
+      - A_CREATE_INCIDENT
+    - - regression_test_failures > 0
+      - CAUTION
+      - A_STOP_EXECUTION
+    - - chaos_test_failed
+      - SAFE_MODE
+      - A_ENTER_SAFE_MODE
+    - - backtest_vs_live_drift > 50%
+      - CAUTION
+      - A_FREEZE_STRATEGY
+  '4':
+    name: Incident Response + On-Call + Postmortems
+    owner: SharedInfrastructure
+    key_metrics:
+    - mttd_minutes
+    - mttr_minutes
+    - incident_recurrence_rate
+    - active_sev1_count
+    required_metrics:
+    - metric: mttd_minutes
+      thresholds:
+        good: <5
+        warning: 5-15
+        critical: '>15'
+    - metric: mttr_minutes
+      thresholds:
+        good: <30
+        warning: 30-60
+        critical: '>60'
+    - metric: incident_recurrence_rate
+      thresholds:
+        good: <2
+        warning: 2-5
+        critical: '>5'
+    - metric: active_sev1_count
+      thresholds:
+        good: <1
+        warning: 1-2
+        critical: '>2'
+    failure_modes:
+    - alert_fatigue
+    - escalation_failure
+    - communication_breakdown
+    - incomplete_postmortem
+    barren_wuffet_triggers:
+    - - active_sev1_count > 0
+      - CAUTION
+      - A_THROTTLE_RISK
+    - - mttd > 10min for sev1
+      - CAUTION
+      - A_CREATE_INCIDENT
+    - - mttr > 60min for sev1
+      - SAFE_MODE
+      - A_ENTER_SAFE_MODE
+    - - incident_recurrence within 7 days
+      - CAUTION
+      - A_CREATE_INCIDENT
+  '5':
+    name: Liquidity / Market Impact / Partial Fill Logic
+    owner: TradingExecution
+    key_metrics:
+    - fill_rate
+    - time_to_fill_p95
+    - slippage_bps
+    - partial_fill_rate
+    - adverse_selection_cost
+    - market_impact_bps
+    - liquidity_available_pct
+    required_metrics:
+    - metric: fill_rate
+      thresholds:
+        good: '>95'
+        warning: 90-95
+        critical: <90
+    - metric: time_to_fill_p95
+      thresholds:
+        good: <300
+        warning: 300-600
+        critical: '>600'
+    - metric: slippage_bps
+      thresholds:
+        good: <5
+        warning: 5-10
+        critical: '>10'
+    - metric: partial_fill_rate
+      thresholds:
+        good: <10
+        warning: 10-20
+        critical: '>20'
+    - metric: adverse_selection_cost
+      thresholds:
+        good: <1
+        warning: 1-2
+        critical: '>2'
+    - metric: market_impact_bps
+      thresholds:
+        good: <5
+        warning: 5-10
+        critical: '>10'
+    - metric: liquidity_available_pct
+      thresholds:
+        good: '>80'
+        warning: 60-80
+        critical: <60
+    failure_modes:
+    - liquidity_mirage
+    - market_impact_underestimation
+    - partial_fill_cascade
+    - adverse_selection_trap
+    barren_wuffet_triggers:
+    - - slippage_bps_p95 > 10
+      - CAUTION
+      - A_THROTTLE_RISK
+    - - partial_fill_rate > 30%
+      - CAUTION
+      - A_CREATE_INCIDENT
+    - - market_impact_bps > 20
+      - SAFE_MODE
+      - A_STOP_EXECUTION
+    - - liquidity_available_pct < 100%
+      - CAUTION
+      - A_THROTTLE_RISK
+  '6':
+    name: Counterparty Scoring + Venue Health + Withdrawal Risk
+    owner: CryptoIntelligence
+    key_metrics:
+    - venue_health_score
+    - withdrawal_success_rate
+    - counterparty_exposure_pct
+    - settlement_failure_rate
+    - counterparty_credit_score
+    required_metrics:
+    - metric: venue_health_score
+      thresholds:
+        good: '>0.9'
+        warning: 0.8-0.9
+        critical: <0.8
+    - metric: withdrawal_success_rate
+      thresholds:
+        good: '>99'
+        warning: 97-99
+        critical: <97
+    - metric: counterparty_exposure_pct
+      thresholds:
+        good: <20
+        warning: 20-30
+        critical: '>30'
+    - metric: settlement_failure_rate
+      thresholds:
+        good: <0.1
+        warning: 0.1-0.5
+        critical: '>0.5'
+    - metric: counterparty_credit_score
+      thresholds:
+        good: '>80'
+        warning: 60-80
+        critical: <60
+    failure_modes:
+    - venue_insolvency
+    - withdrawal_freeze
+    barren_wuffet_triggers:
+    - - venue_health_score < 0.70
+      - CAUTION
+      - A_ROUTE_FAILOVER
+    - - withdrawal_frozen
+      - SAFE_MODE
+      - A_CREATE_INCIDENT
+    - - settlement_failure_rate > 1%
+      - CAUTION
+      - A_THROTTLE_RISK
+    - - counterparty_credit_score < 50
+      - SAFE_MODE
+      - A_ROUTE_FAILOVER
+  '7':
+    name: Research Factory + Experimentation + Strategy Retirement
+    owner: BigBrainIntelligence
+    key_metrics:
+    - research_pipeline_velocity
+    - strategy_survival_rate
+    - feature_reuse_rate
+    - experiment_completion_rate
+    required_metrics:
+    - metric: research_pipeline_velocity
+      thresholds:
+        good: '>3'
+        warning: 2-3
+        critical: <2
+    - metric: strategy_survival_rate
+      thresholds:
+        good: '>60'
+        warning: 40-60
+        critical: <40
+    - metric: feature_reuse_rate
+      thresholds:
+        good: '>70'
+        warning: 50-70
+        critical: <50
+    - metric: experiment_completion_rate
+      thresholds:
+        good: '>80'
+        warning: 60-80
+        critical: <60
+    failure_modes:
+    - research_stagnation
+    - strategy_overfitting
+    - feature_bloat
+    - experiment_sprawl
+    barren_wuffet_triggers:
+    - - research_pipeline_velocity < 1
+      - CAUTION
+      - A_CREATE_INCIDENT
+    - - strategy_survival_rate < 25%
+      - CAUTION
+      - A_FREEZE_STRATEGY
+    - - experiment_completion_rate < 50%
+      - CAUTION
+      - A_CREATE_INCIDENT
+    - - model_version_rollback_count > 2 in 7 days
+      - SAFE_MODE
+      - A_FREEZE_STRATEGY
+  '8':
+    name: Metric Canon + Truth Arbitration + Retention/Privacy
+    owner: CentralAccounting
+    key_metrics:
+    - data_quality_score
+    - metric_lineage_coverage
+    - reconciliation_accuracy
+    - truth_arbitration_latency
+    required_metrics:
+    - metric: data_quality_score
+      thresholds:
+        good: '>0.95'
+        warning: 0.9-0.95
+        critical: <0.9
+    - metric: metric_lineage_coverage
+      thresholds:
+        good: '>90'
+        warning: 80-90
+        critical: <80
+    - metric: reconciliation_accuracy
+      thresholds:
+        good: '>99'
+        warning: 97-99
+        critical: <97
+    - metric: truth_arbitration_latency
+      thresholds:
+        good: <1000
+        warning: 1000-5000
+        critical: '>5000'
+    failure_modes:
+    - metric_drift
+    - truth_conflict_stalemate
+    - retention_policy_violation
+    - dashboard_stale_data
+    barren_wuffet_triggers:
+    - - data_quality_score < 0.85
+      - CAUTION
+      - A_QUARANTINE_SOURCE
+    - - reconciliation_accuracy < 95%
+      - CAUTION
+      - A_FORCE_RECON
+    - - truth_conflict_unresolved > 30min
+      - SAFE_MODE
+      - A_PAGE_ONCALL
+    - - metric_lineage_coverage < 70%
+      - CAUTION
+      - A_CREATE_INCIDENT
+  '9':
+    name: Strategic Warfare
+    owner: TradingExecution
+    key_metrics:
+    - terrain_favorability
+    - force_ratio
+    - strategic_confidence
+    - posture_alignment
+    required_metrics:
+    - metric: terrain_favorability
+      thresholds:
+        good: '>0.6'
+        warning: 0.4-0.6
+        critical: <0.4
+    - metric: force_ratio
+      thresholds:
+        good: '>1.0'
+        warning: 0.7-1.0
+        critical: <0.7
+    - metric: strategic_confidence
+      thresholds:
+        good: '>0.7'
+        warning: 0.5-0.7
+        critical: <0.5
+    - metric: posture_alignment
+      thresholds:
+        good: '>0.75'
+        warning: 0.5-0.75
+        critical: <0.5
+    failure_modes:
+    - bad_terrain_selection
+    - force_miscalculation
+    - timing_disadvantage
+    barren_wuffet_triggers:
+    - - force_ratio < 0.5
+      - CAUTION
+      - A_TACTICAL_RETREAT
+    - - terrain_favorability < 0.3
+      - CAUTION
+      - A_TACTICAL_RETREAT
+    - - strategic_confidence < 0.4
+      - CAUTION
+      - A_THROTTLE_RISK
+  '10':
+    name: Power Dynamics
+    owner: TradingExecution
+    key_metrics:
+    - market_stealth_score
+    - exchange_reputation
+    - alpha_uniqueness
+    - execution_unpredictability
+    required_metrics:
+    - metric: market_stealth_score
+      thresholds:
+        good: '>0.7'
+        warning: 0.5-0.7
+        critical: <0.5
+    - metric: exchange_reputation
+      thresholds:
+        good: '>0.8'
+        warning: 0.6-0.8
+        critical: <0.6
+    - metric: alpha_uniqueness
+      thresholds:
+        good: '>0.6'
+        warning: 0.4-0.6
+        critical: <0.4
+    - metric: execution_unpredictability
+      thresholds:
+        good: '>0.65'
+        warning: 0.45-0.65
+        critical: <0.45
+    failure_modes:
+    - telegraphed_execution
+    - reputation_decay
+    - alpha_crowding
+    barren_wuffet_triggers:
+    - - market_stealth_score < 0.4
+      - CAUTION
+      - A_CONCEAL_POSITION
+    - - exchange_reputation < 0.5
+      - SAFE_MODE
+      - A_TACTICAL_RETREAT
+    - - alpha_uniqueness < 0.3
+      - CAUTION
+      - A_CONCENTRATE_FORCE
+  '11':
+    name: Future Financial Doctrine — Monetary Transition Intelligence
+    owner: CentralAccounting
+    key_metrics:
+    - stablecoin_peg_health
+    - monetary_transition_index
+    - regulatory_shock_score
+    - capital_flight_signal
+    - cross_chain_settlement_score
+    - defi_yield_sustainability
+    - etf_net_inflow_daily
+    - defi_tvl_total
+    - x_platform_sentiment
+    - halving_cycle_position
+    - regulatory_convergence_score
+    - political_token_risk
+    - pqc_migration_urgency
+    - brics_dedollarization_index
+    - gold_btc_ratio
+    - usd_reserve_share
+    - tokenized_treasury_aum
+    - global_debt_gdp_ratio
+    - micar_compliance_score
+    - portfolio_nominal_usd
+    - portfolio_purchasing_power
+    - portfolio_gold_ratio
+    - stablecoin_yield_monthly
+    - arb_profit_monthly
+    - portfolio_drawdown_pct
+    - cycle_phase
+    - prediction_market_pnl
+    - options_flow_signal_count
+    - gold_silver_ratio
+    - silver_price_oz
+    - vce_signal_active
+    - superstonk_ftd_alert_count
+    required_metrics:
+    - metric: stablecoin_peg_health
+      thresholds:
+        good: '>90'
+        warning: 70-90
+        critical: <70
+    - metric: monetary_transition_index
+      thresholds:
+        good: '>20'
+        warning: 10-20
+        critical: <10
+    - metric: regulatory_shock_score
+      thresholds:
+        good: <30
+        warning: 30-60
+        critical: '>60'
+    - metric: capital_flight_signal
+      thresholds:
+        good: <25
+        warning: 25-50
+        critical: '>50'
+    - metric: cross_chain_settlement_score
+      thresholds:
+        good: '>80'
+        warning: 60-80
+        critical: <60
+    - metric: defi_yield_sustainability
+      thresholds:
+        good: '>70'
+        warning: 40-70
+        critical: <40
+    failure_modes:
+    - stablecoin_systemic_depeg
+    - cbdc_launch_disruption
+    - regulatory_shock_cascade
+    - capital_flight_acceleration
+    - defi_yield_collapse
+    - quantum_cryptographic_threat
+    - flash_loan_exploit_cascade
+    - political_token_conflict_of_interest
+    - solana_network_outage
+    - etf_redemption_spiral
+    - ai_flash_crash_amplification
+    - cross_chain_bridge_hack
+    - brics_payment_system_fragmentation
+    - mev_sandwich_attack_losses
+    - restaking_cascade_slashing
+    - synthetic_stablecoin_depeg
+    - l2_sequencer_centralization_failure
+    - tokenized_treasury_liquidity_crisis
+    barren_wuffet_triggers:
+    - - stablecoin_peg_health < 70
+      - CAUTION
+      - A_THROTTLE_RISK
+    - - capital_flight_signal > 50
+      - CAUTION
+      - A_THROTTLE_RISK
+    - - regulatory_shock_score > 60
+      - SAFE_MODE
+      - A_ENTER_SAFE_MODE
+    version: '1.0'
+    category: monetary-transition

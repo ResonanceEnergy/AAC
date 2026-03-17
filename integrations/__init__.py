@@ -21,6 +21,18 @@ def get_gateway_bridge():
     return OpenClawGatewayBridge
 
 
+def get_unusual_whales_client():
+    """Get the UnusualWhalesClient class."""
+    from .unusual_whales_client import UnusualWhalesClient
+    return UnusualWhalesClient
+
+
+def get_unusual_whales_snapshot_service():
+    """Get the shared UnusualWhalesSnapshotService instance."""
+    from .unusual_whales_service import get_unusual_whales_snapshot_service as _get_service
+    return _get_service()
+
+
 def get_az_supreme_handler():
     """Get the AZ Supreme handler module."""
     from . import openclaw_az_supreme_handler
@@ -31,5 +43,7 @@ __all__ = [
     "get_barren_wuffet_skills",
     "get_telegram_bot",
     "get_gateway_bridge",
+    "get_unusual_whales_client",
+    "get_unusual_whales_snapshot_service",
     "get_az_supreme_handler",
 ]

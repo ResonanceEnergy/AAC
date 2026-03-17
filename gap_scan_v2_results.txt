@@ -1,0 +1,55 @@
+
+=== COMING_SOON (2) ===
+  tools/code_quality_improvement_system.py:595  -  self.skipTest("Not yet implemented")
+  tools/code_quality_improvement_system.py:600  -  self.skipTest("Not yet implemented")
+
+=== MOCK_DATA (5) ===
+  agents/agent_based_trading.py:206  -  random instead of real: pnl = signal.expected_return * trade_value * (0.8 + random.random() * 0.4)  # 80%-120% of expected
+  agents/agent_based_trading.py:209  -  random instead of real: pnl = -abs(signal.expected_return) * trade_value * (0.5 + random.random() * 0.5)  # 50%-100% loss
+  agents/agent_based_trading.py:575  -  random instead of real: confidence=random.uniform(0.6, 0.95)
+  shared/market_data_feeds.py:170  -  random instead of real: self.simulated_prices[symbol] = base_price * (0.95 + random.random() * 0.1)
+  shared/market_data_feeds.py:238  -  random instead of real: self.simulated_prices[symbol] = 100.0 * (0.5 + random.random())
+
+=== NOT_IMPL (12) ===
+  TradingExecution/exchange_connectors/base_connector.py:337  -  raise NotImplementedError(
+  TradingExecution/exchange_connectors/base_connector.py:374  -  raise NotImplementedError(
+  aac/integration/cross_department_engine.py:100  -  raise NotImplementedError
+  aac/integration/cross_department_engine.py:104  -  raise NotImplementedError
+  aac/integration/cross_department_engine.py:108  -  raise NotImplementedError
+  aac/integration/cross_department_engine.py:112  -  raise NotImplementedError
+  shared/data_sources.py:99  -  raise NotImplementedError(f"{type(self).__name__} must implement connect")
+  shared/data_sources.py:104  -  raise NotImplementedError(f"{type(self).__name__} must implement disconnect")
+  shared/super_bigbrain_agents.py:118  -  raise NotImplementedError("Subclasses must implement _perform_traditional_scan")
+  shared/websocket_feeds.py:226  -  raise NotImplementedError(f"{type(self).__name__} must implement _connect")
+  shared/websocket_feeds.py:231  -  raise NotImplementedError(f"{type(self).__name__} must implement _subscribe")
+  shared/websocket_feeds.py:236  -  raise NotImplementedError(f"{type(self).__name__} must implement _handle_message")
+
+=== STUB_PASS (16) ===
+  BigBrainIntelligence/agents.py:127  scan  def scan: body is just pass
+  TradingExecution/exchange_connectors/base_connector.py:170  name  def name: body is just pass
+  TradingExecution/exchange_connectors/base_connector.py:188  disconnect  def disconnect: body is just pass
+  shared/market_data_connector.py:161  connect  def connect: body is just pass
+  shared/market_data_connector.py:166  disconnect  def disconnect: body is just pass
+  shared/market_data_connector.py:171  subscribe_symbols  def subscribe_symbols: body is just pass
+  shared/market_data_connector.py:176  get_historical_data  def get_historical_data: body is just pass
+  shared/market_data_connector.py:229  subscribe_symbols  def subscribe_symbols: body is just pass
+  shared/market_data_connector.py:269  subscribe_symbols  def subscribe_symbols: body is just pass
+  shared/market_data_connector.py:304  _handle_message  def _handle_message: body is just pass
+  shared/strategy_framework.py:188  _initialize_strategy  def _initialize_strategy: body is just pass
+  shared/strategy_framework.py:193  _generate_signals  def _generate_signals: body is just pass
+  shared/strategy_framework.py:198  _should_generate_signal  def _should_generate_signal: body is just pass
+  shared/websocket_feeds.py:195  websocket_url  def websocket_url: body is just pass
+  tools/code_quality_improvement_system.py:584  setUp  def setUp: body is just pass
+  tools/code_quality_improvement_system.py:588  tearDown  def tearDown: body is just pass
+
+=== TODO (2) ===
+  tools/code_quality_improvement_system.py:594  -  # TODO: Implement test
+  tools/code_quality_improvement_system.py:599  -  # TODO: Implement test
+
+============================================================
+TOTAL GAPS: 37
+  COMING_SOON: 2
+  MOCK_DATA: 5
+  NOT_IMPL: 12
+  STUB_PASS: 16
+  TODO: 2

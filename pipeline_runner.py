@@ -383,7 +383,7 @@ async def run_pipeline():
     except (OSError, Exception) as e:
         logger.warning(f"CoinGecko unreachable: {e}")
         live_data = False
-        logger.info(f"  Network unavailable — using cached reference prices")
+        logger.info("  Network unavailable — using cached reference prices")
         logger.info("")
 
         market_data = {}
@@ -480,20 +480,20 @@ async def run_pipeline():
         low_30d = analysis.get("_low_30d", min(_generate_realistic_price_series(tick.price)))
 
         logger.info(f"\n  {sig_label} {ticker}: {sig} (confidence: {conf:.0%})")
-        logger.info(f"    Compression: {comp:.0f}/100", end="")
+        comp_msg = f"    Compression: {comp:.0f}/100"
         if comp > 60:
-            logger.info(" << breakout zone", end="")
-        logger.info("")
+            comp_msg += " << breakout zone"
+        logger.info(comp_msg)
         print(f"    Support: ${analysis['nearest_support']:,.2f} | "
               f"Resistance: ${analysis['nearest_resistance']:,.2f}")
         logger.info(f"    Reason: {analysis['reason']}")
 
         if analysis["spiral_targets"]:
-            logger.info("    Spiral targets: ", end="")
-            print(", ".join(
+            targets_str = ", ".join(
                 f"${t['price']:,.2f} ({t['label']})"
                 for t in analysis["spiral_targets"][:3]
-            ))
+            )
+            logger.info(f"    Spiral targets: {targets_str}")
 
     # ── 4. Execute trades ─────────────────────────────────────────────
     logger.info("")
@@ -568,7 +568,7 @@ async def run_pipeline():
                 logger.info(f"    WARN DB recording failed: {e}")
                 trades_made += 1  # Trade still went through
         else:
-            logger.info(f"    FAIL Position rejected by risk manager")
+            logger.info("    FAIL Position rejected by risk manager")
 
     # ── 5. Summary ────────────────────────────────────────────────────
     logger.info("")
@@ -587,7 +587,7 @@ async def run_pipeline():
     try:
         recent_txs = db.get_transactions(limit=5)
         if recent_txs:
-            logger.info(f"\n  Recent transactions in accounting DB:")
+            logger.info("\n  Recent transactions in accounting DB:")
             for tx in recent_txs[:3]:
                 print(f"    * [{tx.get('status','?')}] {tx.get('side','?')} "
                       f"{tx.get('quantity',0):.6f} {tx.get('asset','?')} "
