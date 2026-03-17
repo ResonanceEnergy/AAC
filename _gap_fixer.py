@@ -386,7 +386,7 @@ for filepath in sorted(get_py_files(ROOT)):
 logger.info(f"  Phase 4 total: {phase4_count}")
 
 # Summary
-logger.info("\n" + "=" * 70)
+logger.info("\n%s", "=" * 70)
 logger.info(f"TOTAL FIXES APPLIED: {fixes_applied}")
 logger.info("=" * 70)
 

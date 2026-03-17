@@ -35,7 +35,7 @@ class MetricMeasurement:
     value: float
     confidence: float
     quantum_enhanced: bool = False
-    metadata: Dict[str, Any] = None
+    metadata: Optional[Dict[str, Any]] = None
 
 @dataclass
 class AdvancementBenchmark:
@@ -181,7 +181,7 @@ class AdvancementValidator:
 
     def _record_measurement(self, metric: AdvancementMetric, value: float,
                           timestamp: datetime, quantum_enhanced: bool = False,
-                          metadata: Dict[str, Any] = None):
+                          metadata: Optional[Dict[str, Any]] = None):
         """Record a metric measurement"""
         measurement = MetricMeasurement(
             timestamp=timestamp,
@@ -215,8 +215,8 @@ class AdvancementValidator:
 
     async def _measure_throughput(self) -> float:
         """Measure operations per second"""
-        if 'throughput' in self.measurements and self.measurements['throughput']:
-            recent = [m.value for m in self.measurements['throughput'][-5:]]
+        if AdvancementMetric.THROUGHPUT in self.measurements and self.measurements[AdvancementMetric.THROUGHPUT]:
+            recent = [m.value for m in self.measurements[AdvancementMetric.THROUGHPUT][-5:]]
             return sum(recent) / len(recent)
         return 100000.0  # Default baseline: 100k ops/sec
 
@@ -231,15 +231,15 @@ class AdvancementValidator:
 
     async def _measure_temporal_coverage(self) -> float:
         """Measure cross-temporal arbitrage coverage"""
-        if 'temporal_coverage' in self.measurements and self.measurements['temporal_coverage']:
-            recent = [m.value for m in self.measurements['temporal_coverage'][-5:]]
+        if AdvancementMetric.CROSS_TEMPORAL_COVERAGE in self.measurements and self.measurements[AdvancementMetric.CROSS_TEMPORAL_COVERAGE]:
+            recent = [m.value for m in self.measurements[AdvancementMetric.CROSS_TEMPORAL_COVERAGE][-5:]]
             return sum(recent) / len(recent)
         return 0.85  # Default: 85% coverage
 
     async def _measure_predictive_accuracy(self) -> float:
         """Measure predictive accuracy of AI systems"""
-        if 'predictive_accuracy' in self.measurements and self.measurements['predictive_accuracy']:
-            recent = [m.value for m in self.measurements['predictive_accuracy'][-10:]]
+        if AdvancementMetric.PREDICTIVE_ACCURACY in self.measurements and self.measurements[AdvancementMetric.PREDICTIVE_ACCURACY]:
+            recent = [m.value for m in self.measurements[AdvancementMetric.PREDICTIVE_ACCURACY][-10:]]
             return sum(recent) / len(recent)
         return 0.92  # Default: 92% accuracy
 
@@ -382,7 +382,6 @@ class QuantumAdvantageValidator:
     async def measure_quantum_advantage(self) -> float:
         """Measure quantum advantage factor."""
         # Compare quantum vs classical execution for representative workloads
-        import time
         classical_time = 100.0  # baseline ms for classical
         # Simulate quantum speedup based on problem size
         start = time.monotonic()

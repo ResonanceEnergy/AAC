@@ -59,7 +59,7 @@ class APIClient:
         self.audit_logger = get_audit_logger()
 
         # Rate limiting
-        self.requests_made = []
+        self.requests_made: list[datetime] = []
         self.session: Optional[aiohttp.ClientSession] = None
 
     async def __aenter__(self):
@@ -194,7 +194,7 @@ class APIClient:
                 "error": last_error,
                 "attempts": self.endpoint.retries
             },
-            severity="warning"
+            severity="warning"  # type: ignore[arg-type]
         )
 
         return APIResponse(
@@ -230,7 +230,7 @@ class EthereumDEXClient(APIClient):
 
             if self.config.eth_private_key:
                 from eth_account import Account
-                self.account = Account.from_key(self.config.eth_private_key)
+                self.account = Account.from_key(self.config.eth_private_key)  # type: ignore[call-arg]
                 self.logger.info("Ethereum DEX client initialized with private key")
             else:
                 self.logger.warning("Ethereum DEX client initialized without private key")
@@ -240,7 +240,7 @@ class EthereumDEXClient(APIClient):
         except Exception as e:
             self.logger.error(f"Failed to initialize Web3: {e}")
 
-    async def get_balance(self, address: str = None) -> APIResponse:
+    async def get_balance(self, address: Optional[str] = None) -> APIResponse:
         """Get ETH balance for address"""
         if not self.web3:
             return APIResponse(success=False, error="Web3 not initialized")
@@ -328,7 +328,7 @@ class BigBrainAIClient(APIClient):
 
         return await self._make_request("GET", url, params=params)
 
-    async def get_arbitrage_opportunities(self, exchanges: List[str] = None) -> APIResponse:
+    async def get_arbitrage_opportunities(self, exchanges: Optional[List[str]] = None) -> APIResponse:
         """Get AI-detected arbitrage opportunities"""
         url = f"{self.endpoint.base_url}/arbitrage-opportunities"
         params = {}
@@ -490,7 +490,7 @@ class RedditAPIClient(APIClient):
         try:
             auth = aiohttp.BasicAuth(self.config.reddit_client_id, self.config.reddit_client_secret)
 
-            async with self.session.post(
+            async with self.session.post(  # type: ignore[union-attr]
                 "https://www.reddit.com/api/v1/access_token",
                 data={"grant_type": "client_credentials"},
                 auth=auth

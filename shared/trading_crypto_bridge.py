@@ -103,7 +103,7 @@ class TradingCryptoBridge:
             strategy = selection_data.get("strategy", "arbitrage")
 
             # Select optimal venue based on criteria
-            selected_venue = await self._select_optimal_venue(asset, amount, strategy)
+            selected_venue = await self._select_optimal_venue(asset or "", amount, strategy)
 
             if selected_venue:
                 self.last_venue_selection = datetime.now()
@@ -141,7 +141,7 @@ class TradingCryptoBridge:
             execution_params = routing_data.get("execution_params", {})
 
             # Route execution to specified venue
-            route_id = await self._route_execution(order_id, venue, execution_params)
+            route_id = await self._route_execution(order_id or "", venue or "", execution_params)
 
             if route_id:
                 self.last_execution_routing = datetime.now()
@@ -180,7 +180,7 @@ class TradingCryptoBridge:
 
             # Coordinate withdrawal
             coordination_result = await self._coordinate_withdrawal(
-                withdrawal_id, asset, amount, destination
+                withdrawal_id or "", asset or "", amount, destination or ""
             )
 
             if coordination_result:
@@ -226,7 +226,7 @@ class TradingCryptoBridge:
 
             # Select venue with highest score
             if venue_scores:
-                best_venue = max(venue_scores, key=venue_scores.get)
+                best_venue = max(venue_scores, key=lambda v: venue_scores[v])
                 return best_venue if venue_scores[best_venue] > 0.6 else None
 
             return None

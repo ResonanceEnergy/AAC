@@ -53,8 +53,8 @@ class StrategyImplementationFactory:
         self.audit_logger = audit_logger
 
         self.strategy_loader = StrategyLoader()
-        self.implemented_strategies = {}
-        self.strategy_mappings = {}
+        self.implemented_strategies: dict[str, Any] = {}
+        self.strategy_mappings: dict[str, str] = {}
 
         # Initialize strategy mappings
         self._build_strategy_mappings()
@@ -156,7 +156,7 @@ class StrategyImplementationFactory:
 
         return implemented
 
-    async def _generate_strategy_implementation(self, config: StrategyConfig) -> Optional[BaseArbitrageStrategy]:
+    async def _generate_strategy_implementation(self, config: Any) -> Optional[BaseArbitrageStrategy]:
         """Generate executable implementation for a single strategy"""
 
         # Check if we have a pre-built implementation
@@ -170,7 +170,7 @@ class StrategyImplementationFactory:
         # Generate implementation using templates
         return await self._generate_from_template(config)
 
-    async def _load_existing_implementation(self, config: StrategyConfig) -> Optional[BaseArbitrageStrategy]:
+    async def _load_existing_implementation(self, config: Any) -> Optional[BaseArbitrageStrategy]:
         """Load existing strategy implementation"""
         try:
             # Convert strategy name to module name
@@ -199,7 +199,7 @@ class StrategyImplementationFactory:
             logger.debug(f"No existing implementation for {config.name}: {e}")
             return None
 
-    async def _generate_from_template(self, config: StrategyConfig) -> Optional[BaseArbitrageStrategy]:
+    async def _generate_from_template(self, config: Any) -> Optional[BaseArbitrageStrategy]:
         """Generate strategy implementation from template"""
 
         # Create framework config
@@ -251,9 +251,9 @@ class StrategyImplementationFactory:
         module_name = module_name.replace('__', '_').strip('_')
         return module_name
 
-    async def _convert_to_framework_config(self, config: StrategyConfig) -> StrategyConfig:
+    async def _convert_to_framework_config(self, config: Any) -> StrategyConfig:
         """Convert loader config to framework config"""
-        from shared.strategy_framework import StrategyConfig as FrameworkConfig
+        from shared.strategy_framework import StrategyConfig as FrameworkConfig  # noqa: F811
 
         # Map category to strategy type
         strategy_type_mapping = {
@@ -335,7 +335,7 @@ class ETFArbitrageTemplate(BaseArbitrageStrategy):
 
     async def _generate_signals(self) -> List[TradingSignal]:
         """Generate ETF arbitrage signals"""
-        signals = []
+        signals: list[Any] = []
 
         # Use crypto symbols for testing
         crypto_symbols = ['BTC/USDT', 'ETH/USDT', 'ADA/USDT', 'SOL/USDT', 'DOT/USDT']
@@ -396,7 +396,7 @@ class VolatilityArbitrageTemplate(BaseArbitrageStrategy):
 
     async def _generate_signals(self) -> List[TradingSignal]:
         """Generate volatility arbitrage signals"""
-        signals = []
+        signals: list[Any] = []
 
         for symbol in self.symbol_universe:
             if symbol in self.market_data:
@@ -448,7 +448,7 @@ class SeasonalityTemplate(BaseArbitrageStrategy):
 
     async def _generate_signals(self) -> List[TradingSignal]:
         """Generate seasonality-based signals"""
-        signals = []
+        signals: list[Any] = []
         now = datetime.now()
 
         # Turn of Month effect
@@ -495,7 +495,7 @@ class EventDrivenTemplate(BaseArbitrageStrategy):
 
     async def _generate_signals(self) -> List[TradingSignal]:
         """Generate event-driven signals"""
-        signals = []
+        signals: list[Any] = []
         # Template implementation - would need event data integration
         logger.debug(f"{type(self).__name__}._generate_signals: no signal sources integrated yet")
         return signals
@@ -524,7 +524,7 @@ class FlowBasedTemplate(BaseArbitrageStrategy):
 
     async def _generate_signals(self) -> List[TradingSignal]:
         """Generate flow-based signals"""
-        signals = []
+        signals: list[Any] = []
         # Template implementation - would need flow data integration
         logger.debug(f"{type(self).__name__}._generate_signals: no signal sources integrated yet")
         return signals
@@ -552,7 +552,7 @@ class MarketMakingTemplate(BaseArbitrageStrategy):
 
     async def _generate_signals(self) -> List[TradingSignal]:
         """Generate market making signals"""
-        signals = []
+        signals: list[Any] = []
         # Template implementation - would need order book data
         logger.debug(f"{type(self).__name__}._generate_signals: no signal sources integrated yet")
         return signals
@@ -587,7 +587,7 @@ class CorrelationTemplate(BaseArbitrageStrategy):
 
     async def _generate_signals(self) -> List[TradingSignal]:
         """Generate correlation-based signals"""
-        signals = []
+        signals: list[Any] = []
         # Template implementation - would need correlation data
         logger.debug(f"{type(self).__name__}._generate_signals: no signal sources integrated yet")
         return signals
@@ -621,7 +621,7 @@ class IndexArbitrageTemplate(BaseArbitrageStrategy):
 
     async def _generate_signals(self) -> List[TradingSignal]:
         """Generate index arbitrage signals"""
-        signals = []
+        signals: list[Any] = []
 
         for etf, index in self.index_mappings.items():
             if etf in self.market_data and index in self.market_data:
@@ -670,9 +670,9 @@ class IndexArbitrageTemplate(BaseArbitrageStrategy):
 # Factory singleton
 _strategy_factory_instance = None
 
-def get_strategy_factory(data_aggregator: DataAggregator = None,
-                        communication: CommunicationFramework = None,
-                        audit_logger: AuditLogger = None) -> StrategyImplementationFactory:
+def get_strategy_factory(data_aggregator: Optional[DataAggregator] = None,
+                        communication: Optional[CommunicationFramework] = None,
+                        audit_logger: Optional[AuditLogger] = None) -> StrategyImplementationFactory:
     """Get singleton strategy factory instance"""
     global _strategy_factory_instance
 
@@ -681,7 +681,7 @@ def get_strategy_factory(data_aggregator: DataAggregator = None,
             raise ValueError("All dependencies required for first factory instantiation")
 
         _strategy_factory_instance = StrategyImplementationFactory(
-            data_aggregator, communication, audit_logger
+            data_aggregator, communication, audit_logger  # type: ignore[arg-type]
         )
 
     return _strategy_factory_instance

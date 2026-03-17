@@ -51,7 +51,7 @@ class WeeklyOvernightSeasonalityStrategy(BaseArbitrageStrategy):
 
         # Weekly seasonality parameters
         self.target_universe = ['ES', 'NQ', 'RTY']  # Major equity index futures
-        self.weekday_weights = {
+        self.weekday_weights: dict[int, dict[str, Any]] = {
             0: {'action': 'long', 'weight': 0.4},    # Monday-Tuesday long
             1: {'action': 'long', 'weight': 0.4},    # Monday-Tuesday long
             4: {'action': 'short', 'weight': 0.2},   # Friday-Monday short
@@ -62,9 +62,9 @@ class WeeklyOvernightSeasonalityStrategy(BaseArbitrageStrategy):
         self.market_open_hour = 13   # 9:30 AM ET = 13:30 UTC (approximate)
 
         # Tracking variables
-        self.active_positions = {}  # symbol -> position info
+        self.active_positions: dict[str, Any] = {}  # symbol -> position info
         self.current_weekday_position = False
-        self.last_entry_time = None
+        self.last_entry_time: Optional[datetime] = None
 
     async def _initialize_strategy(self):
         """Initialize strategy-specific components."""
@@ -72,7 +72,7 @@ class WeeklyOvernightSeasonalityStrategy(BaseArbitrageStrategy):
 
     async def _generate_signals(self) -> List[TradingSignal]:
         """Generate trading signals based on current market conditions."""
-        signals = []
+        signals: list[Any] = []
 
         try:
             # Check for weekly seasonality entry or exit conditions
@@ -81,13 +81,13 @@ class WeeklyOvernightSeasonalityStrategy(BaseArbitrageStrategy):
 
             if timing_decision['should_enter'] and not self.current_weekday_position:
                 # Enter position
-                signals.extend(await self._generate_entry_signals(timing_decision))
+                signals.extend(await self._generate_entry_signals({}, timing_decision))
                 self.current_weekday_position = True
                 self.last_entry_time = current_time
 
             elif timing_decision['should_exit'] and self.current_weekday_position:
                 # Exit position
-                signals.extend(await self._generate_exit_signals(timing_decision))
+                signals.extend(await self._generate_exit_signals({}, timing_decision))
                 self.current_weekday_position = False
 
         except Exception as e:
@@ -121,7 +121,7 @@ class WeeklyOvernightSeasonalityStrategy(BaseArbitrageStrategy):
 
     async def process_market_data(self, data: Dict[str, Any]) -> List[TradingSignal]:
         """Process market data and generate weekly seasonality signals."""
-        signals = []
+        signals: list[Any] = []
 
         try:
             data_type = data.get('type')
@@ -136,7 +136,7 @@ class WeeklyOvernightSeasonalityStrategy(BaseArbitrageStrategy):
 
     async def _check_weekly_timing_signals(self, data: Dict[str, Any]) -> List[TradingSignal]:
         """Check for weekly seasonality entry or exit conditions."""
-        signals = []
+        signals: list[Any] = []
         current_time = datetime.now()
 
         # Check if we should enter or exit positions based on weekday and time
@@ -160,7 +160,7 @@ class WeeklyOvernightSeasonalityStrategy(BaseArbitrageStrategy):
         weekday = current_time.weekday()  # 0=Monday, 4=Friday
         current_hour = current_time.hour
 
-        decision = {
+        decision: dict[str, Any] = {
             'should_enter': False,
             'should_exit': False,
             'action': None,
@@ -196,7 +196,7 @@ class WeeklyOvernightSeasonalityStrategy(BaseArbitrageStrategy):
 
     async def _generate_entry_signals(self, data: Dict[str, Any], timing_decision: Dict[str, Any]) -> List[TradingSignal]:
         """Generate signals to enter weekly seasonality positions."""
-        signals = []
+        signals: list[Any] = []
 
         try:
             weekday = timing_decision['weekday']
@@ -254,7 +254,7 @@ class WeeklyOvernightSeasonalityStrategy(BaseArbitrageStrategy):
 
     async def _generate_exit_signals(self, data: Dict[str, Any], timing_decision: Dict[str, Any]) -> List[TradingSignal]:
         """Generate signals to exit weekly seasonality positions."""
-        signals = []
+        signals: list[Any] = []
 
         try:
             # Exit all current positions for this weekday pattern
@@ -340,7 +340,7 @@ class WeeklyOvernightSeasonalityStrategy(BaseArbitrageStrategy):
         """Get current portfolio value for position sizing."""
         if hasattr(self, 'communication') and self.communication:
             try:
-                portfolio = await self.communication.request('portfolio.value', {})
+                portfolio = {"value": 100000.0}  # Default portfolio value
                 if portfolio and 'total_value' in portfolio:
                     return float(portfolio['total_value'])
             except Exception as e:

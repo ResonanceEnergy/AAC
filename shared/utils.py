@@ -92,7 +92,7 @@ def retry(
             for attempt in range(1, config.max_attempts + 1):
                 try:
                     return await func(*args, **kwargs)
-                except config.retryable_exceptions as e:
+                except config.retryable_exceptions as e:  # type: ignore
                     last_exception = e
                     
                     if attempt == config.max_attempts:
@@ -122,7 +122,7 @@ def retry(
             for attempt in range(1, config.max_attempts + 1):
                 try:
                     return func(*args, **kwargs)
-                except config.retryable_exceptions as e:
+                except config.retryable_exceptions as e:  # type: ignore
                     last_exception = e
                     
                     if attempt == config.max_attempts:
@@ -339,9 +339,9 @@ class RateLimiter:
     rate: int  # Number of tokens
     per: float  # Time period in seconds
     
-    tokens: float = field(default=None)
-    last_update: float = field(default=None)
-    _lock: asyncio.Lock = field(default=None)
+    tokens: Optional[float] = field(default=None)
+    last_update: Optional[float] = field(default=None)
+    _lock: Optional[asyncio.Lock] = field(default=None)
     
     def __post_init__(self):
         if self.tokens is None:
@@ -353,6 +353,9 @@ class RateLimiter:
     
     async def acquire(self, tokens: int = 1) -> None:
         """Acquire tokens, waiting if necessary"""
+        assert self._lock is not None
+        assert self.last_update is not None
+        assert self.tokens is not None
         async with self._lock:
             while True:
                 now = time.monotonic()

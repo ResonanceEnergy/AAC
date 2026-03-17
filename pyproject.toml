@@ -216,6 +216,8 @@ max-line-length = 100
 
 [tool.pyright]
 typeCheckingMode = "off"
+reportMissingTypeStubs = false
+reportRedefinition = false
 
 [tool.mypy]
 python_version = "3.9"

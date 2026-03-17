@@ -43,7 +43,7 @@ class SuperResearchAgent(BaseResearchAgent):
 
         # Initialize super agent core
         self.super_core = get_super_agent_core(agent_id)
-        self.super_capabilities = []
+        self.super_capabilities: list[str] = []
 
         # Enhanced analysis components
         self.quantum_processor = None
@@ -86,7 +86,7 @@ class SuperResearchAgent(BaseResearchAgent):
             )
 
             if success:
-                self.super_capabilities = self.super_core.super_capabilities
+                self.super_capabilities = [str(c) for c in self.super_core.super_capabilities]
                 logger.info(f"✅ Super capabilities initialized for {self.agent_id}")
                 return True
             else:
@@ -478,7 +478,7 @@ class SuperResearchAgent(BaseResearchAgent):
             self.super_core.metrics.prediction_accuracy
         ]
 
-        return np.mean(efficiency_factors)
+        return float(np.mean(efficiency_factors))
 
 # Enhanced Theater B Agents (Attention/Narrative)
 class SuperNarrativeAnalyzerAgent(SuperResearchAgent):

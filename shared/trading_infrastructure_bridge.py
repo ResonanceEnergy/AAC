@@ -103,14 +103,14 @@ class TradingInfrastructureBridge:
             metrics = monitoring_data.get("metrics", {})
 
             # Set up monitoring for execution
-            monitor_id = await self._setup_execution_monitor(execution_id, metrics)
+            monitor_id = await self._setup_execution_monitor(execution_id or "", metrics)
 
             if monitor_id:
                 self.last_execution_monitor = datetime.now()
                 self.performance_metrics["executions_monitored"] += 1
 
                 await self.audit_logger.log_event(
-                    category=AuditCategory.TRADING,
+                    category=AuditCategory.TRADE,
                     action="execution_monitoring_started",
                     resource="trading_infrastructure_bridge",
                     severity=AuditSeverity.INFO,
@@ -140,14 +140,14 @@ class TradingInfrastructureBridge:
             description = incident_data.get("description", "")
 
             # Report incident to infrastructure
-            report_result = await self._report_incident(incident_id, severity, description, incident_data)
+            report_result = await self._report_incident(incident_id or "", severity, description, incident_data)
 
             if report_result:
                 self.last_incident_report = datetime.now()
                 self.performance_metrics["incidents_reported"] += 1
 
                 await self.audit_logger.log_event(
-                    category=AuditCategory.TRADING,
+                    category=AuditCategory.TRADE,
                     action="incident_reported",
                     resource="trading_infrastructure_bridge",
                     severity=AuditSeverity.WARNING if severity in ["high", "critical"] else AuditSeverity.INFO,
@@ -191,7 +191,7 @@ class TradingInfrastructureBridge:
                 await self._flush_audit_buffer()
 
             await self.audit_logger.log_event(
-                category=AuditCategory.TRADING,
+                category=AuditCategory.TRADE,
                 action="audit_log_processed",
                 resource="trading_infrastructure_bridge",
                 severity=AuditSeverity.INFO,

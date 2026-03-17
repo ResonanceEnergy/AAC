@@ -146,7 +146,7 @@ class AACDeploymentEngine:
         comm = CommunicationFramework()
         audit = AuditLogger()
 
-        self.market_data = MarketDataAggregator(comm, audit)
+        self.market_data = MarketDataAggregator()
         await self.market_data.initialize_aggregator()
 
         # Wait for market data to stabilize
@@ -308,7 +308,7 @@ class AACDeploymentEngine:
             'network_latency': network_latency
         }
 
-        logger.info(f"Performance baseline established")
+        logger.info("Performance baseline established")
 
     async def _measure_strategy_execution_times(self):
         """Measure execution times for all strategies"""
@@ -552,7 +552,6 @@ class AACDeploymentEngine:
 
     async def _benchmark_signal_processing(self):
         """Benchmark signal processing performance"""
-        import time
         # Measure actual processing overhead
         start = time.monotonic()
         for _ in range(100):
@@ -646,7 +645,7 @@ class AACDeploymentEngine:
 
         return risk_analysis
 
-    def _assess_strategy_risk(self, strategy: Dict[str, Any], risk_params: Dict[str, Any]) -> Dict[str, Any]:
+    def _assess_strategy_risk(self, strategy: Dict[str, Any], risk_params: Dict[str, Any]) -> float:
         """Assess risk level of a strategy"""
         risk_score = 0.0
 
@@ -1271,7 +1270,8 @@ class AACDeploymentEngine:
             json.dump(report, f, indent=2)
 
         # Print summary
-        logger.info("\n" + "="*80)
+        separator = "\n" + "=" * 80
+        logger.info(separator)
         logger.info("🚀 AAC DEPLOYMENT ENGINE - PHASE 2 COMPLETION REPORT")
         logger.info("="*80)
         logger.info(f"📅 Execution Time: {duration}")

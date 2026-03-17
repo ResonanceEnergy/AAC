@@ -213,7 +213,7 @@ class ProductionMonitoringSystem:
             self.logger.error(f"Health check {check.check_id} error: {e}")
             check.consecutive_failures += 1
 
-    async def _create_alert(self, severity: str, category: str, title: str, message: str, metadata: Dict[str, Any] = None):
+    async def _create_alert(self, severity: str, category: str, title: str, message: str, metadata: Optional[Dict[str, Any]] = None):
         """Create and send an alert"""
         # Check alert cooldown
         alert_key = f"{category}:{title}"
@@ -342,8 +342,8 @@ class ProductionMonitoringSystem:
     async def _check_market_data_feeds(self) -> bool:
         """Check market data feeds status"""
         try:
-            from shared.market_data_connector import get_connector_manager
-            manager = get_connector_manager()
+            from shared.market_data_connector import MarketDataManager
+            manager = MarketDataManager()
             if manager:
                 status = manager.get_status()
                 connected = status.get('connected_feeds', 0)

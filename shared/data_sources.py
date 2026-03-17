@@ -859,7 +859,10 @@ class MetalBlockchainSource(BaseDataSource):
                             )
                             await self._notify(event)
                             if callback:
-                                await callback(event) if asyncio.iscoroutinefunction(callback) else callback(event)
+                                if asyncio.iscoroutinefunction(callback):
+                                    await callback(event)
+                                else:
+                                    callback(event)
 
                     last_block = current
 

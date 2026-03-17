@@ -49,8 +49,8 @@ class OvernightDriftAttentionStocksStrategy(BaseArbitrageStrategy):
         ]
 
         # Tracking
-        self.active_positions = {}
-        self.attention_scores = {}
+        self.active_positions: dict[str, Any] = {}
+        self.attention_scores: dict[str, float] = {}
 
     async def _initialize_strategy(self):
         """Initialize strategy-specific components."""
@@ -115,7 +115,9 @@ class OvernightDriftAttentionStocksStrategy(BaseArbitrageStrategy):
         data_type = data.get('type')
 
         if data_type == 'equity_price':
-            self.market_data[data.get('symbol')] = data
+            symbol = data.get('symbol', '')
+            if symbol:
+                self.market_data[symbol] = data
         elif data_type == 'market_schedule':
             await self._check_market_schedule(data)
 

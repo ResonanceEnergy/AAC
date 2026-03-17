@@ -107,7 +107,7 @@ for f in sorted(os.listdir('.')):
         scan_file(f, f)
 
 # Print by category
-cats = {}
+cats: dict[str, list[tuple]] = {}  # type: ignore[type-arg]
 for g in gaps:
     cats.setdefault(g[3], []).append(g)
 
