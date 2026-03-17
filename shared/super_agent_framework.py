@@ -133,7 +133,11 @@ class NeuralNetworkModule:
             nn.Linear(hidden_size * 2, output_size),
             nn.Softmax(dim=1)
         )
-        self.attention = nn.MultiheadAttention(hidden_size * 2, num_heads=8)
+        # Attention must match layers output dim (output_size), not hidden_size
+        _num_heads = max(1, min(8, output_size))
+        while output_size % _num_heads != 0 and _num_heads > 1:
+            _num_heads -= 1
+        self.attention = nn.MultiheadAttention(output_size, num_heads=_num_heads)
 
     def __call__(self, x):
         return self.forward(x)
