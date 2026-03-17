@@ -117,6 +117,21 @@ class DepartmentAdapter:
             self._event_handlers[event_type] = []
         self._event_handlers[event_type].append(handler)
 
+    async def quarantine_source(self, source_id: str) -> bool:
+        """Quarantine a data source. Override in subclass."""
+        raise NotImplementedError
+
+    async def route_failover(self, from_venue: str, to_venue: str) -> bool:
+        """Execute venue failover. Override in subclass."""
+        raise NotImplementedError
+
+    async def freeze_strategy(self, strategy_id: str) -> bool:
+        """Freeze a strategy. Override in subclass."""
+        raise NotImplementedError
+
+    async def force_reconciliation(self, strategy_id: str) -> bool:
+        """Force reconciliation. Override in subclass."""
+        raise NotImplementedError
 
 class TradingExecutionAdapter(DepartmentAdapter):
     """Adapter for TradingExecution department."""
@@ -305,8 +320,9 @@ class BigBrainIntelligenceAdapter(DepartmentAdapter):
         event = CrossDepartmentEvent(
             event_type='source_quarantined',
             source_department=self.department,
-            data={'source_id': source_id, 'quarantined_at': datetime.now().isoformat()},
-            priority='high'
+            target_departments=[],
+            payload={'source_id': source_id, 'quarantined_at': datetime.now().isoformat()},
+            priority=1
         )
         await self.send_event(event)
         logger.warning(f"QUARANTINED data source: {source_id}")
@@ -413,7 +429,7 @@ class CentralAccountingAdapter(DepartmentAdapter):
         
     async def force_reconciliation(self, strategy_id: str) -> bool:
         """Force immediate reconciliation (A_FORCE_RECON action)."""
-        recon_record = {
+        recon_record: dict[str, Any] = {
             'strategy_id': strategy_id,
             'requested_at': datetime.now().isoformat(),
             'status': 'pending',
@@ -515,12 +531,13 @@ class CryptoIntelligenceAdapter(DepartmentAdapter):
         event = CrossDepartmentEvent(
             event_type='venue_failover',
             source_department=self.department,
-            data={
+            target_departments=[],
+            payload={
                 'from_venue': from_venue,
                 'to_venue': to_venue,
                 'failover_at': datetime.now().isoformat(),
             },
-            priority='critical'
+            priority=1
         )
         await self.send_event(event)
         logger.warning(f"FAILOVER: {from_venue} -> {to_venue} (venue health updated)")
@@ -723,7 +740,7 @@ class CrossDepartmentIntegrationEngine:
     # BARREN WUFFET SAFETY ACTIONS
     # ═══════════════════════════════════════════════════════════════════════
     
-    async def execute_safety_action(self, action: str, params: Dict[str, Any] = None) -> bool:
+    async def execute_safety_action(self, action: str, params: Optional[Dict[str, Any]] = None) -> bool:
         """Execute an BARREN WUFFET safety action."""
         params = params or {}
         

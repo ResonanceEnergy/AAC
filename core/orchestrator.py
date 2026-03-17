@@ -34,6 +34,8 @@ from shared.communication import CommunicationFramework
 from shared.audit_logger import AuditLogger
 from CentralAccounting.database import AccountingDatabase
 
+logger = logging.getLogger(__name__)
+
 # AAC 2100 Quantum and AI Enhancements
 from shared.quantum_arbitrage_engine import QuantumArbitrageEngine
 from shared.ai_incident_predictor import AIIncidentPredictor
@@ -1192,11 +1194,10 @@ class AAC2100Orchestrator:
         )
         
         # Log detailed latency breakdown every hour
-        if hasattr(self, '_last_latency_log'):
-            if (datetime.now() - self._last_latency_log).total_seconds() > 3600:
-                self._log_detailed_latency()
-                self._last_latency_log = datetime.now()
-        else:
+        if not hasattr(self, '_last_latency_log'):
+            self._last_latency_log = datetime.now()
+        if (datetime.now() - self._last_latency_log).total_seconds() > 3600:
+            self._log_detailed_latency()
             self._last_latency_log = datetime.now()
             self._log_detailed_latency()
 
@@ -1240,8 +1241,8 @@ class AAC2100Orchestrator:
             self.logger.warning(f"Failed to get account balance: {e}")
             return getattr(self.config.risk, 'default_account_balance', 10000)
 
-    async def run(self):
-        """Main run method"""
+    async def _run_simple(self):
+        """Simple run method (legacy — superseded by run() with quantum/AI)"""
         await self.initialize()
         
         # Setup signal handlers (platform-specific)

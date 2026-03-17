@@ -36,6 +36,7 @@ class SignalType(Enum):
     SHORT = "short"
     CLOSE = "close"
     HEDGE = "hedge"
+    FLAT = "flat"
 
 
 @dataclass

@@ -100,12 +100,17 @@ class PredictiveMaintenanceEngine:
             for component, config in self.monitored_components.items():
                 # Heuristic prediction based on component thresholds
                 # Uses configured failure_probability as baseline risk
-                base_risk = config["failure_probability"]
+                base_risk = float(config.get("failure_probability", 0.01))
                 # Apply time-decay factor — longer uptime increases risk
-                uptime_hours = (datetime.now() - config.get('last_restart', datetime.now())).total_seconds() / 3600 if isinstance(config.get('last_restart'), datetime) else 1.0
+                last_restart = config.get('last_restart')
+                if isinstance(last_restart, datetime):
+                    uptime_hours = (datetime.now() - last_restart).total_seconds() / 3600
+                else:
+                    uptime_hours = 1.0
                 failure_probability = min(base_risk * (1 + uptime_hours / 100), 1.0)
 
-                if failure_probability > config["failure_probability"]:
+                threshold = float(config.get("failure_probability", 0.01))
+                if failure_probability > threshold:
                     hours_to_failure = max(1.0, 24.0 * (1 - failure_probability))
                     prediction = {
                         "component": component,
@@ -176,7 +181,11 @@ class PredictiveMaintenanceEngine:
 
             # Update schedule
             config = self.monitored_components[component]
-            self.maintenance_schedule[component] = datetime.now() + config["maintenance_interval"]
+            interval = config["maintenance_interval"]
+            if isinstance(interval, timedelta):
+                self.maintenance_schedule[component] = datetime.now() + interval
+            else:
+                self.maintenance_schedule[component] = datetime.now() + timedelta(hours=1)
 
             result = {
                 "success": True,

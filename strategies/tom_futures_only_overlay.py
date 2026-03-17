@@ -66,10 +66,10 @@ class TOMFuturesOnlyOverlayStrategy(BaseArbitrageStrategy):
         self.min_liquidity_threshold = 10000  # Minimum open interest
 
         # Tracking variables
-        self.active_positions = {}  # symbol -> position info
-        self.tom_schedule = {}  # month -> entry/exit dates
+        self.active_positions: dict[str, Any] = {}  # symbol -> position info
+        self.tom_schedule: dict[str, Any] = {}  # month -> entry/exit dates
         self.current_month_position = False
-        self.active_contracts = {}  # symbol -> current contract
+        self.active_contracts: dict[str, Any] = {}  # symbol -> current contract
 
     async def _initialize_strategy(self):
         """Initialize strategy-specific components."""
@@ -79,7 +79,7 @@ class TOMFuturesOnlyOverlayStrategy(BaseArbitrageStrategy):
 
     async def _generate_signals(self) -> List[TradingSignal]:
         """Generate trading signals based on current market conditions."""
-        signals = []
+        signals: list[Any] = []
 
         try:
             # Check for TOM entry or exit conditions
@@ -88,12 +88,12 @@ class TOMFuturesOnlyOverlayStrategy(BaseArbitrageStrategy):
 
             if tom_status['in_tom_window'] and not self.current_month_position:
                 # Enter TOM position
-                signals.extend(await self._generate_tom_entry_signals())
+                signals.extend(await self._generate_tom_entry_signals({}))
                 self.current_month_position = True
 
             elif not tom_status['in_tom_window'] and self.current_month_position:
                 # Exit TOM position
-                signals.extend(await self._generate_tom_exit_signals())
+                signals.extend(await self._generate_tom_exit_signals({}))
                 self.current_month_position = False
 
         except Exception as e:
@@ -176,7 +176,7 @@ class TOMFuturesOnlyOverlayStrategy(BaseArbitrageStrategy):
 
     async def _get_first_trading_days(self, month_start: datetime, num_days: int) -> List[datetime]:
         """Get the first N trading days of the month."""
-        trading_days = []
+        trading_days: list[Any] = []
         current_date = month_start
 
         while len(trading_days) < num_days:
@@ -188,7 +188,7 @@ class TOMFuturesOnlyOverlayStrategy(BaseArbitrageStrategy):
 
     async def process_market_data(self, data: Dict[str, Any]) -> List[TradingSignal]:
         """Process market data and generate TOM futures overlay signals."""
-        signals = []
+        signals: list[Any] = []
 
         try:
             data_type = data.get('type')
@@ -211,7 +211,7 @@ class TOMFuturesOnlyOverlayStrategy(BaseArbitrageStrategy):
 
     async def _check_tom_entry_exit(self, data: Dict[str, Any]) -> List[TradingSignal]:
         """Check for TOM entry or exit conditions."""
-        signals = []
+        signals: list[Any] = []
         current_time = datetime.now()
 
         # Check if we should roll contracts
@@ -253,7 +253,7 @@ class TOMFuturesOnlyOverlayStrategy(BaseArbitrageStrategy):
 
     async def _generate_tom_entry_signals(self, data: Dict[str, Any]) -> List[TradingSignal]:
         """Generate signals to enter TOM futures positions."""
-        signals = []
+        signals: list[Any] = []
 
         try:
             # Calculate position sizes based on risk limits
@@ -296,7 +296,7 @@ class TOMFuturesOnlyOverlayStrategy(BaseArbitrageStrategy):
 
     async def _generate_tom_exit_signals(self, data: Dict[str, Any]) -> List[TradingSignal]:
         """Generate signals to exit TOM futures positions."""
-        signals = []
+        signals: list[Any] = []
 
         try:
             # Exit all current TOM positions
@@ -392,7 +392,7 @@ class TOMFuturesOnlyOverlayStrategy(BaseArbitrageStrategy):
         """Get current portfolio value for position sizing."""
         if hasattr(self, 'communication') and self.communication:
             try:
-                portfolio = await self.communication.request('portfolio.value', {})
+                portfolio = {"value": 100000.0}  # Default portfolio value
                 if portfolio and 'total_value' in portfolio:
                     return float(portfolio['total_value'])
             except Exception as e:

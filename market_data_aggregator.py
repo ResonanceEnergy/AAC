@@ -41,6 +41,7 @@ class MarketDataAggregator:
 
     def __init__(self, **kwargs: Any) -> None:
         self.sources: List[str] = kwargs.get("sources", [])
+        self.logger = logging.getLogger(__name__)
         self._warned = False
 
     def _warn_once(self) -> None:

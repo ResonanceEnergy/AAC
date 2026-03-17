@@ -159,6 +159,6 @@ for cat, count in cats.most_common():
 
 # Show per-file breakdown for top files
 file_counts = Counter(g[2] for g in gaps)
-logger.info(f"\nTop 30 files by gap count:")
+logger.info("\nTop 30 files by gap count:")
 for f, c in file_counts.most_common(30):
     logger.info(f"  {c:4d}  {f}")

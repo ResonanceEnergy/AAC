@@ -32,6 +32,7 @@ class AuditCategory(str, Enum):
     ERROR = "error"
     SYSTEM = "system"
     TRADE = "trade"
+    TRADING = "trade"  # alias for TRADE
     BALANCE = "balance"
 
 
@@ -230,7 +231,7 @@ class AuditLogger:
         if hasattr(self, '_file_handler') and self._file_handler:
             self._file_handler.close()
             self.logger.removeHandler(self._file_handler)
-            self._file_handler = None
+            self._file_handler = None  # type: ignore[assignment]
     
     @contextmanager
     def _get_db_connection(self) -> Generator[sqlite3.Connection, None, None]:
@@ -396,7 +397,7 @@ class AuditLogger:
         # Replace problematic Unicode characters with ASCII equivalents
         replacements = {
             '\u2011': '-', '\u2013': '-', '\u2014': '-', '\u2015': '-',
-            ''': "'", ''': "'", '"': '"', '"': '"',
+            '\u2018': "'", '\u2019': "'", '\u201c': '"', '\u201d': '"',
             '…': '...', '•': '*', '°': 'deg', '™': '(TM)',
             '®': '(R)', '©': '(C)', '€': 'EUR', '£': 'GBP',
             '¥': 'JPY', '₹': 'INR', '₿': 'BTC', 'Ξ': 'ETH',
@@ -632,7 +633,7 @@ class AuditLogger:
             return []
         
         query = "SELECT * FROM audit_events WHERE 1=1"
-        params = []
+        params: list[Any] = []
         
         if category:
             query += " AND category = ?"
@@ -782,8 +783,6 @@ def audit_log(
     Writes a structured audit record without requiring an async context.
     This is the preferred shorthand for simple fire-and-forget audit events.
     """
-    import logging
-    import json
     record = {
         "event": event,
         "severity": severity,
