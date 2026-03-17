@@ -15,7 +15,7 @@ import os
 from datetime import datetime, timedelta
 from pathlib import Path
 from collections.abc import Generator
-from typing import Dict, List, Optional, Any, Union
+from typing import Dict, List, Optional, Any, Union, cast
 from dataclasses import dataclass, field, asdict
 from enum import Enum
 import sqlite3
@@ -32,7 +32,6 @@ class AuditCategory(str, Enum):
     ERROR = "error"
     SYSTEM = "system"
     TRADE = "trade"
-    TRADING = "trade"  # alias for TRADE
     BALANCE = "balance"
 
 
@@ -43,41 +42,6 @@ class AuditSeverity(str, Enum):
     WARNING = "warning"
     ERROR = "error"
     CRITICAL = "critical"
-
-
-_CATEGORY_ALIASES = {
-    "api": AuditCategory.API_CALL,
-    "api_call": AuditCategory.API_CALL,
-    "auth": AuditCategory.AUTHENTICATION,
-    "authentication": AuditCategory.AUTHENTICATION,
-    "config": AuditCategory.CONFIGURATION,
-    "configuration": AuditCategory.CONFIGURATION,
-    "security": AuditCategory.SECURITY,
-    "error": AuditCategory.ERROR,
-    "system": AuditCategory.SYSTEM,
-    "order": AuditCategory.ORDER,
-    "trade": AuditCategory.TRADE,
-    "balance": AuditCategory.BALANCE,
-}
-
-
-_SEVERITY_ALIASES = {
-    "debug": AuditSeverity.DEBUG,
-    "trace": AuditSeverity.DEBUG,
-    "info": AuditSeverity.INFO,
-    "notice": AuditSeverity.INFO,
-    "warning": AuditSeverity.WARNING,
-    "warn": AuditSeverity.WARNING,
-    "medium": AuditSeverity.WARNING,
-    "high": AuditSeverity.ERROR,
-    "error": AuditSeverity.ERROR,
-    "critical": AuditSeverity.CRITICAL,
-    "fatal": AuditSeverity.CRITICAL,
-    "sev1": AuditSeverity.CRITICAL,
-    "sev2": AuditSeverity.ERROR,
-    "sev3": AuditSeverity.WARNING,
-    "sev4": AuditSeverity.INFO,
-}
 
 
 @dataclass
@@ -231,7 +195,7 @@ class AuditLogger:
         if hasattr(self, '_file_handler') and self._file_handler:
             self._file_handler.close()
             self.logger.removeHandler(self._file_handler)
-            self._file_handler = None  # type: ignore[assignment]
+            self._file_handler = cast(Any, None)
     
     @contextmanager
     def _get_db_connection(self) -> Generator[sqlite3.Connection, None, None]:
@@ -285,44 +249,14 @@ class AuditLogger:
         
         else:
             return data
-
-    @staticmethod
-    def _normalize_category(category: AuditCategory | str | None) -> AuditCategory:
-        """Coerce string and alias inputs into an AuditCategory."""
-        if isinstance(category, AuditCategory):
-            return category
-        if isinstance(category, str):
-            normalized = category.strip().lower()
-            if normalized in _CATEGORY_ALIASES:
-                return _CATEGORY_ALIASES[normalized]
-            try:
-                return AuditCategory(normalized)
-            except ValueError:
-                pass
-        return AuditCategory.SYSTEM
-
-    @staticmethod
-    def _normalize_severity(severity: AuditSeverity | str | None) -> AuditSeverity:
-        """Coerce string and alias inputs into an AuditSeverity."""
-        if isinstance(severity, AuditSeverity):
-            return severity
-        if isinstance(severity, str):
-            normalized = severity.strip().lower()
-            if normalized in _SEVERITY_ALIASES:
-                return _SEVERITY_ALIASES[normalized]
-            try:
-                return AuditSeverity(normalized)
-            except ValueError:
-                pass
-        return AuditSeverity.INFO
     
     async def _log_full_event(
         self,
-        category: AuditCategory | str,
+        category: AuditCategory,
         action: str,
         resource: str,
         status: str = "success",
-        severity: AuditSeverity | str = AuditSeverity.INFO,
+        severity: AuditSeverity = AuditSeverity.INFO,
         user: str = "system",
         details: Optional[Dict] = None,
         request_data: Optional[Dict] = None,
@@ -354,13 +288,11 @@ class AuditLogger:
             Created AuditEvent
         """
         async with self._lock:
-            category_enum = self._normalize_category(category)
-            severity_enum = self._normalize_severity(severity)
             event = AuditEvent(
                 event_id=self._generate_event_id(),
                 timestamp=datetime.now(),
-                category=category_enum,
-                severity=severity_enum,
+                category=category,
+                severity=severity,
                 action=action,
                 user=user,
                 resource=resource,
@@ -397,7 +329,7 @@ class AuditLogger:
         # Replace problematic Unicode characters with ASCII equivalents
         replacements = {
             '\u2011': '-', '\u2013': '-', '\u2014': '-', '\u2015': '-',
-            '\u2018': "'", '\u2019': "'", '\u201c': '"', '\u201d': '"',
+            ''': "'", ''': "'", '"': '"', '"': '"',
             '…': '...', '•': '*', '°': 'deg', '™': '(TM)',
             '®': '(R)', '©': '(C)', '€': 'EUR', '£': 'GBP',
             '¥': 'JPY', '₹': 'INR', '₿': 'BTC', 'Ξ': 'ETH',
@@ -578,7 +510,7 @@ class AuditLogger:
         action: str = "",
         details: Optional[Dict] = None,
         status: str = "success",
-        severity: AuditSeverity | str = AuditSeverity.INFO,
+        severity: AuditSeverity = AuditSeverity.INFO,
         user: str = "system",
         resource: Optional[str] = None,
         event_type: Optional[str] = None,
@@ -591,15 +523,24 @@ class AuditLogger:
         """
         # Determine action — callers may use event_type instead of action
         resolved_action = action or event_type or "unknown"
-        category_enum = self._normalize_category(category)
-        severity_enum = self._normalize_severity(severity)
+
+        # Convert category to enum
+        if isinstance(category, AuditCategory):
+            category_enum = category
+        elif isinstance(category, str):
+            try:
+                category_enum = AuditCategory(category.upper())
+            except ValueError:
+                category_enum = AuditCategory.SYSTEM
+        else:
+            category_enum = AuditCategory.SYSTEM
 
         return await self._log_full_event(
             category=category_enum,
             action=resolved_action,
             resource=resource or (category if isinstance(category, str) else category_enum.value),
             status=status,
-            severity=severity_enum,
+            severity=severity,
             user=user,
             details=details,
         )
@@ -633,7 +574,7 @@ class AuditLogger:
             return []
         
         query = "SELECT * FROM audit_events WHERE 1=1"
-        params: list[Any] = []
+        params: List[Any] = []
         
         if category:
             query += " AND category = ?"
@@ -783,6 +724,8 @@ def audit_log(
     Writes a structured audit record without requiring an async context.
     This is the preferred shorthand for simple fire-and-forget audit events.
     """
+    import logging
+    import json
     record = {
         "event": event,
         "severity": severity,
