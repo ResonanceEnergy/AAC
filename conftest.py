@@ -45,12 +45,22 @@ def project_root() -> Path:
 
 
 @pytest.fixture(scope="session")
-def paper_trading_env(monkeypatch_session=None):
+def paper_trading_env():
     """Ensure all tests run in paper-trading mode."""
+    old_pt = os.environ.get("PAPER_TRADING")
+    old_lt = os.environ.get("LIVE_TRADING_ENABLED")
     os.environ["PAPER_TRADING"] = "true"
     os.environ["LIVE_TRADING_ENABLED"] = "false"
     yield
-    # teardown: nothing needed
+    # Restore original values
+    if old_pt is None:
+        os.environ.pop("PAPER_TRADING", None)
+    else:
+        os.environ["PAPER_TRADING"] = old_pt
+    if old_lt is None:
+        os.environ.pop("LIVE_TRADING_ENABLED", None)
+    else:
+        os.environ["LIVE_TRADING_ENABLED"] = old_lt
 
 
 @pytest.fixture
