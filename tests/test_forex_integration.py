@@ -396,9 +396,9 @@ def test_strategy_mapping_has_forex():
 
 
 def test_strategy_count():
-    """Total strategy count is 55 (49 original + 3 Metallicus + 3 FX)."""
+    """Total strategy count is 56 (49 original + 3 Metallicus + 3 FX + 1 Matrix Maximizer)."""
     from strategies.strategy_agent_master_mapping import STRATEGIES_DATA
-    assert len(STRATEGIES_DATA) == 55
+    assert len(STRATEGIES_DATA) == 56
 
 
 # ─── DataAggregator Registration ────────────────────────────────────────
