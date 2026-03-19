@@ -99,6 +99,11 @@ try:
 except ImportError:
     MatrixChatbot = None  # type: ignore[misc,assignment]
 
+try:
+    from strategies.matrix_maximizer.http_health import HTTPHealthCheck
+except ImportError:
+    HTTPHealthCheck = None  # type: ignore[misc,assignment]
+
 __all__ = [
     # Core
     "MatrixMaximizer",
@@ -131,4 +136,5 @@ __all__ = [
     "MatrixBacktester",
     "MatrixDashboard",
     "MatrixChatbot",
+    "HTTPHealthCheck",
 ]
