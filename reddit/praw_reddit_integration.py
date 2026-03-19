@@ -134,7 +134,7 @@ class PRAWRedditClient:
             )
             logger.info("✅ PRAW Reddit client initialized successfully")
         except Exception as e:
-            logger.info(f"❌ Failed to initialize PRAW client: {e}")
+            logger.error(f"Failed to initialize PRAW client: {e}")
             self.reddit = None
 
     def is_authenticated(self) -> bool:
