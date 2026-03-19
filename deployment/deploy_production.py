@@ -354,7 +354,7 @@ class AACProductionDeployer:
                 requests.get('https://api.binance.com/api/v3/ping', timeout=5)
                 health_status['checks']['network'] = 'connected'
             except Exception as e:
-                logger.error(f"Deployment step failed: {e}")
+                logger.warning(f"Network connectivity check failed: {e}")
                 health_status['checks']['network'] = 'disconnected'
 
             # API responsiveness

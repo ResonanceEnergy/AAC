@@ -402,7 +402,8 @@ class AACMasterMonitoringDashboard:
                             f for f in bbi_dir.glob('*.py')
                             if f.stem not in ('__init__', '__pycache__')
                         ])
-                except Exception:
+                except Exception as e:
+                    self.logger.debug(f"BBI agent count fallback: {e}")
                     agent_count = 0
                 return {
                     'status': 'healthy',
@@ -449,7 +450,8 @@ class AACMasterMonitoringDashboard:
             s.close()
             latency = round((time.monotonic() - start) * 1000, 1)
             return {'status': 'healthy' if latency < 200 else 'warning', 'latency_ms': latency, 'packet_loss': 0.0}
-        except Exception:
+        except Exception as e:
+            self.logger.debug(f"Network health check failed: {e}")
             latency = round((time.monotonic() - start) * 1000, 1)
             return {'status': 'degraded', 'latency_ms': latency, 'packet_loss': 100.0}
 
@@ -649,7 +651,8 @@ class AACMasterMonitoringDashboard:
                 'score': 100 if mfa_enabled else 0,
                 'status': 'healthy' if mfa_enabled else 'not_configured'
             }
-        except Exception:
+        except Exception as e:
+            self.logger.debug(f"MFA status check failed: {e}")
             return {'enabled_users': 0, 'total_users': 0, 'score': 0, 'status': 'not_implemented'}
 
     def _check_encryption_status(self) -> Dict[str, Any]:
@@ -664,7 +667,8 @@ class AACMasterMonitoringDashboard:
                 'score': 100 if encrypted else 0,
                 'status': 'healthy' if encrypted else 'not_configured'
             }
-        except Exception:
+        except Exception as e:
+            self.logger.debug(f"Encryption status check failed: {e}")
             return {'encrypted_databases': 0, 'total_databases': 0, 'score': 0, 'status': 'not_implemented'}
 
     def _check_rbac_status(self) -> Dict[str, Any]:
@@ -679,7 +683,8 @@ class AACMasterMonitoringDashboard:
                 'score': min(100, roles * 15),
                 'status': 'healthy' if roles >= 3 else 'warning'
             }
-        except Exception:
+        except Exception as e:
+            self.logger.debug(f"RBAC status check failed: {e}")
             return {'roles_defined': 0, 'permissions_assigned': 0, 'score': 0, 'status': 'not_implemented'}
 
     def _check_api_security_status(self) -> Dict[str, Any]:
@@ -693,7 +698,8 @@ class AACMasterMonitoringDashboard:
                 'score': 80 if has_tls else 20,
                 'status': 'healthy' if has_tls else 'warning'
             }
-        except Exception:
+        except Exception as e:
+            self.logger.debug(f"API security status check failed: {e}")
             return {'endpoints_secured': 0, 'total_endpoints': 0, 'score': 0, 'status': 'not_implemented'}
 
     async def _get_forecaster_intel(self) -> Dict[str, Any]:
@@ -1207,8 +1213,8 @@ class AACMasterMonitoringDashboard:
                     expr = o['expression'].replace('_', ' ').upper()
                     stdscr.addstr(y_pos, 0, f"  #{o['rank']} {o['ticker']} {expr} sc={o['score']}"[:width - 1])
                     y_pos += 1
-            except Exception:
-                pass
+            except curses.error:
+                pass  # Terminal too small for this panel
 
         # ── IBKR Orders + $920 Maximization (curses panel) ─────────────────
         ibkr = data.get('ibkr_orders', {})
@@ -1233,8 +1239,8 @@ class AACMasterMonitoringDashboard:
                     tickers = '+'.join(r['ticker'] for r in recs)
                     stdscr.addstr(y_pos, 0, f"  DEPLOY: {tickers}  cost=${ibkr.get('rec_total_cost', 0):.0f}"[:width - 1])
                     y_pos += 1
-            except Exception:
-                pass
+            except curses.error:
+                pass  # Terminal too small for this panel
 
         # ── Matrix Maximizer (curses panel) ────────────────────────────
         mm = data.get('matrix_maximizer', {})
@@ -1254,8 +1260,8 @@ class AACMasterMonitoringDashboard:
                         break
                     stdscr.addstr(y_pos, 0, f"  {p['ticker']:6} K={p.get('strike','?')} sc={p.get('score','?')}"[:width - 1])
                     y_pos += 1
-            except Exception:
-                pass
+            except curses.error:
+                pass  # Terminal too small for this panel
 
         # ── System Registry Summary (curses panel) ─────────────────────
         registry = data.get('registry', {})
@@ -1271,8 +1277,8 @@ class AACMasterMonitoringDashboard:
                         f"Dept:{s.get('departments_ok',0)}/{s.get('departments_total',0)}")
                 stdscr.addstr(y_pos, 0, line[:width - 1])
                 y_pos += 1
-            except Exception:
-                pass
+            except curses.error:
+                pass  # Terminal too small for this panel
 
         # Alerts
         alerts = data.get('alerts', [])
