@@ -31,21 +31,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 from shared.config_loader import get_config
 from shared.audit_logger import get_audit_logger
-# Removed circular import: from strategy_execution_engine import StrategySignal, StrategyExecutionMode
-
-# Define enums locally to avoid circular imports
-class StrategyExecutionMode(Enum):
-    """StrategyExecutionMode class."""
-    PAPER_TRADING = "paper_trading"
-    LIVE_TRADING = "live_trading"
-    SIMULATION = "simulation"
-
-class StrategySignal(Enum):
-    """StrategySignal class."""
-    BUY = "buy"
-    SELL = "sell"
-    HOLD = "hold"
-    CLOSE = "close"
+from shared.strategy_enums import StrategySignal, StrategyExecutionMode
 
 from TradingExecution.execution_engine import ExecutionEngine, Order, OrderSide, OrderType, OrderStatus
 
@@ -533,9 +519,9 @@ async def main():
 
         if args.test_signal:
             # Create test signal
-            from strategy_execution_engine import StrategySignal as StratSignal
+            from strategies.strategy_execution_engine import StrategyTradeSignal
 
-            test_signal = StratSignal(
+            test_signal = StrategyTradeSignal(
                 strategy_id=1,
                 strategy_name="Test ETF Strategy",
                 symbol="SPY",

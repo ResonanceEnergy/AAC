@@ -226,8 +226,8 @@ class RESTConnector(BaseMarketDataConnector):
 
     @abstractmethod
     async def subscribe_symbols(self, symbols: List[str]) -> None:
-        """REST APIs typically don't have subscriptions - implement polling"""
-        pass
+        """Subscribe to symbols. REST connectors should implement polling."""
+        raise NotImplementedError("Subclasses must implement subscribe_symbols with a polling mechanism")
 
 
 class WebSocketConnector(BaseMarketDataConnector):

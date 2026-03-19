@@ -151,14 +151,28 @@ class ExchangeSafeguards:
 
     @asynccontextmanager
     async def safe_call(self):
-        """Context manager for safe exchange API calls"""
+        """Context manager for safe exchange API calls with rate limiting and circuit breaker."""
         # Rate limiting
         await self.rate_limiter.wait_for_token()
 
-        # Circuit breaker protection
+        # Circuit breaker check
+        if self.circuit_breaker.state == CircuitBreakerState.OPEN:
+            if time.time() < self.circuit_breaker.next_attempt_time:
+                raise CircuitBreakerOpenException(
+                    f"Circuit breaker OPEN for {self.exchange_name} — "
+                    f"retry after {self.circuit_breaker.next_attempt_time}"
+                )
+            else:
+                self.circuit_breaker.state = CircuitBreakerState.HALF_OPEN
+
         try:
             yield
+            # Success — reset on recovery
+            if self.circuit_breaker.state == CircuitBreakerState.HALF_OPEN:
+                self.circuit_breaker.state = CircuitBreakerState.CLOSED
+            self.circuit_breaker.failure_count = 0
         except Exception as e:
+            self.circuit_breaker._record_failure()
             logger.error(f"Exchange {self.exchange_name} call failed: {e}")
             raise
 

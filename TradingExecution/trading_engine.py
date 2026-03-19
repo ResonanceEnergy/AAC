@@ -72,7 +72,7 @@ class Order:
     price: Optional[float] = None
     status: OrderStatus = OrderStatus.PENDING
     filled_quantity: float = 0.0
-    average_price: float = 0.0
+    average_fill_price: float = 0.0
     created_at: datetime = field(default_factory=datetime.now)
     updated_at: datetime = field(default_factory=datetime.now)
     metadata: Dict[str, Any] = field(default_factory=dict)
@@ -323,7 +323,7 @@ class TradingEngine:
             self.logger.info(f"{'DRY RUN' if self.dry_run else 'PAPER'}: {side.value} {quantity} {symbol} @ {price or 'market'}")
             order.status = OrderStatus.FILLED
             order.filled_quantity = quantity
-            order.average_price = price or 0.0
+            order.average_fill_price = price or 0.0
         else:
             # Real exchange execution
             if exchange not in self.exchange_connections:
@@ -342,7 +342,7 @@ class TradingEngine:
                     )
                     order.status = OrderStatus.FILLED if result.status == 'filled' else OrderStatus.OPEN
                     order.filled_quantity = result.filled_quantity
-                    order.average_price = result.average_price
+                    order.average_fill_price = getattr(result, 'average_fill_price', getattr(result, 'average_price', 0.0))
                     order.metadata['exchange_order_id'] = result.order_id
                     self.logger.info(f"Order executed: {order_id} -> {result.order_id}")
                 except Exception as e:

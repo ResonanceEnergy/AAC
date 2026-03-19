@@ -6,6 +6,7 @@ Integrates insights: Cross-temporal arbitrage, quantum simulation for market mic
 
 import asyncio
 import logging
+import os
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any, Tuple
@@ -538,11 +539,36 @@ class QuantumExecutionEngine:
         return plan
 
     async def _execute_on_venue(self, venue: str, plan: Dict[str, Any]) -> bool:
-        """Execute on specific venue"""
-        # In real implementation, this would connect to exchange APIs
-        logger.info(f"Executing on {venue}: {plan}")
-        await asyncio.sleep(0.001)  # Quantum-fast execution
-        return True  # paper-mode only — always succeeds
+        """Execute on specific venue.
+
+        In paper/dry-run mode: logs the trade and returns True.
+        In live mode: routes to exchange connector and returns actual result.
+        """
+        paper = os.environ.get('PAPER_TRADING', 'true').lower() == 'true'
+        dry_run = os.environ.get('DRY_RUN', 'true').lower() == 'true'
+
+        if paper or dry_run:
+            logger.info(f"[{'DRY_RUN' if dry_run else 'PAPER'}] Would execute on {venue}: {plan}")
+            return True
+
+        # Live execution — attempt real exchange connector
+        try:
+            from TradingExecution.execution_engine import ExecutionEngine
+            engine = ExecutionEngine()
+            logger.info(f"Routing live order to {venue}: {plan}")
+            result = await engine.execute_order(
+                exchange=venue,
+                symbol=plan.get('symbol', 'UNKNOWN'),
+                side='buy',
+                quantity=plan.get('quantity', 0),
+                price=plan.get('price'),
+            )
+            success = result.get('status') == 'filled' if isinstance(result, dict) else bool(result)
+            logger.info(f"Live execution on {venue}: {'SUCCESS' if success else 'FAILED'}")
+            return success
+        except Exception as e:
+            logger.error(f"Live execution on {venue} failed: {e}")
+            return False
 
 class QuantumRiskManager:
     """

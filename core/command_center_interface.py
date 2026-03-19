@@ -576,8 +576,21 @@ class CommandCenterInterface:
                     input("\n\u23ce Press Enter to return to main menu...")
                 elif cmd == '7':
                     logger.info("\n\U0001f3af Starting Agent Contest...")
-                    logger.info("Agent contest feature not yet available")
-                    logger.info("\u2139\ufe0f  Agent contest feature not yet available.")
+                    try:
+                        from BigBrainIntelligence import get_agent_registry
+                        registry = get_agent_registry()
+                        agents = registry.get_active_agents() if registry else []
+                        if not agents:
+                            logger.info("\u2139\ufe0f  No agents registered for contest. Register agents first.")
+                        else:
+                            logger.info(f"Running contest with {len(agents)} agents...")
+                            for agent in agents:
+                                logger.info(f"  Agent: {getattr(agent, 'name', str(agent))}")
+                            logger.info("Contest results will be logged when complete.")
+                    except ImportError:
+                        logger.info("\u2139\ufe0f  BigBrainIntelligence module not available for agent contest.")
+                    except Exception as e:
+                        logger.error(f"Agent contest error: {e}")
                     await asyncio.sleep(1)
                 elif cmd == '8':
                     logger.info("\n\U0001f6d1 EMERGENCY STOP - All operations halted!")

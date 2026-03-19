@@ -81,22 +81,8 @@ from shared.config_loader import get_config
 from shared.audit_logger import get_audit_logger
 from shared.strategy_loader import get_strategy_loader, StrategyConfig, StrategyCategory
 from shared.market_data_feeds import get_market_data_feed
+from shared.strategy_enums import StrategySignal, StrategyExecutionMode
 from trading.order_generation_system import get_order_generator, ValidatedOrder, OrderValidationResult
-
-
-class StrategySignal(Enum):
-    """Strategy signal types"""
-    BUY = "buy"
-    SELL = "sell"
-    HOLD = "hold"
-    CLOSE = "close"
-
-
-class StrategyExecutionMode(Enum):
-    """Strategy execution modes"""
-    PAPER_TRADING = "paper_trading"
-    LIVE_TRADING = "live_trading"
-    SIMULATION = "simulation"
 
 
 @dataclass
