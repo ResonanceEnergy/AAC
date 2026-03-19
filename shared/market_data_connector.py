@@ -362,7 +362,8 @@ class NYSEConnector(WebSocketConnector):
 
             # Start polling for subscribed symbols
             if self.status == FeedStatus.CONNECTED:
-                asyncio.create_task(self._poll_market_data())
+                if not hasattr(self, '_poll_task') or self._poll_task is None or self._poll_task.done():
+                    self._poll_task = asyncio.create_task(self._poll_market_data())
 
     def _is_futures_symbol(self, symbol: str) -> bool:
         """Check if symbol is a futures contract"""
