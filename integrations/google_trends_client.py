@@ -12,6 +12,8 @@ Requires:
 """
 
 import logging
+import random
+import time
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any
 import sys
@@ -39,7 +41,13 @@ class GoogleTrendsClient:
         - Get trending related queries
     """
 
-    def __init__(self, hl: str = 'en-US', tz: int = 360):
+    def __init__(
+        self,
+        hl: str = 'en-US',
+        tz: int = 360,
+        retries: int = 2,
+        backoff_seconds: float = 2.0,
+    ):
         """
         Args:
             hl: Language/locale
@@ -48,14 +56,71 @@ class GoogleTrendsClient:
         self.logger = logging.getLogger("GoogleTrends")
         self.hl = hl
         self.tz = tz
+        self.retries = retries
+        self.backoff_seconds = backoff_seconds
         self._pytrends: Optional[Any] = None
+        self._rate_limited_until = 0.0
 
     def _ensure_client(self):
         """Lazily initialize pytrends client"""
         if not PYTRENDS_AVAILABLE:
             raise ImportError("pytrends not installed. Run: pip install pytrends")
         if self._pytrends is None:
-            self._pytrends = TrendReq(hl=self.hl, tz=self.tz)
+            self._pytrends = TrendReq(
+                hl=self.hl,
+                tz=self.tz,
+                requests_args={
+                    'headers': {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AAC-GoogleTrends/1.0',
+                    }
+                },
+            )
+
+    def _cooldown_remaining(self) -> float:
+        return max(0.0, self._rate_limited_until - time.monotonic())
+
+    def _run_request(self, operation: Any, empty_result: Any):
+        """Run a pytrends operation with 429-aware retry and cooldown handling."""
+        remaining = self._cooldown_remaining()
+        if remaining > 0:
+            self.logger.warning(
+                "Google Trends cooldown active for %.1fs after rate limiting",
+                remaining,
+            )
+            return empty_result
+
+        attempts = self.retries + 1
+        last_error = None
+        for attempt in range(1, attempts + 1):
+            try:
+                return operation()
+            except Exception as exc:
+                last_error = exc
+                message = str(exc)
+                is_rate_limited = '429' in message or 'Too Many Requests' in message
+                if not is_rate_limited or attempt >= attempts:
+                    break
+
+                delay = self.backoff_seconds * attempt + random.uniform(0.0, 0.5)
+                self.logger.warning(
+                    "Google Trends rate limited on attempt %s/%s; retrying in %.1fs",
+                    attempt,
+                    attempts,
+                    delay,
+                )
+                time.sleep(delay)
+
+        if last_error is not None and ('429' in str(last_error) or 'Too Many Requests' in str(last_error)):
+            cooldown = self.backoff_seconds * (self.retries + 2)
+            self._rate_limited_until = time.monotonic() + cooldown
+            self.logger.warning(
+                "Google Trends entered cooldown for %.1fs after repeated rate limits",
+                cooldown,
+            )
+        elif last_error is not None:
+            self.logger.error("Google Trends request failed: %s", last_error)
+
+        return empty_result
 
     def get_interest_over_time(
         self,
@@ -89,15 +154,17 @@ class GoogleTrendsClient:
             self.logger.warning("Google Trends limited to 5 keywords, truncated")
 
         try:
-            self._pytrends.build_payload(
-                kw_list=keywords,
-                timeframe=timeframe,
-                geo=geo,
-            )
+            def operation():
+                self._pytrends.build_payload(
+                    kw_list=keywords,
+                    timeframe=timeframe,
+                    geo=geo,
+                )
+                return self._pytrends.interest_over_time()
 
-            df = self._pytrends.interest_over_time()
+            df = self._run_request(operation, None)
 
-            if df.empty:
+            if df is None or df.empty:
                 return {kw: [] for kw in keywords}
 
             result = {}
@@ -139,17 +206,22 @@ class GoogleTrendsClient:
             keywords = keywords[:5]
 
         try:
-            self._pytrends.build_payload(
-                kw_list=keywords,
-                timeframe=timeframe,
-                geo=geo,
-            )
+            def operation():
+                self._pytrends.build_payload(
+                    kw_list=keywords,
+                    timeframe=timeframe,
+                    geo=geo,
+                )
+                return self._pytrends.interest_by_region(
+                    resolution=resolution,
+                    inc_low_vol=True,
+                    inc_geo_code=False,
+                )
 
-            df = self._pytrends.interest_by_region(
-                resolution=resolution,
-                inc_low_vol=True,
-                inc_geo_code=False,
-            )
+            df = self._run_request(operation, None)
+
+            if df is None:
+                return {kw: {} for kw in keywords}
 
             result = {}
             for kw in keywords:
@@ -187,13 +259,18 @@ class GoogleTrendsClient:
             keywords = keywords[:5]
 
         try:
-            self._pytrends.build_payload(
-                kw_list=keywords,
-                timeframe=timeframe,
-                geo=geo,
-            )
+            def operation():
+                self._pytrends.build_payload(
+                    kw_list=keywords,
+                    timeframe=timeframe,
+                    geo=geo,
+                )
+                return self._pytrends.related_queries()
 
-            related = self._pytrends.related_queries()
+            related = self._run_request(operation, None)
+
+            if related is None:
+                return {kw: {'top': [], 'rising': []} for kw in keywords}
 
             result = {}
             for kw in keywords:
@@ -223,9 +300,14 @@ class GoogleTrendsClient:
             List of trending search terms
         """
         self._ensure_client()
+        pytrends = self._pytrends
+        if pytrends is None:
+            return []
 
         try:
-            df = self._pytrends.trending_searches(pn=geo)
+            df = self._run_request(lambda: pytrends.trending_searches(pn=geo), None)
+            if df is None:
+                return []
             return df[0].tolist() if not df.empty else []
         except Exception as e:
             self.logger.error(f"Failed to get trending searches: {e}")
@@ -243,9 +325,15 @@ class GoogleTrendsClient:
             List of trending topic dicts
         """
         self._ensure_client()
+        pytrends = self._pytrends
+        if pytrends is None:
+            return []
 
         try:
-            df = self._pytrends.realtime_trending_searches(pn=geo, cat=category)
+            df = self._run_request(
+                lambda: pytrends.realtime_trending_searches(pn=geo, cat=category),
+                None,
+            )
             if df is not None and not df.empty:
                 return df.head(20).to_dict('records')
             return []
@@ -271,18 +359,30 @@ class GoogleTrendsClient:
             keywords.append(company_name)
 
         try:
-            # Get recent (7d) and baseline (12m) data
-            self._pytrends.build_payload(
-                kw_list=keywords,
-                timeframe='now 7-d',
-            )
-            recent_df = self._pytrends.interest_over_time()
+            def recent_operation():
+                self._pytrends.build_payload(
+                    kw_list=keywords,
+                    timeframe='now 7-d',
+                )
+                return self._pytrends.interest_over_time()
 
-            self._pytrends.build_payload(
-                kw_list=keywords,
-                timeframe='today 12-m',
-            )
-            baseline_df = self._pytrends.interest_over_time()
+            def baseline_operation():
+                self._pytrends.build_payload(
+                    kw_list=keywords,
+                    timeframe='today 12-m',
+                )
+                return self._pytrends.interest_over_time()
+
+            recent_df = self._run_request(recent_operation, None)
+            baseline_df = self._run_request(baseline_operation, None)
+
+            if recent_df is None or baseline_df is None:
+                return {
+                    'ticker': ticker,
+                    'sentiment_score': 0,
+                    'signal': 'rate_limited',
+                    'error': 'Google Trends request throttled',
+                }
 
             recent_avg = float(recent_df[ticker].mean()) if not recent_df.empty and ticker in recent_df.columns else 0
             baseline_avg = float(baseline_df[ticker].mean()) if not baseline_df.empty and ticker in baseline_df.columns else 1

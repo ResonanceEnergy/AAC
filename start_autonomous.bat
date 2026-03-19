@@ -1,13 +1,10 @@
 @echo off
-title AAC Autonomous Engine - BARREN WUFFET
+title AAC BARREN WUFFET — Full Launch
 echo ============================================================
-echo   AAC AUTONOMOUS ENGINE - 24/7 Mode
-echo   Identity: BARREN WUFFET / AZ SUPREME
+echo   AAC BARREN WUFFET / AZ SUPREME — Full Launch
+echo   Gateways + Paper Trading + Matrix Monitor
 echo ============================================================
 echo.
-
-:: Activate venv (Python 3.12 - REQUIRED, system 3.14 breaks ib_insync)
-call "C:\Users\gripa\.aac_venv\Scripts\activate.bat"
 
 :: Navigate to project root
 cd /d "%~dp0"
@@ -15,11 +12,17 @@ cd /d "%~dp0"
 :: Ensure logs directory exists
 if not exist "logs" mkdir logs
 
-echo Starting autonomous engine...
+:: Use local .venv (Python 3.10)
+if not exist ".venv\Scripts\python.exe" (
+    echo [!] No .venv found. Run: python setup_machine.py
+    pause
+    exit /b 1
+)
+
+echo Starting all systems (preflight + gateways + matrix monitor + paper engine)...
 echo Press Ctrl+C to shutdown gracefully.
 echo.
-
-python core\autonomous_engine.py
+.venv\Scripts\python.exe launch.py all --display web
 
 echo.
 echo Engine stopped.

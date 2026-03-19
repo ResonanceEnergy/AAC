@@ -170,12 +170,12 @@ class FibonacciCalculator:
             targets.append(FibLevel(
                 ratio=PHI ** i,
                 price=round(center_price + expansion, 6),
-                label=f"φ^{i} up",
+                label=f"phi^{i} up",
             ))
             targets.append(FibLevel(
                 ratio=PHI ** i,
                 price=round(center_price - expansion, 6),
-                label=f"φ^{i} down",
+                label=f"phi^{i} down",
             ))
         return targets
 

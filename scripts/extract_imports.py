@@ -2,8 +2,6 @@ import sys, re
 from pathlib import Path
 
 file = Path(__file__).resolve().parent.parent / 'imports2.txt'
-if not file.exists():
-    file = Path(r'c:/Users/gripa/OneDrive/Desktop/AAC_fresh/imports2.txt')
 
 modules = set()
 if file.exists():

@@ -28,8 +28,11 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from shared.config_loader import get_config, get_env, get_env_bool
+from shared.config_loader import get_config, get_env, get_env_bool, load_env_file
 from shared.utils import with_circuit_breaker, CircuitOpenError
+
+# Ensure .env is loaded before any get_env() calls
+load_env_file()
 
 try:
     from shared.utils import with_circuit_breaker, CircuitOpenError
@@ -123,8 +126,11 @@ class NDAXConnector(BaseExchangeConnector):
                 },
             }
 
+            # ccxt NDAX requires uid + login (both set to user ID)
             if self._user_id:
                 options['uid'] = self._user_id
+                options['login'] = self._user_id
+                options['password'] = self._user_id  # ccxt NDAX uses password field for session
 
             if self.testnet:
                 options['sandbox'] = True
@@ -133,6 +139,11 @@ class NDAXConnector(BaseExchangeConnector):
                 self.logger.info("Connecting to NDAX MAINNET")
 
             self._client = ccxt_async.ndax(options)
+
+            # ccxt 4.x may not store login/password from constructor — set explicitly
+            if self._user_id:
+                self._client.login = self._user_id
+                self._client.password = self._user_id
 
             if self.testnet:
                 self._client.set_sandbox_mode(True)
@@ -485,7 +496,7 @@ class NDAXConnector(BaseExchangeConnector):
                     'taker': float(fee.get('taker', 0.002)),
                 }
         except Exception as e:
-            logger.exception("Unexpected error: %s", e)
+            self.logger.exception("Unexpected error: %s", e)
         # NDAX default fees: 0.20% maker/taker
         return {'maker': 0.002, 'taker': 0.002}
 

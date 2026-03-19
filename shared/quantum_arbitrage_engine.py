@@ -67,6 +67,12 @@ class QuantumArbitrageEngine:
         self.quantum_simulator = QuantumMarketSimulator()
         self.execution_engine = QuantumExecutionEngine()
         self.risk_manager = QuantumRiskManager()
+        self._data_aggregator: Any = None  # injected by orchestrator
+
+    def set_data_aggregator(self, aggregator: Any) -> None:
+        """Wire DataAggregator so _gather_market_data returns real prices."""
+        self._data_aggregator = aggregator
+        logger.info("DataAggregator wired into QuantumArbitrageEngine")
 
     async def initialize(self):
         """Initialize the quantum arbitrage engine"""
@@ -74,6 +80,47 @@ class QuantumArbitrageEngine:
         # Initialize quantum simulator and components
         await asyncio.sleep(0.01)  # Simulate initialization time
         logger.info("Quantum Arbitrage Engine initialized")
+
+    async def scan_for_opportunities(self) -> List[Dict[str, Any]]:
+        """Called by orchestrator each scan cycle — returns opportunities as plain dicts."""
+        try:
+            await self._update_market_state()
+            raw = await self._scan_opportunities()
+            filtered = await self._filter_opportunities(raw)
+            result = []
+            for opp in filtered:
+                direction = "sell" if opp.entry_signals.get("predicted_move", 0.0) < 0 else "buy"
+                result.append({
+                    "id": opp.opportunity_id,
+                    "symbol": opp.instruments[0] if opp.instruments else "UNKNOWN",
+                    "direction": direction,
+                    "confidence": opp.quantum_confidence,
+                    "quantum_advantage": opp.quantum_confidence * (1.0 - opp.risk_score),
+                    "temporal_score": 0.5 if opp.arbitrage_type == ArbitrageType.CROSS_TEMPORAL else 0.0,
+                    "expected_profit": opp.expected_profit,
+                    "exchanges": opp.exchanges,
+                    "type": opp.arbitrage_type.value,
+                })
+            return result
+        except Exception as e:
+            logger.error(f"scan_for_opportunities error: {e}")
+            return []
+
+    def inject_ncl_intelligence(self, ncl_data: Dict[str, Any]) -> None:
+        """Ingest market intelligence from NCL BRAIN to improve scanning."""
+        exchanges = self.market_state.order_book_depth
+        if "data" in ncl_data and isinstance(ncl_data["data"], dict):
+            for sym, info in ncl_data["data"].items():
+                if isinstance(info, dict) and "price" in info:
+                    exchanges.setdefault(sym, {})
+                    exchanges[sym]["ncl"] = {"bid": info["price"], "ask": info["price"]}
+        forecasts = ncl_data.get("forecasts", [])
+        for fc in forecasts:
+            if isinstance(fc, dict) and "symbol" in fc:
+                sym = fc["symbol"]
+                move = fc.get("predicted_move", 0.0)
+                self.market_state.predicted_price_movements[sym] = move
+        logger.info("NCL intelligence injected: %d forecasts", len(forecasts))
 
     async def start_arbitrage_scanning(self):
         """Start continuous arbitrage opportunity scanning"""
@@ -114,20 +161,63 @@ class QuantumArbitrageEngine:
         await self._update_quantum_entanglement()
 
     async def _gather_market_data(self) -> Dict[str, Any]:
-        """Gather real-time market data from all exchanges"""
-        # In real implementation, this would connect to multiple exchanges
-        # via websocket feeds, FIX protocols, etc.
+        """Gather real-time market data from DataAggregator + IBKR + NDAX."""
+        exchanges: Dict[str, Dict[str, Dict[str, float]]] = {}
 
-        # Simplified mock data
+        if self._data_aggregator:
+            # Pull live crypto prices from CoinGecko / Binance WS
+            try:
+                snapshot = await self._data_aggregator.get_market_snapshot(
+                    ["BTC", "ETH", "SOL", "XRP", "ADA", "AVAX", "LINK", "DOGE"]
+                )
+                for sym, tick in snapshot.items():
+                    base = sym.split("/")[0] if "/" in sym else sym
+                    exchanges.setdefault("coingecko", {})[base] = {
+                        "bid": tick.bid or tick.price * 0.999,
+                        "ask": tick.ask or tick.price * 1.001,
+                        "volume": tick.volume_24h,
+                    }
+            except Exception as e:
+                logger.warning("DataAggregator crypto snapshot failed: %s", e)
+
+            # Pull equity prices from IBKR
+            try:
+                eq_snapshot = await self._data_aggregator.get_market_snapshot(
+                    ["SPY", "IWM", "QQQ", "AAPL"]
+                )
+                for sym, tick in eq_snapshot.items():
+                    exchanges.setdefault("ibkr", {})[sym] = {
+                        "bid": tick.bid or tick.price * 0.999,
+                        "ask": tick.ask or tick.price * 1.001,
+                        "volume": tick.volume_24h,
+                    }
+            except Exception as e:
+                logger.debug("IBKR equity snapshot failed: %s", e)
+
+            # Pull NDAX CAD crypto
+            try:
+                ndax_snapshot = await self._data_aggregator.get_market_snapshot(["BTC", "ETH"])
+                for sym, tick in ndax_snapshot.items():
+                    if tick.source == "ndax":
+                        base = sym.split("/")[0] if "/" in sym else sym
+                        exchanges.setdefault("ndax", {})[base] = {
+                            "bid": tick.bid or tick.price * 0.999,
+                            "ask": tick.ask or tick.price * 1.001,
+                            "volume": tick.volume_24h,
+                        }
+            except Exception as e:
+                logger.debug("NDAX snapshot failed: %s", e)
+
+        # Merge NCL-injected prices already in order_book_depth
+        for instrument, exch_data in self.market_state.order_book_depth.items():
+            for exch_name, depth in exch_data.items():
+                exchanges.setdefault(exch_name, {})[instrument] = depth
+
         return {
             "timestamp": datetime.now(),
-            "exchanges": {
-                "NASDAQ": {"AAPL": {"bid": 150.0, "ask": 150.05, "volume": 1000000}},
-                "NYSE": {"AAPL": {"bid": 149.95, "ask": 150.0, "volume": 800000}},
-                "LSE": {"AAPL": {"bid": 150.02, "ask": 150.07, "volume": 500000}}
-            },
-            "options": {},  # Options data for volatility surface
-            "futures": {}   # Futures data for temporal arbitrage
+            "exchanges": exchanges,
+            "options": {},
+            "futures": {},
         }
 
     async def _scan_opportunities(self) -> List[ArbitrageOpportunity]:
@@ -462,6 +552,7 @@ class QuantumRiskManager:
 
     def __init__(self):
         self.logger = logging.getLogger(type(self).__name__)
+        self.max_risk: float = 0.6  # maximum adjusted risk score allowed
         self.logger.info("QuantumRiskManager initialized")
 
     async def approve_opportunity(self, opportunity: ArbitrageOpportunity) -> bool:

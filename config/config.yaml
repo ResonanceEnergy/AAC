@@ -1,0 +1,43 @@
+# ═══════════════════════════════════════════════════════════════
+#  AAC BARREN WUFFET — Master Configuration
+#  Codename: AZ SUPREME
+#
+#  This file satisfies the startup validator's config check.
+#  Runtime values are loaded from .env via shared.config_loader.
+#  Edit .env for API keys, trading mode, and exchange settings.
+# ═══════════════════════════════════════════════════════════════
+
+environment: development
+
+trading:
+  paper_trading: true
+  live_trading_enabled: false
+  dry_run: false
+  default_exchange: ibkr
+
+risk:
+  max_position_size_usd: 10000
+  max_daily_loss_usd: 1000
+  max_drawdown_percent: 0.05
+  default_risk_percent: 0.01
+  emergency_stop_loss: 0.10
+
+exchanges:
+  ibkr:
+    host: 127.0.0.1
+    port: 7497
+    client_id: 1
+  moomoo:
+    host: 127.0.0.1
+    port: 11111
+  ndax:
+    enabled: true
+
+monitoring:
+  health_port: 8080
+  matrix_monitor_port: 8501
+  display_mode: web
+
+logging:
+  level: INFO
+  file: logs/aac.log

@@ -21,6 +21,37 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
+def _read_secret_file(secret_path: str) -> str:
+    """Read a secret value from a local file path."""
+    if not secret_path:
+        return ''
+
+    path = Path(secret_path)
+    if not path.is_absolute():
+        path = PROJECT_ROOT / path
+
+    try:
+        return path.read_text(encoding='utf-8').strip()
+    except OSError as exc:
+        logger.warning("Failed to read secret file %s: %s", path, exc)
+        return ''
+
+
+def _get_secret_manager_value(key: str) -> str:
+    """Get a secret from the encrypted secrets manager when configured."""
+    if not os.environ.get('ACC_MASTER_PASSWORD'):
+        return ''
+
+    try:
+        from shared.secrets_manager import get_secrets_manager
+
+        manager = get_secrets_manager()
+        return manager.get_secret(key, '')
+    except Exception as exc:
+        logger.debug("Encrypted secret lookup skipped for %s: %s", key, exc)
+        return ''
+
+
 def find_project_root() -> Path:
     """Find the project root directory by looking for .env or .env.example"""
     current = Path(__file__).resolve().parent
@@ -74,10 +105,17 @@ def load_env_file(env_path: Optional[Path] = None) -> bool:
 
 def get_env(key: str, default: str = '', required: bool = False) -> str:
     """Get environment variable with optional default and required check"""
-    value = os.environ.get(key, default)
-    if required and not value:
+    value = os.environ.get(key, '')
+    if value:
+        result = value
+    else:
+        file_value = _read_secret_file(os.environ.get(f'{key}_FILE', ''))
+        encrypted_value = _get_secret_manager_value(key) if not file_value else ''
+        result = file_value or encrypted_value or default
+
+    if required and not result:
         raise ValueError(f"Required environment variable '{key}' is not set")
-    return value
+    return result
 
 
 def get_env_bool(key: str, default: bool = False) -> bool:
@@ -579,7 +617,7 @@ class Config:
         warnings = []
         
         enabled = self.get_enabled_exchanges()
-        paper = getattr(self, 'paper_trading', False) or self.risk.dry_run
+        paper = self.risk.paper_trading or self.risk.dry_run
         
         # Critical: no exchanges AND not paper trading = system does nothing
         if not enabled and not paper:

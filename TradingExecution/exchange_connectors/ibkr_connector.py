@@ -820,6 +820,7 @@ class IBKRConnector(BaseExchangeConnector):
                 'bid': ticker.bid if ticker.bid != -1 else None,
                 'ask': ticker.ask if ticker.ask != -1 else None,
                 'last': ticker.last if ticker.last != -1 else None,
+                'close': ticker.close if getattr(ticker, 'close', -1) != -1 else None,
                 'volume': ticker.volume if ticker.volume != -1 else 0,
                 'open_interest': getattr(ticker, 'callOpenInterest', 0)
                     if right == 'C' else getattr(ticker, 'putOpenInterest', 0),
@@ -962,7 +963,7 @@ class IBKRConnector(BaseExchangeConnector):
             status=mapped_status,
             filled_quantity=status.filled if status else 0.0,
             average_price=status.avgFillPrice if status else 0.0,
-            fee=float(status.commission) if status and status.commission else 0.0,
+            fee=sum(f.commissionReport.commission for f in trade.fills if f.commissionReport) if trade.fills else 0.0,
             fee_currency='USD',
             created_at=datetime.now(),
             updated_at=datetime.now(),

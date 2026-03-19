@@ -78,6 +78,25 @@ class AIIncidentPredictor:
         await asyncio.sleep(0.01)  # Simulate initialization time
         logger.info("AI Incident Predictor initialized")
 
+    def inject_ncl_intelligence(self, ncl_data: Dict[str, Any]) -> None:
+        """Ingest intelligence from NCL BRAIN to improve incident prediction."""
+        signals = ncl_data.get("signals", [])
+        for sig in signals:
+            if isinstance(sig, dict):
+                self.system_metrics_history.append(SystemMetrics(
+                    timestamp=datetime.now(),
+                    cpu_usage=sig.get("cpu", 0.0),
+                    memory_usage=sig.get("memory", 0.0),
+                    network_latency=sig.get("latency", 0.0),
+                    error_rate=sig.get("error_rate", 0.0),
+                    throughput=sig.get("throughput", 0.0),
+                    queue_depth=sig.get("queue_depth", 0),
+                    active_connections=sig.get("connections", 0),
+                    disk_io=sig.get("disk_io", 0.0),
+                    custom_metrics=sig,
+                ))
+        logger.info("NCL intelligence injected: %d signals", len(signals))
+
     async def start_prediction_engine(self):
         """Start the AI incident prediction engine"""
         logger.info("Starting AI incident prediction engine...")
@@ -311,6 +330,28 @@ class AIIncidentPredictor:
             except Exception as e:
                 logger.error(f"Model retraining error: {e}")
                 await asyncio.sleep(1800.0)  # Retry in 30 minutes
+
+    async def predict_incidents(self) -> List[Dict[str, Any]]:
+        """Called by orchestrator every 5 min — returns predictions as plain dicts."""
+        try:
+            predictions = await self._generate_predictions(timedelta(hours=1))
+            result = []
+            for p in predictions:
+                pid = f"{p.incident_type.value}_{p.prediction_timestamp.timestamp()}"
+                self.active_predictions[pid] = p
+                result.append({
+                    "incident_type": p.incident_type.value,
+                    "severity": p.severity.value,
+                    "confidence": p.confidence_score,
+                    "probability": p.probability,
+                    "time_to_incident_s": p.time_to_incident.total_seconds(),
+                    "recommended_actions": p.recommended_actions,
+                    "predicted_impact": p.predicted_impact,
+                })
+            return result
+        except Exception as e:
+            logger.error(f"predict_incidents error: {e}")
+            return []
 
     def get_active_predictions(self) -> List[IncidentPrediction]:
         """Get currently active incident predictions"""

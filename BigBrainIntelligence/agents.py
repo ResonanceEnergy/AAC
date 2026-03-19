@@ -76,16 +76,16 @@ class BaseResearchAgent(ABC):
         self.is_running = False
 
     def _setup_logging(self) -> logging.Logger:
-        logger = logging.getLogger(f"{self.theater}_{self.agent_id}")
-        logger.setLevel(logging.INFO)
-        
-        log_dir = get_project_path('BigBrainIntelligence', 'logs')
-        log_dir.mkdir(parents=True, exist_ok=True)
-        
-        fh = logging.FileHandler(log_dir / f"{self.theater}_{self.agent_id}.log")
-        fh.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
-        logger.addHandler(fh)
-        
+        logger_name = f"{self.theater}_{self.agent_id}"
+        logger = logging.getLogger(logger_name)
+        # Guard: only add FileHandler once — re-adding on every __init__ leaks file descriptors
+        if not logger.handlers:
+            logger.setLevel(logging.INFO)
+            log_dir = get_project_path('BigBrainIntelligence', 'logs')
+            log_dir.mkdir(parents=True, exist_ok=True)
+            fh = logging.FileHandler(log_dir / f"{self.theater}_{self.agent_id}.log")
+            fh.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+            logger.addHandler(fh)
         return logger
 
     def _generate_finding_id(self) -> str:

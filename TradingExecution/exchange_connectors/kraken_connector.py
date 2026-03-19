@@ -79,10 +79,16 @@ class KrakenConnector(BaseExchangeConnector):
             self.api_key = config.kraken.api_key
             self.api_secret = config.kraken.api_secret
         
-        # Safety warning
-        if not paper_trading and api_key:
+        # HARD SAFETY: Kraken has NO testnet — block live trading unless explicitly confirmed
+        if self.api_key and not paper_trading:
+            import os
+            if os.environ.get("KRAKEN_LIVE_CONFIRMED", "").lower() != "yes":
+                raise RuntimeError(
+                    "SAFETY BLOCK: Kraken has no testnet. All orders hit LIVE/PRODUCTION. "
+                    "Set KRAKEN_LIVE_CONFIRMED=yes in .env to acknowledge this risk."
+                )
             self.logger.warning(
-                "[WARN]️  KRAKEN LIVE TRADING ENABLED - No testnet available! "
+                "[WARN]  KRAKEN LIVE TRADING ENABLED - No testnet available! "
                 "All orders will execute on PRODUCTION. Set paper_trading=True for testing."
             )
 

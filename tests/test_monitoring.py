@@ -94,6 +94,57 @@ class TestMasterDashboard:
         assert 'timestamp' in data or 'error' in data
 
     @pytest.mark.asyncio
+    async def test_market_intelligence_snapshot_is_included(self, dashboard):
+        expected_snapshot = {
+            'status': 'healthy',
+            'market_tone': 'bullish',
+            'put_call_ratio': 0.82,
+        }
+        dashboard.unusual_whales.get_snapshot = AsyncMock(return_value=expected_snapshot)
+
+        result = await dashboard._get_market_intelligence()
+
+        assert result == expected_snapshot
+
+    @pytest.mark.asyncio
+    async def test_get_pnl_data_uses_financial_engine_shape(self, dashboard):
+        dashboard.financial_engine.update_risk_metrics = AsyncMock(
+            return_value=MagicMock(max_drawdown_pct=4.2)
+        )
+        dashboard.financial_engine.calculate_portfolio_value = AsyncMock(return_value=1250000.0)
+        dashboard.financial_engine.calculate_daily_pnl = AsyncMock(return_value=2500.0)
+        dashboard.financial_engine.positions = {
+            'SPY': MagicMock(unrealized_pnl=125.0),
+            'QQQ': MagicMock(unrealized_pnl=-25.0),
+        }
+
+        result = await dashboard._get_pnl_data()
+
+        assert result['daily_pnl'] == 2500.0
+        assert result['total_equity'] == 1250000.0
+        assert result['unrealized_pnl'] == 100.0
+        assert result['max_drawdown'] == 4.2
+
+    @pytest.mark.asyncio
+    async def test_get_risk_metrics_maps_available_fields(self, dashboard):
+        dashboard.financial_engine.update_risk_metrics = AsyncMock(
+            return_value=MagicMock(
+                stressed_var_99=2.5,
+                tail_loss_p99=2.0,
+                strategy_correlation=0.3,
+                portfolio_heat=18.0,
+                margin_buffer=92.0,
+            )
+        )
+
+        result = await dashboard._get_risk_metrics()
+
+        assert result['var_99'] == 2.5
+        assert result['expected_shortfall'] == 2.0
+        assert result['correlation_matrix']['strategy_correlation'] == 0.3
+        assert result['stress_test_results']['portfolio_heat'] == 18.0
+
+    @pytest.mark.asyncio
     async def test_get_system_health(self, dashboard):
         """_get_system_health should return health structure with infra data."""
         result = await dashboard._get_system_health()

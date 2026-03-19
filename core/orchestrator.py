@@ -36,6 +36,14 @@ from CentralAccounting.database import AccountingDatabase
 
 logger = logging.getLogger(__name__)
 
+from shared.symbol_classifier import (
+    CRYPTO_SYMBOLS, EQUITY_SYMBOLS, is_crypto, is_equity,
+    route_exchange, normalize_pair, base_symbol, asset_class,
+)
+
+# Backward-compat alias used by execute_signals / _auto_execute_loop
+_route_exchange = route_exchange
+
 # AAC 2100 Quantum and AI Enhancements
 from shared.quantum_arbitrage_engine import QuantumArbitrageEngine
 from shared.ai_incident_predictor import AIIncidentPredictor
@@ -454,6 +462,9 @@ class AAC2100Orchestrator:
         self.cross_temporal_processor = None
         self.predictive_maintenance = None
 
+        # 24/7 Market Intelligence Model (14 intraday + 7 daily live sources)
+        self._intelligence_model: Optional[Any] = None
+
         # Optional components
         self.health_server: Optional[Any] = None
         self.crypto_intel: Optional[Any] = None
@@ -611,7 +622,23 @@ class AAC2100Orchestrator:
                 self.logger.info("Initializing quantum components...")
                 self.quantum_arbitrage_engine = QuantumArbitrageEngine()
                 self.quantum_circuit_breaker = get_circuit_breaker("aac2100_main_system")
+                self.quantum_arbitrage_engine.set_data_aggregator(self.data_aggregator)
                 self.logger.info("Quantum arbitrage engine and circuit breaker initialized")
+
+            # ── Wire live connectors into DataAggregator ──
+            try:
+                ibkr_conn = self.execution_engine._get_connector("ibkr")
+                self.data_aggregator.set_ibkr_connector(ibkr_conn)
+                self.logger.info("IBKR connector wired into DataAggregator")
+            except Exception as e:
+                self.logger.warning("IBKR connector not available for DataAggregator: %s", e)
+
+            try:
+                ndax_conn = self.execution_engine._get_connector("ndax")
+                self.data_aggregator.set_ndax_connector(ndax_conn)
+                self.logger.info("NDAX connector wired into DataAggregator")
+            except Exception as e:
+                self.logger.warning("NDAX connector not available for DataAggregator: %s", e)
 
             # Initialize AAC 2100 AI Components
             if self._enable_ai_autonomy:
@@ -990,7 +1017,7 @@ class AAC2100Orchestrator:
         
         return findings
 
-    def _finding_to_signal(self, finding: ResearchFinding) -> Optional[Signal]:
+    def _finding_to_signal(self, finding: ResearchFinding) -> Optional[QuantumSignal]:
         """Convert a research finding to a trading signal"""
         # Map finding types to signal directions
         direction_map = {
@@ -1009,11 +1036,10 @@ class AAC2100Orchestrator:
         if not symbol:
             return None
 
-        # Normalize symbol format
-        if "/" not in symbol:
-            symbol = f"{symbol}/USDT"
+        # Normalize symbol format (crypto → X/USDT, equity → X/USD)
+        symbol = normalize_pair(symbol)
 
-        return Signal(
+        return QuantumSignal(
             signal_id=finding.finding_id,
             source_agent=finding.agent_id,
             theater=finding.theater,
@@ -1085,6 +1111,7 @@ class AAC2100Orchestrator:
                 side=side,
                 quantity=quantity,
                 entry_price=tick.price,
+                exchange=_route_exchange(symbol),
             )
             
             if position:
@@ -1388,6 +1415,7 @@ class AAC2100Orchestrator:
                         side=side,
                         quantity=quantity,
                         entry_price=tick.price,
+                        exchange=_route_exchange(symbol),
                     )
                     
                     if position:
@@ -1521,6 +1549,62 @@ class AAC2100Orchestrator:
             
             await asyncio.sleep(300)  # Every 5 minutes
 
+    async def _intelligence_model_loop(self):
+        """Start the 24/7 MarketIntelligenceModel (14 intraday + 7 daily live sources).
+
+        Feeds: UW flow/darkpool/headlines, CBOE put-call, Fear&Greed, CoinGlass,
+        crypto on-chain, CoinGecko (trending/OHLC/markets/sentiment/categories),
+        Stocktwits, Reddit, Finnhub (insider/analyst/calendar), FRED, Polygon,
+        Google Trends, NCL bridge.
+
+        Output: pushes sentiment + recommendations to NCL BRAIN file bridge
+        AND to NCC relay at :8787.  The _ncl_prime_loop pulls that data back
+        into QuantumArbitrageEngine + AIIncidentPredictor.
+        """
+        try:
+            import os
+            from strategies.market_intelligence_model import MarketIntelligenceModel
+            balance = float(os.getenv("ACCOUNT_BALANCE_USD", "920"))
+            doctrine_mult = 1.0
+            try:
+                from integrations.cross_pillar_hub import get_cross_pillar_hub
+                hub = get_cross_pillar_hub()
+                doctrine_mult = hub.get_risk_multiplier()
+            except Exception:
+                pass
+            self._intelligence_model = MarketIntelligenceModel(
+                available_capital=balance,
+                doctrine_risk_mult=doctrine_mult,
+            )
+            self.logger.info(
+                "MarketIntelligenceModel LIVE — 24/7 sentiment engine "
+                "(14 intraday + 7 daily sources), capital=$%.0f", balance
+            )
+            await self._intelligence_model.run()
+        except Exception as exc:
+            self.logger.error("MarketIntelligenceModel loop crashed: %s", exc)
+
+    async def _ncl_prime_loop(self):
+        """Pull NCL BRAIN intelligence and inject into engines every 60s."""
+        from integrations.cross_pillar_hub import get_cross_pillar_hub
+        hub = get_cross_pillar_hub()
+        while not self._shutdown_event.is_set():
+            try:
+                ncl_intel = await hub.get_ncl_intelligence()
+                if ncl_intel.get("source") != "none":
+                    if self.quantum_arbitrage_engine:
+                        self.quantum_arbitrage_engine.inject_ncl_intelligence(ncl_intel)
+                    if self.ai_incident_predictor:
+                        self.ai_incident_predictor.inject_ncl_intelligence(ncl_intel)
+                    # Feed intelligence model with updated doctrine multiplier
+                    if self._intelligence_model:
+                        mult = hub.get_risk_multiplier()
+                        self._intelligence_model.update_doctrine_mult(mult)
+                    self.logger.debug("NCL BRAIN priming complete")
+            except Exception as e:
+                self.logger.warning("NCL prime loop error: %s", e)
+            await asyncio.sleep(60)
+
     async def _cross_temporal_arbitrage(self):
         """Background cross-temporal arbitrage processing"""
         while not self._shutdown_event.is_set():
@@ -1646,19 +1730,27 @@ class AAC2100Orchestrator:
         # Start AAC 2100 background tasks
         background_tasks = []
         
-        if self.enable_quantum:
+        if self._enable_quantum:
             background_tasks.append(self._quantum_arbitrage_scanning())
             self.logger.info("Quantum arbitrage scanning: ENABLED")
         
-        if self.enable_ai_autonomy:
+        if self._enable_ai_autonomy:
             background_tasks.append(self._ai_prediction_loop())
             background_tasks.append(self._predictive_maintenance_loop())
             self.logger.info("AI autonomy and predictive maintenance: ENABLED")
         
-        if self.enable_cross_temporal:
+        if self._enable_cross_temporal:
             background_tasks.append(self._cross_temporal_arbitrage())
             self.logger.info("Cross-temporal arbitrage: ENABLED")
-        
+
+        # 24/7 Market Intelligence Model — 14 intraday + 7 daily live sources
+        background_tasks.append(self._intelligence_model_loop())
+        self.logger.info("MarketIntelligenceModel loop: ENABLED")
+
+        # NCL BRAIN priming — feeds cross-pillar intelligence into engines
+        background_tasks.append(self._ncl_prime_loop())
+        self.logger.info("NCL BRAIN priming loop: ENABLED")
+
         # Always run advancement validation
         background_tasks.append(self._advancement_validation_loop())
         

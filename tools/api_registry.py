@@ -17,29 +17,28 @@ import argparse
 from pathlib import Path
 from datetime import datetime
 import logging
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
 # Fix Windows console encoding for emoji/unicode
-if sys.platform == 'win32':
+if sys.platform == 'win32' and hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 
 # Load .env
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-try:
-    from dotenv import load_dotenv
-    load_dotenv(PROJECT_ROOT / '.env')
-except ImportError:
-    pass
+from shared.config_loader import get_env, load_env_file
+
+load_env_file()
 
 # ──────────────────────────────────────────────────
 # MASTER API REGISTRY
 # ──────────────────────────────────────────────────
 # Each entry: (env_var, name, website, category, cost, notes)
 
-REGISTRY = [
+REGISTRY: list[dict[str, Any]] = [
     # ── EXCHANGES / BROKERS ─────────────────────
     {
         "env_var": "IBKR_ACCOUNT",
@@ -404,7 +403,7 @@ def check_env_var(env_var: str) -> str:
     """Check if an environment variable is set and non-empty."""
     if env_var is None:
         return "N/A"
-    value = os.environ.get(env_var, '')
+    value = get_env(env_var, '')
     if not value:
         return "❌ MISSING"
     if value in ('0', 'false'):
@@ -414,7 +413,7 @@ def check_env_var(env_var: str) -> str:
 
 def print_registry(show_missing_only: bool = False, output_json: bool = False):
     """Print the full API registry with status."""
-    entries = []
+    entries: list[dict[str, Any]] = []
     for api in REGISTRY:
         status = check_env_var(api["env_var"])
         entry = {**api, "status": status}
@@ -428,7 +427,7 @@ def print_registry(show_missing_only: bool = False, output_json: bool = False):
         return
 
     # Group by category
-    categories = {}
+    categories: dict[str, list[dict[str, Any]]] = {}
     for entry in entries:
         cat = entry["category"]
         if cat not in categories:
@@ -437,8 +436,8 @@ def print_registry(show_missing_only: bool = False, output_json: bool = False):
 
     # Summary counts
     total = len(REGISTRY)
-    configured = sum(1 for api in REGISTRY if check_env_var(api["env_var"]) == "✅ SET")
-    no_key = sum(1 for api in REGISTRY if api["env_var"] is None)
+    configured = len([api for api in REGISTRY if check_env_var(api["env_var"]) == "✅ SET"])
+    no_key = len([api for api in REGISTRY if api["env_var"] is None])
     missing = total - configured - no_key
 
     logger.info("=" * 80)
