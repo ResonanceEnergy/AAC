@@ -130,7 +130,8 @@ class DataFeedManager:
         """Safe HTTP GET returning parsed JSON or None."""
         try:
             req = urllib.request.Request(url)
-            req.add_header("User-Agent", "AAC-MatrixMaximizer/1.0")
+            if not headers or "User-Agent" not in headers:
+                req.add_header("User-Agent", "AAC-MatrixMaximizer/1.0")
             if headers:
                 for k, v in headers.items():
                     req.add_header(k, v)
@@ -173,6 +174,7 @@ class DataFeedManager:
                 result[ticker] = cached
                 continue
 
+            # Try real-time snapshot first (requires Polygon Starter+ plan)
             url = (
                 f"https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers/{ticker}"
                 f"?apiKey={self._polygon_key}"
@@ -196,26 +198,27 @@ class DataFeedManager:
                 )
                 result[ticker] = quote
                 self._set_cache(f"price_{ticker}", quote)
-            else:
-                # Fallback: previous close from aggs
-                url2 = (
-                    f"https://api.polygon.io/v2/aggs/ticker/{ticker}/prev"
-                    f"?apiKey={self._polygon_key}"
+                continue
+
+            # Fallback: previous-day close from aggs endpoint (works on Basic plan)
+            url2 = (
+                f"https://api.polygon.io/v2/aggs/ticker/{ticker}/prev"
+                f"?apiKey={self._polygon_key}"
+            )
+            data2 = self._http_get(url2)
+            if data2 and data2.get("results"):
+                bar = data2["results"][0]
+                quote = LiveQuote(
+                    symbol=ticker,
+                    price=bar.get("c", 0),
+                    high=bar.get("h", 0),
+                    low=bar.get("l", 0),
+                    volume=int(bar.get("v", 0)),
+                    timestamp=datetime.utcnow().isoformat(),
+                    source="polygon_prev",
                 )
-                data2 = self._http_get(url2)
-                if data2 and data2.get("results"):
-                    bar = data2["results"][0]
-                    quote = LiveQuote(
-                        symbol=ticker,
-                        price=bar.get("c", 0),
-                        high=bar.get("h", 0),
-                        low=bar.get("l", 0),
-                        volume=int(bar.get("v", 0)),
-                        timestamp=datetime.utcnow().isoformat(),
-                        source="polygon_prev",
-                    )
-                    result[ticker] = quote
-                    self._set_cache(f"price_{ticker}", quote)
+                result[ticker] = quote
+                self._set_cache(f"price_{ticker}", quote)
 
         return result
 
@@ -333,7 +336,11 @@ class DataFeedManager:
     def _fetch_fear_greed(self) -> Optional[float]:
         """CNN Fear & Greed Index."""
         url = "https://production.dataviz.cnn.io/index/fearandgreed/graphdata"
-        data = self._http_get(url, headers={"Accept": "application/json"})
+        data = self._http_get(url, headers={
+            "Accept": "application/json",
+            "Referer": "https://www.cnn.com/markets/fear-and-greed",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        })
         if data and "fear_and_greed" in data:
             return data["fear_and_greed"].get("score")
         return None

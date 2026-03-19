@@ -102,7 +102,7 @@ class MatrixMaximizer:
 
         # ── Extended subsystems (lazy-initialized for fault tolerance) ──
         self.data_feeds = self._init_optional("data_feeds")
-        self.intelligence = self._init_optional("intelligence")
+        self.intelligence = self._init_intelligence(self.data_feeds)
         self.execution = self._init_optional("execution")
         self.alerts = self._init_optional("alerts")
         self.advanced = self._init_optional("advanced_strategies")
@@ -144,6 +144,16 @@ class MatrixMaximizer:
                 return MatrixDashboard()
         except Exception as exc:
             logger.debug("Optional module '%s' not available: %s", module_name, exc)
+        return None
+
+    @staticmethod
+    def _init_intelligence(data_feeds: Any) -> Any:
+        """Initialize IntelligenceEngine with data feed reference."""
+        try:
+            from strategies.matrix_maximizer.intelligence import IntelligenceEngine
+            return IntelligenceEngine(data_feed_manager=data_feeds)
+        except Exception as exc:
+            logger.debug("Intelligence module not available: %s", exc)
         return None
 
     def get_chatbot(self) -> Any:
