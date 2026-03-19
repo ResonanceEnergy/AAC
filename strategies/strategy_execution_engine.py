@@ -82,7 +82,9 @@ from shared.audit_logger import get_audit_logger
 from shared.strategy_loader import get_strategy_loader, StrategyConfig, StrategyCategory
 from shared.market_data_feeds import get_market_data_feed
 from shared.strategy_enums import StrategySignal, StrategyExecutionMode
-from trading.order_generation_system import get_order_generator, ValidatedOrder, OrderValidationResult
+
+# Lazy imports to break circular dependency: strategies/ <-> trading/
+# get_order_generator, ValidatedOrder, OrderValidationResult imported inside methods
 
 
 @dataclass
@@ -149,6 +151,9 @@ class StrategyExecutionEngine:
         """Initialize the strategy execution engine"""
         try:
             self.logger.info("Initializing Strategy Execution Engine...")
+
+            # Lazy import to break circular dependency: strategies/ <-> trading/
+            from trading.order_generation_system import get_order_generator
 
             # Initialize market data and order generator
             self.market_data = await get_market_data_feed()
@@ -388,6 +393,8 @@ class StrategyExecutionEngine:
                     pass  # Strategic overlay is advisory, never blocks execution
 
                 # Generate validated order from signal
+                # Lazy import to break circular dependency: strategies/ <-> trading/
+                from trading.order_generation_system import OrderValidationResult
                 validated_order = await self.order_generator.generate_order_from_signal(signal)
 
                 if validated_order and validated_order.validation_result == OrderValidationResult.VALID:
@@ -466,8 +473,10 @@ class StrategyExecutionEngine:
                     )
 
                     # Generate and submit closing order
+                    # Lazy import to break circular dependency: strategies/ <-> trading/
+                    from trading.order_generation_system import OrderValidationResult as _OVR
                     validated_order = await self.order_generator.generate_order_from_signal(close_signal)
-                    if validated_order and validated_order.validation_result == OrderValidationResult.VALID:
+                    if validated_order and validated_order.validation_result == _OVR.VALID:
                         await self.order_generator.submit_validated_order(validated_order)
 
             self.logger.info("Position closure orders submitted")

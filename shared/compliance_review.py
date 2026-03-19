@@ -25,13 +25,11 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 from shared.config_loader import get_config, get_project_path
 from shared.audit_logger import get_audit_logger
-from shared.production_deployment import production_deployment_system
-from shared.production_monitoring import production_monitoring_system
-from shared.capital_management import capital_management_system
-from shared.trade_reporting import trade_reporting_system
-from shared.audit_trail_integrity import audit_trail_integrity_system
-from shared.risk_disclosure import risk_disclosure_framework
-from shared.business_continuity import business_continuity_system
+
+# Lazy imports — sibling modules loaded inside methods to reduce import-time coupling:
+# production_deployment_system, production_monitoring_system, capital_management_system,
+# trade_reporting_system, audit_trail_integrity_system, risk_disclosure_framework,
+# business_continuity_system
 
 
 class ComplianceLevel(Enum):
@@ -319,6 +317,7 @@ class ComplianceReviewSystem:
     async def _check_capital_adequacy(self) -> bool:
         """Check capital adequacy requirements"""
         try:
+            from shared.capital_management import capital_management_system
             # Use the comprehensive capital management system
             adequacy_check = await capital_management_system.check_capital_adequacy("FINRA")
 
@@ -349,6 +348,7 @@ class ComplianceReviewSystem:
     async def _check_trade_reporting(self) -> bool:
         """Check trade reporting compliance"""
         try:
+            from shared.trade_reporting import trade_reporting_system
             # Check if trade reporting system is operational
             reporting_status = trade_reporting_system.get_reporting_status()
 
@@ -385,6 +385,7 @@ class ComplianceReviewSystem:
     async def _check_audit_trail_integrity(self) -> bool:
         """Check audit trail integrity"""
         try:
+            from shared.audit_trail_integrity import audit_trail_integrity_system
             # Run integrity verification
             integrity_results = await audit_trail_integrity_system.verify_audit_integrity()
 
@@ -443,6 +444,7 @@ class ComplianceReviewSystem:
     async def _check_risk_disclosure(self) -> bool:
         """Check risk disclosure compliance"""
         try:
+            from shared.risk_disclosure import risk_disclosure_framework
             # Check if risk disclosure framework is operational
             summary = risk_disclosure_framework.get_disclosure_summary()
 
@@ -493,6 +495,7 @@ class ComplianceReviewSystem:
     async def _check_business_continuity(self) -> bool:
         """Check business continuity planning"""
         try:
+            from shared.business_continuity import business_continuity_system
             # Check business continuity readiness
             readiness = business_continuity_system.check_business_continuity_readiness()
 
@@ -545,6 +548,7 @@ class ComplianceReviewSystem:
 
     async def _check_cyber_security(self) -> bool:
         """Check cyber security measures"""
+        from shared.production_monitoring import production_monitoring_system
         # Check for security monitoring, updates, etc.
         monitoring_status = production_monitoring_system.get_monitoring_status()
 

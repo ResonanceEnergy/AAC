@@ -30,7 +30,7 @@ from shared.live_trading_safeguards import live_trading_safeguards
 from shared.production_deployment import production_deployment_system
 from shared.production_monitoring import initialize_production_monitoring
 from shared.compliance_review import initialize_compliance_review, compliance_review_system
-from strategies.strategy_execution_engine import get_strategy_execution_engine, StrategyExecutionMode
+from shared.strategy_enums import StrategyExecutionMode
 from shared.market_data_feeds import get_market_data_feed
 from trading.order_generation_system import get_order_generator
 from models.ml_model_training_pipeline import get_ml_training_pipeline
@@ -189,6 +189,8 @@ class LiveTradingEnvironment:
                 execution_mode = StrategyExecutionMode.PAPER_TRADING  # Use paper trading for staging
 
             # Initialize strategy execution engine
+            # Lazy import to break circular dependency: strategies/ <-> trading/
+            from strategies.strategy_execution_engine import get_strategy_execution_engine
             self.strategy_engine = await get_strategy_execution_engine(execution_mode)
             self.logger.info(f"Strategy execution engine initialized in {execution_mode.value} mode")
 
