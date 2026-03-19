@@ -100,6 +100,23 @@ try:
 except ImportError:
     STRATEGY_TESTING_AVAILABLE = False
 
+# Regime forecaster (AAC intelligence layer)
+try:
+    from strategies.regime_engine import RegimeEngine, MacroSnapshot
+    from strategies.stock_forecaster import StockForecaster, Horizon
+    from strategies.crypto_forecaster import CryptoForecaster, CryptoSnapshot
+    FORECASTER_AVAILABLE = True
+except ImportError:
+    FORECASTER_AVAILABLE = False
+
+# MATRIX MAXIMIZER (geopolitical bear market options engine)
+try:
+    from strategies.matrix_maximizer.runner import MatrixMaximizer
+    from strategies.matrix_maximizer.core import MatrixConfig
+    MATRIX_MAXIMIZER_AVAILABLE = True
+except ImportError:
+    MATRIX_MAXIMIZER_AVAILABLE = False
+
 # Additional dashboard components
 try:
     from trading.aac_arbitrage_execution_system import AACArbitrageExecutionSystem, ExecutionConfig
@@ -127,6 +144,14 @@ try:
 except ImportError:
     DATABASE_AVAILABLE = False
     DatabaseManager = None
+
+# System Registry (unified status tracker)
+try:
+    from monitoring.aac_system_registry import SystemRegistry
+    SYSTEM_REGISTRY_AVAILABLE = True
+except ImportError:
+    SYSTEM_REGISTRY_AVAILABLE = False
+    SystemRegistry = None  # type: ignore[assignment,misc]
 
 
 class DisplayMode:
@@ -181,6 +206,9 @@ class AACMasterMonitoringDashboard:
         # Threads and processes
         self.monitoring_thread = None
         self.display_thread = None
+
+        # System Registry (unified component tracker)
+        self.system_registry = SystemRegistry() if SYSTEM_REGISTRY_AVAILABLE else None
 
         # Logger
         self.logger = logging.getLogger("MasterDashboard")
@@ -258,8 +286,20 @@ class AACMasterMonitoringDashboard:
             # Safeguards status
             safeguards_data = get_safeguards_health()
 
+            # Regime forecaster intelligence
+            forecaster_data = await self._get_forecaster_intel()
+
+            # IBKR open orders + maximization plan
+            ibkr_orders_data = await self._get_ibkr_orders()
+
             # Alerts
             alerts_data = await self._get_alerts()
+
+            # System Registry snapshot (APIs, exchanges, infra, strategies, orphans)
+            registry_data = self._get_registry_snapshot()
+
+            # Matrix Maximizer deep integration
+            maximizer_data = self._get_matrix_maximizer_deep()
 
             return {
                 'timestamp': timestamp,
@@ -272,7 +312,11 @@ class AACMasterMonitoringDashboard:
                 'security': security_data,
                 'strategy': strategy_data,
                 'safeguards': safeguards_data,
-                'alerts': alerts_data
+                'forecaster': forecaster_data,
+                'ibkr_orders': ibkr_orders_data,
+                'alerts': alerts_data,
+                'registry': registry_data,
+                'matrix_maximizer': maximizer_data,
             }
 
         except Exception as e:
@@ -289,7 +333,9 @@ class AACMasterMonitoringDashboard:
                 'security': {},
                 'strategy': {},
                 'safeguards': {},
-                'alerts': []
+                'alerts': [],
+                'registry': {},
+                'matrix_maximizer': {},
             }
 
     async def _get_system_health(self) -> Dict[str, Any]:
@@ -416,12 +462,17 @@ class AACMasterMonitoringDashboard:
         """Get P&L data"""
         try:
             risk_metrics = await self.financial_engine.update_risk_metrics()
+            total_equity = await self.financial_engine.calculate_portfolio_value()
+            daily_pnl = await self.financial_engine.calculate_daily_pnl()
+            unrealized_pnl = sum(
+                position.unrealized_pnl for position in self.financial_engine.positions.values()
+            )
             return {
-                'daily_pnl': risk_metrics.daily_pnl,
-                'total_equity': risk_metrics.total_equity,
-                'unrealized_pnl': risk_metrics.unrealized_pnl,
-                'realized_pnl': risk_metrics.realized_pnl,
-                'sharpe_ratio': risk_metrics.sharpe_ratio,
+                'daily_pnl': daily_pnl,
+                'total_equity': total_equity,
+                'unrealized_pnl': unrealized_pnl,
+                'realized_pnl': 0.0,
+                'sharpe_ratio': 0.0,
                 'max_drawdown': risk_metrics.max_drawdown_pct
             }
         except Exception as e:
@@ -441,11 +492,16 @@ class AACMasterMonitoringDashboard:
         try:
             risk_metrics = await self.financial_engine.update_risk_metrics()
             return {
-                'var_99': risk_metrics.var_99,
-                'expected_shortfall': risk_metrics.expected_shortfall,
-                'beta': risk_metrics.beta,
-                'correlation_matrix': risk_metrics.correlation_matrix,
-                'stress_test_results': risk_metrics.stress_test_results
+                'var_99': risk_metrics.stressed_var_99,
+                'expected_shortfall': risk_metrics.tail_loss_p99,
+                'beta': 0.0,
+                'correlation_matrix': {
+                    'strategy_correlation': risk_metrics.strategy_correlation,
+                },
+                'stress_test_results': {
+                    'portfolio_heat': risk_metrics.portfolio_heat,
+                    'margin_buffer': risk_metrics.margin_buffer,
+                }
             }
         except Exception as e:
             self.logger.error(f"Risk metrics retrieval failed: {e}")
@@ -628,6 +684,164 @@ class AACMasterMonitoringDashboard:
         except Exception:
             return {'endpoints_secured': 0, 'total_endpoints': 0, 'score': 0, 'status': 'not_implemented'}
 
+    async def _get_forecaster_intel(self) -> Dict[str, Any]:
+        """Run regime engine + stock forecaster. Returns compact intel dict for dashboard."""
+        if not FORECASTER_AVAILABLE:
+            return {'status': 'not_available'}
+        try:
+            import os
+            from strategies.regime_engine import RegimeEngine, MacroSnapshot
+            from strategies.stock_forecaster import StockForecaster, Horizon
+
+            # Build snapshot from env overrides or safe defaults
+            snap = MacroSnapshot(
+                vix=float(os.environ.get('MONITOR_VIX', '21.5')),
+                hy_spread_bps=float(os.environ.get('MONITOR_HY_SPREAD', '380')),
+                oil_price=float(os.environ.get('MONITOR_OIL', '95.5')),
+                gold_price=float(os.environ.get('MONITOR_GOLD', '5011')),
+                core_pce=float(os.environ.get('MONITOR_PCE', '3.1')),
+                gdp_growth=float(os.environ.get('MONITOR_GDP', '0.7')),
+                yield_curve_10_2=float(os.environ.get('MONITOR_YIELD_CURVE', '-0.3')),
+                private_credit_redemption_pct=float(os.environ.get('MONITOR_PRIV_CREDIT', '11.0')),
+                war_active=os.environ.get('MONITOR_WAR', 'true').lower() == 'true',
+                hormuz_blocked=os.environ.get('MONITOR_HORMUZ', 'true').lower() == 'true',
+                hyg_return_1d=float(os.environ.get('MONITOR_HYG_RET', '-0.6')),
+                spy_return_1d=float(os.environ.get('MONITOR_SPY_RET', '-0.4')),
+                kre_return_1d=float(os.environ.get('MONITOR_KRE_RET', '-0.9')),
+                airlines_return_1d=float(os.environ.get('MONITOR_JETS_RET', '-1.1')),
+            )
+
+            state = RegimeEngine().evaluate(snap)
+            forecaster = StockForecaster()
+            short_fcast = forecaster.forecast(state, Horizon.SHORT, top_n=3)
+
+            top3 = [
+                {
+                    'rank': o.rank,
+                    'ticker': o.primary_ticker,
+                    'industry': o.industry.value,
+                    'expression': o.expression.value,
+                    'score': round(o.composite_score, 1),
+                    'thesis': o.thesis[:80],
+                    'structure': o.structure_hint[:70],
+                }
+                for o in short_fcast.opportunities[:3]
+            ]
+
+            fired_formulas = [
+                {
+                    'tag': f.tag.value,
+                    'confidence': round(f.confidence * 100),
+                    'outcome': f.expected_outcome[:70],
+                }
+                for f in state.top_formulas[:3]
+            ]
+
+            two_stack = forecaster.two_trade_stack(state)
+
+            return {
+                'status': 'ok',
+                'regime': state.primary_regime.value,
+                'secondary': state.secondary_regime.value if state.secondary_regime else None,
+                'regime_confidence': round(state.regime_confidence * 100),
+                'vol_shock_readiness': state.vol_shock_readiness,
+                'bear_signals': state.bear_signals,
+                'bull_signals': state.bull_signals,
+                'fired_formulas': fired_formulas,
+                'top3_opportunities': top3,
+                'anchor_ticker': two_stack[0].primary_ticker if two_stack[0] else None,
+                'contagion_ticker': two_stack[1].primary_ticker if two_stack[1] else None,
+                'macro_context': {
+                    'vix': snap.vix,
+                    'hy_spread': snap.hy_spread_bps,
+                    'oil': snap.oil_price,
+                    'war': snap.war_active,
+                    'hormuz': snap.hormuz_blocked,
+                },
+            }
+        except Exception as e:
+            self.logger.warning(f'Forecaster intel error: {e}')
+            return {'status': 'error', 'error': str(e)}
+
+    async def _get_ibkr_orders(self) -> Dict[str, Any]:
+        """Fetch open IBKR orders and compute $920 maximization plan."""
+        try:
+            from TradingExecution.exchange_connectors.ibkr_connector import IBKRConnector
+
+            connector = IBKRConnector()
+            await connector.connect()
+            orders_raw = await connector.get_open_orders()
+            await connector.disconnect()
+
+            orders = []
+            total_committed = 0.0
+            for o in orders_raw:
+                # o is an ExchangeOrder object or its string repr
+                raw = o if isinstance(o, dict) else {}
+                # Parse from string repr if needed
+                if hasattr(o, 'symbol'):
+                    qty = float(getattr(o, 'quantity', 0))
+                    price = float(getattr(o, 'price', 0))
+                    cost = qty * price * 100  # options: qty contracts × premium × 100
+                    total_committed += cost
+                    orders.append({
+                        'order_id': getattr(o, 'order_id', '?'),
+                        'symbol': getattr(o, 'symbol', '?').replace('/USD', ''),
+                        'side': getattr(o, 'side', '?'),
+                        'qty': qty,
+                        'price': price,
+                        'cost': cost,
+                        'status': getattr(o, 'status', '?'),
+                        'ibkr_status': getattr(o, 'raw', {}).get('ibkr_status', '?'),
+                    })
+
+            account_balance = 920.0  # USD — user confirmed
+            remaining = account_balance - total_committed
+
+            # Maximization recommendations for remaining capital
+            # Regime: STAGFLATION + CREDIT_STRESS => KRE + JNK are highest conviction
+            recs = []
+            if remaining >= 300:
+                recs.append({
+                    'ticker': 'KRE', 'expression': 'Put Spread', 'contracts': 1,
+                    'est_premium': 2.50, 'cost': 250.0,
+                    'rationale': 'Contagion accelerator — banks gap on credit stress',
+                    'dte': '14-42 days', 'otm': '5%',
+                })
+            if remaining >= 150:
+                recs.append({
+                    'ticker': 'JNK', 'expression': 'Put Spread', 'contracts': 1,
+                    'est_premium': 1.00, 'cost': 100.0,
+                    'rationale': 'Credit twin to HYG — reinforces anchor trade',
+                    'dte': '14-42 days', 'otm': '3%',
+                })
+            if remaining < 150 and remaining >= 50:
+                recs.append({
+                    'ticker': 'JETS', 'expression': 'ATM Put', 'contracts': 1,
+                    'est_premium': remaining / 100,
+                    'cost': remaining - 10,
+                    'rationale': 'Oil shock direct hit — airlines bleed on stagflation',
+                    'dte': '7-21 days', 'otm': 'ATM',
+                })
+
+            rec_cost = sum(r['cost'] for r in recs)
+            cash_after = remaining - rec_cost
+
+            return {
+                'status': 'ok',
+                'account': 'U24346218',
+                'balance_usd': account_balance,
+                'open_orders': orders,
+                'total_committed': round(total_committed, 2),
+                'remaining_cash': round(remaining, 2),
+                'recommendations': recs,
+                'rec_total_cost': round(rec_cost, 2),
+                'cash_after_recs': round(cash_after, 2),
+            }
+        except Exception as e:
+            self.logger.warning(f'IBKR orders fetch error: {e}')
+            return {'status': 'error', 'error': str(e)}
+
     async def _get_strategy_metrics(self) -> Dict[str, Any]:
         """Get strategy metrics data"""
         if not STRATEGY_TESTING_AVAILABLE or not self.strategy_testing:
@@ -655,6 +869,68 @@ class AACMasterMonitoringDashboard:
                 'sharpe_ratio': 0.0,
                 'error': str(e)
             }
+
+    # ── SYSTEM REGISTRY + MATRIX MAXIMIZER DEEP ─────────────────
+
+    def _get_registry_snapshot(self) -> Dict[str, Any]:
+        """Get a full system registry snapshot (APIs, exchanges, infra, etc.)."""
+        if not self.system_registry:
+            return {"status": "not_available"}
+        try:
+            return self.system_registry.collect_full_snapshot()
+        except Exception as e:
+            self.logger.warning("Registry snapshot failed: %s", e)
+            return {"status": "error", "error": str(e)}
+
+    def _get_matrix_maximizer_deep(self) -> Dict[str, Any]:
+        """Get deep Matrix Maximizer state — last-run data + module health."""
+        if not MATRIX_MAXIMIZER_AVAILABLE:
+            return {"status": "not_available"}
+        try:
+            # Read latest run output
+            latest_path = PROJECT_ROOT / "data" / "matrix_maximizer_latest.json"
+            if latest_path.exists():
+                data = json.loads(latest_path.read_text(encoding="utf-8"))
+                regime = data.get("regime", {})
+                forecast = data.get("forecast", {})
+                picks = data.get("picks", [])
+                risk_snap = data.get("risk", {})
+                return {
+                    "status": "ok",
+                    "run_number": data.get("run_number"),
+                    "timestamp": data.get("timestamp"),
+                    "mandate": forecast.get("mandate", "?"),
+                    "risk_per_trade": forecast.get("risk_per_trade"),
+                    "max_positions": forecast.get("max_positions"),
+                    "spy_median_return": forecast.get("spy_median_return"),
+                    "spy_var_95": forecast.get("spy_var_95"),
+                    "regime": regime.get("regime", "?"),
+                    "regime_confidence": regime.get("confidence"),
+                    "war_active": regime.get("war_active"),
+                    "hormuz_blocked": regime.get("hormuz_blocked"),
+                    "oil_price": regime.get("oil_price"),
+                    "vix": regime.get("vix"),
+                    "top_picks": [
+                        {
+                            "ticker": p.get("ticker"),
+                            "strike": p.get("strike"),
+                            "expiry": p.get("expiry"),
+                            "score": p.get("score"),
+                            "contracts": p.get("contracts"),
+                            "cost": p.get("cost"),
+                        }
+                        for p in picks[:5]
+                    ],
+                    "total_picks": len(picks),
+                    "circuit_breaker": risk_snap.get("circuit_breaker", "?"),
+                    "risk_score": risk_snap.get("risk_score"),
+                    "elapsed_s": data.get("elapsed_s"),
+                }
+            else:
+                return {"status": "no_data", "detail": "No run output found"}
+        except Exception as e:
+            self.logger.warning("Matrix Maximizer deep read failed: %s", e)
+            return {"status": "error", "error": str(e)}
 
     async def _get_alerts(self) -> List[Dict[str, Any]]:
         """Get active alerts from all systems"""
@@ -898,6 +1174,94 @@ class AACMasterMonitoringDashboard:
                 stdscr.addstr(y_pos, 0, f"{exchange}: CB={cb_state.upper()}", curses.color_pair(4))
                 y_pos += 1
 
+        # ── Regime Forecaster (curses panel) ──────────────────────────────
+        forecaster = data.get('forecaster', {})
+        if forecaster and forecaster.get('status') == 'ok' and y_pos < height - 10:
+            y_pos += 1
+            try:
+                stdscr.addstr(y_pos, 0, "[FORECAST] REGIME", curses.A_BOLD)
+                y_pos += 1
+                regime = forecaster.get('regime', '?').upper().replace('_', ' ')
+                vol = forecaster.get('vol_shock_readiness', 0)
+                anchor = forecaster.get('anchor_ticker', '-')
+                contagion = forecaster.get('contagion_ticker', '-')
+                vol_lbl = 'ARMED' if vol >= 60 else 'ELEV' if vol >= 40 else 'LOW'
+                line = f"{regime}  Vol:{vol:.0f}/100[{vol_lbl}]  Stack:{anchor}+{contagion}"
+                stdscr.addstr(y_pos, 0, line[:width - 1])
+                y_pos += 1
+                for o in forecaster.get('top3_opportunities', []):
+                    if y_pos >= height - 6:
+                        break
+                    expr = o['expression'].replace('_', ' ').upper()
+                    stdscr.addstr(y_pos, 0, f"  #{o['rank']} {o['ticker']} {expr} sc={o['score']}"[:width - 1])
+                    y_pos += 1
+            except Exception:
+                pass
+
+        # ── IBKR Orders + $920 Maximization (curses panel) ─────────────────
+        ibkr = data.get('ibkr_orders', {})
+        if ibkr and ibkr.get('status') == 'ok' and y_pos < height - 6:
+            y_pos += 1
+            try:
+                stdscr.addstr(y_pos, 0, "[IBKR] ORDERS & MAXIMIZE", curses.A_BOLD)
+                y_pos += 1
+                bal = ibkr.get('balance_usd', 0)
+                committed = ibkr.get('total_committed', 0)
+                remaining = ibkr.get('remaining_cash', 0)
+                stdscr.addstr(y_pos, 0, f"${bal:.0f} bal  ${committed:.0f} deployed  ${remaining:.0f} powder"[:width - 1])
+                y_pos += 1
+                for o in ibkr.get('open_orders', [])[:3]:
+                    if y_pos >= height - 4:
+                        break
+                    line = f"  #{o['order_id']} {o['symbol']} x{o['qty']:.0f}@${o['price']:.2f} [{o['ibkr_status']}]"
+                    stdscr.addstr(y_pos, 0, line[:width - 1])
+                    y_pos += 1
+                recs = ibkr.get('recommendations', [])
+                if recs and y_pos < height - 3:
+                    tickers = '+'.join(r['ticker'] for r in recs)
+                    stdscr.addstr(y_pos, 0, f"  DEPLOY: {tickers}  cost=${ibkr.get('rec_total_cost', 0):.0f}"[:width - 1])
+                    y_pos += 1
+            except Exception:
+                pass
+
+        # ── Matrix Maximizer (curses panel) ────────────────────────────
+        mm = data.get('matrix_maximizer', {})
+        if mm and mm.get('status') == 'ok' and y_pos < height - 8:
+            y_pos += 1
+            try:
+                stdscr.addstr(y_pos, 0, "[MM] MATRIX MAXIMIZER", curses.A_BOLD)
+                y_pos += 1
+                mandate = mm.get('mandate', '?').upper()
+                regime_mm = mm.get('regime', '?').upper()
+                cb = mm.get('circuit_breaker', '?')
+                stdscr.addstr(y_pos, 0, f"{mandate} | {regime_mm} | CB={cb}"[:width - 1])
+                y_pos += 1
+                picks = mm.get('top_picks', [])
+                for p in picks[:3]:
+                    if y_pos >= height - 6:
+                        break
+                    stdscr.addstr(y_pos, 0, f"  {p['ticker']:6} K={p.get('strike','?')} sc={p.get('score','?')}"[:width - 1])
+                    y_pos += 1
+            except Exception:
+                pass
+
+        # ── System Registry Summary (curses panel) ─────────────────────
+        registry = data.get('registry', {})
+        if registry and registry.get('status') != 'not_available' and y_pos < height - 6:
+            y_pos += 1
+            try:
+                stdscr.addstr(y_pos, 0, "[REG] SYSTEM REGISTRY", curses.A_BOLD)
+                y_pos += 1
+                s = registry.get('summary', {})
+                line = (f"APIs:{s.get('apis_configured',0)}/{s.get('total_apis',0)} "
+                        f"Exch:{s.get('exchanges_online',0)}/{s.get('exchanges_total',0)} "
+                        f"Strat:{s.get('strategies_ok',0)}/{s.get('strategies_total',0)} "
+                        f"Dept:{s.get('departments_ok',0)}/{s.get('departments_total',0)}")
+                stdscr.addstr(y_pos, 0, line[:width - 1])
+                y_pos += 1
+            except Exception:
+                pass
+
         # Alerts
         alerts = data.get('alerts', [])
         if alerts:
@@ -1070,6 +1434,215 @@ class AACMasterMonitoringDashboard:
             logger.info(f"Total Strategies: {total_strategies}")
             logger.info(f"Active Strategies: {active_strategies}")
             logger.info(f"Average Return: {avg_return:.2%}")
+
+        # ── REGIME FORECASTER INTEL ────────────────────────────────────────
+        forecaster = data.get('forecaster', {})
+        if forecaster and forecaster.get('status') == 'ok':
+            logger.info("")
+            logger.info("=" * 60)
+            logger.info("  REGIME FORECASTER — IF X+Y → EXPECT Z")
+            logger.info("=" * 60)
+            regime = forecaster.get('regime', 'UNKNOWN').upper().replace('_', ' ')
+            secondary = forecaster.get('secondary')
+            conf = forecaster.get('regime_confidence', 0)
+            vol = forecaster.get('vol_shock_readiness', 0)
+            bears = forecaster.get('bear_signals', 0)
+            bulls = forecaster.get('bull_signals', 0)
+            anchor = forecaster.get('anchor_ticker', '-')
+            contagion = forecaster.get('contagion_ticker', '-')
+            macro = forecaster.get('macro_context', {})
+
+            if vol >= 80:
+                vol_icon = '[!! SHOCK WINDOW OPEN !!]'
+            elif vol >= 60:
+                vol_icon = '[ARMED — cheapest vol now]'
+            elif vol >= 40:
+                vol_icon = '[ELEVATED — watch signals]'
+            else:
+                vol_icon = '[LOW]'
+
+            logger.info(f"  Regime: {regime}  (conf {conf}%)")
+            if secondary:
+                logger.info(f"  Secondary: {secondary.upper().replace('_',' ')}")
+            logger.info(f"  Vol Shock Readiness: {vol}/100  {vol_icon}")
+            logger.info(f"  Signals: {bears} bearish | {bulls} bullish")
+            logger.info(f"  Macro: VIX={macro.get('vix','?')}  HY={macro.get('hy_spread','?')}bps  Oil=${macro.get('oil','?')}")
+            war_flags = []
+            if macro.get('war'): war_flags.append('WAR ACTIVE')
+            if macro.get('hormuz'): war_flags.append('HORMUZ BLOCKED')
+            if war_flags:
+                logger.info(f"  Geo: {' | '.join(war_flags)}")
+
+            fired = forecaster.get('fired_formulas', [])
+            if fired:
+                logger.info(f"  Fired Formulas ({len(fired)}):")
+                for f in fired:
+                    logger.info(f"    [{f['tag']}] {f['confidence']}%  {f['outcome']}")
+
+            logger.info(f"")
+            logger.info(f"  2-TRADE STACK  |  Anchor: {anchor}  |  Contagion: {contagion}")
+
+            opps = forecaster.get('top3_opportunities', [])
+            if opps:
+                logger.info(f"  TOP 3 SHORT-TERM OPPORTUNITIES:")
+                for o in opps:
+                    expr = o['expression'].replace('_', ' ').upper()
+                    logger.info(f"    #{o['rank']}  {o['ticker']:6}  {expr:17}  score={o['score']}")
+                    logger.info(f"         {o['thesis']}")
+            logger.info("=" * 60)
+
+        # ── IBKR OPEN ORDERS + $920 MAXIMIZATION PLAN ───────────────────
+        ibkr = data.get('ibkr_orders', {})
+        if ibkr and ibkr.get('status') == 'ok':
+            logger.info("")
+            logger.info("=" * 60)
+            logger.info("  IBKR ORDERS  [acct: {}]".format(ibkr.get('account', '?')))
+            logger.info("=" * 60)
+            bal = ibkr.get('balance_usd', 0)
+            committed = ibkr.get('total_committed', 0)
+            remaining = ibkr.get('remaining_cash', 0)
+            logger.info(f"  Balance: ${bal:.0f} USD  |  Committed: ${committed:.0f}  |  Dry Powder: ${remaining:.0f}")
+
+            orders = ibkr.get('open_orders', [])
+            if orders:
+                logger.info(f"  Open Orders ({len(orders)}):")
+                for o in orders:
+                    s = o['ibkr_status']
+                    cost = o['cost']
+                    logger.info(
+                        f"    #{o['order_id']}  {o['symbol']:6}  {o['side'].upper()} "
+                        f"x{o['qty']:.0f} @ ${o['price']:.2f}  cost=${cost:.0f}  [{s}]"
+                    )
+            else:
+                logger.info("  No open orders.")
+
+            recs = ibkr.get('recommendations', [])
+            if recs:
+                rec_total = ibkr.get('rec_total_cost', 0)
+                cash_after = ibkr.get('cash_after_recs', 0)
+                logger.info(f"")
+                logger.info(f"  MAXIMIZATION PLAN (deploy ${rec_total:.0f} / ${remaining:.0f} remaining):")
+                for r in recs:
+                    logger.info(
+                        f"    {r['ticker']:6}  {r['expression']:17}  x{r['contracts']}  "
+                        f"est ${r['est_premium']:.2f}/contract  total=${r['cost']:.0f}  DTE {r['dte']}"
+                    )
+                    logger.info(f"           {r['rationale']}")
+                logger.info(f"  Cash buffer after deployment: ${cash_after:.0f}")
+            logger.info("=" * 60)
+
+        # ── MATRIX MAXIMIZER DEEP ─────────────────────────────────────
+        mm = data.get('matrix_maximizer', {})
+        if mm and mm.get('status') == 'ok':
+            logger.info("")
+            logger.info("=" * 60)
+            logger.info("  MATRIX MAXIMIZER — COMMAND & CONTROL")
+            logger.info("=" * 60)
+            logger.info(f"  Run #{mm.get('run_number','?')}  |  {mm.get('timestamp','?')}")
+            mandate = mm.get('mandate', '?').upper()
+            mandate_icon = {'DEFENSIVE': '🛡️', 'STANDARD': '⚖️', 'AGGRESSIVE': '⚔️', 'MAX_CONVICTION': '🔥'}.get(mandate, '❓')
+            logger.info(f"  Mandate: {mandate_icon} {mandate}  |  Risk/trade: {mm.get('risk_per_trade','?')}%  |  Max pos: {mm.get('max_positions','?')}")
+            logger.info(f"  Regime: {mm.get('regime','?').upper()}  conf={mm.get('regime_confidence','?')}%")
+            logger.info(f"  Geo: WAR={'YES' if mm.get('war_active') else 'NO'}  HORMUZ={'BLOCKED' if mm.get('hormuz_blocked') else 'OPEN'}")
+            logger.info(f"  Oil=${mm.get('oil_price','?')}  VIX={mm.get('vix','?')}")
+            spy_ret = mm.get('spy_median_return')
+            spy_var = mm.get('spy_var_95')
+            if spy_ret is not None:
+                logger.info(f"  SPY median return: {spy_ret:.1f}%  |  VaR(95): {spy_var}")
+            cb = mm.get('circuit_breaker', '?')
+            cb_icon = '🔴' if cb == 'OPEN' else '🟢'
+            logger.info(f"  Circuit Breaker: {cb_icon} {cb}  |  Risk Score: {mm.get('risk_score','?')}")
+
+            picks = mm.get('top_picks', [])
+            if picks:
+                logger.info(f"  Top {len(picks)} Picks (of {mm.get('total_picks',0)}):")
+                for p in picks:
+                    logger.info(f"    {p['ticker']:6}  K={p.get('strike','?')}  exp={p.get('expiry','?')}  "
+                                f"score={p.get('score','?')}  x{p.get('contracts','?')}  ${p.get('cost','?')}")
+            elapsed = mm.get('elapsed_s')
+            if elapsed:
+                logger.info(f"  Cycle time: {elapsed:.1f}s")
+            logger.info("=" * 60)
+
+        # ── SYSTEM REGISTRY — API STATUS ──────────────────────────────
+        registry = data.get('registry', {})
+        if registry and registry.get('status') != 'not_available':
+            summary = registry.get('summary', {})
+            logger.info("")
+            logger.info("=" * 60)
+            logger.info("  SYSTEM REGISTRY — COMMAND & CONTROL")
+            logger.info("=" * 60)
+            logger.info(f"  APIs: {summary.get('apis_configured',0)} configured | "
+                        f"{summary.get('apis_missing',0)} missing | "
+                        f"{summary.get('apis_free',0)} free (no key)")
+
+            # Exchange status
+            exchanges = registry.get('exchanges', [])
+            ex_online = summary.get('exchanges_online', 0)
+            ex_total = summary.get('exchanges_total', 0)
+            logger.info(f"  Exchanges: {ex_online}/{ex_total} online")
+            for ex in exchanges:
+                h = ex.get('health', 'grey')
+                icon = {'green': '🟢', 'yellow': '🟡', 'red': '🔴', 'grey': '⚪'}.get(h, '⚪')
+                lat = ex.get('latency_ms')
+                lat_str = f"  {lat}ms" if lat else ""
+                logger.info(f"    {icon} {ex['name']:20} {ex.get('detail','')}{lat_str}")
+
+            # Infrastructure status
+            infra = registry.get('infrastructure', [])
+            infra_ok = summary.get('infra_ok', 0)
+            infra_total = summary.get('infra_total', 0)
+            logger.info(f"  Infrastructure: {infra_ok}/{infra_total} healthy")
+            for svc in infra:
+                h = svc.get('health', 'grey')
+                icon = {'green': '🟢', 'yellow': '🟡', 'red': '🔴', 'grey': '⚪'}.get(h, '⚪')
+                logger.info(f"    {icon} {svc['name']:20} {svc.get('detail','')}")
+
+            # Strategy engines
+            strats = registry.get('strategies', [])
+            strat_ok = summary.get('strategies_ok', 0)
+            strat_total = summary.get('strategies_total', 0)
+            logger.info(f"  Strategies: {strat_ok}/{strat_total} operational")
+            for st_item in strats:
+                h = st_item.get('health', 'grey')
+                icon = {'green': '🟢', 'yellow': '🟡', 'red': '🔴', 'grey': '⚪'}.get(h, '⚪')
+                logger.info(f"    {icon} {st_item['name']:20} {st_item.get('detail','')}")
+
+            # Departments
+            depts = registry.get('departments', [])
+            dept_ok = summary.get('departments_ok', 0)
+            dept_total = summary.get('departments_total', 0)
+            logger.info(f"  Departments: {dept_ok}/{dept_total} online")
+            for d in depts:
+                h = d.get('health', 'grey')
+                icon = {'green': '🟢', 'yellow': '🟡', 'red': '🔴', 'grey': '⚪'}.get(h, '⚪')
+                logger.info(f"    {icon} {d['name']:25} {d.get('detail','')}")
+
+            # API breakdown by category
+            apis = registry.get('apis', [])
+            if apis:
+                cats: Dict[str, list] = {}
+                for a in apis:
+                    cat = a.get('category', 'Other')
+                    cats.setdefault(cat, []).append(a)
+                logger.info(f"  ── API Inventory ({len(apis)} total) ──")
+                for cat, items in sorted(cats.items()):
+                    conf = sum(1 for i in items if i.get('configured'))
+                    logger.info(f"    {cat}: {conf}/{len(items)} configured")
+                    for item in items:
+                        icon = '✅' if item.get('configured') else ('🔑' if item.get('env_var') else '🆓')
+                        logger.info(f"      {icon} {item['name']}")
+
+            # Orphan scripts
+            orphans = registry.get('orphans', [])
+            if orphans:
+                logger.info(f"  Orphan Scripts: {len(orphans)} root _*.py files")
+                for o in orphans[:10]:
+                    logger.info(f"    📄 {o['script']:30} {o.get('description','')[:50]}")
+                if len(orphans) > 10:
+                    logger.info(f"    ... and {len(orphans) - 10} more")
+
+            logger.info("=" * 60)
 
         # Alerts
         alerts = data.get('alerts', [])
@@ -1285,8 +1858,16 @@ class AACMasterMonitoringDashboard:
                     data = dashboard_ref._latest_data
                     alerts = data.get('alerts', []) if data else []
                     self._json_response({'alerts': self._serializable(alerts)})
+                elif self.path == '/api/registry':
+                    data = dashboard_ref._latest_data
+                    registry = data.get('registry', {}) if data else {}
+                    self._json_response(self._serializable(registry))
+                elif self.path == '/api/maximizer':
+                    data = dashboard_ref._latest_data
+                    mm = data.get('matrix_maximizer', {}) if data else {}
+                    self._json_response(self._serializable(mm))
                 else:
-                    self.send_error(404, 'Not found. Endpoints: /health, /api/status, /api/alerts')
+                    self.send_error(404, 'Endpoints: /health, /api/status, /api/alerts, /api/registry, /api/maximizer')
 
             def _json_response(self, obj):
                 body = json.dumps(obj, default=str).encode('utf-8')
@@ -1315,7 +1896,7 @@ class AACMasterMonitoringDashboard:
         api_thread = threading.Thread(target=server.serve_forever, daemon=True)
         api_thread.start()
         logger.info(f"API dashboard running on http://localhost:{port}")
-        logger.info("  Endpoints: /health, /api/status, /api/alerts")
+        logger.info("  Endpoints: /health, /api/status, /api/alerts, /api/registry, /api/maximizer")
 
         # Main monitoring loop
         self.running = True
@@ -1993,6 +2574,114 @@ def run_streamlit_dashboard():
                 st.error(f"Error getting positions: {e}")
         else:
             st.info("Trading engine not available")
+
+        # ── MATRIX MAXIMIZER COMMAND & CONTROL ──────────────────────
+        st.markdown("---")
+        st.subheader("🎯 Matrix Maximizer — Command & Control")
+
+        mm_path = PROJECT_ROOT / "data" / "matrix_maximizer_latest.json"
+        if mm_path.exists():
+            try:
+                mm_data = json.loads(mm_path.read_text(encoding="utf-8"))
+                mm_col1, mm_col2, mm_col3 = st.columns(3)
+                forecast = mm_data.get("forecast", {})
+                regime = mm_data.get("regime", {})
+                risk_snap = mm_data.get("risk", {})
+
+                with mm_col1:
+                    st.metric("Mandate", forecast.get("mandate", "?").upper())
+                    st.metric("Run #", mm_data.get("run_number", "?"))
+                    st.metric("Risk/Trade", f"{forecast.get('risk_per_trade', '?')}%")
+
+                with mm_col2:
+                    st.metric("Regime", regime.get("regime", "?").upper())
+                    st.metric("Oil", f"${regime.get('oil_price', '?')}")
+                    st.metric("VIX", regime.get("vix", "?"))
+
+                with mm_col3:
+                    st.metric("Circuit Breaker", risk_snap.get("circuit_breaker", "?"))
+                    st.metric("War Active", "YES" if regime.get("war_active") else "NO")
+                    st.metric("Hormuz", "BLOCKED" if regime.get("hormuz_blocked") else "OPEN")
+
+                picks = mm_data.get("picks", [])
+                if picks:
+                    st.write(f"**Top Picks ({len(picks)} total):**")
+                    pick_rows = []
+                    for p in picks[:10]:
+                        pick_rows.append({
+                            "Ticker": p.get("ticker"),
+                            "Strike": p.get("strike"),
+                            "Expiry": p.get("expiry"),
+                            "Score": p.get("score"),
+                            "Contracts": p.get("contracts"),
+                            "Cost": f"${p.get('cost', 0):.0f}",
+                        })
+                    st.dataframe(pd.DataFrame(pick_rows), use_container_width=True)
+            except Exception as e:
+                st.warning(f"Matrix Maximizer data error: {e}")
+        else:
+            st.info("Matrix Maximizer has not run yet. Use: python -m strategies.matrix_maximizer.runner")
+
+        # ── SYSTEM REGISTRY — API & Component Status ────────────────
+        st.markdown("---")
+        st.subheader("🏗️ System Registry — All Components")
+
+        try:
+            from monitoring.aac_system_registry import SystemRegistry as _SR
+            _reg = _SR()
+            snap = _reg.collect_full_snapshot()
+            s = snap.get("summary", {})
+
+            reg_col1, reg_col2, reg_col3, reg_col4 = st.columns(4)
+            with reg_col1:
+                st.metric("APIs Configured", f"{s.get('apis_configured',0)}/{s.get('total_apis',0)}")
+            with reg_col2:
+                st.metric("Exchanges Online", f"{s.get('exchanges_online',0)}/{s.get('exchanges_total',0)}")
+            with reg_col3:
+                st.metric("Strategies OK", f"{s.get('strategies_ok',0)}/{s.get('strategies_total',0)}")
+            with reg_col4:
+                st.metric("Departments", f"{s.get('departments_ok',0)}/{s.get('departments_total',0)}")
+
+            # Exchange detail
+            with st.expander("🔌 Exchange Gateways"):
+                for ex in snap.get("exchanges", []):
+                    icon = {"green": "🟢", "yellow": "🟡", "red": "🔴"}.get(ex.get("health"), "⚪")
+                    lat = f" ({ex['latency_ms']}ms)" if ex.get("latency_ms") else ""
+                    st.write(f"{icon} **{ex['name']}** — {ex.get('detail','')}{lat}")
+
+            # Infrastructure
+            with st.expander("🏗️ Infrastructure"):
+                for svc in snap.get("infrastructure", []):
+                    icon = {"green": "🟢", "yellow": "🟡", "red": "🔴"}.get(svc.get("health"), "⚪")
+                    st.write(f"{icon} **{svc['name']}** — {svc.get('detail','')}")
+
+            # Strategy engines
+            with st.expander("🧠 Strategy Engines"):
+                for st_item in snap.get("strategies", []):
+                    icon = {"green": "🟢", "yellow": "🟡", "red": "🔴"}.get(st_item.get("health"), "⚪")
+                    st.write(f"{icon} **{st_item['name']}** — {st_item.get('detail','')}")
+
+            # Full API inventory
+            with st.expander(f"🔑 API Inventory ({s.get('total_apis',0)} APIs)"):
+                api_rows = []
+                for a in snap.get("apis", []):
+                    api_rows.append({
+                        "Status": "✅" if a.get("configured") else ("🔑 Missing" if a.get("env_var") else "🆓 Free"),
+                        "Name": a["name"],
+                        "Category": a.get("category", ""),
+                        "Priority": a.get("priority", ""),
+                    })
+                st.dataframe(pd.DataFrame(api_rows), use_container_width=True)
+
+            # Orphan scripts
+            orphans = snap.get("orphans", [])
+            if orphans:
+                with st.expander(f"📄 Orphan Scripts ({len(orphans)} root _*.py)"):
+                    for o in orphans:
+                        st.write(f"📄 **{o['script']}** — {o.get('description','')[:80]}")
+
+        except Exception as e:
+            st.warning(f"System registry not available: {e}")
 
         # System logs
         st.markdown("---")

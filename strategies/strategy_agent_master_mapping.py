@@ -75,6 +75,8 @@ STRATEGIES_DATA = [
     {"id": 53, "name": "Forex Triangular Arbitrage", "category": "FX_Arbitrage"},
     {"id": 54, "name": "Forex Spread Dislocation", "category": "FX_Arbitrage"},
     {"id": 55, "name": "CAD Corridor FX Optimization", "category": "FX_Arbitrage"},
+    # MATRIX MAXIMIZER — Geopolitical Bear Market Options Engine (TOP PRIORITY)
+    {"id": 56, "name": "MATRIX MAXIMIZER Geopolitical Bear Puts", "category": "Geopolitical_Options"},
 ]
 
 class AACStrategyAgentMapper:

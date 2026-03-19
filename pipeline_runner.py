@@ -52,6 +52,7 @@ from TradingExecution.execution_engine import (
     PositionStatus,
 )
 from CentralAccounting.database import AccountingDatabase
+from integrations.cross_pillar_hub import get_cross_pillar_hub
 
 # ── Logging ───────────────────────────────────────────────────────────
 logging.basicConfig(
@@ -345,13 +346,26 @@ async def run_pipeline():
     engine.paper_trading = True
     engine.dry_run = False
 
+    # Cross-pillar governance
+    hub = get_cross_pillar_hub()
+    await hub.check_ncc_governance()
+    pillar_status = hub.get_full_status()
+
     # Verify paper trading mode
     assert engine.paper_trading, "Safety check: must be in paper trading mode!"
     logger.info(f"  OK  Execution engine (paper_trading={engine.paper_trading})")
     logger.info(f"  OK  Accounting database: {db.db_path}")
+    logger.info(f"  OK  Doctrine mode: {pillar_status['doctrine_mode']} "
+                f"(risk multiplier: {pillar_status['risk_multiplier']:.1f}x)")
     print(f"  OK  Risk limits: max_position=${engine.risk_manager.max_position_size_usd}, "
           f"max_daily_loss=${engine.risk_manager.max_daily_loss_usd}")
     logger.info("")
+
+    # HALT trading if NCC directs it
+    if not hub.should_trade():
+        logger.warning("NCC GOVERNANCE: Trading HALTED (mode=%s). Exiting pipeline.",
+                        pillar_status['doctrine_mode'])
+        return
 
     # Symbol mapping: CoinGecko coin_id → readable ticker
     COIN_MAP = {
@@ -523,6 +537,11 @@ async def run_pipeline():
             risk_per_trade_pct=risk_pct,
             stop_loss_pct=stop_loss_pct,
         )
+        # Apply NCC governance risk multiplier
+        risk_mult = hub.get_risk_multiplier()
+        position_size_usd *= risk_mult
+        if risk_mult < 1.0:
+            logger.info(f"    NCC risk adjustment: {risk_mult:.1f}x → ${position_size_usd:,.2f}")
         quantity = position_size_usd / tick.price
 
         print(f"\n  [{analysis['signal']}] {ticker}: "
@@ -589,10 +608,13 @@ async def run_pipeline():
         if recent_txs:
             logger.info("\n  Recent transactions in accounting DB:")
             for tx in recent_txs[:3]:
+                qty = tx.get('quantity') or 0
+                price = tx.get('price') or 0
+                total = tx.get('total_value') or 0
                 print(f"    * [{tx.get('status','?')}] {tx.get('side','?')} "
-                      f"{tx.get('quantity',0):.6f} {tx.get('asset','?')} "
-                      f"@ ${tx.get('price',0):,.2f} "
-                      f"(${tx.get('total_value',0):,.2f})")
+                      f"{qty:.6f} {tx.get('asset','?')} "
+                      f"@ ${price:,.2f} "
+                      f"(${total:,.2f})")
     except Exception as e:
         logger.exception("Unexpected error: %s", e)
 
@@ -602,6 +624,42 @@ async def run_pipeline():
     logger.info("")
     logger.info("This was a PAPER TRADE. No real money was used.")
     logger.info("Run again anytime -- each run fetches fresh prices and generates new signals.")
+
+
+# ════════════════════════════════════════════════════════════════════════
+# MATRIX MAXIMIZER PIPELINE
+# ════════════════════════════════════════════════════════════════════════
+
+def run_matrix_maximizer(
+    account: float = 920.0,
+    oil: float | None = None,
+    vix: float | None = None,
+) -> dict:
+    """Run a MATRIX MAXIMIZER cycle (synchronous entry point for pipeline use).
+
+    Args:
+        account: Account size in USD
+        oil: Override oil price
+        vix: Override VIX level
+
+    Returns:
+        Full cycle result dict
+    """
+    from strategies.matrix_maximizer.runner import MatrixMaximizer
+    from strategies.matrix_maximizer.core import MatrixConfig
+
+    config = MatrixConfig(account_size=account)
+    mm = MatrixMaximizer(config)
+
+    prices: dict = {}
+    if oil is not None:
+        prices["oil"] = oil
+    if vix is not None:
+        prices["vix"] = vix
+
+    result = mm.run_full_cycle(prices=prices)
+    print(mm.print_summary(result))
+    return result
 
 
 # ════════════════════════════════════════════════════════════════════════
