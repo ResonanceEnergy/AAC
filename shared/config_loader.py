@@ -514,7 +514,7 @@ class Config:
                 slack_webhook=get_env('SLACK_WEBHOOK_URL'),
                 slack_channel=get_env('SLACK_CHANNEL', '#trading-alerts'),
                 discord_webhook=get_env('DISCORD_WEBHOOK_URL'),
-                smtp_host=get_env('SMTP_HOST', 'smtp.gmail.com'),
+                smtp_host=get_env('SMTP_HOST', ''),
                 smtp_port=get_env_int('SMTP_PORT', 587),
                 smtp_user=get_env('SMTP_USER'),
                 smtp_password=get_env('SMTP_PASSWORD'),
