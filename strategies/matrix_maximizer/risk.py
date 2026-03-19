@@ -418,3 +418,206 @@ class RiskManager:
         if self._state_file.exists():
             return json.loads(self._state_file.read_text(encoding="utf-8"))
         return None
+
+    # ═══════════════════════════════════════════════════════════════════════
+    # ENHANCED RISK: Correlation Stress, Tail Risk, Liquidity, Margin
+    # ═══════════════════════════════════════════════════════════════════════
+
+    def correlation_stress_test(
+        self,
+        positions: List[Position],
+        prices: Dict[str, float],
+        shock_pct: float = -0.10,
+    ) -> Dict[str, Any]:
+        """Stress test: what if all correlations go to 1.0?
+
+        In crisis, correlations converge — diversification fails.
+        Simulates a uniform crash where ALL positions drop by shock_pct.
+
+        Returns:
+            stressed_pnl: portfolio P&L under correlated crash
+            worst_position: ticker with highest dollar loss
+            survival: True if account stays above $0
+        """
+        from strategies.matrix_maximizer.core import Asset, ASSET_VOLATILITIES
+        from strategies.matrix_maximizer.greeks import BlackScholesEngine
+
+        bs = BlackScholesEngine()
+
+        total_loss = 0.0
+        worst_ticker = ""
+        worst_loss = 0.0
+        position_losses: Dict[str, float] = {}
+
+        for pos in positions:
+            spot = prices.get(pos.ticker, pos.strike)
+            stressed_spot = spot * (1 + shock_pct)  # Apply crash
+
+            sigma = ASSET_VOLATILITIES.get(Asset(pos.ticker), 0.30)
+            try:
+                exp_dt = datetime.strptime(pos.expiry, "%Y-%m-%d")
+                dte = max(1, (exp_dt - datetime.utcnow()).days)
+            except (ValueError, TypeError):
+                dte = 30
+
+            # Reprice put under stressed spot (higher sigma in crisis)
+            stressed_sigma = sigma * 1.5  # Vol spikes in crashes
+            stressed_greeks = bs.price_put(stressed_spot, pos.strike, dte, stressed_sigma)
+            current_greeks = bs.price_put(spot, pos.strike, dte, sigma)
+
+            # P&L = (new premium - current premium) × contracts × 100
+            pnl = (stressed_greeks.price - current_greeks.price) * pos.contracts * 100
+            total_loss += pnl
+            position_losses[pos.ticker] = pnl
+
+            if pnl < worst_loss:
+                worst_loss = pnl
+                worst_ticker = pos.ticker
+
+        account_after = self.config.account_size + total_loss
+        return {
+            "shock_pct": shock_pct,
+            "stressed_pnl": round(total_loss, 2),
+            "account_after": round(account_after, 2),
+            "survival": account_after > 0,
+            "worst_position": worst_ticker,
+            "worst_loss": round(worst_loss, 2),
+            "position_losses": {k: round(v, 2) for k, v in position_losses.items()},
+        }
+
+    def tail_risk_analysis(
+        self,
+        forecast: PortfolioForecast,
+        df: float = 3.0,
+    ) -> Dict[str, Any]:
+        """Fat-tailed risk analysis using Student's t distribution.
+
+        Standard MC uses normal distributions — but market crashes have
+        much fatter tails. This recalculates VaR using t-distribution.
+
+        Args:
+            forecast: Latest MC forecast
+            df: Degrees of freedom (3 = very fat, 5 = moderate, 30 ≈ normal)
+        """
+        import numpy as np
+        from scipy import stats
+
+        spy = forecast.asset_forecasts.get(Asset.SPY)
+        if not spy:
+            return {"error": "No SPY forecast available"}
+
+        normal_var = spy.var_95_1d
+        normal_cvar = spy.cvar_95_1d
+
+        # Scale factor: t-distribution has heavier tails
+        # VaR_t = VaR_normal × t_ppf(0.05, df) / norm_ppf(0.05)
+        t_quantile = stats.t.ppf(0.05, df)
+        norm_quantile = stats.norm.ppf(0.05)
+        scale = t_quantile / norm_quantile if norm_quantile != 0 else 1.5
+
+        fat_var = normal_var * scale
+        fat_cvar = normal_cvar * scale * 1.2  # CVaR even worse for fat tails
+
+        # Black swan probability (6-sigma event)
+        normal_6sigma = stats.norm.sf(6) * 2     # ~2e-9
+        t_6sigma = stats.t.sf(6, df) * 2          # Much higher
+
+        return {
+            "normal_var_95": round(normal_var, 4),
+            "fat_tail_var_95": round(fat_var, 4),
+            "normal_cvar_95": round(normal_cvar, 4),
+            "fat_tail_cvar_95": round(fat_cvar, 4),
+            "tail_risk_multiplier": round(scale, 3),
+            "degrees_of_freedom": df,
+            "six_sigma_prob_normal": f"{normal_6sigma:.2e}",
+            "six_sigma_prob_fat": f"{t_6sigma:.2e}",
+            "fat_tail_6sigma_ratio": round(t_6sigma / normal_6sigma, 1) if normal_6sigma > 0 else float("inf"),
+        }
+
+    def liquidity_risk(
+        self,
+        picks: List[PutRecommendation],
+        min_bid_ask_ratio: float = 0.80,
+    ) -> List[Dict[str, Any]]:
+        """Evaluate bid-ask spread risk for put recommendations.
+
+        Wide spreads = slippage = drag on returns.
+        Flags any pick where bid/ask ratio < threshold.
+        """
+        results = []
+        for pick in picks:
+            bid = pick.contract.bid
+            ask = pick.contract.ask
+
+            if ask <= 0:
+                ratio = 0.0
+                spread_pct = 1.0
+            else:
+                ratio = bid / ask if ask > 0 else 0
+                spread_pct = (ask - bid) / ask
+
+            slippage_per_contract = (ask - bid) * 0.5 * 100  # Half the spread
+            passed = ratio >= min_bid_ask_ratio
+
+            results.append({
+                "ticker": pick.ticker,
+                "strike": pick.contract.strike,
+                "bid": bid,
+                "ask": ask,
+                "mid": pick.contract.mid,
+                "bid_ask_ratio": round(ratio, 3),
+                "spread_pct": round(spread_pct, 3),
+                "slippage_per_contract": round(slippage_per_contract, 2),
+                "passed": passed,
+                "flag": "" if passed else f"WIDE SPREAD ({ratio:.0%})",
+            })
+
+        return results
+
+    def margin_estimate(
+        self,
+        positions: List[Position],
+        prices: Dict[str, float],
+        margin_type: str = "reg_t",
+    ) -> Dict[str, Any]:
+        """Estimate margin requirements for current positions.
+
+        For long puts: margin = cost of puts (no additional margin).
+        For short puts: margin = max(X - S, 0) × 100 + premium.
+        We only do long puts in MM, so margin = total premium paid.
+        """
+        total_cost = 0.0
+        total_maintenance = 0.0
+        by_position: List[Dict[str, Any]] = []
+
+        for pos in positions:
+            spot = prices.get(pos.ticker, pos.strike)
+            cost = pos.cost_basis
+            total_cost += cost
+
+            # Long put maintenance = market value (what you could sell it for)
+            maintenance = pos.current_premium * pos.contracts * 100
+            total_maintenance += maintenance
+
+            by_position.append({
+                "ticker": pos.ticker,
+                "strike": pos.strike,
+                "contracts": pos.contracts,
+                "cost_basis": round(cost, 2),
+                "maintenance": round(maintenance, 2),
+                "in_the_money": pos.strike > spot,
+                "intrinsic": round(max(0, pos.strike - spot), 2),
+            })
+
+        buying_power_used = total_cost  # Long options = full debit
+        buying_power_remaining = self.config.account_size - buying_power_used
+
+        return {
+            "margin_type": margin_type,
+            "total_cost_basis": round(total_cost, 2),
+            "total_maintenance": round(total_maintenance, 2),
+            "buying_power_used": round(buying_power_used, 2),
+            "buying_power_remaining": round(buying_power_remaining, 2),
+            "margin_utilization": round(total_cost / self.config.account_size, 3) if self.config.account_size > 0 else 0,
+            "positions": by_position,
+        }
