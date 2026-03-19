@@ -35,7 +35,10 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from shared.config_loader import get_env, get_env_int, get_env_bool
+from shared.config_loader import get_env, get_env_int, get_env_bool, load_env_file
+
+# Ensure .env is loaded before any get_env() calls
+load_env_file()
 
 from .base_connector import (
     BaseExchangeConnector,
@@ -63,6 +66,7 @@ try:
         TrdMarket,
         Market,
         SecurityFirm,
+        Currency,
         RET_OK,
         RET_ERROR,
     )
@@ -294,8 +298,14 @@ class MoomooConnector(BaseExchangeConnector):
 
         trd_env = self._get_trd_env()
 
+        currency_str = "USD" if self._market == "US" else "CAD" if self._market == "CA" else "HKD"
+        currency_enum = getattr(Currency, currency_str, None)
+
         def _fetch():
-            ret, data = self._trade_ctx.accinfo_query(trd_env=trd_env)
+            kwargs = {'trd_env': trd_env}
+            if currency_enum is not None:
+                kwargs['currency'] = currency_enum
+            ret, data = self._trade_ctx.accinfo_query(**kwargs)
             if ret != RET_OK:
                 raise ExchangeError(f"Failed to get account info: {data}")
             return data
@@ -308,7 +318,7 @@ class MoomooConnector(BaseExchangeConnector):
             cash = float(row.get('cash', 0) or 0)
             market_val = float(row.get('market_val', 0) or 0)
             frozen = float(row.get('frozen_cash', 0) or 0)
-            currency = "USD" if self._market == "US" else "HKD"
+            currency = currency_str
 
             balances[currency] = Balance(
                 asset=currency,

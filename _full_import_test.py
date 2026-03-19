@@ -6,7 +6,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-root = r'c:\Users\gripa\OneDrive\Desktop\AAC_fresh'
+root = str(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, root)
 
 skip_dirs = {'__pycache__', 'node_modules', '.git', '.aac_venv', 'aac.egg-info', 'build', 'archive', 'old-tests'}

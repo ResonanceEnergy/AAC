@@ -877,8 +877,14 @@ class MetalBlockchainSource(BaseDataSource):
 # DATA AGGREGATOR
 # ============================================
 
+from shared.symbol_classifier import EQUITY_SYMBOLS, is_equity
+
+
 class DataAggregator:
     """Aggregates data from all sources"""
+
+    # Re-export for backward compat — canonical set lives in symbol_classifier
+    EQUITY_SYMBOLS = EQUITY_SYMBOLS
 
     def __init__(self):
         self.logger = logging.getLogger("data_aggregator")
@@ -894,6 +900,10 @@ class DataAggregator:
         # Forex (Knightsbridge FX)
         from shared.forex_data_source import ForexDataSource
         self.forex = ForexDataSource()
+
+        # Exchange connectors (injected by orchestrator after init)
+        self._ibkr_connector: Optional[Any] = None
+        self._ndax_connector: Optional[Any] = None
 
         # Data storage
         self.latest_ticks: Dict[str, MarketTick] = {}
@@ -917,6 +927,16 @@ class DataAggregator:
         if len(self.social_mentions) > 1000:
             self.social_mentions = self.social_mentions[-1000:]
 
+    def set_ibkr_connector(self, connector: Any) -> None:
+        """Inject IBKR connector for equity/ETF/options pricing."""
+        self._ibkr_connector = connector
+        self.logger.info("IBKR connector wired into DataAggregator")
+
+    def set_ndax_connector(self, connector: Any) -> None:
+        """Inject NDAX connector for CAD crypto pricing."""
+        self._ndax_connector = connector
+        self.logger.info("NDAX connector wired into DataAggregator")
+
     async def connect_all(self):
         """Connect all data sources"""
         await asyncio.gather(
@@ -936,11 +956,61 @@ class DataAggregator:
             self.etherscan.disconnect(),
         )
 
+    async def _ibkr_get_ticker(self, symbol: str) -> Optional[MarketTick]:
+        """Fetch a single equity/ETF quote from IBKR."""
+        if not self._ibkr_connector:
+            return None
+        try:
+            ticker = await self._ibkr_connector.get_ticker(f"{symbol}/USD")
+            if ticker and ticker.last > 0:
+                tick = MarketTick(
+                    symbol=symbol,
+                    price=ticker.last,
+                    volume_24h=getattr(ticker, 'volume_24h', 0),
+                    change_24h=0.0,
+                    bid=ticker.bid,
+                    ask=ticker.ask,
+                    timestamp=datetime.now(),
+                    source="ibkr",
+                )
+                self.latest_ticks[symbol] = tick
+                return tick
+        except Exception as e:
+            self.logger.debug(f"IBKR ticker failed for {symbol}: {e}")
+        return None
+
+    async def _ndax_get_ticker(self, symbol: str) -> Optional[MarketTick]:
+        """Fetch a crypto/CAD quote from NDAX."""
+        if not self._ndax_connector:
+            return None
+        try:
+            pair = f"{symbol}/CAD"
+            ticker = await self._ndax_connector.get_ticker(pair)
+            if ticker and ticker.last > 0:
+                tick = MarketTick(
+                    symbol=pair,
+                    price=ticker.last,
+                    volume_24h=getattr(ticker, 'volume_24h', 0),
+                    change_24h=0.0,
+                    bid=ticker.bid,
+                    ask=ticker.ask,
+                    timestamp=datetime.now(),
+                    source="ndax",
+                )
+                self.latest_ticks[pair] = tick
+                return tick
+        except Exception as e:
+            self.logger.debug(f"NDAX ticker failed for {symbol}: {e}")
+        return None
+
     async def get_market_snapshot(self, symbols: List[str]) -> Dict[str, MarketTick]:
         """
         Get current market snapshot with graceful degradation.
         
-        Falls back to cached data if primary data source is unavailable.
+        Routes:
+        - Equity/ETF symbols → IBKR connector
+        - Crypto symbols → CoinGecko (primary), NDAX CAD (secondary)
+        - Falls back to cached data if all sources unavailable.
         """
         # Map symbols to CoinGecko IDs
         symbol_map = {
@@ -955,51 +1025,59 @@ class DataAggregator:
             "LINK": "chainlink",
             "DOGE": "dogecoin",
         }
-        
-        coin_ids = [symbol_map.get(s.upper(), s.lower()) for s in symbols]
-        
+
         result: Dict[str, MarketTick] = {}
-        
-        try:
-            # Try primary source (CoinGecko)
-            ticks = await self.coingecko.get_prices_batch(coin_ids)
-            
-            for tick in ticks:
+
+        # Partition symbols into equity vs crypto
+        equity_syms = [s for s in symbols if is_equity(s)]
+        crypto_syms = [s for s in symbols if not is_equity(s)]
+
+        # ── IBKR path for equities / ETFs ──
+        for sym in equity_syms:
+            tick = await self._ibkr_get_ticker(sym.upper())
+            if tick:
                 result[tick.symbol] = tick
-                # Cache the tick for fallback
-                self.latest_ticks[tick.symbol] = tick
-            
-            return result
-            
-        except Exception as e:
-            self.logger.warning(f"Primary data source failed: {e}. Attempting fallback...")
-            
-            # Fallback 1: Use cached data if fresh enough (< 60 seconds old)
-            fallback_ticks = []
-            for symbol in symbols:
-                # Check symbol variations
-                for key in [symbol, f"{symbol}/USDT", f"{symbol}/USD"]:
+
+        # ── CoinGecko path for crypto ──
+        if crypto_syms:
+            coin_ids = [symbol_map.get(s.upper(), s.lower()) for s in crypto_syms]
+            try:
+                ticks = await self.coingecko.get_prices_batch(coin_ids)
+                for tick in ticks:
+                    result[tick.symbol] = tick
+                    self.latest_ticks[tick.symbol] = tick
+            except Exception as e:
+                self.logger.warning(f"CoinGecko failed: {e}")
+
+        # ── NDAX secondary path for crypto/CAD ──
+        if self._ndax_connector:
+            for sym in crypto_syms:
+                su = sym.upper()
+                if su not in result and f"{su}/USDT" not in result:
+                    tick = await self._ndax_get_ticker(su)
+                    if tick:
+                        result[tick.symbol] = tick
+
+        # ── Cache fallback for anything still missing ──
+        all_requested = equity_syms + crypto_syms
+        missing = [s for s in all_requested
+                   if s not in result and s.upper() not in result
+                   and f"{s}/USDT" not in result and f"{s}/USD" not in result
+                   and f"{s.upper()}/CAD" not in result]
+        if missing:
+            for symbol in missing:
+                for key in [symbol, symbol.upper(), f"{symbol}/USDT", f"{symbol}/USD", f"{symbol.upper()}/CAD"]:
                     if key in self.latest_ticks:
                         tick = self.latest_ticks[key]
                         age = (datetime.now() - tick.timestamp).total_seconds()
-                        if age < 60:  # Accept data up to 60 seconds old
-                            fallback_ticks.append(tick)
-                            self.logger.debug(f"Using cached {key} data ({age:.1f}s old)")
+                        if age < 60:
+                            result[tick.symbol] = tick
                             break
-            
-            if fallback_ticks:
-                self.logger.info(
-                    f"Graceful degradation: serving {len(fallback_ticks)}/{len(symbols)} "
-                    f"symbols from cache"
-                )
-                return {tick.symbol: tick for tick in fallback_ticks}
-            
-            # Fallback 2: Return empty with warning
-            self.logger.error(
-                f"No fallback data available for {symbols}. "
-                f"Data source and cache both unavailable."
-            )
-            return {}
+
+        if not result and symbols:
+            self.logger.error(f"No data for {symbols} from any source")
+
+        return result
 
     async def get_market_snapshot_with_source(
         self, 

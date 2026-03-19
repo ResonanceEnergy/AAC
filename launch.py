@@ -49,6 +49,11 @@ import sys
 from pathlib import Path
 import logging
 
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(message)s',
+    stream=sys.stdout,
+)
 logger = logging.getLogger(__name__)
 
 # ── Python Version Guard ────────────────────────────────────────────────────
@@ -69,12 +74,15 @@ if sys.version_info[:2] >= (3, 14):
 PROJECT_ROOT = Path(__file__).resolve().parent
 
 MODES = [
+    "all",
     "dashboard",
+    "matrix",
     "monitor",
     "paper",
     "core",
     "full",
     "gateways",
+    "preflight",
     "test",
     "health",
     "git-sync",
@@ -89,12 +97,15 @@ BANNER = r"""
 """
 
 MODE_DESCRIPTIONS = {
+    "all":       "Full startup: preflight → gateways → matrix monitor → paper engine",
     "dashboard": "Dash monitoring dashboard (web UI)",
+    "matrix":    "Matrix Monitor dashboard (--display terminal|web|dash)",
     "monitor":   "System monitor (terminal)",
     "paper":     "Paper trading engine",
     "core":      "Core orchestrator",
     "full":      "Full system (orchestrator + dashboard)",
     "gateways":  "Start trading gateways (IBKR TWS, Moomoo OpenD)",
+    "preflight": "Pre-flight validation (env, imports, config)",
     "test":      "Run pytest suite",
     "health":    "Health check",
     "git-sync":  "Git add/commit/push, then launch dashboard",
@@ -183,125 +194,40 @@ def _run(cmd: list[str], **kwargs) -> int:
     return result.returncode
 
 
-# ── Gateway Paths ───────────────────────────────────────────────────────────
-
-_GATEWAY_CONFIGS = {
-    "ibkr": {
-        "name": "IBKR TWS",
-        "exe": Path(r"C:\Jts\tws.exe"),
-        "process_name": "tws",
-        "host": "127.0.0.1",
-        "port": 7497,
-        "wait_secs": 30,
-    },
-    "moomoo": {
-        "name": "Moomoo OpenD",
-        "exe": Path(r"C:\FutuOpenD\moomoo_OpenD_10.0.6018_Windows\moomoo_OpenD-GUI_10.0.6018_Windows\moomoo_OpenD-GUI_10.0.6018_Windows.exe"),
-        "process_name": "moomoo_OpenD-GUI",
-        "host": "127.0.0.1",
-        "port": 11111,
-        "wait_secs": 15,
-    },
-}
-
-
-def _port_open(host: str, port: int, timeout: float = 2.0) -> bool:
-    import socket
-    try:
-        with socket.create_connection((host, port), timeout=timeout):
-            return True
-    except (OSError, ConnectionRefusedError):
-        return False
-
-
-def _is_process_running(name: str) -> bool:
-    """Check if a process with the given name fragment is running."""
-    import re
-    result = subprocess.run(
-        ["tasklist", "/FI", f"IMAGENAME eq {name}*", "/NH"],
-        capture_output=True, text=True,
-    )
-    return name.lower() in result.stdout.lower()
-
-
-def _start_gateway(key: str) -> bool:
-    """Start a gateway if not already running. Returns True if port is live."""
-    cfg = _GATEWAY_CONFIGS[key]
-    name = cfg["name"]
-    host, port = cfg["host"], cfg["port"]
-
-    # Already listening?
-    if _port_open(host, port):
-        logger.info(str(_green(f"  [+] {name}: already running on {host}:{port}")))
-        return True
-
-    # Exe exists?
-    if not cfg["exe"].exists():
-        logger.info(str(_yellow(f"  [!] {name}: not installed ({cfg['exe']})")))
-        return False
-
-    # Launch
-    logger.info(str(_cyan(f"  [>] Starting {name} ...")))
-    try:
-        subprocess.Popen(
-            [str(cfg["exe"])],
-            cwd=str(cfg["exe"].parent),
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
-    except OSError:
-        # WinError 740: needs elevation — use shell start
-        os.startfile(str(cfg["exe"]))
-
-    # Wait for port
-    import time
-    deadline = time.time() + cfg["wait_secs"]
-    dots = 0
-    while time.time() < deadline:
-        if _port_open(host, port, timeout=1.0):
-            logger.info(str(_green(f"\n  [+] {name}: LIVE on {host}:{port}")))
-            return True
-        dots += 1
-        logger.info(".", end="", flush=True)
-        time.sleep(2)
-
-    # Port not ready — process may need manual login
-    if _is_process_running(cfg["process_name"]):
-        logger.info(str(_yellow(f"\n  [!] {name}: running but port {port} not ready — log in to the GUI")))
-    else:
-        logger.info(str(_red(f"\n  [X] {name}: failed to start")))
-    return False
-
-
-def _start_all_gateways() -> dict[str, bool]:
-    """Start all configured gateways. Returns status dict."""
-    results = {}
-    for key in _GATEWAY_CONFIGS:
-        results[key] = _start_gateway(key)
-    return results
-
-
 # ── Mode Handlers ───────────────────────────────────────────────────────────
 
 def _mode_gateways() -> int:
     """Start all trading gateways and verify connectivity."""
+    from startup.gateways import start_all_gateways, gateway_summary
     logger.info(str(_cyan("  ════════════════════════════════════════")))
     logger.info(str(_cyan("  Starting Trading Gateways")))
     logger.info(str(_cyan("  ════════════════════════════════════════")))
     logger.info("")
-
-    results = _start_all_gateways()
-    logger.info("")
-
-    live = sum(1 for v in results.values() if v)
-    total = len(results)
-    logger.info(str(_green(f"  Gateways: {live}/{total} live")))
-    for key, ok in results.items():
-        cfg = _GATEWAY_CONFIGS[key]
-        status = _green("LIVE") if ok else _yellow("WAITING")
-        logger.info(f"    {cfg['name']:<20s} {cfg['host']}:{cfg['port']}  {status}")
+    results = start_all_gateways()
+    logger.info(gateway_summary(results))
     logger.info("")
     return 0
+
+
+def _mode_matrix(display: str = "terminal", port: int = 8501) -> int:
+    """Start the Matrix Monitor dashboard."""
+    from startup.matrix_monitor import launch
+    logger.info(str(_cyan("  ════════════════════════════════════════")))
+    logger.info(str(_cyan(f"  Matrix Monitor — {display} mode")))
+    logger.info(str(_cyan("  ════════════════════════════════════════")))
+    return launch(display=display, port=port)
+
+
+def _mode_preflight() -> int:
+    """Run pre-flight validation checks."""
+    from startup.preflight import run_all
+    return 0 if run_all() else 1
+
+
+def _mode_all(display: str = "web", port: int = 8501) -> int:
+    """Full startup: preflight → gateways → health → matrix monitor → paper engine."""
+    from startup.phases import full_startup
+    return full_startup(display=display, port=port)
 
 
 def _mode_dashboard() -> int:
@@ -325,25 +251,23 @@ def _start_health_endpoint():
 
 
 def _mode_paper() -> int:
+    from startup.gateways import start_all_gateways
     logger.info(str(_cyan("  Starting Paper Trading Engine ...")))
     logger.info(str(_cyan("  Pre-flight: checking gateways ...")))
-    _start_all_gateways()
+    start_all_gateways()
     logger.info("")
     os.environ["PAPER_TRADING"] = "true"
     os.environ["LIVE_TRADING_ENABLED"] = "false"
-    _start_health_endpoint()
     return _run([_python(), "-m", "core.orchestrator", "--paper"])
 
 
 def _mode_core() -> int:
     logger.info(str(_cyan("  Starting Core Orchestrator ...")))
-    _start_health_endpoint()
     return _run([_python(), "-m", "core.orchestrator"])
 
 
 def _mode_full() -> int:
     logger.info(str(_cyan("  Starting Full System ...")))
-    _start_health_endpoint()
     _run_compliance_preflight()
     return _run([_python(), "-m", "core.aac_master_launcher"])
 
@@ -439,12 +363,15 @@ def _mode_git_sync() -> int:
 # ── Dispatch ────────────────────────────────────────────────────────────────
 
 MODE_DISPATCH = {
+    "all":       _mode_all,
     "dashboard": _mode_dashboard,
+    "matrix":    _mode_matrix,
     "monitor":   _mode_monitor,
     "paper":     _mode_paper,
     "core":      _mode_core,
     "full":      _mode_full,
     "gateways":  _mode_gateways,
+    "preflight": _mode_preflight,
     "test":      _mode_test,
     "health":    _mode_health,
     "git-sync":  _mode_git_sync,
@@ -475,6 +402,18 @@ def main() -> int:
         action="store_true",
         help="Extra output for test / debug modes",
     )
+    parser.add_argument(
+        "--display",
+        choices=["terminal", "web", "dash"],
+        default="terminal",
+        help="Display mode for matrix monitor (default: terminal)",
+    )
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=8501,
+        help="Port for matrix monitor web/dash modes (default: 8501)",
+    )
 
     args, extra = parser.parse_known_args()
 
@@ -491,7 +430,7 @@ def main() -> int:
     _load_env()
 
     # Startup config validation (skip for non-trading modes)
-    if args.mode not in ("test", "health", "git-sync"):
+    if args.mode not in ("test", "health", "git-sync", "preflight"):
         try:
             from shared.config_loader import validate_startup_requirements
             if not validate_startup_requirements():
@@ -510,6 +449,11 @@ def main() -> int:
         if args.verbose:
             extra_args.append("-v")
         return handler(extra_args)
+    elif args.mode == "matrix":
+        return handler(display=args.display, port=args.port)
+    elif args.mode == "all":
+        display = args.display if args.display != "terminal" else "web"
+        return handler(display=display, port=args.port)
     else:
         return handler()
 

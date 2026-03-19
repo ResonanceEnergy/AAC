@@ -344,6 +344,7 @@ class AutonomousEngine:
         self._data_aggregator = None
         self._openclaw = None
         self._recommendation_engine = None
+        self._intelligence_model = None
         self._connectors: Dict[str, Any] = {}
 
         # Register core components for health tracking
@@ -481,6 +482,24 @@ class AutonomousEngine:
             logger.warning(f"DailyRecommendationEngine init failed (non-critical): {e}")
             return False
 
+    async def _init_intelligence_model(self) -> bool:
+        """Initialize the 24/7 Market Intelligence Model (sentiment + event ingest)."""
+        try:
+            from strategies.market_intelligence_model import MarketIntelligenceModel
+            balance = float(os.getenv("ACCOUNT_BALANCE_USD", "920"))
+            doctrine_mult = 0.5 if self.doctrine.is_caution else 1.0
+            self._intelligence_model = MarketIntelligenceModel(
+                available_capital=balance,
+                doctrine_risk_mult=doctrine_mult,
+            )
+            # Kick off the internal loop as a background task
+            asyncio.create_task(self._intelligence_model.run())
+            logger.info("MarketIntelligenceModel LIVE — 24/7 sentiment engine running")
+            return True
+        except Exception as exc:
+            logger.warning("MarketIntelligenceModel init failed (non-critical): %s", exc)
+            return False
+
     async def _init_openclaw(self) -> bool:
         """Connect to OpenClaw Gateway for multi-channel messaging."""
         try:
@@ -533,6 +552,7 @@ class AutonomousEngine:
         self.register_task("daily_pnl_reset", 86400.0, self._task_daily_reset)
         self.register_task("gap_analysis", 600.0, self._task_gap_analysis)
         self.register_task("daily_brief", 86400.0, self._task_daily_brief)
+        self.register_task("intelligence_cycle", 3600.0, self._task_intelligence_cycle)
 
     def register_task(self, name: str, interval: float, callback, critical: bool = False):
         """Register task."""
@@ -600,6 +620,7 @@ class AutonomousEngine:
             ("moomoo", self._init_moomoo),
             ("openclaw", self._init_openclaw),
             ("recommendation_engine", self._init_recommendation_engine),
+            ("intelligence_model", self._init_intelligence_model),
         ]:
             try:
                 results[name] = await init_fn()
@@ -921,6 +942,27 @@ class AutonomousEngine:
                     ))
             except Exception as e:
                 logger.warning(f"Recommendation engine signals error: {e}")
+
+        # Market Intelligence Model — structured regime × sentiment signals
+        if self._intelligence_model:
+            try:
+                intel_recs = self._intelligence_model.get_recommendations()
+                for rec in intel_recs:
+                    if rec.entry_urgency in ("IMMEDIATE", "NEXT_OPEN"):
+                        signals.append(TradingSignal(
+                            strategy_name="market_intelligence_model",
+                            symbol=rec.ticker,
+                            action=SignalAction.SELL,
+                            confidence=rec.composite_score / 100.0,
+                            price=0.0,
+                            reason=(
+                                f"[{rec.conviction_tier}] {rec.entry_urgency} | "
+                                f"regime={rec.regime} sentiment={rec.sector_sentiment:+.0f}"
+                            ),
+                            metadata=rec.to_dict(),
+                        ))
+            except Exception as exc:
+                logger.warning("Intelligence model signal injection error: %s", exc)
 
         # Store signals
         for sig in signals:
@@ -1277,6 +1319,19 @@ class AutonomousEngine:
             f"gaps={len(self.gaps)}"
         )
         await self._notify(report_summary)
+
+    async def _task_intelligence_cycle(self):
+        """Hourly: run an intraday intelligence cycle (event ingest → sentiment update → NCL push)."""
+        if not self._intelligence_model:
+            return
+        try:
+            balance = float(os.getenv("ACCOUNT_BALANCE_USD", str(self._intelligence_model._capital)))
+            self._intelligence_model.update_capital(balance)
+            doctrine_mult = 0.5 if self.doctrine.is_caution else 1.0
+            self._intelligence_model.update_doctrine_mult(doctrine_mult)
+            await self._intelligence_model.intraday_cycle()
+        except Exception as exc:
+            logger.warning("Intelligence cycle task failed: %s", exc)
 
     async def _task_daily_brief(self):
         """Generate and distribute the daily trade recommendation brief."""

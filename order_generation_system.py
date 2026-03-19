@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """
-Order Generation System — Stub Module
-=======================================
-Original module was lost during 2026-02-17 security scrub.
-This stub provides the public API so dependent modules can import without error.
-Real implementation should be restored from external backup.
+Order Generation System — Validation & Generation
+====================================================
+Wraps ``shared.secrets_manager.OrderValidator`` and
+``TradingExecution.execution_engine.RiskManager`` for order generation
+with real validation. Preserves the same public API as the original stub
+so all legacy imports work.
 """
 
 from __future__ import annotations
@@ -14,11 +15,14 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-logger = logging.getLogger(__name__)
-
-_STUB_WARNING = (
-    "order_generation_system is a stub — real implementation pending restore"
+from shared.secrets_manager import (
+    validate_symbol,
+    validate_quantity,
+    validate_price,
+    OrderValidator,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class OrderStatus(Enum):
@@ -52,31 +56,64 @@ class ValidatedOrder:
 
 
 class OrderGenerator:
-    """Generates and validates orders.
-
-    Stub implementation — logs a warning on first use.
-    """
+    """Generates and validates orders using real validation logic."""
 
     def __init__(self, **kwargs: Any) -> None:
-        self._warned = False
-
-    def _warn_once(self) -> None:
-        if not self._warned:
-            logger.warning(_STUB_WARNING)
-            self._warned = True
+        self._validator = OrderValidator()
 
     def generate_order(self, symbol: str, side: str, quantity: float,
                        price: float = 0.0, **kwargs: Any) -> ValidatedOrder:
-        """Generate order."""
-        self._warn_once()
-        return ValidatedOrder(
-            symbol=symbol, side=side, quantity=quantity, price=price
+        """Generate and validate an order."""
+        order = ValidatedOrder(
+            symbol=symbol, side=side, quantity=quantity,
+            price=price, order_type=kwargs.get("order_type", "market"),
+            metadata=kwargs,
         )
+        validation = self.validate_order(order)
+        order.validation = validation
+        order.status = OrderStatus.VALIDATED if validation.is_valid else OrderStatus.REJECTED
+        return order
 
     def validate_order(self, order: ValidatedOrder) -> OrderValidationResult:
-        """Validate order."""
-        self._warn_once()
-        return OrderValidationResult(is_valid=True)
+        """Validate an order with real checks."""
+        errors: List[str] = []
+        warnings: List[str] = []
+
+        # Symbol validation
+        try:
+            validate_symbol(order.symbol)
+        except (ValueError, TypeError) as exc:
+            errors.append(f"Invalid symbol: {exc}")
+
+        # Quantity validation
+        try:
+            validate_quantity(order.quantity)
+        except (ValueError, TypeError) as exc:
+            errors.append(f"Invalid quantity: {exc}")
+
+        # Price validation (skip for market orders)
+        if order.order_type != "market" and order.price > 0:
+            try:
+                validate_price(order.price)
+            except (ValueError, TypeError) as exc:
+                errors.append(f"Invalid price: {exc}")
+
+        # Side validation
+        if order.side.lower() not in ("buy", "sell"):
+            errors.append(f"Invalid side: {order.side} (must be buy or sell)")
+
+        # Risk warnings
+        if order.quantity * max(order.price, 1.0) > 10000:
+            warnings.append("Large order — exceeds $10,000 notional")
+
+        risk_score = min(1.0, (order.quantity * max(order.price, 1.0)) / 50000)
+
+        return OrderValidationResult(
+            is_valid=len(errors) == 0,
+            errors=errors,
+            warnings=warnings,
+            risk_score=round(risk_score, 3),
+        )
 
 
 def get_order_generator(**kwargs: Any) -> OrderGenerator:

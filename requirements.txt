@@ -68,6 +68,7 @@ apscheduler>=3.10.0
 
 # ===== Sentiment Analysis =====
 textblob>=0.17.0
+pytrends>=4.9.2
 # ===== Messaging / Event Streaming =====
 kafka-python>=2.0.2
 confluent-kafka>=2.3.0

@@ -151,6 +151,34 @@ PUT_PLAYBOOK: List[PutTarget] = [
         otm_pct=0.04,
     ),
 
+    # TIER 1.5: Private credit manager direct shorts (added March 18 2026)
+    # Blue Owl: tipped UK mortgage lender into insolvency; Glendon says loans
+    # marked above public equivalents; Morningstar cut FV 33% to $12
+    PutTarget(
+        symbol="OWL",
+        description="Blue Owl Capital — insolvency exposure, overmarked loans, -51% YTD still elevated",
+        crisis_vectors=[CrisisVector.PRIVATE_CREDIT_COLLAPSE,
+                        CrisisVector.LIQUIDITY_CRISIS],
+        target_delta=-0.35,
+        target_dte=90,
+        max_premium_pct=3.0,
+        priority=1,
+        otm_pct=0.08,
+    ),
+    # OBDC: Blue Owl BDC — direct lending vehicle; JPMorgan marking down portfolios
+    # at these exact types of assets; Partners Group warns default rate to >5%
+    PutTarget(
+        symbol="OBDC",
+        description="Blue Owl Capital Corp (BDC) — loan book repricing, dividend cut risk",
+        crisis_vectors=[CrisisVector.PRIVATE_CREDIT_COLLAPSE,
+                        CrisisVector.CREDIT_CONTAGION],
+        target_delta=-0.35,
+        target_dte=90,
+        max_premium_pct=3.0,
+        priority=1,
+        otm_pct=0.08,
+    ),
+
     # TIER 2: High conviction
     PutTarget(
         symbol="KRE",
@@ -443,6 +471,11 @@ class MacroCrisisPutEngine:
         allocated = 0.0
         orders = []
 
+        # For small accounts (<$1000), the percentage-based per-position cap
+        # can be less than 1 option contract ($100 min). Switch to flat caps.
+        small_account = self.account_balance < 1000.0
+        min_contract_budget = 150.0  # minimum to cover 1 cheap contract + buffer
+
         # Get active crisis vectors
         active_vectors = {s.vector for s in assessment.signals if s.severity > 0.4}
 
@@ -469,18 +502,35 @@ class MacroCrisisPutEngine:
             expiry_str = expiry_date.strftime('%Y%m%d')
 
             # Position sizing — cap per position AND check remaining budget
-            max_for_this = min(
-                self.account_balance * (target.max_premium_pct / 100),
-                max_total - allocated,
-            )
+            pct_based = self.account_balance * (target.max_premium_pct / 100)
+            if small_account:
+                # On small accounts use flat caps so we can still fit contracts
+                max_for_this = min(
+                    max(pct_based, min_contract_budget),
+                    max_total - allocated,
+                )
+            else:
+                max_for_this = min(pct_based, max_total - allocated)
 
             if max_for_this <= 50:
                 self.logger.warning(f"Budget exhausted — skipping {target.symbol}")
                 continue  # Skip this target but try cheaper ones
 
             # Estimate premium: rough approximation using OTM %
-            # Real premium comes from IBKR quote; this is for sizing
-            est_premium_per_share = spot * target.otm_pct * 0.5  # Simple estimate
+            # Real premium comes from IBKR quote; this is for sizing.
+            # Better approximation: use Black-Scholes rough proxy
+            #   ~ATM put ≈ 0.4 × spot × IV × sqrt(DTE/365)
+            # Assume IV of ~25% for equity ETFs, ~20% for credit ETFs, ~35% for single stocks
+            if target.symbol in ('OWL', 'OBDC', 'KRE'):
+                assumed_iv = 0.45  # High IV single stocks / regional banks
+            elif target.symbol in ('HYG', 'LQD', 'BKLN'):
+                assumed_iv = 0.18  # Low IV credit ETFs
+            else:
+                assumed_iv = 0.22  # Typical equity ETF IV
+            dte_years = target.target_dte / 365.0
+            est_premium_per_share = 0.4 * spot * assumed_iv * (dte_years ** 0.5)
+            # Scale down for OTM: deeper OTM = cheaper
+            est_premium_per_share *= max(0.3, 1.0 - target.otm_pct * 8)
             est_premium_per_contract = est_premium_per_share * 100
 
             if est_premium_per_contract <= 0:

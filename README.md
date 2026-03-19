@@ -37,6 +37,8 @@ pip install -r requirements.txt
 # 4. Configure environment
 cp .env.template .env
 # Edit .env — add API keys, DB URL, Kafka/Redis hosts
+# For higher-risk credentials, prefer *_FILE entries that point at ignored
+# local files under secrets/ instead of placing raw values directly in .env
 
 # 5. Launch
 chmod +x launch.sh

@@ -51,6 +51,8 @@ from TradingExecution.models import (  # noqa: F401
     Position,
 )
 
+from shared.symbol_classifier import is_crypto, is_equity, asset_class
+
 
 class RiskManager:
     """Manages trading risk and position limits"""
@@ -69,7 +71,11 @@ class RiskManager:
         self.daily_trade_limit = getattr(self.config.risk, "daily_trade_limit", 100)
         self.strategy_max_allocation_pct = getattr(self.config.risk, "strategy_max_allocation_pct", 25.0)
         self.max_daily_trades = getattr(self.config.risk, "max_daily_trades", 100)
-        
+
+        # Per-asset-class limits (crypto slots don't consume equity slots)
+        self.max_crypto_positions = getattr(self.config.risk, "max_crypto_positions", 3)
+        self.max_equity_positions = getattr(self.config.risk, "max_equity_positions", 5)
+
         # Tracking
         self.daily_pnl = 0.0
         self.daily_trades = 0
@@ -96,9 +102,22 @@ class RiskManager:
         """Check if a new position can be opened"""
         self.check_daily_reset()
 
-        # Check position count
+        # Check global position count
         if current_positions >= self.max_open_positions:
             return False, f"Max positions ({self.max_open_positions}) reached"
+
+        # Check per-asset-class limits so crypto and equity don't starve each other
+        if symbol and positions:
+            ac = asset_class(symbol)
+            same_class_count = sum(
+                1 for p in positions.values()
+                if getattr(p, 'status', None) == PositionStatus.OPEN
+                and asset_class(getattr(p, 'symbol', '')) == ac
+            )
+            if ac == "crypto" and same_class_count >= self.max_crypto_positions:
+                return False, f"Max crypto positions ({self.max_crypto_positions}) reached"
+            if ac == "equity" and same_class_count >= self.max_equity_positions:
+                return False, f"Max equity positions ({self.max_equity_positions}) reached"
 
         # Check position size
         if size_usd > self.max_position_size_usd:
@@ -310,6 +329,9 @@ class ExecutionEngine:
                     api_key=getattr(self.config, 'metalx_api_key', ''),
                     api_secret=getattr(self.config, 'metalx_api_secret', ''),
                 )
+            elif exchange == "ndax":
+                from TradingExecution.exchange_connectors.ndax_connector import NDAXConnector
+                self._connectors[exchange] = NDAXConnector(testnet=False)
             else:
                 raise ValueError(f"Unknown exchange: {exchange}")
         
@@ -601,8 +623,21 @@ class ExecutionEngine:
         stop_loss: Optional[float] = None,
         take_profit: Optional[float] = None,
     ) -> Optional[Position]:
-        """Open a new position with risk checks"""
-        
+        """Open a new position with risk checks and governance gate."""
+
+        # Cross-pillar governance check (non-blocking if hub unavailable)
+        try:
+            from integrations.cross_pillar_hub import get_cross_pillar_hub
+            hub = get_cross_pillar_hub()
+            if not hub.should_trade():
+                self.logger.warning(
+                    "Position blocked by NCC governance (mode=%s)",
+                    hub.state.doctrine_mode,
+                )
+                return None
+        except ImportError:
+            pass  # Hub not installed — proceed without governance
+
         # Calculate position value
         position_value = quantity * entry_price
         
@@ -610,6 +645,8 @@ class ExecutionEngine:
         can_open, reason = self.risk_manager.can_open_position(
             size_usd=position_value,
             current_positions=len([p for p in self.positions.values() if p.status == PositionStatus.OPEN]),
+            symbol=symbol,
+            positions=self.positions,
         )
         
         if not can_open:
@@ -883,7 +920,24 @@ class ExecutionEngine:
         except Exception as e:
             self.logger.error(f"Failed to load positions from database: {e}")
 
-    async def reconcile_positions(self, exchange: str = "binance") -> Dict[str, Any]:
+    async def reconcile_all_exchanges(self) -> Dict[str, Dict[str, Any]]:
+        """Reconcile local positions against every exchange that has open positions."""
+        exchanges_in_use = {
+            p.exchange for p in self.positions.values()
+            if p.status == PositionStatus.OPEN and p.exchange
+        }
+        # Always include ibkr + ndax if connectors exist
+        exchanges_in_use |= {"ibkr", "ndax"}
+        results = {}
+        for exch in exchanges_in_use:
+            try:
+                results[exch] = await self.reconcile_positions(exch)
+            except Exception as e:
+                self.logger.warning("Reconcile %s failed: %s", exch, e)
+                results[exch] = {"error": str(e)}
+        return results
+
+    async def reconcile_positions(self, exchange: str = "ibkr") -> Dict[str, Any]:
         """
         Reconcile local positions with exchange state.
         
