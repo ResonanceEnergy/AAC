@@ -75,7 +75,9 @@ PROJECT_ROOT = Path(__file__).resolve().parent
 
 MODES = [
     "all",
+    "api",
     "dashboard",
+    "deploy",
     "matrix",
     "monitor",
     "paper",
@@ -98,7 +100,9 @@ BANNER = r"""
 
 MODE_DESCRIPTIONS = {
     "all":       "Full startup: preflight → gateways → matrix monitor → paper engine",
+    "api":       "Start FastAPI/uvicorn API server",
     "dashboard": "Dash monitoring dashboard (web UI)",
+    "deploy":    "Run production deployment with config validation",
     "matrix":    "Matrix Monitor dashboard (--display terminal|web|dash)",
     "monitor":   "System monitor (terminal)",
     "paper":     "Paper trading engine",
@@ -360,11 +364,39 @@ def _mode_git_sync() -> int:
     return _mode_dashboard()
 
 
+def _mode_api(port: int = 8000) -> int:
+    """Start FastAPI/uvicorn API server."""
+    logger.info(str(_cyan("  Starting API Server ...")))
+    return _run([
+        _python(), "-m", "uvicorn",
+        "core.api:app",
+        "--host", "0.0.0.0",
+        "--port", str(port),
+        "--reload",
+    ])
+
+
+def _mode_deploy() -> int:
+    """Run production deployment with config validation."""
+    logger.info(str(_cyan("  ════════════════════════════════════════")))
+    logger.info(str(_cyan("  Production Deployment")))
+    logger.info(str(_cyan("  ════════════════════════════════════════")))
+    logger.info("")
+    _run_compliance_preflight()
+    deploy_script = PROJECT_ROOT / "deployment" / "production_deployment_system.py"
+    if not deploy_script.exists():
+        logger.info(str(_red("  [X] deployment/production_deployment_system.py not found")))
+        return 1
+    return _run([_python(), str(deploy_script)])
+
+
 # ── Dispatch ────────────────────────────────────────────────────────────────
 
 MODE_DISPATCH = {
     "all":       _mode_all,
+    "api":       _mode_api,
     "dashboard": _mode_dashboard,
+    "deploy":    _mode_deploy,
     "matrix":    _mode_matrix,
     "monitor":   _mode_monitor,
     "paper":     _mode_paper,
@@ -454,6 +486,8 @@ def main() -> int:
     elif args.mode == "all":
         display = args.display if args.display != "terminal" else "web"
         return handler(display=display, port=args.port)
+    elif args.mode == "api":
+        return handler(port=args.port)
     else:
         return handler()
 

@@ -54,7 +54,7 @@ AAC/
 ├── src/aac/                  # Core platform
 │   ├── strategies/           # 69 arbitrage strategy modules
 │   ├── trading/              # Order execution engine
-│   ├── models/               # ML models (LSTM, PPO, NLP)
+│   ├── models/               # ML model training pipeline
 │   ├── integrations/         # Exchange + data connectors
 │   ├── monitoring/           # Health, metrics, alerts
 │   ├── shared/               # Canonical shared infrastructure
@@ -81,7 +81,7 @@ AAC/
 | Binance      | ccxt      | ✅   | ✅      | ✅    |
 | Coinbase Pro | ccxt      | ✅   | —       | ✅    |
 | Kraken       | ccxt      | ✅   | ✅      | ✅    |
-| IBKR         | ib_insync | ✅   | ✅      | ✅    |
+| IBKR         | TWS API   | ✅   | ✅      | ✅    |
 
 ---
 
@@ -94,19 +94,20 @@ Strategy categories under `src/aac/strategies/`:
 - **Dispersion & Correlation** — active dispersion, correlation risk premium
 - **Flow & Macro** — flow pressure, real economy feedback, credit-equity
 - **Structural** — basis trading, roll yield, term structure
-- **ML-Driven** — LSTM forecasting, PPO reinforcement learning, NLP sentiment
+- **ML-Driven** — ML training pipeline, signal aggregation (planned: LSTM, PPO, NLP)
 
 ---
 
 ## ML / AI Stack
 
-| Component          | Framework               | Purpose                    |
-|--------------------|-------------------------|----------------------------|
-| Price Forecasting  | PyTorch LSTM            | 15-min ahead price signals |
-| RL Execution       | Stable-Baselines3 PPO   | Order routing optimization |
-| Sentiment NLP      | HuggingFace Transformers| News/social signal alpha   |
-| Big Brain          | Ensemble (XGBoost+DL)   | Multi-strategy arbitration |
-| Grok Agent         | BigBrainIntelligence    | Meta-learning signal fusion|
+| Component          | Framework               | Status      | Purpose                    |
+|--------------------|-------------------------|-------------|----------------------------|
+| Price Forecasting  | PyTorch LSTM            | Planned     | 15-min ahead price signals |
+| RL Execution       | Stable-Baselines3 PPO   | Planned     | Order routing optimization |
+| Sentiment NLP      | HuggingFace Transformers| Planned     | News/social signal alpha   |
+| Big Brain          | Ensemble (XGBoost+DL)   | Implemented | Multi-strategy arbitration |
+| Grok Agent         | BigBrainIntelligence    | Implemented | Meta-learning signal fusion|
+| ML Pipeline        | scikit-learn            | Implemented | Model training & evaluation|
 
 ---
 
