@@ -46,6 +46,8 @@ dependencies = [
     "httpx>=0.25.0",
     "pydantic>=2.4.0",
     "cryptography>=42.0.0",
+    "selenium>=4.15.0",
+    "webdriver-manager>=4.0.0",
     "pyotp>=2.6.0",
     "psutil>=5.9.0",
 ]
@@ -69,6 +71,7 @@ dev = [
     "pytest>=7.4.0",
     "pytest-asyncio>=0.21.0",
     "pytest-timeout>=2.2.0",
+    "pytest-cov>=4.1.0",
     "mypy>=1.5.0",
     "black>=23.0.0",
     "isort>=5.12.0",

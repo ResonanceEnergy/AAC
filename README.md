@@ -3,7 +3,7 @@
 [![CI](https://github.com/ResonanceEnergy/AAC/actions/workflows/ci.yml/badge.svg)](https://github.com/ResonanceEnergy/AAC/actions/workflows/ci.yml)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/)
 [![License: Proprietary](https://img.shields.io/badge/license-proprietary-red.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-2.4.0-green.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.7.0-green.svg)](CHANGELOG.md)
 
 **BARREN WUFFET** (codename: AZ SUPREME) — Enterprise-grade AI-powered algorithmic trading platform with 50+ arbitrage strategies, 35 OpenClaw skills, ML/AI signal generation, multi-exchange execution, Telegram bot integration, and full audit trail.
 

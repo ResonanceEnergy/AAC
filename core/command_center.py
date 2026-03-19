@@ -46,6 +46,9 @@ from SharedInfrastructure.metrics_collector import get_metrics_collector
 # Configurable monitoring intervals (seconds)
 METRICS_INTERVAL = int(os.environ.get('METRICS_INTERVAL', '5'))
 METRICS_ERROR_INTERVAL = int(os.environ.get('METRICS_ERROR_INTERVAL', '10'))
+ALERT_LOOP_INTERVAL = int(os.environ.get('ALERT_LOOP_INTERVAL', '10'))
+DECISION_LOOP_INTERVAL = int(os.environ.get('DECISION_LOOP_INTERVAL', '30'))
+AVATAR_LOOP_INTERVAL = int(os.environ.get('AVATAR_LOOP_INTERVAL', '2'))
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -396,7 +399,7 @@ class AACCommandCenter:
                     else:
                         await self._route_to_operations_commander(alert)
 
-                await asyncio.sleep(10)  # 10-second intervals
+                await asyncio.sleep(ALERT_LOOP_INTERVAL)
 
             except Exception as e:
                 self.logger.error(f"Alert monitoring error: {e}")
@@ -425,7 +428,7 @@ class AACCommandCenter:
                 # Perform autonomous oversight
                 await self._perform_autonomous_oversight()
 
-                await asyncio.sleep(30)  # 30-second intervals
+                await asyncio.sleep(DECISION_LOOP_INTERVAL)
 
             except Exception as e:
                 self.logger.error(f"Executive decision loop error: {e}")
@@ -444,7 +447,7 @@ class AACCommandCenter:
                 # Handle voice/animation updates
                 await self._update_avatar_interfaces()
 
-                await asyncio.sleep(2)  # 2-second intervals for responsive interaction
+                await asyncio.sleep(AVATAR_LOOP_INTERVAL)
 
             except Exception as e:
                 self.logger.error(f"Avatar interaction error: {e}")

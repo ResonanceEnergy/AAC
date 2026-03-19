@@ -239,7 +239,7 @@ class WebSocketConnector(BaseMarketDataConnector):
         self.websocket: Optional[Any] = None  # websockets.WebSocketClientProtocol
         self.subscribed_symbols: Set[str] = set()
         self.reconnect_attempts = 0
-        self.max_reconnect_attempts = 10
+        self.max_reconnect_attempts = int(os.environ.get('WS_MAX_RECONNECT_ATTEMPTS', '10'))
         self.reconnect_delay = float(os.environ.get('WS_RECONNECT_DELAY', '5.0'))
 
     async def connect(self) -> bool:
