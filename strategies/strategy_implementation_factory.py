@@ -494,10 +494,30 @@ class EventDrivenTemplate(BaseArbitrageStrategy):
         self.market_data_subscriptions = set(self.config.symbols) if self.config.symbols else set(self.symbol_universe)
 
     async def _generate_signals(self) -> List[TradingSignal]:
-        """Generate event-driven signals"""
+        """Generate event-driven signals from market data changes."""
         signals: list[Any] = []
-        # Template implementation - would need event data integration
-        logger.debug(f"{type(self).__name__}._generate_signals: no signal sources integrated yet")
+        if not self.market_data:
+            return signals
+        for symbol in self.symbol_universe:
+            data = self.market_data.get(symbol, {})
+            price = data.get('price', 0)
+            prev_price = data.get('prev_close', price)
+            if price <= 0 or prev_price <= 0:
+                continue
+            pct_change = (price - prev_price) / prev_price
+            # Large move = event signal
+            if abs(pct_change) > 0.02:  # >2% intraday move
+                direction = SignalType.SHORT if pct_change > 0.03 else SignalType.LONG if pct_change < -0.02 else SignalType.FLAT
+                if direction != SignalType.FLAT:
+                    signals.append(TradingSignal(
+                        strategy_id=self.config.strategy_id,
+                        signal_type=direction,
+                        symbol=symbol,
+                        quantity=1.0,
+                        price=price,
+                        confidence=min(abs(pct_change) * 10, 1.0),
+                        metadata={'trigger': 'event_move', 'pct_change': round(pct_change, 4)},
+                    ))
         return signals
 
     def _should_generate_signal(self) -> bool:
@@ -523,10 +543,30 @@ class FlowBasedTemplate(BaseArbitrageStrategy):
         self.market_data_subscriptions = set(self.config.symbols) if self.config.symbols else set(self.symbol_universe)
 
     async def _generate_signals(self) -> List[TradingSignal]:
-        """Generate flow-based signals"""
+        """Generate flow-based signals from volume/price imbalances."""
         signals: list[Any] = []
-        # Template implementation - would need flow data integration
-        logger.debug(f"{type(self).__name__}._generate_signals: no signal sources integrated yet")
+        if not self.market_data:
+            return signals
+        for symbol in self.symbol_universe:
+            data = self.market_data.get(symbol, {})
+            price = data.get('price', 0)
+            volume = data.get('volume', 0)
+            avg_volume = data.get('avg_volume', volume)
+            if price <= 0 or avg_volume <= 0:
+                continue
+            vol_ratio = volume / avg_volume if avg_volume > 0 else 1.0
+            # Large volume spike signals unusual flow
+            if vol_ratio > 2.0:
+                direction = SignalType.LONG if data.get('price_change', 0) > 0 else SignalType.SHORT
+                signals.append(TradingSignal(
+                    strategy_id=self.config.strategy_id,
+                    signal_type=direction,
+                    symbol=symbol,
+                    quantity=1.0,
+                    price=price,
+                    confidence=min(vol_ratio / 5.0, 1.0),
+                    metadata={'trigger': 'flow_spike', 'vol_ratio': round(vol_ratio, 2)},
+                ))
         return signals
 
     def _should_generate_signal(self) -> bool:
@@ -551,10 +591,38 @@ class MarketMakingTemplate(BaseArbitrageStrategy):
         self.market_data_subscriptions = set(self.config.symbols) if self.config.symbols else set(self.symbol_universe)
 
     async def _generate_signals(self) -> List[TradingSignal]:
-        """Generate market making signals"""
+        """Generate market making signals from bid/ask spreads."""
         signals: list[Any] = []
-        # Template implementation - would need order book data
-        logger.debug(f"{type(self).__name__}._generate_signals: no signal sources integrated yet")
+        if not self.market_data:
+            return signals
+        for symbol in self.symbol_universe:
+            data = self.market_data.get(symbol, {})
+            bid = data.get('bid', 0)
+            ask = data.get('ask', 0)
+            if bid <= 0 or ask <= 0 or ask <= bid:
+                continue
+            spread = (ask - bid) / ask
+            mid = (bid + ask) / 2.0
+            # Wide spread = market making opportunity
+            if spread > 0.002:  # >20bps spread
+                signals.append(TradingSignal(
+                    strategy_id=self.config.strategy_id,
+                    signal_type=SignalType.LONG,
+                    symbol=symbol,
+                    quantity=1.0,
+                    price=bid + (ask - bid) * 0.25,  # bid side
+                    confidence=min(spread * 100, 1.0),
+                    metadata={'trigger': 'market_making', 'spread_bps': round(spread * 10000, 1), 'mid': round(mid, 4)},
+                ))
+                signals.append(TradingSignal(
+                    strategy_id=self.config.strategy_id,
+                    signal_type=SignalType.SHORT,
+                    symbol=symbol,
+                    quantity=1.0,
+                    price=ask - (ask - bid) * 0.25,  # ask side
+                    confidence=min(spread * 100, 1.0),
+                    metadata={'trigger': 'market_making', 'spread_bps': round(spread * 10000, 1), 'mid': round(mid, 4)},
+                ))
         return signals
 
     def _should_generate_signal(self) -> bool:
@@ -586,10 +654,36 @@ class CorrelationTemplate(BaseArbitrageStrategy):
         self.market_data_subscriptions = set(self.config.symbols) if self.config.symbols else set(self.symbol_universe)
 
     async def _generate_signals(self) -> List[TradingSignal]:
-        """Generate correlation-based signals"""
+        """Generate correlation-based signals from price divergences."""
         signals: list[Any] = []
-        # Template implementation - would need correlation data
-        logger.debug(f"{type(self).__name__}._generate_signals: no signal sources integrated yet")
+        if not self.market_data:
+            return signals
+        # Collect prices for correlation analysis
+        prices = {}
+        for symbol in self.symbol_universe:
+            data = self.market_data.get(symbol, {})
+            price = data.get('price', 0)
+            prev = data.get('prev_close', price)
+            if price > 0 and prev > 0:
+                prices[symbol] = (price - prev) / prev  # daily return
+        if len(prices) < 2:
+            return signals
+        # Find divergences: if normally-correlated symbols diverge, trade the spread
+        symbols = list(prices.keys())
+        avg_return = sum(prices.values()) / len(prices)
+        for symbol in symbols:
+            divergence = prices[symbol] - avg_return
+            if abs(divergence) > 0.01:  # >1% divergence from group
+                direction = SignalType.SHORT if divergence > 0 else SignalType.LONG
+                signals.append(TradingSignal(
+                    strategy_id=self.config.strategy_id,
+                    signal_type=direction,
+                    symbol=symbol,
+                    quantity=1.0,
+                    price=self.market_data[symbol].get('price', 0),
+                    confidence=min(abs(divergence) * 20, 1.0),
+                    metadata={'trigger': 'correlation_divergence', 'divergence': round(divergence, 4)},
+                ))
         return signals
 
     def _should_generate_signal(self) -> bool:

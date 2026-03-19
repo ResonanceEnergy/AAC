@@ -392,9 +392,21 @@ class AACMasterMonitoringDashboard:
                     'average_health_score': sum(v['health_score'] for v in venue_status.values()) / len(venue_status)
                 }
             elif department == 'BigBrainIntelligence':
+                # Dynamically count agents from BigBrainIntelligence directory
+                agent_count = 0
+                try:
+                    from pathlib import Path
+                    bbi_dir = Path(__file__).resolve().parent.parent / 'BigBrainIntelligence'
+                    if bbi_dir.exists():
+                        agent_count = len([
+                            f for f in bbi_dir.glob('*.py')
+                            if f.stem not in ('__init__', '__pycache__')
+                        ])
+                except Exception:
+                    agent_count = 0
                 return {
                     'status': 'healthy',
-                    'active_agents': 11,
+                    'active_agents': agent_count,
                     'predictions_today': 0
                 }
             elif department == 'TradingExecution':

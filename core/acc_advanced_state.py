@@ -465,10 +465,27 @@ class ThreatDetectionEngine:
         self.active_threats = []
 
     async def start_monitoring(self):
-        """Start continuous threat monitoring"""
+        """Start continuous threat monitoring.
+
+        Runs periodic scans from each detector subsystem and
+        accumulates results into active_threats.
+        """
         self.monitoring_active = True
         logger.info("Starting threat detection monitoring")
-        # Start monitoring tasks
+
+        async def _monitor_loop():
+            while self.monitoring_active:
+                try:
+                    threats = await self.cyber_detector.scan()
+                    for t in threats:
+                        if t not in self.active_threats:
+                            self.active_threats.append(t)
+                            logger.warning(f"New threat detected: {t}")
+                except Exception as e:
+                    logger.error(f"Threat monitoring scan error: {e}")
+                await asyncio.sleep(60)  # scan every 60s
+
+        self._monitor_task = asyncio.create_task(_monitor_loop())
 
     async def get_active_threats(self) -> List[ThreatAssessment]:
         """Get list of active threats"""
@@ -503,14 +520,30 @@ class DoctrineComplianceEngine:
         self._scores: dict = {}
 
     async def evaluate_pack(self, pack: str) -> float:
-        """Evaluate compliance score for a doctrine pack."""
-        # Check cached score and refresh if stale
+        """Evaluate compliance score for a doctrine pack.
+
+        Scoring rules:
+        - Base score starts at 1.0 (fully compliant)
+        - 'experimental' packs: -0.15 (higher risk, less validation)
+        - 'deprecated' packs: -0.30 (should be migrated)
+        - 'core' packs: no penalty (fully validated)
+        - Packs with no known classification: -0.05 (unknown risk)
+        """
         if pack in self._scores:
             return self._scores[pack]
-        # Default high compliance, reduced if pack has known issues
-        score = 0.98
-        if pack.startswith('experimental'):
-            score = 0.85
+
+        score = 1.0
+        pack_lower = pack.lower()
+        if pack_lower.startswith('deprecated'):
+            score -= 0.30
+        elif pack_lower.startswith('experimental'):
+            score -= 0.15
+        elif pack_lower.startswith('core'):
+            pass  # full compliance
+        else:
+            score -= 0.05  # unknown pack classification
+
+        score = max(0.0, min(1.0, score))
         self._scores[pack] = score
         self._logger.debug(f"Compliance score for pack '{pack}': {score}")
         return score
