@@ -109,7 +109,22 @@ class PolymarketMarket:
             if len(parts) >= 2:
                 yes_id, no_id = parts[0].strip(), parts[1].strip()
 
-        yes_price = float(data.get("outcomePrices", "0.5,0.5").split(",")[0]) if isinstance(data.get("outcomePrices"), str) else 0.5
+        raw_prices = data.get("outcomePrices", "0.5,0.5")
+        yes_price = 0.5
+        if isinstance(raw_prices, str):
+            # API may return JSON array string like '["0.154","0.846"]' or CSV "0.5,0.5"
+            cleaned = raw_prices.strip().strip("[]")
+            parts = [p.strip().strip('"').strip("'") for p in cleaned.split(",")]
+            if parts:
+                try:
+                    yes_price = float(parts[0])
+                except (ValueError, IndexError):
+                    yes_price = 0.5
+        elif isinstance(raw_prices, list) and raw_prices:
+            try:
+                yes_price = float(raw_prices[0])
+            except (ValueError, TypeError):
+                yes_price = 0.5
         no_price = 1.0 - yes_price
 
         return cls(

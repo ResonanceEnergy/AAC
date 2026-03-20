@@ -153,6 +153,13 @@ except ImportError:
     SYSTEM_REGISTRY_AVAILABLE = False
     SystemRegistry = None  # type: ignore[assignment,misc]
 
+# Black Swan Pressure Cooker (crisis center)
+try:
+    from strategies.black_swan_pressure_cooker import get_crisis_data, get_crisis_section
+    CRISIS_CENTER_AVAILABLE = True
+except ImportError:
+    CRISIS_CENTER_AVAILABLE = False
+
 
 class DisplayMode:
     """Display mode enumeration"""
@@ -301,6 +308,9 @@ class AACMasterMonitoringDashboard:
             # Matrix Maximizer deep integration
             maximizer_data = self._get_matrix_maximizer_deep()
 
+            # Black Swan Crisis Center
+            crisis_data = self._get_crisis_center_data()
+
             return {
                 'timestamp': timestamp,
                 'health': health_data,
@@ -317,6 +327,7 @@ class AACMasterMonitoringDashboard:
                 'alerts': alerts_data,
                 'registry': registry_data,
                 'matrix_maximizer': maximizer_data,
+                'crisis_center': crisis_data,
             }
 
         except Exception as e:
@@ -336,6 +347,7 @@ class AACMasterMonitoringDashboard:
                 'alerts': [],
                 'registry': {},
                 'matrix_maximizer': {},
+                'crisis_center': {},
             }
 
     async def _get_system_health(self) -> Dict[str, Any]:
@@ -949,6 +961,16 @@ class AACMasterMonitoringDashboard:
         except Exception as e:
             self.logger.warning("Matrix Maximizer deep read failed: %s", e)
             return {"status": "error", "error": str(e)}
+
+    def _get_crisis_center_data(self) -> Dict[str, Any]:
+        """Get Black Swan Crisis Center data from pressure cooker."""
+        if not CRISIS_CENTER_AVAILABLE:
+            return {'status': 'unavailable'}
+        try:
+            return get_crisis_data()
+        except Exception as e:
+            self.logger.warning("Crisis center data fetch failed: %s", e)
+            return {'status': 'error', 'error': str(e)}
 
     async def _get_alerts(self) -> List[Dict[str, Any]]:
         """Get active alerts from all systems"""
@@ -1660,6 +1682,31 @@ class AACMasterMonitoringDashboard:
                 if len(orphans) > 10:
                     logger.info(f"    ... and {len(orphans) - 10} more")
 
+            logger.info("=" * 60)
+
+        # Black Swan Crisis Center
+        crisis = data.get('crisis_center', {})
+        if crisis and crisis.get('status') != 'unavailable':
+            logger.info("\n[BLACKSWAN] CRISIS CENTER")
+            logger.info("-" * 40)
+            if crisis.get('status') == 'error':
+                logger.info("  ⚠️  Crisis center error: %s", crisis.get('error', 'unknown'))
+            else:
+                logger.info("  🌡️  Pressure Level: %s%% (%s)",
+                            crisis.get('pressure_pct', '?'),
+                            crisis.get('pressure', '?'))
+                logger.info("  📊 Thesis Ratio: %s%% (Bullish: %s / Bearish: %s / Neutral: %s)",
+                            crisis.get('ratio_pct', '?'),
+                            crisis.get('bullish', '?'),
+                            crisis.get('bearish', '?'),
+                            crisis.get('neutral', '?'))
+                logger.info("  🎯 Probability: %s",
+                            crisis.get('probability', '?'))
+                top = crisis.get('top5_indicators', [])
+                if top:
+                    logger.info("  🔥 Top Indicators:")
+                    for ind in top[:5]:
+                        logger.info("    %.2f  %s", ind.get('weight', 0), ind.get('name', '?'))
             logger.info("=" * 60)
 
         # Alerts
