@@ -442,6 +442,32 @@ def phase7_git(commit: bool = False, push: bool = False) -> bool:
 
 
 # ════════════════════════════════════════════════════════════════════════
+# PHASE 6b — Black Swan Crisis Center
+# ════════════════════════════════════════════════════════════════════════
+
+def phase6b_crisis_center() -> bool:
+    """Run the Black Swan Crisis Center scan and log the daily ratio."""
+    logger.info(_bold("\n[Phase 6b] Black Swan Crisis Center"))
+    try:
+        from strategies.black_swan_pressure_cooker import PressureCooker
+        cooker = PressureCooker()
+        result = cooker.compute_pressure()
+        pct = result.get("pressure_pct", 0)
+        tier = result.get("tier", "?")
+        ratio = result.get("thesis_ratio_pct", 0)
+        bullish = result.get("bullish", 0)
+        bearish = result.get("bearish", 0)
+        _info(f"  Pressure: {pct}% ({tier}) | Thesis ratio: {ratio}% | B:{bullish} A:{bearish}")
+        # Log daily ratio for trend tracking
+        cooker.log_daily_ratio()
+        _ok("Crisis center scan complete — ratio logged")
+        return True
+    except Exception as e:
+        _warn(f"Crisis center scan failed: {e}")
+        return True  # non-blocking
+
+
+# ════════════════════════════════════════════════════════════════════════
 # PHASE 8 — Windows Task Scheduler
 # ════════════════════════════════════════════════════════════════════════
 
@@ -449,13 +475,13 @@ TASK_NAME = "AAC_Automated_Pipeline"
 TASK_XML_TEMPLATE = r"""<?xml version="1.0" encoding="UTF-16"?>
 <Task version="1.4" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
   <RegistrationInfo>
-    <Description>AAC Automated Trading Pipeline — runs every 15 minutes</Description>
+    <Description>AAC Automated Trading Pipeline — runs every 60 minutes</Description>
     <Author>AAC</Author>
   </RegistrationInfo>
   <Triggers>
     <CalendarTrigger>
       <Repetition>
-        <Interval>PT15M</Interval>
+        <Interval>PT60M</Interval>
         <StopAtDurationEnd>false</StopAtDurationEnd>
       </Repetition>
       <StartBoundary>2026-01-01T06:00:00</StartBoundary>
@@ -524,7 +550,7 @@ def phase8_schedule() -> bool:
         capture_output=True, text=True,
     )
     if result.returncode == 0:
-        _ok(f"Task '{TASK_NAME}' installed — runs every 15 minutes")
+        _ok(f"Task '{TASK_NAME}' installed — runs every 60 minutes")
     else:
         _warn(f"Auto-install failed (may need admin): {result.stderr.strip()}")
         _info("Run the schtasks command above as Administrator")
@@ -624,11 +650,17 @@ def main() -> int:
     parser.add_argument("--schedule", action="store_true", help="Install Windows Task Scheduler job")
     parser.add_argument("--go-live", action="store_true", help="Switch .env to live trading (DANGER)")
     parser.add_argument("--skip-tests", action="store_true", help="Skip pytest (faster iteration)")
+    parser.add_argument("--crisis", action="store_true", help="Run Black Swan Crisis Center scan only")
     args = parser.parse_args()
 
     logger.info(BANNER)
     start = time.monotonic()
     results: Dict[str, bool | str | int] = {}
+
+    # Crisis-only mode — fast standalone scan
+    if args.crisis:
+        crisis_ok = phase6b_crisis_center()
+        return 0 if crisis_ok else 1
 
     # Phase 1 — Environment
     results["1. Environment"] = phase1_environment()
@@ -659,6 +691,9 @@ def main() -> int:
         results["6. Paper pipeline"] = phase6_pipeline()
     else:
         results["6. Paper pipeline"] = "SKIPPED (use --pipeline)"
+
+    # Phase 6b — Crisis Center (always runs — lightweight)
+    results["6b. Crisis Center"] = phase6b_crisis_center()
 
     # Phase 7 — Git
     results["7. Git operations"] = phase7_git(commit=args.commit, push=args.push)

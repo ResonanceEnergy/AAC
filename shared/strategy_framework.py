@@ -332,6 +332,11 @@ class StrategyFactory:
             from strategies.overnight_drift_attention_stocks import OvernightDriftAttentionStocksStrategy
             return OvernightDriftAttentionStocksStrategy(config, communication, audit_logger)
 
+        elif strategy_id in ("s51_planktonxd_prediction_harvester",
+                             "s51_planktonxd_prediction_market_harvester"):
+            from strategies.planktonxd_prediction_harvester import create_planktonxd_strategy
+            return create_planktonxd_strategy(communication, audit_logger)
+
         elif strategy_id == "s02_index_reconstitution___closing_auction_liquidity":
             from strategies.index_reconstitution import IndexReconstitutionStrategy
             return IndexReconstitutionStrategy(config, communication, audit_logger)
