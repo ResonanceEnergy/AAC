@@ -252,3 +252,57 @@ class TestSecurityCompliance:
     def test_module_has_expected_functions(self):
         mod = pytest.importorskip('monitoring.security_compliance_integration', reason='needs qrcode')
         assert callable(getattr(mod, 'check_security_compliance', None))
+
+
+# ── Dashboard Fix Regression Tests ─────────────────────────────────────────────
+
+class TestDashboardFixes:
+    """Regression tests for critical dashboard bug fixes."""
+
+    def test_data_lock_exists(self):
+        """CRITICAL #5: _data_lock must exist for thread safety."""
+        import threading
+        from monitoring.aac_master_monitoring_dashboard import AACMasterMonitoringDashboard
+        d = AACMasterMonitoringDashboard()
+        assert hasattr(d, '_data_lock')
+        assert isinstance(d._data_lock, type(threading.Lock()))
+
+    def test_refresh_rate_minimum(self):
+        """HIGH: refresh rate must be at least 1s even with bad env var."""
+        import os
+        old = os.environ.get('DASHBOARD_REFRESH_RATE')
+        try:
+            os.environ['DASHBOARD_REFRESH_RATE'] = '0.01'
+            from monitoring.aac_master_monitoring_dashboard import AACMasterMonitoringDashboard
+            d = AACMasterMonitoringDashboard()
+            assert d.refresh_rate >= 1.0
+        finally:
+            if old is not None:
+                os.environ['DASHBOARD_REFRESH_RATE'] = old
+            else:
+                os.environ.pop('DASHBOARD_REFRESH_RATE', None)
+
+    def test_text_dashboard_uses_print(self):
+        """CRITICAL #1: _display_text_dashboard must use print(), not logger.info()."""
+        import inspect
+        from monitoring.aac_master_monitoring_dashboard import AACMasterMonitoringDashboard
+        source = inspect.getsource(AACMasterMonitoringDashboard._display_text_dashboard)
+        # Should have print calls, not logger.info for display output
+        assert 'print(' in source
+        # logger.info should NOT appear in display method (it was the bug)
+        assert 'logger.info(' not in source
+
+    def test_ibkr_orders_no_hardcoded_balance(self):
+        """CRITICAL #3: _get_ibkr_orders must not have hardcoded 920.0 balance."""
+        import inspect
+        from monitoring.aac_master_monitoring_dashboard import AACMasterMonitoringDashboard
+        source = inspect.getsource(AACMasterMonitoringDashboard._get_ibkr_orders)
+        assert '920.0' not in source
+        assert '920' not in source.split('get_balances')[0]  # no hardcoded before balance fetch
+
+    def test_collect_monitoring_data_logs_exc_info(self):
+        """CRITICAL #4: collect_monitoring_data exception handler must include exc_info."""
+        import inspect
+        from monitoring.aac_master_monitoring_dashboard import AACMasterMonitoringDashboard
+        source = inspect.getsource(AACMasterMonitoringDashboard.collect_monitoring_data)
+        assert 'exc_info=True' in source

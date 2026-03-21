@@ -207,8 +207,9 @@ class AACMasterMonitoringDashboard:
         # Dashboard state
         self.running = False
         self.last_update = datetime.now()
-        self.refresh_rate = float(os.environ.get('DASHBOARD_REFRESH_RATE', '5.0'))  # seconds
+        self.refresh_rate = max(1.0, float(os.environ.get('DASHBOARD_REFRESH_RATE', '5.0')))  # seconds, min 1s
         self._latest_data = {}
+        self._data_lock = threading.Lock()
 
         # Threads and processes
         self.monitoring_thread = None
@@ -331,7 +332,7 @@ class AACMasterMonitoringDashboard:
             }
 
         except Exception as e:
-            self.logger.error(f"Error collecting monitoring data: {e}")
+            self.logger.error(f"Error collecting monitoring data: {e}", exc_info=True)
             return {
                 'timestamp': datetime.now(),
                 'error': str(e),
@@ -794,14 +795,28 @@ class AACMasterMonitoringDashboard:
             return {'status': 'error', 'error': str(e)}
 
     async def _get_ibkr_orders(self) -> Dict[str, Any]:
-        """Fetch open IBKR orders and compute $920 maximization plan."""
+        """Fetch open IBKR orders and account balance for maximization plan."""
+        connector = None
         try:
             from TradingExecution.exchange_connectors.ibkr_connector import IBKRConnector
 
             connector = IBKRConnector()
             await connector.connect()
             orders_raw = await connector.get_open_orders()
+
+            # Fetch real account balance instead of hardcoded value
+            account_balance = 0.0
+            try:
+                balances = await connector.get_balances()
+                if 'USD' in balances:
+                    account_balance = balances['USD'].free
+                elif 'TOTAL_CASH' in balances:
+                    account_balance = balances['TOTAL_CASH'].free
+            except Exception:
+                self.logger.warning("Could not fetch IBKR balance, using 0")
+
             await connector.disconnect()
+            connector = None
 
             orders = []
             total_committed = 0.0
@@ -825,8 +840,7 @@ class AACMasterMonitoringDashboard:
                         'ibkr_status': getattr(o, 'raw', {}).get('ibkr_status', '?'),
                     })
 
-            account_balance = 920.0  # USD — user confirmed
-            remaining = account_balance - total_committed
+            remaining = max(0.0, account_balance - total_committed)
 
             # Maximization recommendations for remaining capital
             # Regime: STAGFLATION + CREDIT_STRESS => KRE + JNK are highest conviction
@@ -871,6 +885,12 @@ class AACMasterMonitoringDashboard:
         except Exception as e:
             self.logger.warning(f'IBKR orders fetch error: {e}')
             return {'status': 'error', 'error': str(e)}
+        finally:
+            if connector is not None:
+                try:
+                    await connector.disconnect()
+                except Exception:
+                    pass
 
     async def _get_strategy_metrics(self) -> Dict[str, Any]:
         """Get strategy metrics data"""
@@ -1325,46 +1345,46 @@ class AACMasterMonitoringDashboard:
     def _display_text_dashboard(self, data: Dict[str, Any]):
         """Display dashboard in text mode for Windows compatibility"""
         print("\033[2J\033[H", end="")  # ANSI clear screen
-        logger.info("="*80)
-        logger.info("AAC 2100 MASTER MONITORING DASHBOARD")
-        logger.info("="*80)
-        logger.info(f"Last update: {data.get('timestamp', datetime.now()).strftime('%Y-%m-%d %H:%M:%S')}")
-        logger.info("")
+        print("="*80)
+        print("AAC 2100 MASTER MONITORING DASHBOARD")
+        print("="*80)
+        print(f"Last update: {data.get('timestamp', datetime.now()).strftime('%Y-%m-%d %H:%M:%S')}")
+        print("")
 
         # System Health
         health = data.get('health', {})
-        logger.info("🔍 SYSTEM HEALTH")
-        logger.info("-" * 20)
+        print("🔍 SYSTEM HEALTH")
+        print("-" * 20)
         status = health.get('overall_status', 'unknown')
         status_emoji = {'healthy': '🟢', 'warning': '🟡', 'critical': '🔴', 'unknown': '⚪'}.get(status, '⚪')
-        logger.info(f"Overall Status: {status_emoji} {status.upper()}")
+        print(f"Overall Status: {status_emoji} {status.upper()}")
 
         # Department status
         departments = health.get('departments', {})
         if departments:
-            logger.info("\nDepartments:")
+            print("\nDepartments:")
             for dept, info in departments.items():
                 dept_status = info.get('status', 'unknown')
                 emoji = {'healthy': '🟢', 'warning': '🟡', 'critical': '🔴', 'unknown': '⚪'}.get(dept_status, '⚪')
-                logger.info(f"  {emoji} {dept}: {dept_status}")
+                print(f"  {emoji} {dept}: {dept_status}")
 
         # Infrastructure
         infra = health.get('infrastructure', {})
         if infra:
-            logger.info("\nInfrastructure:")
+            print("\nInfrastructure:")
             for component, status in infra.items():
                 if isinstance(status, dict):
                     comp_status = status.get('status', 'unknown')
                 else:
                     comp_status = 'healthy' if status else 'critical'
                 emoji = {'healthy': '🟢', 'warning': '🟡', 'critical': '🔴', 'unknown': '⚪'}.get(comp_status, '⚪')
-                logger.info(f"  {emoji} {component}: {comp_status}")
+                print(f"  {emoji} {component}: {comp_status}")
 
         # Doctrine Compliance
         doctrine = data.get('doctrine', {})
         if doctrine:
-            logger.info("\n[DOCTRINE] COMPLIANCE MATRIX")
-            logger.info("-" * 25)
+            print("\n[DOCTRINE] COMPLIANCE MATRIX")
+            print("-" * 25)
             compliance_score = doctrine.get('compliance_score', 0)
             barren_wuffet_state = doctrine.get('barren_wuffet_state', 'unknown')
 
@@ -1375,7 +1395,7 @@ class AACMasterMonitoringDashboard:
                 score_emoji = '🟡'
             else:
                 score_emoji = '🔴'
-            logger.info(f"Compliance Score: {score_emoji} {compliance_score}%")
+            print(f"Compliance Score: {score_emoji} {compliance_score}%")
 
             # BARREN WUFFET state
             if barren_wuffet_state in ['CRITICAL', 'error']:
@@ -1384,54 +1404,54 @@ class AACMasterMonitoringDashboard:
                 az_emoji = '🟡'
             else:
                 az_emoji = '🟢'
-            logger.info(f"BARREN WUFFET State: {az_emoji} {barren_wuffet_state.upper()}")
+            print(f"BARREN WUFFET State: {az_emoji} {barren_wuffet_state.upper()}")
 
             # Compliance metrics
             compliant = doctrine.get('compliant', 0)
             warnings = doctrine.get('warnings', 0)
             violations = doctrine.get('violations', 0)
-            logger.info(f"[OK] Compliant: {compliant} | [WARN] Warnings: {warnings} | [ERROR] Violations: {violations}")
+            print(f"[OK] Compliant: {compliant} | [WARN] Warnings: {warnings} | [ERROR] Violations: {violations}")
 
             # Monitoring status
             monitoring_active = doctrine.get('monitoring_active', False)
             monitor_status = '[ACTIVE]' if monitoring_active else '[INACTIVE]'
-            logger.info(f"Monitoring: {monitor_status}")
+            print(f"Monitoring: {monitor_status}")
 
         # P&L Data
         pnl = data.get('pnl', {})
         if pnl:
-            logger.info("\n[MONEY] P&L SUMMARY")
-            logger.info("-" * 15)
+            print("\n[MONEY] P&L SUMMARY")
+            print("-" * 15)
             daily_pnl = pnl.get('daily_pnl', 0)
             total_pnl = pnl.get('total_pnl', 0)
-            logger.info(f"Daily P&L: ${daily_pnl:,.2f}")
-            logger.info(f"Total P&L: ${total_pnl:,.2f}")
+            print(f"Daily P&L: ${daily_pnl:,.2f}")
+            print(f"Total P&L: ${total_pnl:,.2f}")
 
         # Risk Metrics
         risk = data.get('risk', {})
         if risk:
-            logger.info("\n[WARN]️  RISK METRICS")
-            logger.info("-" * 15)
+            print("\n[WARN]️  RISK METRICS")
+            print("-" * 15)
             var_95 = risk.get('var_95', 0)
             max_drawdown = risk.get('max_drawdown', 0)
-            logger.info(f"VaR (95%): ${var_95:,.2f}")
-            logger.info(f"Max Drawdown: ${max_drawdown:,.2f}")
+            print(f"VaR (95%): ${var_95:,.2f}")
+            print(f"Max Drawdown: ${max_drawdown:,.2f}")
 
         # Trading Activity
         trading = data.get('trading', {})
         if trading:
-            logger.info("\n📈 TRADING ACTIVITY")
-            logger.info("-" * 20)
+            print("\n📈 TRADING ACTIVITY")
+            print("-" * 20)
             active_positions = trading.get('active_positions', 0)
             pending_orders = trading.get('pending_orders', 0)
-            logger.info(f"Active Positions: {active_positions}")
-            logger.info(f"Pending Orders: {pending_orders}")
+            print(f"Active Positions: {active_positions}")
+            print(f"Pending Orders: {pending_orders}")
 
         # Security Status
         security = data.get('security', {})
         if security and security.get('status') != 'not_available':
-            logger.info("\n[SHIELD] SECURITY STATUS")
-            logger.info("-" * 20)
+            print("\n[SHIELD] SECURITY STATUS")
+            print("-" * 20)
             security_score = security.get('overall_score', 0)
             if security_score >= 90:
                 sec_emoji = '🟢'
@@ -1439,7 +1459,7 @@ class AACMasterMonitoringDashboard:
                 sec_emoji = '🟡'
             else:
                 sec_emoji = '🔴'
-            logger.info(f"Security Score: {sec_emoji} {security_score:.1f}%")
+            print(f"Security Score: {sec_emoji} {security_score:.1f}%")
 
             components = security.get('components', {})
             for comp_name, comp_data in components.items():
@@ -1451,37 +1471,37 @@ class AACMasterMonitoringDashboard:
                         comp_emoji = '🟡'
                     else:
                         comp_emoji = '🔴'
-                    logger.info(f"  {comp_emoji} {comp_name.upper()}: {comp_score}%")
+                    print(f"  {comp_emoji} {comp_name.upper()}: {comp_score}%")
 
         # Safeguards
         safeguards = data.get('safeguards', {})
         if safeguards:
-            logger.info("\n[SHIELD]️  PRODUCTION SAFEGUARDS")
-            logger.info("-" * 25)
+            print("\n[SHIELD]️  PRODUCTION SAFEGUARDS")
+            print("-" * 25)
             circuit_breaker = safeguards.get('circuit_breaker_active', False)
             rate_limited = safeguards.get('rate_limited', False)
-            logger.info(f"Circuit Breaker: {'🔴 ACTIVE' if circuit_breaker else '🟢 NORMAL'}")
-            logger.info(f"Rate Limiting: {'🟡 ACTIVE' if rate_limited else '🟢 NORMAL'}")
+            print(f"Circuit Breaker: {'🔴 ACTIVE' if circuit_breaker else '🟢 NORMAL'}")
+            print(f"Rate Limiting: {'🟡 ACTIVE' if rate_limited else '🟢 NORMAL'}")
 
         # Strategy Metrics
         strategy = data.get('strategy', {})
         if strategy and strategy.get('status') != 'not_available':
-            logger.info("\n[STRATEGY] STRATEGY METRICS")
-            logger.info("-" * 20)
+            print("\n[STRATEGY] STRATEGY METRICS")
+            print("-" * 20)
             total_strategies = strategy.get('total_strategies', 0)
             active_strategies = strategy.get('active_strategies', 0)
             avg_return = strategy.get('average_return', 0.0)
-            logger.info(f"Total Strategies: {total_strategies}")
-            logger.info(f"Active Strategies: {active_strategies}")
-            logger.info(f"Average Return: {avg_return:.2%}")
+            print(f"Total Strategies: {total_strategies}")
+            print(f"Active Strategies: {active_strategies}")
+            print(f"Average Return: {avg_return:.2%}")
 
         # ── REGIME FORECASTER INTEL ────────────────────────────────────────
         forecaster = data.get('forecaster', {})
         if forecaster and forecaster.get('status') == 'ok':
-            logger.info("")
-            logger.info("=" * 60)
-            logger.info("  REGIME FORECASTER — IF X+Y → EXPECT Z")
-            logger.info("=" * 60)
+            print("")
+            print("=" * 60)
+            print("  REGIME FORECASTER — IF X+Y → EXPECT Z")
+            print("=" * 60)
             regime = forecaster.get('regime', 'UNKNOWN').upper().replace('_', ' ')
             secondary = forecaster.get('secondary')
             conf = forecaster.get('regime_confidence', 0)
@@ -1501,118 +1521,118 @@ class AACMasterMonitoringDashboard:
             else:
                 vol_icon = '[LOW]'
 
-            logger.info(f"  Regime: {regime}  (conf {conf}%)")
+            print(f"  Regime: {regime}  (conf {conf}%)")
             if secondary:
-                logger.info(f"  Secondary: {secondary.upper().replace('_',' ')}")
-            logger.info(f"  Vol Shock Readiness: {vol}/100  {vol_icon}")
-            logger.info(f"  Signals: {bears} bearish | {bulls} bullish")
-            logger.info(f"  Macro: VIX={macro.get('vix','?')}  HY={macro.get('hy_spread','?')}bps  Oil=${macro.get('oil','?')}")
+                print(f"  Secondary: {secondary.upper().replace('_',' ')}")
+            print(f"  Vol Shock Readiness: {vol}/100  {vol_icon}")
+            print(f"  Signals: {bears} bearish | {bulls} bullish")
+            print(f"  Macro: VIX={macro.get('vix','?')}  HY={macro.get('hy_spread','?')}bps  Oil=${macro.get('oil','?')}")
             war_flags = []
             if macro.get('war'): war_flags.append('WAR ACTIVE')
             if macro.get('hormuz'): war_flags.append('HORMUZ BLOCKED')
             if war_flags:
-                logger.info(f"  Geo: {' | '.join(war_flags)}")
+                print(f"  Geo: {' | '.join(war_flags)}")
 
             fired = forecaster.get('fired_formulas', [])
             if fired:
-                logger.info(f"  Fired Formulas ({len(fired)}):")
+                print(f"  Fired Formulas ({len(fired)}):")
                 for f in fired:
-                    logger.info(f"    [{f['tag']}] {f['confidence']}%  {f['outcome']}")
+                    print(f"    [{f['tag']}] {f['confidence']}%  {f['outcome']}")
 
-            logger.info(f"")
-            logger.info(f"  2-TRADE STACK  |  Anchor: {anchor}  |  Contagion: {contagion}")
+            print(f"")
+            print(f"  2-TRADE STACK  |  Anchor: {anchor}  |  Contagion: {contagion}")
 
             opps = forecaster.get('top3_opportunities', [])
             if opps:
-                logger.info(f"  TOP 3 SHORT-TERM OPPORTUNITIES:")
+                print(f"  TOP 3 SHORT-TERM OPPORTUNITIES:")
                 for o in opps:
                     expr = o['expression'].replace('_', ' ').upper()
-                    logger.info(f"    #{o['rank']}  {o['ticker']:6}  {expr:17}  score={o['score']}")
-                    logger.info(f"         {o['thesis']}")
-            logger.info("=" * 60)
+                    print(f"    #{o['rank']}  {o['ticker']:6}  {expr:17}  score={o['score']}")
+                    print(f"         {o['thesis']}")
+            print("=" * 60)
 
         # ── IBKR OPEN ORDERS + $920 MAXIMIZATION PLAN ───────────────────
         ibkr = data.get('ibkr_orders', {})
         if ibkr and ibkr.get('status') == 'ok':
-            logger.info("")
-            logger.info("=" * 60)
-            logger.info("  IBKR ORDERS  [acct: {}]".format(ibkr.get('account', '?')))
-            logger.info("=" * 60)
+            print("")
+            print("=" * 60)
+            print("  IBKR ORDERS  [acct: {}]".format(ibkr.get('account', '?')))
+            print("=" * 60)
             bal = ibkr.get('balance_usd', 0)
             committed = ibkr.get('total_committed', 0)
             remaining = ibkr.get('remaining_cash', 0)
-            logger.info(f"  Balance: ${bal:.0f} USD  |  Committed: ${committed:.0f}  |  Dry Powder: ${remaining:.0f}")
+            print(f"  Balance: ${bal:.0f} USD  |  Committed: ${committed:.0f}  |  Dry Powder: ${remaining:.0f}")
 
             orders = ibkr.get('open_orders', [])
             if orders:
-                logger.info(f"  Open Orders ({len(orders)}):")
+                print(f"  Open Orders ({len(orders)}):")
                 for o in orders:
                     s = o['ibkr_status']
                     cost = o['cost']
-                    logger.info(
+                    print(
                         f"    #{o['order_id']}  {o['symbol']:6}  {o['side'].upper()} "
                         f"x{o['qty']:.0f} @ ${o['price']:.2f}  cost=${cost:.0f}  [{s}]"
                     )
             else:
-                logger.info("  No open orders.")
+                print("  No open orders.")
 
             recs = ibkr.get('recommendations', [])
             if recs:
                 rec_total = ibkr.get('rec_total_cost', 0)
                 cash_after = ibkr.get('cash_after_recs', 0)
-                logger.info(f"")
-                logger.info(f"  MAXIMIZATION PLAN (deploy ${rec_total:.0f} / ${remaining:.0f} remaining):")
+                print(f"")
+                print(f"  MAXIMIZATION PLAN (deploy ${rec_total:.0f} / ${remaining:.0f} remaining):")
                 for r in recs:
-                    logger.info(
+                    print(
                         f"    {r['ticker']:6}  {r['expression']:17}  x{r['contracts']}  "
                         f"est ${r['est_premium']:.2f}/contract  total=${r['cost']:.0f}  DTE {r['dte']}"
                     )
-                    logger.info(f"           {r['rationale']}")
-                logger.info(f"  Cash buffer after deployment: ${cash_after:.0f}")
-            logger.info("=" * 60)
+                    print(f"           {r['rationale']}")
+                print(f"  Cash buffer after deployment: ${cash_after:.0f}")
+            print("=" * 60)
 
         # ── MATRIX MAXIMIZER DEEP ─────────────────────────────────────
         mm = data.get('matrix_maximizer', {})
         if mm and mm.get('status') == 'ok':
-            logger.info("")
-            logger.info("=" * 60)
-            logger.info("  MATRIX MAXIMIZER — COMMAND & CONTROL")
-            logger.info("=" * 60)
-            logger.info(f"  Run #{mm.get('run_number','?')}  |  {mm.get('timestamp','?')}")
+            print("")
+            print("=" * 60)
+            print("  MATRIX MAXIMIZER — COMMAND & CONTROL")
+            print("=" * 60)
+            print(f"  Run #{mm.get('run_number','?')}  |  {mm.get('timestamp','?')}")
             mandate = mm.get('mandate', '?').upper()
             mandate_icon = {'DEFENSIVE': '🛡️', 'STANDARD': '⚖️', 'AGGRESSIVE': '⚔️', 'MAX_CONVICTION': '🔥'}.get(mandate, '❓')
-            logger.info(f"  Mandate: {mandate_icon} {mandate}  |  Risk/trade: {mm.get('risk_per_trade','?')}%  |  Max pos: {mm.get('max_positions','?')}")
-            logger.info(f"  Regime: {mm.get('regime','?').upper()}  conf={mm.get('regime_confidence','?')}%")
-            logger.info(f"  Geo: WAR={'YES' if mm.get('war_active') else 'NO'}  HORMUZ={'BLOCKED' if mm.get('hormuz_blocked') else 'OPEN'}")
-            logger.info(f"  Oil=${mm.get('oil_price','?')}  VIX={mm.get('vix','?')}")
+            print(f"  Mandate: {mandate_icon} {mandate}  |  Risk/trade: {mm.get('risk_per_trade','?')}%  |  Max pos: {mm.get('max_positions','?')}")
+            print(f"  Regime: {mm.get('regime','?').upper()}  conf={mm.get('regime_confidence','?')}%")
+            print(f"  Geo: WAR={'YES' if mm.get('war_active') else 'NO'}  HORMUZ={'BLOCKED' if mm.get('hormuz_blocked') else 'OPEN'}")
+            print(f"  Oil=${mm.get('oil_price','?')}  VIX={mm.get('vix','?')}")
             spy_ret = mm.get('spy_median_return')
             spy_var = mm.get('spy_var_95')
             if spy_ret is not None:
-                logger.info(f"  SPY median return: {spy_ret:.1f}%  |  VaR(95): {spy_var}")
+                print(f"  SPY median return: {spy_ret:.1f}%  |  VaR(95): {spy_var}")
             cb = mm.get('circuit_breaker', '?')
             cb_icon = '🔴' if cb == 'OPEN' else '🟢'
-            logger.info(f"  Circuit Breaker: {cb_icon} {cb}  |  Risk Score: {mm.get('risk_score','?')}")
+            print(f"  Circuit Breaker: {cb_icon} {cb}  |  Risk Score: {mm.get('risk_score','?')}")
 
             picks = mm.get('top_picks', [])
             if picks:
-                logger.info(f"  Top {len(picks)} Picks (of {mm.get('total_picks',0)}):")
+                print(f"  Top {len(picks)} Picks (of {mm.get('total_picks',0)}):")
                 for p in picks:
-                    logger.info(f"    {p['ticker']:6}  K={p.get('strike','?')}  exp={p.get('expiry','?')}  "
+                    print(f"    {p['ticker']:6}  K={p.get('strike','?')}  exp={p.get('expiry','?')}  "
                                 f"score={p.get('score','?')}  x{p.get('contracts','?')}  ${p.get('cost','?')}")
             elapsed = mm.get('elapsed_s')
             if elapsed:
-                logger.info(f"  Cycle time: {elapsed:.1f}s")
-            logger.info("=" * 60)
+                print(f"  Cycle time: {elapsed:.1f}s")
+            print("=" * 60)
 
         # ── SYSTEM REGISTRY — API STATUS ──────────────────────────────
         registry = data.get('registry', {})
         if registry and registry.get('status') != 'not_available':
             summary = registry.get('summary', {})
-            logger.info("")
-            logger.info("=" * 60)
-            logger.info("  SYSTEM REGISTRY — COMMAND & CONTROL")
-            logger.info("=" * 60)
-            logger.info(f"  APIs: {summary.get('apis_configured',0)} configured | "
+            print("")
+            print("=" * 60)
+            print("  SYSTEM REGISTRY — COMMAND & CONTROL")
+            print("=" * 60)
+            print(f"  APIs: {summary.get('apis_configured',0)} configured | "
                         f"{summary.get('apis_missing',0)} missing | "
                         f"{summary.get('apis_free',0)} free (no key)")
 
@@ -1620,43 +1640,43 @@ class AACMasterMonitoringDashboard:
             exchanges = registry.get('exchanges', [])
             ex_online = summary.get('exchanges_online', 0)
             ex_total = summary.get('exchanges_total', 0)
-            logger.info(f"  Exchanges: {ex_online}/{ex_total} online")
+            print(f"  Exchanges: {ex_online}/{ex_total} online")
             for ex in exchanges:
                 h = ex.get('health', 'grey')
                 icon = {'green': '🟢', 'yellow': '🟡', 'red': '🔴', 'grey': '⚪'}.get(h, '⚪')
                 lat = ex.get('latency_ms')
                 lat_str = f"  {lat}ms" if lat else ""
-                logger.info(f"    {icon} {ex['name']:20} {ex.get('detail','')}{lat_str}")
+                print(f"    {icon} {ex['name']:20} {ex.get('detail','')}{lat_str}")
 
             # Infrastructure status
             infra = registry.get('infrastructure', [])
             infra_ok = summary.get('infra_ok', 0)
             infra_total = summary.get('infra_total', 0)
-            logger.info(f"  Infrastructure: {infra_ok}/{infra_total} healthy")
+            print(f"  Infrastructure: {infra_ok}/{infra_total} healthy")
             for svc in infra:
                 h = svc.get('health', 'grey')
                 icon = {'green': '🟢', 'yellow': '🟡', 'red': '🔴', 'grey': '⚪'}.get(h, '⚪')
-                logger.info(f"    {icon} {svc['name']:20} {svc.get('detail','')}")
+                print(f"    {icon} {svc['name']:20} {svc.get('detail','')}")
 
             # Strategy engines
             strats = registry.get('strategies', [])
             strat_ok = summary.get('strategies_ok', 0)
             strat_total = summary.get('strategies_total', 0)
-            logger.info(f"  Strategies: {strat_ok}/{strat_total} operational")
+            print(f"  Strategies: {strat_ok}/{strat_total} operational")
             for st_item in strats:
                 h = st_item.get('health', 'grey')
                 icon = {'green': '🟢', 'yellow': '🟡', 'red': '🔴', 'grey': '⚪'}.get(h, '⚪')
-                logger.info(f"    {icon} {st_item['name']:20} {st_item.get('detail','')}")
+                print(f"    {icon} {st_item['name']:20} {st_item.get('detail','')}")
 
             # Departments
             depts = registry.get('departments', [])
             dept_ok = summary.get('departments_ok', 0)
             dept_total = summary.get('departments_total', 0)
-            logger.info(f"  Departments: {dept_ok}/{dept_total} online")
+            print(f"  Departments: {dept_ok}/{dept_total} online")
             for d in depts:
                 h = d.get('health', 'grey')
                 icon = {'green': '🟢', 'yellow': '🟡', 'red': '🔴', 'grey': '⚪'}.get(h, '⚪')
-                logger.info(f"    {icon} {d['name']:25} {d.get('detail','')}")
+                print(f"    {icon} {d['name']:25} {d.get('detail','')}")
 
             # API breakdown by category
             apis = registry.get('apis', [])
@@ -1665,63 +1685,56 @@ class AACMasterMonitoringDashboard:
                 for a in apis:
                     cat = a.get('category', 'Other')
                     cats.setdefault(cat, []).append(a)
-                logger.info(f"  ── API Inventory ({len(apis)} total) ──")
+                print(f"  ── API Inventory ({len(apis)} total) ──")
                 for cat, items in sorted(cats.items()):
                     conf = sum(1 for i in items if i.get('configured'))
-                    logger.info(f"    {cat}: {conf}/{len(items)} configured")
+                    print(f"    {cat}: {conf}/{len(items)} configured")
                     for item in items:
                         icon = '✅' if item.get('configured') else ('🔑' if item.get('env_var') else '🆓')
-                        logger.info(f"      {icon} {item['name']}")
+                        print(f"      {icon} {item['name']}")
 
             # Orphan scripts
             orphans = registry.get('orphans', [])
             if orphans:
-                logger.info(f"  Orphan Scripts: {len(orphans)} root _*.py files")
+                print(f"  Orphan Scripts: {len(orphans)} root _*.py files")
                 for o in orphans[:10]:
-                    logger.info(f"    📄 {o['script']:30} {o.get('description','')[:50]}")
+                    print(f"    📄 {o['script']:30} {o.get('description','')[:50]}")
                 if len(orphans) > 10:
-                    logger.info(f"    ... and {len(orphans) - 10} more")
+                    print(f"    ... and {len(orphans) - 10} more")
 
-            logger.info("=" * 60)
+            print("=" * 60)
 
         # Black Swan Crisis Center
         crisis = data.get('crisis_center', {})
         if crisis and crisis.get('status') != 'unavailable':
-            logger.info("\n[BLACKSWAN] CRISIS CENTER")
-            logger.info("-" * 40)
+            print("\n[BLACKSWAN] CRISIS CENTER")
+            print("-" * 40)
             if crisis.get('status') == 'error':
-                logger.info("  ⚠️  Crisis center error: %s", crisis.get('error', 'unknown'))
+                print(f"  ⚠️  Crisis center error: {crisis.get('error', 'unknown')}")
             else:
-                logger.info("  🌡️  Pressure Level: %s%% (%s)",
-                            crisis.get('pressure_pct', '?'),
-                            crisis.get('pressure', '?'))
-                logger.info("  📊 Thesis Ratio: %s%% (Bullish: %s / Bearish: %s / Neutral: %s)",
-                            crisis.get('ratio_pct', '?'),
-                            crisis.get('bullish', '?'),
-                            crisis.get('bearish', '?'),
-                            crisis.get('neutral', '?'))
-                logger.info("  🎯 Probability: %s",
-                            crisis.get('probability', '?'))
+                print(f"  🌡️  Pressure Level: {crisis.get('pressure_pct', '?')}% ({crisis.get('pressure', '?')})")
+                print(f"  📊 Thesis Ratio: {crisis.get('ratio_pct', '?')}% (Bullish: {crisis.get('bullish', '?')} / Bearish: {crisis.get('bearish', '?')} / Neutral: {crisis.get('neutral', '?')})")
+                print(f"  🎯 Probability: {crisis.get('probability', '?')}")
                 top = crisis.get('top5_indicators', [])
                 if top:
-                    logger.info("  🔥 Top Indicators:")
+                    print("  🔥 Top Indicators:")
                     for ind in top[:5]:
-                        logger.info("    %.2f  %s", ind.get('weight', 0), ind.get('name', '?'))
-            logger.info("=" * 60)
+                        print(f"    {ind.get('weight', 0):.2f}  {ind.get('name', '?')}")
+            print("=" * 60)
 
         # Alerts
         alerts = data.get('alerts', [])
         if alerts:
-            logger.info("\n[ALERT] ACTIVE ALERTS")
-            logger.info("-" * 15)
+            print("\n[ALERT] ACTIVE ALERTS")
+            print("-" * 15)
             for alert in alerts[:5]:  # Show first 5 alerts
                 severity = alert.get('severity', 'info')
                 emoji = {'critical': '🔴', 'warning': '🟡', 'info': 'ℹ️'}.get(severity, 'ℹ️')
-                logger.info(f"  {emoji} {alert.get('title', 'Unknown alert')}")
+                print(f"  {emoji} {alert.get('title', 'Unknown alert')}")
 
-        logger.info("\n%s", "="*80)
-        logger.info("Press Ctrl+C to quit | Auto-refresh: 1s")
-        logger.info("%s", "="*80)
+        print("\n" + "="*80)
+        print("Press Ctrl+C to quit | Auto-refresh: 1s")
+        print("="*80)
 
     def _run_curses_dashboard(self, stdscr):
         """Run the curses-based dashboard"""
@@ -1733,8 +1746,9 @@ class AACMasterMonitoringDashboard:
 
         while self.running:
             try:
-                # Get latest data
-                data = getattr(self, '_latest_data', {})
+                # Get latest data (thread-safe read)
+                with self._data_lock:
+                    data = self._latest_data.copy() if self._latest_data else {}
 
                 # Display dashboard
                 self.display_dashboard(stdscr, data)
@@ -1759,16 +1773,17 @@ class AACMasterMonitoringDashboard:
 
     def _run_text_dashboard_loop(self):
         """Run the text-based dashboard loop"""
-        logger.info("\n%s", "="*80)
-        logger.info("AAC 2100 MASTER MONITORING DASHBOARD (Text Mode)")
-        logger.info("%s", "="*80)
-        logger.info("Press Ctrl+C to quit | Auto-refresh: 1s")
-        logger.info("")
+        print("\n" + "="*80)
+        print("AAC 2100 MASTER MONITORING DASHBOARD (Text Mode)")
+        print("="*80)
+        print("Press Ctrl+C to quit | Auto-refresh: 1s")
+        print("")
 
         while self.running:
             try:
-                # Get latest data
-                data = getattr(self, '_latest_data', {})
+                # Get latest data (thread-safe read)
+                with self._data_lock:
+                    data = self._latest_data.copy() if self._latest_data else {}
 
                 if data:
                     # Display dashboard
@@ -1781,7 +1796,7 @@ class AACMasterMonitoringDashboard:
                 self.running = False
                 break
             except Exception as e:
-                logger.info(f"Dashboard error: {e}")
+                print(f"Dashboard error: {e}")
                 time.sleep(2)
 
     async def run_dashboard(self, port: int = 8050):
@@ -1825,7 +1840,8 @@ class AACMasterMonitoringDashboard:
                 self.last_update = datetime.now()
 
                 # Update shared data for dashboard
-                self._latest_data = data
+                with self._data_lock:
+                    self._latest_data = data
 
                 # Wait before next update
                 await asyncio.sleep(self.refresh_rate)
@@ -1833,7 +1849,7 @@ class AACMasterMonitoringDashboard:
             except KeyboardInterrupt:
                 self.running = False
             except Exception as e:
-                logger.info(f"Monitoring error: {e}")
+                logger.error(f"Monitoring error: {e}", exc_info=True)
                 await asyncio.sleep(5)
 
     async def _run_web_dashboard(self):
@@ -1860,7 +1876,8 @@ class AACMasterMonitoringDashboard:
         try:
             while self.running and proc.poll() is None:
                 data = await self.collect_monitoring_data()
-                self._latest_data = data
+                with self._data_lock:
+                    self._latest_data = data
                 await asyncio.sleep(self.refresh_rate)
         except KeyboardInterrupt:
             self.running = False
@@ -1896,7 +1913,8 @@ class AACMasterMonitoringDashboard:
             try:
                 while self.running:
                     data = await self.collect_monitoring_data()
-                    self._latest_data = data
+                    with self._data_lock:
+                        self._latest_data = data
                     await asyncio.sleep(self.refresh_rate)
             except KeyboardInterrupt:
                 self.running = False
@@ -1968,7 +1986,8 @@ class AACMasterMonitoringDashboard:
         try:
             while self.running:
                 data = await self.collect_monitoring_data()
-                self._latest_data = data
+                with self._data_lock:
+                    self._latest_data = data
                 await asyncio.sleep(self.refresh_rate)
         except KeyboardInterrupt:
             self.running = False

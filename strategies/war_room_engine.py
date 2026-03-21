@@ -1090,48 +1090,47 @@ def get_arm_allocations(phase: str) -> list[ArmAllocation]:
         ]
 
 
-# Current positions -- LIVE as of March 19, 2026 evening
+# Current positions -- VERIFIED from IBKR TWS port 7497, March 20 2026
+# All avgCost and mktVal pulled live via ib_insync portfolio()
 CURRENT_POSITIONS = [
-    # === EXISTING 8 PUTS (entered Mar 18) -- prices updated to Mar 19 evening ===
-    Position(ArmType.BDC_NONACCRUAL, "ARCC", "put", 1, 0.25, 0.08,
+    # === 9 REAL POSITIONS from IBKR account U24346218 ===
+    Position(ArmType.BDC_NONACCRUAL, "ARCC", "put", 1, 0.25, 0.26,
              strike=17.0, expiry="2026-04-17", account="IBKR"),
-    Position(ArmType.BDC_NONACCRUAL, "PFF", "put", 1, 0.40, 0.18,
+    Position(ArmType.BDC_NONACCRUAL, "PFF", "put", 1, 0.17, 0.03,
              strike=29.0, expiry="2026-04-17", account="IBKR"),
-    Position(ArmType.TRADFI_ROTATE, "LQD", "put", 1, 0.64, 5.20,
-             strike=106.0, expiry="2026-06-20", account="IBKR"),
-    Position(ArmType.TRADFI_ROTATE, "EMB", "put", 1, 0.75, 5.80,
-             strike=90.0, expiry="2026-06-20", account="IBKR"),
-    Position(ArmType.BDC_NONACCRUAL, "MAIN", "put", 1, 0.85, 7.20,
-             strike=50.0, expiry="2026-06-20", account="IBKR"),
-    Position(ArmType.TRADFI_ROTATE, "JNK", "put", 1, 0.80, 9.50,
-             strike=92.0, expiry="2026-06-20", account="IBKR"),
-    Position(ArmType.IRAN_OIL, "KRE", "put", 1, 1.45, 15.50,
-             strike=58.0, expiry="2026-06-20", account="IBKR"),
-    Position(ArmType.IRAN_OIL, "IWM", "put", 1, 3.96, 36.00,
-             strike=230.0, expiry="2026-06-20", account="IBKR"),
-    # === WEEK 1 PLANNED POSITIONS (to execute Mar 20 pre-market) ===
-    Position(ArmType.IRAN_OIL, "SPY", "put", 12, 1.20, 1.20,
-             strike=600.0, expiry="2026-03-21", account="IBKR"),
-    Position(ArmType.IRAN_OIL, "QQQ", "put", 8, 2.50, 2.50,
-             strike=420.0, expiry="2026-03-21", account="IBKR"),
-    Position(ArmType.BDC_NONACCRUAL, "XLF", "put", 8, 0.65, 0.65,
-             strike=32.0, expiry="2026-03-21", account="IBKR"),
-    Position(ArmType.BDC_NONACCRUAL, "XLRE", "put", 8, 0.40, 0.40,
-             strike=19.0, expiry="2026-03-21", account="IBKR"),
-    Position(ArmType.CRYPTO_METALS, "GLD", "call", 5, 3.50, 3.50,
-             strike=500.0, expiry="2026-03-21", account="IBKR"),
-    Position(ArmType.CRYPTO_METALS, "SLV", "call", 5, 2.00, 2.00,
-             strike=80.0, expiry="2026-03-21", account="IBKR"),
+    Position(ArmType.TRADFI_ROTATE, "LQD", "put", 1, 0.63, 0.66,
+             strike=106.0, expiry="2026-05-15", account="IBKR"),
+    Position(ArmType.TRADFI_ROTATE, "EMB", "put", 1, 0.48, 0.82,
+             strike=90.0, expiry="2026-05-15", account="IBKR"),
+    Position(ArmType.BDC_NONACCRUAL, "MAIN", "put", 1, 0.73, 0.45,
+             strike=49.7, expiry="2026-04-17", account="IBKR"),
+    Position(ArmType.TRADFI_ROTATE, "JNK", "put", 1, 0.35, 0.37,
+             strike=92.0, expiry="2026-04-17", account="IBKR"),
+    Position(ArmType.BDC_NONACCRUAL, "BKLN", "put", 3, 0.40, 0.21,
+             strike=20.0, expiry="2026-06-18", account="IBKR"),
+    Position(ArmType.TRADFI_ROTATE, "HYG", "put", 1, 0.80, 0.74,
+             strike=77.0, expiry="2026-06-18", account="IBKR"),
+    Position(ArmType.IRAN_OIL, "XLF", "put", 1, 0.75, 0.69,
+             strike=46.0, expiry="2026-05-01", account="IBKR"),
 ]
 
-# Account balances
+# Account balances -- VERIFIED sources noted, unverified marked
 ACCOUNTS = {
-    "IBKR": {"balance_usd": 920.0, "type": "live_trading"},
-    "NDAX": {"balance_cad": 4492.04, "type": "crypto_liquidated"},
-    "Moomoo": {"balance_usd": 500.0, "type": "paper_to_live"},
-    "WealthSimple": {"balance_cad": 4200.0, "type": "tfsa"},
-    "EQ_Bank": {"balance_cad": 100.0, "type": "savings"},
-    "Injection": {"balance_cad": 35000.0, "type": "planned_capital"},
+    # IBKR: live from TWS port 7497, Mar 20 2026
+    "IBKR": {"balance_usd": 185.56, "type": "paper_trading",
+             "note": "TWS port 7497, option_mkt_val=$464.34, uPnL=-$71.14"},
+    # NDAX: last confirmed Mar 18 liquidation, no live API pull (NDAX_LOGIN not set)
+    "NDAX": {"balance_cad": 4492.04, "type": "crypto_liquidated",
+             "note": "unverified — last known from Mar 18 sell"},
+    # Moomoo: app running but OpenD gateway not serving — cannot pull balance
+    "Moomoo": {"balance_usd": 0.0, "type": "unknown",
+               "note": "unverified — OpenD not connected, no trade account in .env"},
+    # WealthSimple: no API — manual check only
+    "WealthSimple": {"balance_cad": 0.0, "type": "tfsa",
+                     "note": "unverified — no API integration"},
+    # EQ Bank: no API — manual check only
+    "EQ_Bank": {"balance_cad": 0.0, "type": "savings",
+                "note": "unverified — no API integration"},
 }
 
 
