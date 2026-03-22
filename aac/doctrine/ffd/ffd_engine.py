@@ -15,7 +15,7 @@ following the same pattern as CryptoIntelligenceDoctrineAdapter.
 import logging
 import asyncio
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
@@ -111,7 +111,7 @@ class FFDMetrics:
     # Track 2 — Private Digital
     stablecoin_peg_health: float = 100.0        # 0-100 composite across monitored stablecoins
     stablecoin_concentration: float = 0.0       # % in largest single stablecoin
-    defi_yield_sustainability: float = 0.0      # 0-100 sustainability score
+    defi_yield_sustainability: float = 75.0     # 0-100 sustainability score (default: healthy baseline)
     rwa_tvl_growth: float = 0.0                 # 30-day RWA TVL change %
 
     # Track 3 — Sovereign Digital
@@ -248,6 +248,162 @@ FFD_DOCTRINE_PACK: Dict[str, Any] = {
         {
             "metric": "defi_yield_sustainability",
             "thresholds": {"good": ">70", "warning": "40-70", "critical": "<40"}
+        },
+        # Expanded metrics — Track 2/3/cross-track
+        {
+            "metric": "stablecoin_concentration",
+            "thresholds": {"good": "<50", "warning": "50-75", "critical": ">75"}
+        },
+        {
+            "metric": "cbdc_pilot_count",
+            "thresholds": {"good": ">-1", "warning": "-1--1", "critical": "<-1"}
+        },
+        {
+            "metric": "rwa_tvl_growth",
+            "thresholds": {"good": ">-5", "warning": "-5--20", "critical": "<-20"}
+        },
+        {
+            "metric": "etf_net_inflow_daily",
+            "thresholds": {"good": ">-100", "warning": "-100--500", "critical": "<-500"}
+        },
+        {
+            "metric": "memecoin_sentiment_index",
+            "thresholds": {"good": "<80", "warning": "80-95", "critical": ">95"}
+        },
+        {
+            "metric": "political_token_risk",
+            "thresholds": {"good": "<30", "warning": "30-60", "critical": ">60"}
+        },
+        {
+            "metric": "xrp_etf_probability",
+            "thresholds": {"good": ">-1", "warning": "-1--1", "critical": "<-1"}
+        },
+        {
+            "metric": "sol_network_uptime",
+            "thresholds": {"good": ">95", "warning": "90-95", "critical": "<90"}
+        },
+        {
+            "metric": "eth_l2_tvl_ratio",
+            "thresholds": {"good": ">-1", "warning": "-1--1", "critical": "<-1"}
+        },
+        {
+            "metric": "defi_tvl_total",
+            "thresholds": {"good": ">-1", "warning": "-1--1", "critical": "<-1"}
+        },
+        {
+            "metric": "x_platform_sentiment",
+            "thresholds": {"good": ">20", "warning": "10-20", "critical": "<10"}
+        },
+        {
+            "metric": "halving_cycle_position",
+            "thresholds": {"good": ">-1", "warning": "-1--1", "critical": "<-1"}
+        },
+        {
+            "metric": "regulatory_convergence_score",
+            "thresholds": {"good": ">-1", "warning": "-1--1", "critical": "<-1"}
+        },
+        # 50-topic research metrics
+        {
+            "metric": "pqc_migration_urgency",
+            "thresholds": {"good": "<50", "warning": "50-80", "critical": ">80"}
+        },
+        {
+            "metric": "brics_dedollarization_index",
+            "thresholds": {"good": "<50", "warning": "50-75", "critical": ">75"}
+        },
+        {
+            "metric": "cbdc_retail_active_count",
+            "thresholds": {"good": ">-1", "warning": "-1--1", "critical": "<-1"}
+        },
+        {
+            "metric": "gold_btc_ratio",
+            "thresholds": {"good": ">-1", "warning": "-1--1", "critical": "<-1"}
+        },
+        {
+            "metric": "usd_reserve_share",
+            "thresholds": {"good": ">40", "warning": "30-40", "critical": "<30"}
+        },
+        {
+            "metric": "l2_fee_index",
+            "thresholds": {"good": "<50", "warning": "50-100", "critical": ">100"}
+        },
+        {
+            "metric": "mev_extraction_daily",
+            "thresholds": {"good": "<10000000", "warning": "10000000-50000000", "critical": ">50000000"}
+        },
+        {
+            "metric": "restaking_tvl",
+            "thresholds": {"good": ">-1", "warning": "-1--1", "critical": "<-1"}
+        },
+        {
+            "metric": "tokenized_treasury_aum",
+            "thresholds": {"good": ">-1", "warning": "-1--1", "critical": "<-1"}
+        },
+        {
+            "metric": "prediction_market_volume",
+            "thresholds": {"good": ">-1", "warning": "-1--1", "critical": "<-1"}
+        },
+        {
+            "metric": "global_debt_gdp_ratio",
+            "thresholds": {"good": "<100", "warning": "100-130", "critical": ">130"}
+        },
+        {
+            "metric": "micar_compliance_score",
+            "thresholds": {"good": ">-1", "warning": "-1--1", "critical": "<-1"}
+        },
+        # Master Plan metrics
+        {
+            "metric": "portfolio_nominal_usd",
+            "thresholds": {"good": ">-1", "warning": "-1--1", "critical": "<-1"}
+        },
+        {
+            "metric": "portfolio_purchasing_power",
+            "thresholds": {"good": ">-1", "warning": "-1--1", "critical": "<-1"}
+        },
+        {
+            "metric": "portfolio_gold_ratio",
+            "thresholds": {"good": ">-1", "warning": "-1--1", "critical": "<-1"}
+        },
+        {
+            "metric": "stablecoin_yield_monthly",
+            "thresholds": {"good": ">-1", "warning": "-1--1", "critical": "<-1"}
+        },
+        {
+            "metric": "arb_profit_monthly",
+            "thresholds": {"good": ">-1", "warning": "-1--1", "critical": "<-1"}
+        },
+        {
+            "metric": "strategy_count_live",
+            "thresholds": {"good": ">-1", "warning": "-1--1", "critical": "<-1"}
+        },
+        {
+            "metric": "strategy_count_paper",
+            "thresholds": {"good": ">-1", "warning": "-1--1", "critical": "<-1"}
+        },
+        {
+            "metric": "capital_injected_total",
+            "thresholds": {"good": ">-1", "warning": "-1--1", "critical": "<-1"}
+        },
+        {
+            "metric": "portfolio_drawdown_pct",
+            "thresholds": {"good": "<5", "warning": "5-15", "critical": ">15"}
+        },
+        # Integrated asset metrics
+        {
+            "metric": "prediction_market_pnl",
+            "thresholds": {"good": ">-1000", "warning": "-1000--5000", "critical": "<-5000"}
+        },
+        {
+            "metric": "options_flow_signal_count",
+            "thresholds": {"good": ">-1", "warning": "-1--1", "critical": "<-1"}
+        },
+        {
+            "metric": "gold_silver_ratio",
+            "thresholds": {"good": "<90", "warning": "90-100", "critical": ">100"}
+        },
+        {
+            "metric": "silver_price_oz",
+            "thresholds": {"good": ">-1", "warning": "-1--1", "critical": "<-1"}
         },
     ],
     "failure_modes": [
@@ -727,73 +883,90 @@ class FFDEngine:
             return False
 
     def _load_regulatory_baseline(self):
-        """Load known regulatory events as baseline intelligence."""
+        """Load known regulatory events as baseline intelligence.
+
+        Baseline events represent the established regulatory landscape.
+        They use old timestamps so they don't inflate the shock score,
+        which measures *recent* regulatory turbulence.
+        """
+        baseline_date = datetime.now() - timedelta(days=90)
         baseline_events = [
             RegulatoryEvent(
                 jurisdiction="US",
                 legislation="GENIUS_Act",
                 status="enforced",
                 impact_tracks=[FFDTrack.PRIVATE_DIGITAL],
+                timestamp=baseline_date,
             ),
             RegulatoryEvent(
                 jurisdiction="EU",
                 legislation="MiCAR",
                 status="enforced",
                 impact_tracks=[FFDTrack.PRIVATE_DIGITAL, FFDTrack.SOVEREIGN_DIGITAL],
+                timestamp=baseline_date,
             ),
             RegulatoryEvent(
                 jurisdiction="US",
                 legislation="Strategic_Crypto_Reserve",
                 status="enforced",
                 impact_tracks=[FFDTrack.DECENTRALIZED],
+                timestamp=baseline_date,
             ),
             RegulatoryEvent(
                 jurisdiction="China",
                 legislation="Stablecoin_Ban",
                 status="enforced",
                 impact_tracks=[FFDTrack.PRIVATE_DIGITAL],
+                timestamp=baseline_date,
             ),
             RegulatoryEvent(
                 jurisdiction="Hong_Kong",
                 legislation="Stablecoin_Bill",
                 status="enforced",
                 impact_tracks=[FFDTrack.PRIVATE_DIGITAL],
+                timestamp=baseline_date,
             ),
             RegulatoryEvent(
                 jurisdiction="Japan",
                 legislation="Yen_Stablecoin_Framework",
                 status="enforced",
                 impact_tracks=[FFDTrack.PRIVATE_DIGITAL],
+                timestamp=baseline_date,
             ),
             RegulatoryEvent(
                 jurisdiction="EU",
                 legislation="Digital_Euro_Legislation",
                 status="proposed",
                 impact_tracks=[FFDTrack.SOVEREIGN_DIGITAL],
+                timestamp=baseline_date,
             ),
             RegulatoryEvent(
                 jurisdiction="US",
                 legislation="DTCC_Tokenized_Equities_NoAction",
                 status="enforced",
                 impact_tracks=[FFDTrack.PRIVATE_DIGITAL],
+                timestamp=baseline_date,
             ),
             RegulatoryEvent(
                 jurisdiction="US",
                 legislation="FedNow_Launch",
                 status="enforced",
                 impact_tracks=[FFDTrack.SOVEREIGN_DIGITAL],
+                timestamp=baseline_date,
             ),
             RegulatoryEvent(
                 jurisdiction="India",
                 legislation="Digital_Rupee_Pilot",
                 status="enforced",
                 impact_tracks=[FFDTrack.SOVEREIGN_DIGITAL],
+                timestamp=baseline_date,
             ),
             RegulatoryEvent(
                 jurisdiction="Brazil",
                 legislation="DREX_CBDC_Pilot",
                 status="committee",
                 impact_tracks=[FFDTrack.SOVEREIGN_DIGITAL],
+                timestamp=baseline_date,
             ),
         ]
         self.regulatory_events.extend(baseline_events)

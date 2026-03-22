@@ -315,7 +315,7 @@ def _probe_strategies() -> List[ComponentStatus]:
 
     # Strategy Testing Lab
     try:
-        from strategies.strategy_testing_lab import strategy_testing_lab  # noqa: F401
+        from strategies.strategy_testing_lab_fixed import strategy_testing_lab  # noqa: F401
         results.append(ComponentStatus(
             name="Strategy Testing Lab",
             category="Strategy",
@@ -332,7 +332,59 @@ def _probe_strategies() -> List[ComponentStatus]:
             checked_at=now,
         ))
 
+    # Storm Lifeboat Matrix
+    results.append(_probe_storm_lifeboat(now))
+
     return results
+
+
+def _probe_storm_lifeboat(now: str) -> ComponentStatus:
+    """Probe Storm Lifeboat Matrix — importability + last-run data."""
+    try:
+        from strategies.storm_lifeboat.core import VolRegime  # noqa: F401
+        from strategies.storm_lifeboat.scenario_engine import ScenarioEngine  # noqa: F401
+        from strategies.storm_lifeboat.monte_carlo import StormMonteCarloEngine  # noqa: F401
+    except Exception:
+        return ComponentStatus(
+            name="Storm Lifeboat Matrix",
+            category="Strategy",
+            health=Health.RED,
+            detail="import failed",
+            checked_at=now,
+        )
+
+    # Check for latest Helix briefing
+    import glob as _glob
+    briefing_dir = PROJECT_ROOT / "data" / "storm_lifeboat"
+    briefings = sorted(_glob.glob(str(briefing_dir / "helix_briefing_*.json")))
+    if briefings:
+        try:
+            import json as _json
+            latest = Path(briefings[-1])
+            data = _json.loads(latest.read_text(encoding="utf-8"))
+            mandate = data.get("mandate", "?")
+            regime = data.get("regime", "?")
+            date_str = data.get("date", "?")
+            n_active = len(data.get("active_scenarios", []))
+            detail = (f"v9.0 — last run {date_str}, mandate={mandate}, "
+                      f"regime={regime}, {n_active} active scenarios")
+            return ComponentStatus(
+                name="Storm Lifeboat Matrix",
+                category="Strategy",
+                health=Health.GREEN,
+                detail=detail,
+                checked_at=now,
+            )
+        except Exception:
+            pass
+
+    return ComponentStatus(
+        name="Storm Lifeboat Matrix",
+        category="Strategy",
+        health=Health.YELLOW,
+        detail="importable but no run data found",
+        checked_at=now,
+    )
 
 
 # ──────────────────────────────────────────────────────────────

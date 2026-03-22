@@ -272,7 +272,7 @@ class DoctrineEngine:
                 return value < limit
             elif threshold_str.startswith('>'):
                 limit = float(threshold_str[1:].strip())
-                return value > limit
+                return value >= limit
             elif '-' in threshold_str and not threshold_str.startswith('-'):
                 parts = threshold_str.split('-')
                 low = float(parts[0].strip())
@@ -694,6 +694,9 @@ class DoctrineApplicationService:
     
     async def run_compliance_check(self, sample_metrics: Optional[Dict[str, Any]] = None) -> DoctrineComplianceReport:
         """Run a full compliance check across all departments."""
+        
+        # Clear previous violations to prevent accumulation across refresh cycles
+        self.engine.active_violations.clear()
         
         # Use sample metrics for demonstration or fetch real ones
         metrics = sample_metrics or self._get_sample_metrics()

@@ -233,10 +233,11 @@ class TestSecurityDashboard:
     def test_has_report_method(self, sec_dashboard):
         assert hasattr(sec_dashboard, 'get_security_status_report')
 
-    def test_report_returns_dict(self, sec_dashboard):
-        report = sec_dashboard.get_security_status_report()
+    @pytest.mark.asyncio
+    async def test_report_returns_dict(self, sec_dashboard):
+        report = await sec_dashboard.get_security_status_report()
         assert isinstance(report, dict)
-        assert 'overall_score' in report or 'components' in report or 'status' in report
+        assert 'overall_security_score' in report or 'security_components' in report or 'status' in report
 
 
 # ── Security Compliance Integration ────────────────────────────────────────────
@@ -306,3 +307,75 @@ class TestDashboardFixes:
         from monitoring.aac_master_monitoring_dashboard import AACMasterMonitoringDashboard
         source = inspect.getsource(AACMasterMonitoringDashboard.collect_monitoring_data)
         assert 'exc_info=True' in source
+
+
+# ── Storm Lifeboat Integration Tests ──────────────────────────────────────────
+
+class TestStormLifeboatIntegration:
+    """Verify Storm Lifeboat is wired into all monitoring touch-points."""
+
+    def test_storm_lifeboat_import_flag_exists(self):
+        """Master dashboard should declare STORM_LIFEBOAT_AVAILABLE."""
+        from monitoring import aac_master_monitoring_dashboard as mod
+        assert hasattr(mod, 'STORM_LIFEBOAT_AVAILABLE')
+
+    def test_collect_monitoring_data_has_storm_lifeboat_key(self):
+        """collect_monitoring_data return dict must include 'storm_lifeboat'."""
+        import inspect
+        from monitoring.aac_master_monitoring_dashboard import AACMasterMonitoringDashboard
+        source = inspect.getsource(AACMasterMonitoringDashboard.collect_monitoring_data)
+        assert "'storm_lifeboat'" in source
+
+    def test_get_storm_lifeboat_data_method_exists(self):
+        """Dashboard must have _get_storm_lifeboat_data method."""
+        from monitoring.aac_master_monitoring_dashboard import AACMasterMonitoringDashboard
+        assert hasattr(AACMasterMonitoringDashboard, '_get_storm_lifeboat_data')
+        assert callable(AACMasterMonitoringDashboard._get_storm_lifeboat_data)
+
+    def test_storm_lifeboat_data_returns_dict(self):
+        """_get_storm_lifeboat_data should return a dict with 'status' key."""
+        from monitoring.aac_master_monitoring_dashboard import AACMasterMonitoringDashboard
+        d = AACMasterMonitoringDashboard()
+        result = d._get_storm_lifeboat_data()
+        assert isinstance(result, dict)
+        assert 'status' in result
+
+    def test_storm_lifeboat_data_has_scenario_heatmap(self):
+        """When available, result must include scenario_heatmap."""
+        from monitoring.aac_master_monitoring_dashboard import (
+            AACMasterMonitoringDashboard, STORM_LIFEBOAT_AVAILABLE,
+        )
+        if not STORM_LIFEBOAT_AVAILABLE:
+            pytest.skip("Storm Lifeboat not importable")
+        d = AACMasterMonitoringDashboard()
+        result = d._get_storm_lifeboat_data()
+        assert 'scenario_heatmap' in result
+        assert isinstance(result['scenario_heatmap'], list)
+
+    def test_storm_lifeboat_data_has_lunar(self):
+        """When available, result must include lunar position."""
+        from monitoring.aac_master_monitoring_dashboard import (
+            AACMasterMonitoringDashboard, STORM_LIFEBOAT_AVAILABLE,
+        )
+        if not STORM_LIFEBOAT_AVAILABLE:
+            pytest.skip("Storm Lifeboat not importable")
+        d = AACMasterMonitoringDashboard()
+        result = d._get_storm_lifeboat_data()
+        assert 'lunar' in result
+        lunar = result['lunar']
+        assert 'moon_number' in lunar
+        assert 'phase' in lunar
+        assert 'in_phi_window' in lunar
+
+    def test_registry_probes_storm_lifeboat(self):
+        """SystemRegistry._probe_strategies must include Storm Lifeboat."""
+        from monitoring.aac_system_registry import _probe_strategies
+        results = _probe_strategies()
+        names = [c.name for c in results]
+        assert 'Storm Lifeboat Matrix' in names
+
+    def test_continuous_monitoring_has_storm_lifeboat_alerts(self):
+        """ContinuousMonitoringService must have _check_storm_lifeboat_alerts."""
+        from monitoring.continuous_monitoring import ContinuousMonitoringService
+        assert hasattr(ContinuousMonitoringService, '_check_storm_lifeboat_alerts')
+        assert callable(ContinuousMonitoringService._check_storm_lifeboat_alerts)

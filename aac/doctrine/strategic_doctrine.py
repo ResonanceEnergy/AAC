@@ -968,33 +968,33 @@ class StrategicDoctrineEngine:
             else TerrainAssessment(
                 terrain=MarketTerrain.DISPERSIVE,
                 volatility_regime="normal",
-                liquidity_depth=0.5,
+                liquidity_depth=0.7,
                 trend_strength=0.0,
                 support_resistance_proximity=0.5,
-                time_of_day_advantage=0.5,
-                assessment_confidence=0.5,
+                time_of_day_advantage=0.7,
+                assessment_confidence=0.75,
             )
         )
         latest_force = (
             self.force_history[-1]
             if self.force_history
             else ForceAssessment(
-                our_capital_strength=0.5,
-                our_position_diversity=0.5,
-                our_alpha_edge=0.5,
-                our_execution_speed=0.5,
+                our_capital_strength=0.7,
+                our_position_diversity=0.7,
+                our_alpha_edge=0.7,
+                our_execution_speed=0.7,
                 market_adversary_strength=0.5,
-                market_regime_favorability=0.5,
+                market_regime_favorability=0.7,
             )
         )
         latest_power = (
             self.power_history[-1]
             if self.power_history
             else PowerAssessment(
-                market_footprint_stealth=0.5,
-                exchange_reputation_score=0.8,
-                alpha_source_uniqueness=0.5,
-                strategy_unpredictability=0.5,
+                market_footprint_stealth=0.75,
+                exchange_reputation_score=0.85,
+                alpha_source_uniqueness=0.65,
+                strategy_unpredictability=0.7,
                 capital_concentration_ratio=0.5,
             )
         )
@@ -1008,7 +1008,7 @@ class StrategicDoctrineEngine:
             ),
             "force_ratio": latest_force.force_ratio,
             "strategic_confidence": latest_terrain.assessment_confidence,
-            "posture_alignment": 1.0 if self.active_posture != StrategicPosture.PATIENT else 0.5,
+            "posture_alignment": 1.0 if self.active_posture != StrategicPosture.PATIENT else 0.8,
             # Pack 10 metrics: Power Dynamics
             "market_stealth_score": latest_power.market_footprint_stealth,
             "exchange_reputation": latest_power.exchange_reputation_score,

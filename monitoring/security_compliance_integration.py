@@ -20,7 +20,7 @@ from shared.compliance_review import compliance_review_system
 from shared.security_framework import (
     rbac, api_security, security_monitoring, advanced_encryption
 )
-from security_dashboard import SecurityDashboard
+from monitoring.security_dashboard import SecurityDashboard
 
 
 async def run_security_compliance_check():
@@ -236,6 +236,11 @@ async def integrate_security_with_compliance():
         logger.info("3. Re-run compliance checks")
 
     return phase1_complete
+
+
+def check_security_compliance():
+    """Synchronous wrapper around run_security_compliance_check for non-async callers."""
+    return asyncio.run(run_security_compliance_check())
 
 
 if __name__ == "__main__":
