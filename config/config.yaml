@@ -41,3 +41,17 @@ monitoring:
 logging:
   level: INFO
   file: logs/aac.log
+
+# ═══════════════════════════════════════════════════════════════
+#  STORM LIFEBOAT MATRIX v9.0 — Simulation Engine
+#  Run: python -m strategies.storm_lifeboat.runner --all
+# ═══════════════════════════════════════════════════════════════
+storm_lifeboat:
+  enabled: true
+  simulations: 100000
+  horizon_days: 90
+  starting_capital_cad: 45120.0
+  default_regime: crisis
+  seed: 42
+  cycle_start: "2026-03-20"
+  data_dir: data/storm_lifeboat

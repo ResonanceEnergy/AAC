@@ -511,17 +511,29 @@ doctrine_packs:
     - capital_flight_signal
     - cross_chain_settlement_score
     - defi_yield_sustainability
+    - stablecoin_concentration
+    - cbdc_pilot_count
+    - rwa_tvl_growth
     - etf_net_inflow_daily
+    - memecoin_sentiment_index
+    - political_token_risk
+    - xrp_etf_probability
+    - sol_network_uptime
+    - eth_l2_tvl_ratio
     - defi_tvl_total
     - x_platform_sentiment
     - halving_cycle_position
     - regulatory_convergence_score
-    - political_token_risk
     - pqc_migration_urgency
     - brics_dedollarization_index
+    - cbdc_retail_active_count
     - gold_btc_ratio
     - usd_reserve_share
+    - l2_fee_index
+    - mev_extraction_daily
+    - restaking_tvl
     - tokenized_treasury_aum
+    - prediction_market_volume
     - global_debt_gdp_ratio
     - micar_compliance_score
     - portfolio_nominal_usd
@@ -529,6 +541,9 @@ doctrine_packs:
     - portfolio_gold_ratio
     - stablecoin_yield_monthly
     - arb_profit_monthly
+    - strategy_count_live
+    - strategy_count_paper
+    - capital_injected_total
     - portfolio_drawdown_pct
     - cycle_phase
     - prediction_market_pnl
@@ -568,6 +583,196 @@ doctrine_packs:
         good: '>70'
         warning: 40-70
         critical: <40
+    - metric: stablecoin_concentration
+      thresholds:
+        good: <50
+        warning: 50-75
+        critical: '>75'
+    - metric: cbdc_pilot_count
+      thresholds:
+        good: '>-1'
+        warning: '-1--1'
+        critical: '<-1'
+    - metric: rwa_tvl_growth
+      thresholds:
+        good: '>-5'
+        warning: '-5--20'
+        critical: '<-20'
+    - metric: etf_net_inflow_daily
+      thresholds:
+        good: '>-100'
+        warning: '-100--500'
+        critical: '<-500'
+    - metric: memecoin_sentiment_index
+      thresholds:
+        good: <80
+        warning: 80-95
+        critical: '>95'
+    - metric: political_token_risk
+      thresholds:
+        good: <30
+        warning: 30-60
+        critical: '>60'
+    - metric: xrp_etf_probability
+      thresholds:
+        good: '>-1'
+        warning: '-1--1'
+        critical: '<-1'
+    - metric: sol_network_uptime
+      thresholds:
+        good: '>95'
+        warning: 90-95
+        critical: <90
+    - metric: eth_l2_tvl_ratio
+      thresholds:
+        good: '>-1'
+        warning: '-1--1'
+        critical: '<-1'
+    - metric: defi_tvl_total
+      thresholds:
+        good: '>-1'
+        warning: '-1--1'
+        critical: '<-1'
+    - metric: x_platform_sentiment
+      thresholds:
+        good: '>20'
+        warning: 10-20
+        critical: <10
+    - metric: halving_cycle_position
+      thresholds:
+        good: '>-1'
+        warning: '-1--1'
+        critical: '<-1'
+    - metric: regulatory_convergence_score
+      thresholds:
+        good: '>-1'
+        warning: '-1--1'
+        critical: '<-1'
+    - metric: pqc_migration_urgency
+      thresholds:
+        good: <50
+        warning: 50-80
+        critical: '>80'
+    - metric: brics_dedollarization_index
+      thresholds:
+        good: <50
+        warning: 50-75
+        critical: '>75'
+    - metric: cbdc_retail_active_count
+      thresholds:
+        good: '>-1'
+        warning: '-1--1'
+        critical: '<-1'
+    - metric: gold_btc_ratio
+      thresholds:
+        good: '>-1'
+        warning: '-1--1'
+        critical: '<-1'
+    - metric: usd_reserve_share
+      thresholds:
+        good: '>40'
+        warning: 30-40
+        critical: <30
+    - metric: l2_fee_index
+      thresholds:
+        good: <50
+        warning: 50-100
+        critical: '>100'
+    - metric: mev_extraction_daily
+      thresholds:
+        good: <10000000
+        warning: 10000000-50000000
+        critical: '>50000000'
+    - metric: restaking_tvl
+      thresholds:
+        good: '>-1'
+        warning: '-1--1'
+        critical: '<-1'
+    - metric: tokenized_treasury_aum
+      thresholds:
+        good: '>-1'
+        warning: '-1--1'
+        critical: '<-1'
+    - metric: prediction_market_volume
+      thresholds:
+        good: '>-1'
+        warning: '-1--1'
+        critical: '<-1'
+    - metric: global_debt_gdp_ratio
+      thresholds:
+        good: <100
+        warning: 100-130
+        critical: '>130'
+    - metric: micar_compliance_score
+      thresholds:
+        good: '>-1'
+        warning: '-1--1'
+        critical: '<-1'
+    - metric: portfolio_nominal_usd
+      thresholds:
+        good: '>-1'
+        warning: '-1--1'
+        critical: '<-1'
+    - metric: portfolio_purchasing_power
+      thresholds:
+        good: '>-1'
+        warning: '-1--1'
+        critical: '<-1'
+    - metric: portfolio_gold_ratio
+      thresholds:
+        good: '>-1'
+        warning: '-1--1'
+        critical: '<-1'
+    - metric: stablecoin_yield_monthly
+      thresholds:
+        good: '>-1'
+        warning: '-1--1'
+        critical: '<-1'
+    - metric: arb_profit_monthly
+      thresholds:
+        good: '>-1'
+        warning: '-1--1'
+        critical: '<-1'
+    - metric: strategy_count_live
+      thresholds:
+        good: '>-1'
+        warning: '-1--1'
+        critical: '<-1'
+    - metric: strategy_count_paper
+      thresholds:
+        good: '>-1'
+        warning: '-1--1'
+        critical: '<-1'
+    - metric: capital_injected_total
+      thresholds:
+        good: '>-1'
+        warning: '-1--1'
+        critical: '<-1'
+    - metric: portfolio_drawdown_pct
+      thresholds:
+        good: <5
+        warning: 5-15
+        critical: '>15'
+    - metric: prediction_market_pnl
+      thresholds:
+        good: '>-1000'
+        warning: '-1000--5000'
+        critical: '<-5000'
+    - metric: options_flow_signal_count
+      thresholds:
+        good: '>-1'
+        warning: '-1--1'
+        critical: '<-1'
+    - metric: gold_silver_ratio
+      thresholds:
+        good: <90
+        warning: 90-100
+        critical: '>100'
+    - metric: silver_price_oz
+      thresholds:
+        good: '>-1'
+        warning: '-1--1'
+        critical: '<-1'
     failure_modes:
     - stablecoin_systemic_depeg
     - cbdc_launch_disruption

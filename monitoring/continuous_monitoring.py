@@ -37,6 +37,14 @@ from shared.production_safeguards import get_production_safeguards, get_safeguar
 from CentralAccounting.financial_analysis_engine import FinancialAnalysisEngine
 from CryptoIntelligence.crypto_intelligence_engine import CryptoIntelligenceEngine
 
+# Storm Lifeboat Matrix (optional)
+try:
+    from strategies.storm_lifeboat.scenario_engine import ScenarioEngine as _SLScenarioEngine
+    from strategies.storm_lifeboat.core import ScenarioStatus as _SLScenarioStatus
+    _STORM_LIFEBOAT_AVAILABLE = True
+except ImportError:
+    _STORM_LIFEBOAT_AVAILABLE = False
+
 
 class ContinuousMonitoringService:
     """Continuous monitoring service for AAC 2100"""
@@ -438,6 +446,9 @@ class ContinuousMonitoringService:
         # Check safeguard alerts
         await self._check_safeguard_alerts()
 
+        # Check Storm Lifeboat scenario alerts
+        await self._check_storm_lifeboat_alerts()
+
         # Clean up resolved alerts
         await self._cleanup_resolved_alerts()
 
@@ -498,6 +509,50 @@ class ContinuousMonitoringService:
                     )
         except Exception as e:
             self.logger.error(f"Safeguard alert check failed: {e}")
+
+    async def _check_storm_lifeboat_alerts(self):
+        """Check Storm Lifeboat scenario escalation and regime transition alerts."""
+        if not _STORM_LIFEBOAT_AVAILABLE:
+            return
+        try:
+            se = _SLScenarioEngine()
+            heatmap = se.get_risk_heatmap()
+            for entry in heatmap:
+                status = entry.get("status", "")
+                code = entry.get("code", "unknown")
+                risk_score = entry.get("risk_score", 0)
+                # ESCALATING or PEAK scenarios are critical
+                if status in ("escalating", "peak"):
+                    await self._create_alert(
+                        f'storm_scenario_{code}_{status}',
+                        'critical',
+                        f"Storm Lifeboat scenario {code} is {status.upper()} "
+                        f"(risk={risk_score:.2f})"
+                    )
+                # ACTIVE scenarios with high risk are warnings
+                elif status == "active" and risk_score > 0.5:
+                    await self._create_alert(
+                        f'storm_scenario_{code}_high_risk',
+                        'warning',
+                        f"Storm Lifeboat scenario {code} ACTIVE with high risk "
+                        f"(risk={risk_score:.2f})"
+                    )
+
+            # Check latest briefing for risk alerts
+            import glob as _glob
+            briefing_dir = Path(__file__).resolve().parent.parent / "data" / "storm_lifeboat"
+            briefings = sorted(_glob.glob(str(briefing_dir / "helix_briefing_*.json")))
+            if briefings:
+                data = json.loads(Path(briefings[-1]).read_text(encoding="utf-8"))
+                risk_alert = data.get("risk_alert", "")
+                if risk_alert:
+                    await self._create_alert(
+                        'storm_lifeboat_risk_alert',
+                        'warning',
+                        f"Storm Lifeboat risk alert: {risk_alert[:200]}"
+                    )
+        except Exception as e:
+            self.logger.debug("Storm Lifeboat alert check: %s", e)
 
     async def _create_alert(self, alert_id: str, severity: str, message: str):
         """Create a new alert"""
