@@ -5,7 +5,7 @@ Unified ingestion layer that pulls real-time prices, VIX, options flow,
 macro indicators, and sentiment from every connected AAC data source.
 
 Data sources wired:
-    1. Polygon.io      — real-time snapshots for all 18 assets (primary)
+    1. Polygon.io      — real-time snapshots for all 20 assets (primary)
     2. Finnhub         — quote fallback for stocks/ETFs
     3. IBKR            — broker prices + positions + account (secondary/live)
     4. Moomoo           — quote fallback via OpenD gateway
@@ -58,6 +58,8 @@ ASSET_TICKER_MAP: Dict[Asset, str] = {
     Asset.ETH: "ETH",       # Finnhub: BINANCE:ETHUSDT  |  Polygon: X:ETHUSD
     Asset.XRP: "XRP",       # Finnhub: BINANCE:XRPUSDT  |  Polygon: X:XRPUSD
     Asset.BITO: "BITO",
+    Asset.TSLA: "TSLA",
+    Asset.SMR: "SMR",
 }
 
 # Polygon crypto tickers use X: prefix
@@ -104,6 +106,14 @@ INDICATOR_KEYWORDS: Dict[str, List[str]] = {
     "CLIMATE": ["climate disaster", "hurricane category 5", "crop failure", "wildfire record"],
     "LIQUIDITY": ["liquidity crisis", "fed pivot", "repo spike", "credit freeze", "margin call cascade"],
     "TARIFF_WAR": ["tariff", "trade war", "import ban", "retaliatory tariff", "trade sanctions"],
+    "US_WITHDRAWAL": ["us withdrawal", "troop pullout", "isolationism", "nato exit", "middle east withdrawal"],
+    "IRAN_DEAL": ["iran deal", "iran reparations", "iran backstop", "jcpoa", "iran settlement"],
+    "PETRODOLLAR_SPIRAL": ["petrodollar spiral", "yuan oil settlement", "ruble settlement",
+                            "mbridge", "brics settlement", "dollar weaponization"],
+    "IRAN_NUCLEAR": ["iran nuclear", "gcc realignment", "iran enrichment",
+                      "iran weapons grade", "nuclear breakout"],
+    "ELITE_EXPOSURE": ["epstein files", "elite exposure", "trust erosion",
+                        "institutional scandal", "blackmail networks"],
 }
 
 

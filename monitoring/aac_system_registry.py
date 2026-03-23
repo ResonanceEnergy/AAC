@@ -112,7 +112,7 @@ def _probe_exchanges() -> List[ComponentStatus]:
     results: List[ComponentStatus] = []
 
     # IBKR TWS / Gateway
-    ibkr_port = int(os.environ.get("IBKR_PORT", "7497"))
+    ibkr_port = int(os.environ.get("IBKR_PORT", "7496"))  # 7496 = live, 7497 = paper
     ok, lat = _check_port("127.0.0.1", ibkr_port)
     results.append(ComponentStatus(
         name="IBKR TWS/Gateway",
