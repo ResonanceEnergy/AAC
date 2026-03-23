@@ -81,8 +81,8 @@ def _make_polygon_snapshot(ticker: str, price: float) -> FakeTickerSnapshot:
 # ═══════════════════════════════════════════════════════════════════════════
 
 class TestAssetMapping:
-    def test_all_18_assets_mapped(self):
-        assert len(ASSET_TICKER_MAP) == 18
+    def test_all_20_assets_mapped(self):
+        assert len(ASSET_TICKER_MAP) == 20
         for a in Asset:
             assert a in ASSET_TICKER_MAP, f"Missing ticker mapping for {a.value}"
 

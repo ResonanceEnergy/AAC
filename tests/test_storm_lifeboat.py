@@ -40,8 +40,8 @@ from strategies.storm_lifeboat.core import (
 
 
 class TestCoreConstants:
-    def test_18_assets_defined(self):
-        assert len(Asset) == 18
+    def test_20_assets_defined(self):
+        assert len(Asset) == 20
 
     def test_asset_order_matches_enum(self):
         assert ASSET_ORDER == list(Asset)
@@ -62,8 +62,8 @@ class TestCoreConstants:
                 assert a in vols, f"Missing vol for {a.value} in {regime.value}"
                 assert vols[a] > 0
 
-    def test_15_scenarios_defined(self):
-        assert len(SCENARIOS) == 15
+    def test_20_scenarios_defined(self):
+        assert len(SCENARIOS) == 20
 
     def test_scenario_codes_unique(self):
         codes = [s.code for s in SCENARIOS]
@@ -89,13 +89,13 @@ class TestCoreConstants:
 
 
 class TestCorrelationMatrix:
-    def test_shape_18x18(self):
+    def test_shape_20x20(self):
         corr = build_correlation_matrix()
-        assert corr.shape == (18, 18)
+        assert corr.shape == (20, 20)
 
     def test_diagonal_is_one(self):
         corr = build_correlation_matrix()
-        np.testing.assert_array_almost_equal(np.diag(corr), np.ones(18))
+        np.testing.assert_array_almost_equal(np.diag(corr), np.ones(len(Asset)))
 
     def test_symmetric(self):
         corr = build_correlation_matrix()
@@ -226,7 +226,8 @@ class TestScenarioEngine:
 
     def test_get_active_scenarios_returns_non_dormant(self):
         engine = ScenarioEngine()
-        engine.update_indicators("HORMUZ", ["Oil > $120"])
+        # Fire 2 of 6 HORMUZ indicators (ratio=0.33 >= EMERGING threshold of 0.25)
+        engine.update_indicators("HORMUZ", ["Oil > $120", "USN carrier deployment"])
         active = engine.get_active_scenarios()
         assert len(active) >= 1
         codes = [s.code for s in active]
@@ -235,7 +236,7 @@ class TestScenarioEngine:
     def test_risk_heatmap_sorted_by_risk_score(self):
         engine = ScenarioEngine()
         heatmap = engine.get_risk_heatmap()
-        assert len(heatmap) == 15
+        assert len(heatmap) == 20
         scores = [h["risk_score"] for h in heatmap]
         assert scores == sorted(scores, reverse=True)
 

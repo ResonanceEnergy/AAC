@@ -993,11 +993,12 @@ class AACMasterMonitoringDashboard:
 
             # ── Scenario heatmap (live, from engine defaults) ──
             try:
+                from strategies.storm_lifeboat.core import SCENARIOS as _SL_SCENARIOS
                 se = ScenarioEngine()
                 result["scenario_heatmap"] = se.get_risk_heatmap()
                 active = se.get_active_scenarios()
                 result["active_scenarios"] = len(active)
-                result["scenarios_total"] = 15
+                result["scenarios_total"] = len(_SL_SCENARIOS)
             except Exception as e:
                 self.logger.debug("Storm Lifeboat scenario engine: %s", e)
                 result["scenario_heatmap"] = []
@@ -1481,7 +1482,7 @@ class AACMasterMonitoringDashboard:
             print("\n[MONEY] P&L SUMMARY")
             print("-" * 15)
             daily_pnl = pnl.get('daily_pnl', 0)
-            total_pnl = pnl.get('total_pnl', 0)
+            total_pnl = pnl.get('total_equity', 0)
             print(f"Daily P&L: ${daily_pnl:,.2f}")
             print(f"Total P&L: ${total_pnl:,.2f}")
 
@@ -1919,7 +1920,7 @@ class AACMasterMonitoringDashboard:
             return
 
         import subprocess
-        dashboard_script = Path(__file__).parent / 'aac_master_monitoring_dashboard.py'
+        dashboard_script = Path(__file__).parent / 'streamlit_dashboard.py'
         port = int(os.environ.get('STREAMLIT_PORT', '8501'))
         logger.info(f"Launching Streamlit dashboard on port {port}...")
         proc = subprocess.Popen(
@@ -2148,11 +2149,15 @@ if __name__ == "__main__":
     main()
 
 
-# Backward-compatible re-exports for external consumers
-from monitoring.streamlit_dashboard import (  # noqa: E402
-    AACStreamlitDashboard,
-    generate_copilot_response,
-    play_audio_response,
-    run_streamlit_dashboard,
-)
-from monitoring.dash_dashboard import AACDashDashboard  # noqa: E402
+# Backward-compatible re-exports for external consumers — lazy to avoid hard dep at import time
+def __getattr__(name):  # noqa: E302
+    _streamlit_exports = {"AACStreamlitDashboard", "generate_copilot_response", "play_audio_response", "run_streamlit_dashboard"}
+    if name in _streamlit_exports:
+        from monitoring.streamlit_dashboard import (  # noqa: E402
+            AACStreamlitDashboard, generate_copilot_response, play_audio_response, run_streamlit_dashboard
+        )
+        return locals()[name]
+    if name == "AACDashDashboard":
+        from monitoring.dash_dashboard import AACDashDashboard  # noqa: E402
+        return AACDashDashboard
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

@@ -1,7 +1,7 @@
 """
-Storm Lifeboat Matrix — 15-Scenario Tracking Engine
+Storm Lifeboat Matrix — 20-Scenario Tracking Engine
 =====================================================
-Monitors all 15 crisis scenarios with indicator-based status tracking,
+Monitors all 20 crisis scenarios with indicator-based status tracking,
 probability updates, and cross-scenario contagion modeling.
 
 Each scenario tracks:
@@ -52,6 +52,14 @@ _CONTAGION_MAP: Dict[str, Dict[str, float]] = {
     "JAPAN_CRISIS": {"EU_BANKS": 0.08, "DEBT_CRISIS": 0.06, "DEFI_CASCADE": 0.04},
     "ELECTION_CHAOS": {"DEBT_CRISIS": 0.04, "AI_BUBBLE": 0.03},
     "PANDEMIC_V2": {"FOOD_CRISIS": 0.06, "EM_FX_CRISIS": 0.05, "CRE_COLLAPSE": 0.04},
+    # ── New scenarios (16-20) from v9.0 thesis ──
+    "US_WITHDRAWAL": {"HORMUZ": 0.10, "EM_FX_CRISIS": 0.06, "PETRODOLLAR_SPIRAL": 0.08},
+    "IRAN_DEAL": {"HORMUZ": -0.15, "SUPERCYCLE": -0.05},  # negative = de-escalation
+    "PETRODOLLAR_SPIRAL": {"MONETARY_RESET": 0.15, "EM_FX_CRISIS": 0.10,
+                            "SUPERCYCLE": 0.12, "HORMUZ": 0.08},
+    "IRAN_NUCLEAR": {"HORMUZ": 0.20, "SUPERCYCLE": 0.10, "EM_FX_CRISIS": 0.12,
+                      "FOOD_CRISIS": 0.06},
+    "ELITE_EXPOSURE": {"DEBT_CRISIS": 0.08, "EU_BANKS": 0.06, "ELECTION_CHAOS": 0.10},
 }
 
 
@@ -72,7 +80,7 @@ def _indicators_to_status(n_firing: int, total: int) -> ScenarioStatus:
 
 
 class ScenarioEngine:
-    """Tracks and updates all 15 crisis scenarios.
+    """Tracks and updates all 20 crisis scenarios.
 
     Maintains a state vector of scenario probabilities and statuses,
     applies contagion effects, and generates scenario-weighted inputs

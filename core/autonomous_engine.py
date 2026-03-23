@@ -553,6 +553,7 @@ class AutonomousEngine:
         self.register_task("gap_analysis", 600.0, self._task_gap_analysis)
         self.register_task("daily_brief", 86400.0, self._task_daily_brief)
         self.register_task("intelligence_cycle", 3600.0, self._task_intelligence_cycle)
+        self.register_task("rocket_ship_brief", 86400.0, self._task_rocket_ship_brief)
 
     def register_task(self, name: str, interval: float, callback, critical: bool = False):
         """Register task."""
@@ -1345,6 +1346,26 @@ class AutonomousEngine:
             await self._notify(brief[:2000])  # Truncate for notification channels
         except Exception as e:
             logger.error(f"Daily brief generation failed: {e}")
+
+    async def _task_rocket_ship_brief(self):
+        """Run the Rocket Ship morning briefing in a thread and notify via OpenClaw."""
+        try:
+            loop = asyncio.get_event_loop()
+            from strategies.rocket_ship.daily_ops import run_morning_briefing
+            result = await loop.run_in_executor(None, run_morning_briefing)
+            phase  = result.get("trigger", {}).get("phase", "?")
+            green  = result.get("indicators", {}).get("green_count", "?")
+            prob   = result.get("trigger", {}).get("ignition_prob", 0)
+            moon   = result.get("lunar", {}).get("moon_number", "?")
+            days   = result.get("lunar", {}).get("days_to_rocket_start", "?")
+            summary = (
+                f"ROCKET SHIP BRIEF — Phase={phase} | Green={green}/15 | "
+                f"Ignition={prob:.0%} | Moon#{moon} | T-{days}d"
+            )
+            logger.info(summary)
+            await self._notify(summary)
+        except Exception as exc:
+            logger.error(f"Rocket Ship brief failed: {exc}")
 
     async def _task_daily_reset(self):
         """Reset daily metrics at midnight UTC (runs every 24h)."""

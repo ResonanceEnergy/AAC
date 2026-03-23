@@ -4,7 +4,7 @@ Storm Lifeboat Matrix — Core Data Structures & Constants
 All shared types, enums, asset definitions, scenario taxonomy,
 and configuration for the Storm Lifeboat simulation engine.
 
-15-scenario geopolitical/financial/systemic risk model.
+20-scenario geopolitical/financial/systemic risk model.
 18 tracked assets across equities, commodities, crypto, and fixed income.
 4 volatility regimes: CALM → ELEVATED → CRISIS → PANIC.
 
@@ -38,7 +38,7 @@ MC_DEFAULT_HORIZON = 90  # days
 # ═══════════════════════════════════════════════════════════════════════════
 
 class Asset(Enum):
-    """Full asset universe — 18 instruments."""
+    """Full asset universe — 20 instruments."""
     # Commodities / Havens
     OIL = "OIL"        # WTI Crude (via USO or /CL futures)
     GOLD = "GOLD"      # Gold (via GLD or /GC)
@@ -53,6 +53,8 @@ class Asset(Enum):
     JETS = "JETS"      # Airlines
     XLY = "XLY"        # Consumer Discretionary
     XLE = "XLE"        # Energy
+    TSLA = "TSLA"      # Tesla — full ecosystem moat (EV, solar, Optimus, energy)
+    SMR = "SMR"        # NuScale Power — small modular reactor proxy
     # Fixed Income
     TLT = "TLT"        # 20+ Year Treasury
     HYG = "HYG"        # High Yield Corporate
@@ -99,7 +101,7 @@ class ScenarioStatus(Enum):
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# 15-SCENARIO TAXONOMY
+# 20-SCENARIO TAXONOMY
 # ═══════════════════════════════════════════════════════════════════════════
 
 @dataclass
@@ -124,9 +126,10 @@ SCENARIOS: List[ScenarioDefinition] = [
         id=1, name="Hormuz Strait Closure", code="HORMUZ",
         description="Iran closes Strait of Hormuz — 20% of global oil transits blocked",
         trigger_indicators=["Oil > $120", "USN carrier deployment", "Iran naval exercises",
-                            "Insurance rates Persian Gulf shipping"],
-        probability=0.35, impact_severity=0.95,
-        beneficiary_assets=[Asset.OIL, Asset.GOLD, Asset.GDX, Asset.XLE],
+                            "Insurance rates Persian Gulf shipping",
+                            "Kharg Island military activity", "Yuan-for-passage offers"],
+        probability=0.45, impact_severity=0.95,
+        beneficiary_assets=[Asset.OIL, Asset.GOLD, Asset.GDX, Asset.XLE, Asset.SMR],
         victim_assets=[Asset.SPY, Asset.QQQ, Asset.JETS, Asset.KRE, Asset.XLRE,
                        Asset.BTC, Asset.ETH],
         oil_sensitivity=1.0,
@@ -177,7 +180,8 @@ SCENARIOS: List[ScenarioDefinition] = [
         trigger_indicators=["Gold > $4500", "Silver > $80", "DXY < 95",
                             "Central bank gold buying record"],
         probability=0.30, impact_severity=0.60,
-        beneficiary_assets=[Asset.GOLD, Asset.SILVER, Asset.GDX, Asset.OIL, Asset.XLE],
+        beneficiary_assets=[Asset.GOLD, Asset.SILVER, Asset.GDX, Asset.OIL, Asset.XLE,
+                            Asset.SMR],
         victim_assets=[Asset.QQQ, Asset.XLY, Asset.BITO],
         oil_sensitivity=0.4,
     ),
@@ -197,7 +201,7 @@ SCENARIOS: List[ScenarioDefinition] = [
         trigger_indicators=["NVDA -40%", "AI startup failures", "Tech layoffs spike",
                             "QQQ breaks 200-day MA decisively"],
         probability=0.20, impact_severity=0.70,
-        beneficiary_assets=[Asset.GOLD, Asset.TLT, Asset.XLE],
+        beneficiary_assets=[Asset.GOLD, Asset.TLT, Asset.XLE, Asset.TSLA],
         victim_assets=[Asset.QQQ, Asset.SPY, Asset.BITO],
         oil_sensitivity=-0.15,
     ),
@@ -235,9 +239,11 @@ SCENARIOS: List[ScenarioDefinition] = [
         id=12, name="Monetary System Reset", code="MONETARY_RESET",
         description="BRICS gold-backed settlement, petrodollar displacement accelerates",
         trigger_indicators=["BRICS settlement system launch", "Saudi accepts non-USD oil payment",
-                            "Central bank gold accumulation", "DXY < 90"],
-        probability=0.10, impact_severity=0.95,
-        beneficiary_assets=[Asset.GOLD, Asset.SILVER, Asset.GDX, Asset.BTC, Asset.OIL],
+                            "Central bank gold accumulation", "DXY < 90",
+                            "mBridge volume surge"],
+        probability=0.15, impact_severity=0.95,
+        beneficiary_assets=[Asset.GOLD, Asset.SILVER, Asset.GDX, Asset.BTC, Asset.OIL,
+                            Asset.XRP],
         victim_assets=[Asset.TLT, Asset.SPY, Asset.XLF, Asset.HYG],
         oil_sensitivity=0.3,
     ),
@@ -271,6 +277,71 @@ SCENARIOS: List[ScenarioDefinition] = [
         victim_assets=[Asset.JETS, Asset.XLY, Asset.XLRE, Asset.OIL, Asset.KRE],
         oil_sensitivity=-0.4,
     ),
+    # ── Scenarios 16-20: Added from Storm Lifeboat thesis (March 2026) ──
+    ScenarioDefinition(
+        id=16, name="US Middle East Troop Withdrawal", code="US_WITHDRAWAL",
+        description="Full or partial US troop withdrawal from Middle East — power vacuum, "
+                    "regional realignment, Iran/China/Russia influence expansion",
+        trigger_indicators=["US base closures announced", "Troop drawdown orders",
+                            "Congressional war-fatigue resolutions",
+                            "GCC bilateral defense deals with China/Russia"],
+        probability=0.20, impact_severity=0.70,
+        beneficiary_assets=[Asset.OIL, Asset.GOLD, Asset.GDX, Asset.XLE],
+        victim_assets=[Asset.SPY, Asset.QQQ, Asset.XLF, Asset.JETS],
+        oil_sensitivity=0.6,
+    ),
+    ScenarioDefinition(
+        id=17, name="Iran Reparations / Grand Bargain", code="IRAN_DEAL",
+        description="US agrees to large-scale reparations or sanctions relief as part of "
+                    "a grand bargain to reopen Strait of Hormuz — massive fiscal impact",
+        trigger_indicators=["Diplomatic back-channel leaks", "UN mediation talks",
+                            "Oil-for-peace framework proposals",
+                            "Congressional appropriations debate"],
+        probability=0.05, impact_severity=0.65,
+        beneficiary_assets=[Asset.SPY, Asset.JETS, Asset.XLY, Asset.HYG],
+        victim_assets=[Asset.OIL, Asset.GOLD, Asset.GDX, Asset.XLE],
+        oil_sensitivity=-0.7,
+    ),
+    ScenarioDefinition(
+        id=18, name="Petrodollar Death Spiral", code="PETRODOLLAR_SPIRAL",
+        description="Accelerating de-dollarization of oil trade — yuan/ruble settlement "
+                    "gains critical mass, Gulf states diversify reserves, dollar index collapses",
+        trigger_indicators=["Saudi accepts yuan for oil", "BRICS settlement volume surge",
+                            "DXY < 95", "Central bank USD reserve share < 55%",
+                            "mBridge volume doubling"],
+        probability=0.25, impact_severity=0.95,
+        beneficiary_assets=[Asset.GOLD, Asset.SILVER, Asset.GDX, Asset.OIL,
+                            Asset.BTC, Asset.XRP],
+        victim_assets=[Asset.SPY, Asset.QQQ, Asset.XLF, Asset.TLT, Asset.HYG],
+        oil_sensitivity=0.5,
+    ),
+    ScenarioDefinition(
+        id=19, name="Iran Nuclear Breakout + GCC Realignment", code="IRAN_NUCLEAR",
+        description="Iran demonstrates nuclear capability or makes credible nuclear threat — "
+                    "GCC states accept Iranian/Chinese protection umbrella, yuan oil enforcement",
+        trigger_indicators=["IAEA enrichment alert >90%", "Underground test indicators",
+                            "GCC emergency summit", "Yuan protection-for-passage offers",
+                            "Israeli preemptive strike talk"],
+        probability=0.15, impact_severity=0.98,
+        beneficiary_assets=[Asset.GOLD, Asset.OIL, Asset.GDX, Asset.SILVER, Asset.XLE],
+        victim_assets=[Asset.SPY, Asset.QQQ, Asset.XLF, Asset.JETS, Asset.KRE,
+                       Asset.XLRE, Asset.HYG],
+        oil_sensitivity=0.9,
+    ),
+    ScenarioDefinition(
+        id=20, name="Elite Financial Network Exposure", code="ELITE_EXPOSURE",
+        description="Ongoing release of Epstein-adjacent financial records and congressional "
+                    "probes into bank facilitation erode institutional trust — accelerates "
+                    "capital flight from traditional finance to hard assets and crypto",
+        trigger_indicators=["New DOJ file tranche release", "Congressional subpoena of bank records",
+                            "Major bank settlement announcement",
+                            "Viral social media amplification >100k engagements",
+                            "Institutional trust index decline"],
+        probability=0.30, impact_severity=0.60,
+        beneficiary_assets=[Asset.GOLD, Asset.BTC, Asset.XRP, Asset.ETH],
+        victim_assets=[Asset.XLF, Asset.KRE, Asset.HYG, Asset.SPY],
+        oil_sensitivity=0.0,
+    ),
 ]
 
 SCENARIO_MAP: Dict[str, ScenarioDefinition] = {s.code: s for s in SCENARIOS}
@@ -281,7 +352,7 @@ SCENARIO_MAP: Dict[str, ScenarioDefinition] = {s.code: s for s in SCENARIOS}
 # ═══════════════════════════════════════════════════════════════════════════
 
 DEFAULT_PRICES: Dict[Asset, float] = {
-    Asset.OIL: 95.0,
+    Asset.OIL: 115.0,
     Asset.GOLD: 4861.0,
     Asset.SILVER: 78.0,
     Asset.GDX: 95.0,
@@ -293,6 +364,8 @@ DEFAULT_PRICES: Dict[Asset, float] = {
     Asset.JETS: 18.0,
     Asset.XLY: 180.0,
     Asset.XLE: 92.0,
+    Asset.TSLA: 280.0,
+    Asset.SMR: 28.0,
     Asset.TLT: 88.0,
     Asset.HYG: 75.0,
     Asset.BTC: 68000.0,
@@ -312,6 +385,7 @@ REGIME_VOLATILITIES: Dict[VolRegime, Dict[Asset, float]] = {
         Asset.OIL: 0.30, Asset.GOLD: 0.15, Asset.SILVER: 0.22, Asset.GDX: 0.30,
         Asset.SPY: 0.14, Asset.QQQ: 0.18, Asset.XLF: 0.18, Asset.XLRE: 0.20,
         Asset.KRE: 0.22, Asset.JETS: 0.25, Asset.XLY: 0.18, Asset.XLE: 0.25,
+        Asset.TSLA: 0.45, Asset.SMR: 0.50,
         Asset.TLT: 0.15, Asset.HYG: 0.08, Asset.BTC: 0.60, Asset.ETH: 0.70,
         Asset.XRP: 0.80, Asset.BITO: 0.55,
     },
@@ -319,6 +393,7 @@ REGIME_VOLATILITIES: Dict[VolRegime, Dict[Asset, float]] = {
         Asset.OIL: 0.50, Asset.GOLD: 0.30, Asset.SILVER: 0.40, Asset.GDX: 0.50,
         Asset.SPY: 0.25, Asset.QQQ: 0.30, Asset.XLF: 0.30, Asset.XLRE: 0.32,
         Asset.KRE: 0.35, Asset.JETS: 0.38, Asset.XLY: 0.28, Asset.XLE: 0.35,
+        Asset.TSLA: 0.60, Asset.SMR: 0.65,
         Asset.TLT: 0.20, Asset.HYG: 0.12, Asset.BTC: 0.80, Asset.ETH: 0.90,
         Asset.XRP: 1.00, Asset.BITO: 0.75,
     },
@@ -326,6 +401,7 @@ REGIME_VOLATILITIES: Dict[VolRegime, Dict[Asset, float]] = {
         Asset.OIL: 0.90, Asset.GOLD: 0.72, Asset.SILVER: 0.82, Asset.GDX: 1.02,
         Asset.SPY: 0.48, Asset.QQQ: 0.52, Asset.XLF: 0.58, Asset.XLRE: 0.50,
         Asset.KRE: 0.60, Asset.JETS: 0.55, Asset.XLY: 0.45, Asset.XLE: 0.45,
+        Asset.TSLA: 0.75, Asset.SMR: 0.80,
         Asset.TLT: 0.25, Asset.HYG: 0.18, Asset.BTC: 1.12, Asset.ETH: 1.20,
         Asset.XRP: 1.28, Asset.BITO: 1.05,
     },
@@ -333,6 +409,7 @@ REGIME_VOLATILITIES: Dict[VolRegime, Dict[Asset, float]] = {
         Asset.OIL: 1.20, Asset.GOLD: 0.95, Asset.SILVER: 1.10, Asset.GDX: 1.40,
         Asset.SPY: 0.75, Asset.QQQ: 0.85, Asset.XLF: 0.90, Asset.XLRE: 0.80,
         Asset.KRE: 0.95, Asset.JETS: 0.85, Asset.XLY: 0.70, Asset.XLE: 0.65,
+        Asset.TSLA: 1.00, Asset.SMR: 1.10,
         Asset.TLT: 0.35, Asset.HYG: 0.30, Asset.BTC: 1.50, Asset.ETH: 1.60,
         Asset.XRP: 1.70, Asset.BITO: 1.40,
     },
@@ -343,6 +420,7 @@ CRISIS_DRIFTS: Dict[Asset, float] = {
     Asset.OIL: 0.60, Asset.GOLD: 0.40, Asset.SILVER: 0.40, Asset.GDX: 0.55,
     Asset.SPY: -0.40, Asset.QQQ: -0.45, Asset.XLF: -0.40, Asset.XLRE: -0.20,
     Asset.KRE: -0.45, Asset.JETS: -0.50, Asset.XLY: -0.35, Asset.XLE: 0.30,
+    Asset.TSLA: 0.15, Asset.SMR: 0.25,
     Asset.TLT: 0.10, Asset.HYG: -0.15,
     Asset.BTC: -0.50, Asset.ETH: -0.55, Asset.XRP: -0.45, Asset.BITO: -0.48,
 }
@@ -352,6 +430,7 @@ CALM_DRIFTS: Dict[Asset, float] = {
     Asset.OIL: 0.05, Asset.GOLD: 0.08, Asset.SILVER: 0.10, Asset.GDX: 0.12,
     Asset.SPY: 0.12, Asset.QQQ: 0.15, Asset.XLF: 0.10, Asset.XLRE: 0.08,
     Asset.KRE: 0.10, Asset.JETS: 0.12, Asset.XLY: 0.14, Asset.XLE: 0.08,
+    Asset.TSLA: 0.25, Asset.SMR: 0.20,
     Asset.TLT: 0.03, Asset.HYG: 0.05,
     Asset.BTC: 0.30, Asset.ETH: 0.35, Asset.XRP: 0.25, Asset.BITO: 0.28,
 }
@@ -450,6 +529,28 @@ _RAW_CORRELATIONS: Dict[Tuple[Asset, Asset], float] = {
     (Asset.XLE, Asset.TLT): 0.05, (Asset.XLE, Asset.HYG): -0.10,
     (Asset.XLE, Asset.BTC): -0.15, (Asset.XLE, Asset.ETH): -0.18,
     (Asset.XLE, Asset.XRP): -0.12, (Asset.XLE, Asset.BITO): -0.15,
+    (Asset.XLE, Asset.TSLA): 0.10, (Asset.XLE, Asset.SMR): 0.25,
+    # TSLA — low correlation to broad equities in crisis (moat thesis), positive to energy/SMR
+    (Asset.TSLA, Asset.SMR): 0.35,
+    (Asset.TSLA, Asset.SPY): 0.40, (Asset.TSLA, Asset.QQQ): 0.50,
+    (Asset.TSLA, Asset.XLF): 0.15, (Asset.TSLA, Asset.XLRE): 0.10,
+    (Asset.TSLA, Asset.KRE): 0.12, (Asset.TSLA, Asset.JETS): 0.20,
+    (Asset.TSLA, Asset.XLY): 0.45, (Asset.TSLA, Asset.TLT): -0.15,
+    (Asset.TSLA, Asset.HYG): 0.20, (Asset.TSLA, Asset.BTC): 0.40,
+    (Asset.TSLA, Asset.ETH): 0.38, (Asset.TSLA, Asset.XRP): 0.30,
+    (Asset.TSLA, Asset.BITO): 0.38, (Asset.TSLA, Asset.OIL): -0.10,
+    (Asset.TSLA, Asset.GOLD): -0.05, (Asset.TSLA, Asset.SILVER): -0.05,
+    (Asset.TSLA, Asset.GDX): -0.08,
+    # SMR — nuclear/energy-adjacent, positive to commodities/energy, modest equity correlation
+    (Asset.SMR, Asset.SPY): 0.20, (Asset.SMR, Asset.QQQ): 0.25,
+    (Asset.SMR, Asset.XLF): 0.10, (Asset.SMR, Asset.XLRE): 0.08,
+    (Asset.SMR, Asset.KRE): 0.10, (Asset.SMR, Asset.JETS): 0.12,
+    (Asset.SMR, Asset.XLY): 0.15, (Asset.SMR, Asset.TLT): 0.05,
+    (Asset.SMR, Asset.HYG): 0.08, (Asset.SMR, Asset.BTC): 0.10,
+    (Asset.SMR, Asset.ETH): 0.08, (Asset.SMR, Asset.XRP): 0.06,
+    (Asset.SMR, Asset.BITO): 0.10, (Asset.SMR, Asset.OIL): 0.30,
+    (Asset.SMR, Asset.GOLD): 0.20, (Asset.SMR, Asset.SILVER): 0.18,
+    (Asset.SMR, Asset.GDX): 0.22,
     # TLT
     (Asset.TLT, Asset.HYG): -0.10, (Asset.TLT, Asset.BTC): -0.20,
     (Asset.TLT, Asset.ETH): -0.22, (Asset.TLT, Asset.XRP): -0.18,

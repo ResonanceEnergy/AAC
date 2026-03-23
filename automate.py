@@ -468,6 +468,39 @@ def phase6b_crisis_center() -> bool:
 
 
 # ════════════════════════════════════════════════════════════════════════
+# PHASE 6c — Rocket Ship Briefing  (always runs, non-blocking)
+# ════════════════════════════════════════════════════════════════════════
+
+def phase6c_rocket_briefing() -> bool:
+    """Run the Rocket Ship mission briefing and show key stats inline."""
+    logger.info(_bold("\n[Phase 6c] Rocket Ship Mission Briefing"))
+    try:
+        from types import SimpleNamespace
+        from strategies.rocket_ship.runner import cmd_full_briefing
+
+        args = SimpleNamespace(
+            indicators=False, lunar=False, trigger=False,
+            allocation=False, geo=None, geo_base=None,
+            all=True, phase=None, capital=None, json=False,
+        )
+        result = cmd_full_briefing(args)
+
+        phase  = result.get("trigger", {}).get("phase", "?")
+        green  = result.get("indicators", {}).get("green_count", "?")
+        prob   = result.get("trigger", {}).get("ignition_prob", 0)
+        alert  = result.get("trigger", {}).get("alert_level", "?")
+        moon   = result.get("lunar", {}).get("moon_number", "?")
+        days   = result.get("lunar", {}).get("days_to_rocket_start", "?")
+
+        _info(f"  Phase: {phase} | Moon: #{moon} | Green: {green}/15 | Ignition: {prob:.0%} | Alert: {alert} | T-{days}d")
+        _ok("Rocket Ship briefing complete")
+        return True
+    except Exception as e:
+        _warn(f"Rocket Ship briefing failed: {e}")
+        return True  # non-blocking
+
+
+# ════════════════════════════════════════════════════════════════════════
 # PHASE 8 — Windows Task Scheduler
 # ════════════════════════════════════════════════════════════════════════
 
@@ -509,12 +542,92 @@ TASK_XML_TEMPLATE = r"""<?xml version="1.0" encoding="UTF-16"?>
   </Settings>
   <Actions Context="Author">
     <Exec>
-      <Command>{python_exe}</Command>
-      <Arguments>automate.py --pipeline</Arguments>
-      <WorkingDirectory>{project_root}</WorkingDirectory>
+      <Command>cmd.exe</Command>
+      <Arguments>/c "cd /d {project_root} &amp;&amp; {python_exe} automate.py --pipeline"</Arguments>
     </Exec>
   </Actions>
 </Task>"""
+
+ROCKET_TASK_NAME = "AAC_RocketShip_DailyBriefing"
+ROCKET_TASK_XML_TEMPLATE = r"""<?xml version="1.0" encoding="UTF-16"?>
+<Task version="1.4" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
+  <RegistrationInfo>
+    <Description>AAC Rocket Ship — daily 07:00 mission briefing</Description>
+    <Author>AAC</Author>
+  </RegistrationInfo>
+  <Triggers>
+    <CalendarTrigger>
+      <StartBoundary>2026-01-01T07:00:00</StartBoundary>
+      <Enabled>true</Enabled>
+      <ScheduleByDay>
+        <DaysInterval>1</DaysInterval>
+      </ScheduleByDay>
+    </CalendarTrigger>
+  </Triggers>
+  <Principals>
+    <Principal id="Author">
+      <LogonType>InteractiveToken</LogonType>
+      <RunLevel>LeastPrivilege</RunLevel>
+    </Principal>
+  </Principals>
+  <Settings>
+    <MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>
+    <DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>
+    <StopIfGoingOnBatteries>false</StopIfGoingOnBatteries>
+    <AllowHardTerminate>true</AllowHardTerminate>
+    <StartWhenAvailable>true</StartWhenAvailable>
+    <RunOnlyIfNetworkAvailable>false</RunOnlyIfNetworkAvailable>
+    <ExecutionTimeLimit>PT5M</ExecutionTimeLimit>
+    <Priority>7</Priority>
+  </Settings>
+  <Actions Context="Author">
+    <Exec>
+      <Command>cmd.exe</Command>
+      <Arguments>/c "cd /d {project_root} &amp;&amp; {python_exe} -m strategies.rocket_ship.daily_ops --once"</Arguments>
+    </Exec>
+  </Actions>
+</Task>"""
+
+
+def phase8b_rocket_schedule() -> bool:
+    """Create a Windows Task Scheduler job that fires the Rocket Ship 07:00 briefing."""
+    logger.info(_bold("\n[Phase 8b] Rocket Ship Task Scheduler Setup"))
+    if platform.system() != "Windows":
+        _warn("Task Scheduler is Windows-only — create a cron job manually")
+        _info("  cron equivalent: 0 7 * * * python -m strategies.rocket_ship.daily_ops --once")
+        return True
+
+    python_exe = str(PROJECT_ROOT / ".venv" / "Scripts" / "python.exe")
+    if not Path(python_exe).exists():
+        _fail(f"Python exe not found: {python_exe}")
+        return False
+
+    xml_content = ROCKET_TASK_XML_TEMPLATE.format(
+        python_exe=python_exe,
+        project_root=str(PROJECT_ROOT),
+    )
+
+    xml_path = PROJECT_ROOT / "rocket_ship_scheduled_task.xml"
+    with open(xml_path, "w", encoding="utf-16") as f:
+        f.write(xml_content)
+
+    _info(f"Task XML written to {xml_path}")
+    _info("To install (run as Administrator):")
+    _info(f'  schtasks /create /tn "{ROCKET_TASK_NAME}" /xml "{xml_path}" /f')
+    _info(f'To remove: schtasks /delete /tn "{ROCKET_TASK_NAME}" /f')
+    _info(f'To run now: schtasks /run /tn "{ROCKET_TASK_NAME}"')
+
+    result = subprocess.run(
+        ["schtasks", "/create", "/tn", ROCKET_TASK_NAME, "/xml", str(xml_path), "/f"],
+        capture_output=True, text=True,
+    )
+    if result.returncode == 0:
+        _ok(f"Task '{ROCKET_TASK_NAME}' installed — runs daily at 07:00")
+    else:
+        _warn(f"Auto-install failed (may need admin): {result.stderr.strip()}")
+        _info("Run the schtasks command above as Administrator")
+
+    return True
 
 
 def phase8_schedule() -> bool:
@@ -648,6 +761,7 @@ def main() -> int:
     parser.add_argument("--push", action="store_true", help="Git push after commit (requires --commit)")
     parser.add_argument("--pipeline", action="store_true", help="Run paper pipeline after tests")
     parser.add_argument("--schedule", action="store_true", help="Install Windows Task Scheduler job")
+    parser.add_argument("--rocket-schedule", action="store_true", help="Install Rocket Ship 7AM daily Task Scheduler job")
     parser.add_argument("--go-live", action="store_true", help="Switch .env to live trading (DANGER)")
     parser.add_argument("--skip-tests", action="store_true", help="Skip pytest (faster iteration)")
     parser.add_argument("--crisis", action="store_true", help="Run Black Swan Crisis Center scan only")
@@ -695,6 +809,9 @@ def main() -> int:
     # Phase 6b — Crisis Center (always runs — lightweight)
     results["6b. Crisis Center"] = phase6b_crisis_center()
 
+    # Phase 6c — Rocket Ship Briefing (always runs — non-blocking)
+    results["6c. Rocket Briefing"] = phase6c_rocket_briefing()
+
     # Phase 7 — Git
     results["7. Git operations"] = phase7_git(commit=args.commit, push=args.push)
 
@@ -703,6 +820,11 @@ def main() -> int:
         results["8. Task Scheduler"] = phase8_schedule()
     else:
         results["8. Task Scheduler"] = "SKIPPED (use --schedule)"
+
+    if args.rocket_schedule:
+        results["8b. Rocket Scheduler"] = phase8b_rocket_schedule()
+    else:
+        results["8b. Rocket Scheduler"] = "SKIPPED (use --rocket-schedule)"
 
     # Go Live
     if args.go_live:
