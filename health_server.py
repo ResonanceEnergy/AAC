@@ -59,6 +59,13 @@ class HealthHandler(BaseHTTPRequestHandler):
         except Exception as e:
             body['config_error'] = str(e)
 
+        # Options Intelligence pre-market scanner health
+        try:
+            from startup.phases import get_premarket_scanner_health
+            body['options_intelligence'] = get_premarket_scanner_health()
+        except Exception:
+            body['options_intelligence'] = {'status': 'unavailable'}
+
         self._json_response(200, body)
 
     def _respond_ready(self):
@@ -90,14 +97,15 @@ class HealthHandler(BaseHTTPRequestHandler):
 def start_health_server(port: int = 8080, background: bool = True):
     """Start the health endpoint server."""
     port = int(os.environ.get('HEALTH_PORT', port))
-    server = HTTPServer(('0.0.0.0', port), HealthHandler)
+    host = os.environ.get('HEALTH_HOST', '127.0.0.1')
+    server = HTTPServer((host, port), HealthHandler)
 
     if background:
         t = Thread(target=server.serve_forever, daemon=True)
         t.start()
         return server
     else:
-        logger.info(f"Health endpoint listening on http://0.0.0.0:{port}/health")
+        logger.info(f"Health endpoint listening on http://{host}:{port}/health")
         server.serve_forever()
 
 

@@ -97,7 +97,7 @@ def cmd_scenarios(args: argparse.Namespace) -> dict:
     heatmap = engine.get_risk_heatmap()
 
     if not args.json:
-        _print_header("20-SCENARIO RISK HEATMAP")
+        _print_header("43-SCENARIO RISK HEATMAP")
         print(f"  {'#':>2s}  {'Code':>20s}  {'Status':>12s}  {'Prob':>6s}  "
               f"{'Severity':>8s}  {'Risk':>6s}  {'Indicators':>10s}")
         print("  " + "-" * 70)

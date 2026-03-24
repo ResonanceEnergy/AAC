@@ -23,7 +23,7 @@ GATEWAY_CONFIGS: dict[str, dict] = {
         "exe": Path(r"C:\Jts\tws.exe"),
         "process_name": "tws",
         "host": "127.0.0.1",
-        "port": 7497,
+        "port": int(os.environ.get("IBKR_PORT", "7497")),
         "wait_secs": 30,
     },
     "moomoo": {

@@ -392,8 +392,9 @@ class AutonomousEngine:
 
     async def _init_ibkr(self) -> bool:
         try:
-            if not _port_open("127.0.0.1", 7497):
-                self.components["ibkr"].record_failure("TWS not running on port 7497")
+            ibkr_port = int(os.environ.get("IBKR_PORT", "7497"))
+            if not _port_open("127.0.0.1", ibkr_port):
+                self.components["ibkr"].record_failure(f"TWS not running on port {ibkr_port}")
                 return False
             from TradingExecution.exchange_connectors.ibkr_connector import IBKRConnector
             conn = IBKRConnector()
@@ -1143,12 +1144,13 @@ class AutonomousEngine:
                 self.components["ndax"].record_failure(str(e))
 
         # Check gateway ports
-        if _port_open("127.0.0.1", 7497):
+        ibkr_port = int(os.environ.get("IBKR_PORT", "7497"))
+        if _port_open("127.0.0.1", ibkr_port):
             if self.components["ibkr"].health == ComponentHealth.DOWN:
                 # Try to reconnect
                 await self._init_ibkr()
         else:
-            self.components["ibkr"].record_failure("Port 7497 closed")
+            self.components["ibkr"].record_failure(f"Port {ibkr_port} closed")
 
         if _port_open("127.0.0.1", 11111):
             if self.components["moomoo"].health == ComponentHealth.DOWN:

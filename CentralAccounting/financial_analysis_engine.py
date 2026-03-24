@@ -323,6 +323,15 @@ class FinancialAnalysisEngine:
             logger.error(f"Failed to get portfolio summary: {e}")
             return {"error": str(e)}
 
+    async def health_check(self) -> Dict[str, Any]:
+        """Health check for monitoring integration."""
+        status = await self.get_health_status()
+        return {
+            'database_connected': status.get('status') != 'error',
+            'last_transaction_time': status.get('last_reconciliation'),
+            **status
+        }
+
     async def get_health_status(self) -> Dict[str, Any]:
         """Get the health status of the financial analysis engine"""
         try:

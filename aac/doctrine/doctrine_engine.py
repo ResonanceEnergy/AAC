@@ -425,6 +425,8 @@ class DoctrineEngine:
                 # Handle units
                 if '/min' in threshold_part:
                     threshold = float(threshold_part.replace('/min', ''))
+                elif threshold_part.endswith('min'):
+                    threshold = float(threshold_part[:-3])
                 elif '%' in threshold_part:
                     threshold = float(threshold_part.replace('%', ''))
                 else:

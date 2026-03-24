@@ -4,8 +4,8 @@ Storm Lifeboat Matrix — Core Data Structures & Constants
 All shared types, enums, asset definitions, scenario taxonomy,
 and configuration for the Storm Lifeboat simulation engine.
 
-20-scenario geopolitical/financial/systemic risk model.
-18 tracked assets across equities, commodities, crypto, and fixed income.
+43-scenario geopolitical/financial/systemic risk model.
+20 tracked assets across equities, commodities, crypto, and fixed income.
 4 volatility regimes: CALM → ELEVATED → CRISIS → PANIC.
 
 Starting capital: $45,120 CAD (~$32,486 USD).
@@ -101,7 +101,7 @@ class ScenarioStatus(Enum):
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# 20-SCENARIO TAXONOMY
+# 43-SCENARIO TAXONOMY
 # ═══════════════════════════════════════════════════════════════════════════
 
 @dataclass
@@ -341,6 +341,288 @@ SCENARIOS: List[ScenarioDefinition] = [
         beneficiary_assets=[Asset.GOLD, Asset.BTC, Asset.XRP, Asset.ETH],
         victim_assets=[Asset.XLF, Asset.KRE, Asset.HYG, Asset.SPY],
         oil_sensitivity=0.0,
+    ),
+    # ══════════════════════════════════════════════════════════════════════
+    # Scenarios 21-43: US Western Hemisphere Pivot & Fortress America
+    # ══════════════════════════════════════════════════════════════════════
+    ScenarioDefinition(
+        id=21, name="US Pivot to Western Hemisphere", code="HEMISPHERE_PIVOT",
+        description="Monroe Doctrine 2.0 — US consolidates economic and security control "
+                    "over the Western Hemisphere, redirecting resources from Middle East/Europe",
+        trigger_indicators=["Monroe Doctrine executive order", "Hemisphere trade deal signing",
+                            "US-LATAM summit announcements", "OAS military framework reboot",
+                            "Western Hemisphere energy corridor proposals"],
+        probability=0.35, impact_severity=0.75,
+        beneficiary_assets=[Asset.OIL, Asset.XLE, Asset.GOLD, Asset.TSLA, Asset.SMR],
+        victim_assets=[Asset.SPY, Asset.QQQ, Asset.JETS, Asset.XLF],
+        oil_sensitivity=0.3,
+    ),
+    ScenarioDefinition(
+        id=22, name="Trump NATO Withdrawal", code="NATO_EXIT",
+        description="US formally withdraws from or de-funds NATO — European defense vacuum, "
+                    "dollar confidence shaken, gold/commodities spike",
+        trigger_indicators=["NATO withdrawal announcement", "US troop repatriation orders",
+                            "European defense spending surge", "NATO Article 5 doubt",
+                            "Congressional NATO funding debate"],
+        probability=0.25, impact_severity=0.85,
+        beneficiary_assets=[Asset.GOLD, Asset.GDX, Asset.OIL, Asset.XLE, Asset.BTC],
+        victim_assets=[Asset.SPY, Asset.QQQ, Asset.XLF, Asset.JETS, Asset.HYG],
+        oil_sensitivity=0.4,
+    ),
+    ScenarioDefinition(
+        id=23, name="US Abandonment of Europe", code="EUROPE_ABANDON",
+        description="Full US strategic pivot away from Europe — Russian sphere consolidation, "
+                    "European equities crash, flight to hard assets",
+        trigger_indicators=["US ambassador recalls", "European defense pact without US",
+                            "Russian influence expansion", "EU emergency summit",
+                            "Transatlantic trade breakdown"],
+        probability=0.20, impact_severity=0.80,
+        beneficiary_assets=[Asset.GOLD, Asset.GDX, Asset.OIL, Asset.BTC, Asset.SILVER],
+        victim_assets=[Asset.SPY, Asset.QQQ, Asset.XLF, Asset.JETS, Asset.HYG],
+        oil_sensitivity=0.3,
+    ),
+    ScenarioDefinition(
+        id=24, name="Canada Managed Decline", code="CANADA_DECLINE",
+        description="US economic pressure on Canada — resource extraction leverage, "
+                    "CAD weakness, energy corridor dominance",
+        trigger_indicators=["US-Canada tariff escalation", "CAD/USD below 0.65",
+                            "Canadian resource sector selloff", "Pipeline renegotiations",
+                            "Cross-border trade restrictions"],
+        probability=0.30, impact_severity=0.55,
+        beneficiary_assets=[Asset.OIL, Asset.XLE, Asset.GOLD],
+        victim_assets=[Asset.SPY, Asset.KRE, Asset.HYG],
+        oil_sensitivity=0.2,
+    ),
+    ScenarioDefinition(
+        id=25, name="Greenland Acquisition", code="GREENLAND_ACQ",
+        description="US pursues purchase or strategic control of Greenland — Arctic resource "
+                    "access, rare earth deposits, military positioning",
+        trigger_indicators=["Greenland purchase offer", "Arctic military buildup",
+                            "Rare earth extraction bids", "Danish sovereignty dispute",
+                            "Arctic shipping route development"],
+        probability=0.20, impact_severity=0.50,
+        beneficiary_assets=[Asset.OIL, Asset.GOLD, Asset.GDX, Asset.XLE, Asset.SMR],
+        victim_assets=[Asset.SPY, Asset.JETS],
+        oil_sensitivity=0.15,
+    ),
+    ScenarioDefinition(
+        id=26, name="Panama Canal Reclamation", code="PANAMA_RECLAIM",
+        description="US exerts direct control or sovereignty over Panama Canal — trade "
+                    "chokepoint leverage, China confrontation at canal",
+        trigger_indicators=["Panama Canal sovereignty claims", "US military deployment Panama",
+                            "Chinese shipping rerouting", "Canal toll restructuring",
+                            "Central American security framework"],
+        probability=0.15, impact_severity=0.60,
+        beneficiary_assets=[Asset.OIL, Asset.XLE, Asset.GOLD],
+        victim_assets=[Asset.SPY, Asset.QQQ, Asset.JETS, Asset.XLY],
+        oil_sensitivity=0.25,
+    ),
+    ScenarioDefinition(
+        id=27, name="Latin American Resource Lock-in", code="LATAM_LOCKIN",
+        description="US secures exclusive resource agreements across Latin America — lithium,"
+                    " copper, oil, agriculture locked into hemisphere trade bloc",
+        trigger_indicators=["Bilateral resource treaties", "LATAM trade bloc formation",
+                            "Chinese investment expulsion", "Critical mineral agreements",
+                            "Agricultural export deals"],
+        probability=0.30, impact_severity=0.55,
+        beneficiary_assets=[Asset.OIL, Asset.XLE, Asset.GOLD, Asset.TSLA, Asset.SMR],
+        victim_assets=[Asset.QQQ, Asset.XLY],
+        oil_sensitivity=0.2,
+    ),
+    ScenarioDefinition(
+        id=28, name="Arctic Command Expansion", code="ARCTIC_EXPAND",
+        description="US expands Arctic military presence — new bases, icebreaker fleet, "
+                    "resource claim enforcement along Northern Sea Route",
+        trigger_indicators=["Arctic base construction", "Icebreaker fleet expansion",
+                            "Arctic sovereignty claims", "Northern Sea Route patrols",
+                            "Arctic resource extraction permits"],
+        probability=0.20, impact_severity=0.45,
+        beneficiary_assets=[Asset.OIL, Asset.GOLD, Asset.XLE, Asset.SMR],
+        victim_assets=[Asset.SPY, Asset.JETS],
+        oil_sensitivity=0.15,
+    ),
+    ScenarioDefinition(
+        id=29, name="Southern Border Militarization", code="BORDER_MILITARY",
+        description="Full militarization of US southern border — economic disruption, "
+                    "labor market shock, trade friction with Mexico",
+        trigger_indicators=["Border military deployment", "Mexico trade sanctions",
+                            "Labor shortage indicators", "Border closure events",
+                            "USMCA renegotiation threats"],
+        probability=0.35, impact_severity=0.50,
+        beneficiary_assets=[Asset.GOLD, Asset.OIL],
+        victim_assets=[Asset.SPY, Asset.XLY, Asset.JETS, Asset.KRE],
+        oil_sensitivity=0.1,
+    ),
+    ScenarioDefinition(
+        id=30, name="Venezuela Regime Change", code="VENEZUELA_REGIME",
+        description="US-backed regime change in Venezuela — restores oil output, "
+                    "hemisphere supply chain reshoring of heavy crude",
+        trigger_indicators=["Venezuelan opposition support", "US sanctions adjustment",
+                            "Military intervention signals", "Oil sector restructuring",
+                            "PDVSA privatization offers"],
+        probability=0.15, impact_severity=0.55,
+        beneficiary_assets=[Asset.OIL, Asset.XLE, Asset.SPY],
+        victim_assets=[Asset.GOLD, Asset.BTC],
+        oil_sensitivity=-0.3,
+    ),
+    ScenarioDefinition(
+        id=31, name="Lithium Triangle Security", code="LITHIUM_TRIANGLE",
+        description="US secures lithium supply from Bolivia-Argentina-Chile triangle — "
+                    "EV supply chain fortress, Tesla strategic advantage",
+        trigger_indicators=["Lithium bilateral agreements", "Mining security deployments",
+                            "Chinese lithium company restrictions", "EV battery supply deals",
+                            "Critical mineral stockpiling"],
+        probability=0.25, impact_severity=0.45,
+        beneficiary_assets=[Asset.TSLA, Asset.SMR, Asset.XLE],
+        victim_assets=[Asset.QQQ],
+        oil_sensitivity=0.05,
+    ),
+    ScenarioDefinition(
+        id=32, name="Cuba Embargo Tightening", code="CUBA_EMBARGO",
+        description="Intensified Cuba sanctions and naval blockade — hemisphere control "
+                    "signal, Russian/Chinese base denial",
+        trigger_indicators=["Cuba sanctions expansion", "Naval blockade enforcement",
+                            "Russian base eviction demands", "Cuban humanitarian crisis",
+                            "Caribbean security pact"],
+        probability=0.20, impact_severity=0.35,
+        beneficiary_assets=[Asset.GOLD, Asset.OIL],
+        victim_assets=[Asset.JETS, Asset.XLY],
+        oil_sensitivity=0.05,
+    ),
+    ScenarioDefinition(
+        id=33, name="Brazil & Argentina Economic Leverage", code="BRAZIL_ARGENTINA",
+        description="US economic pressure on South American giants — trade concessions, "
+                    "agricultural leverage, currency manipulation countermeasures",
+        trigger_indicators=["BRICS exit pressure", "Agricultural trade deals",
+                            "Currency swap agreements", "Mercosur restructuring",
+                            "IMF conditionality alignment"],
+        probability=0.25, impact_severity=0.50,
+        beneficiary_assets=[Asset.OIL, Asset.GOLD, Asset.XLE],
+        victim_assets=[Asset.SPY, Asset.HYG, Asset.XLY],
+        oil_sensitivity=0.1,
+    ),
+    ScenarioDefinition(
+        id=34, name="Northern Border Resource Integration", code="NORTH_BORDER",
+        description="US-Canada deep resource integration — energy corridor unification, "
+                    "rare earth sharing, cross-border infrastructure",
+        trigger_indicators=["US-Canada energy pact", "Pipeline fast-track approvals",
+                            "Cross-border resource agreements", "Joint Arctic development",
+                            "Integrated power grid proposals"],
+        probability=0.25, impact_severity=0.40,
+        beneficiary_assets=[Asset.OIL, Asset.XLE, Asset.SMR, Asset.TSLA],
+        victim_assets=[Asset.QQQ],
+        oil_sensitivity=0.15,
+    ),
+    ScenarioDefinition(
+        id=35, name="Military Redeployment from Middle East", code="MIDEAST_REDEPLOY",
+        description="US redeployment of military assets from Middle East to Western "
+                    "Hemisphere — power vacuum in Gulf, hemisphere fortress buildup",
+        trigger_indicators=["Base closure announcements", "Troop repatriation schedules",
+                            "Hemisphere base expansion", "Gulf allies defense deals",
+                            "CENTCOM restructuring"],
+        probability=0.25, impact_severity=0.70,
+        beneficiary_assets=[Asset.OIL, Asset.GOLD, Asset.GDX, Asset.XLE],
+        victim_assets=[Asset.SPY, Asset.QQQ, Asset.JETS, Asset.XLF],
+        oil_sensitivity=0.5,
+    ),
+    ScenarioDefinition(
+        id=36, name="Energy Independence via Hemisphere", code="ENERGY_HEMISPHERE",
+        description="US achieves full energy independence through hemisphere resources — "
+                    "Canadian oil sands, Gulf of Mexico, Venezuela heavy crude, shale",
+        trigger_indicators=["Energy independence declaration", "Hemisphere energy summit",
+                            "Oil import restrictions from outside hemisphere",
+                            "Refinery capacity expansion", "Strategic reserve policy shift"],
+        probability=0.30, impact_severity=0.55,
+        beneficiary_assets=[Asset.OIL, Asset.XLE, Asset.SMR, Asset.TSLA],
+        victim_assets=[Asset.JETS, Asset.QQQ],
+        oil_sensitivity=-0.2,
+    ),
+    ScenarioDefinition(
+        id=37, name="SpaceX/Starlink Hemispheric Dominance", code="STARLINK_DOMINANCE",
+        description="SpaceX/Starlink achieves communication dominance over Western Hemisphere"
+                    " — digital infrastructure moat, military comms backbone",
+        trigger_indicators=["Starlink government contracts", "Hemisphere-wide coverage",
+                            "Military communication deals", "Competitor satellite failures",
+                            "Internet sovereignty policies"],
+        probability=0.30, impact_severity=0.45,
+        beneficiary_assets=[Asset.TSLA, Asset.QQQ, Asset.SPY],
+        victim_assets=[Asset.GOLD],
+        oil_sensitivity=0.0,
+    ),
+    ScenarioDefinition(
+        id=38, name="Fusion & Micro-Reactor Rollout", code="FUSION_ROLLOUT",
+        description="Accelerated deployment of small modular reactors and fusion prototypes"
+                    " — energy revolution, grid independence, commodity demand shift",
+        trigger_indicators=["SMR deployment announcements", "Fusion breakthrough news",
+                            "Grid modernization contracts", "Nuclear regulatory fast-track",
+                            "Energy infrastructure investment surge"],
+        probability=0.20, impact_severity=0.60,
+        beneficiary_assets=[Asset.SMR, Asset.TSLA, Asset.GOLD, Asset.SILVER],
+        victim_assets=[Asset.OIL, Asset.XLE],
+        oil_sensitivity=-0.4,
+    ),
+    ScenarioDefinition(
+        id=39, name="Rare Earth Supply Chain Fortress", code="RARE_EARTH_FORTRESS",
+        description="US secures hemispheric rare earth supply chain — China dependency "
+                    "eliminated, domestic/allied processing capacity",
+        trigger_indicators=["Rare earth mine openings", "Processing plant construction",
+                            "China export ban triggers", "Hemisphere mineral stockpile",
+                            "Defense Production Act invocation"],
+        probability=0.25, impact_severity=0.50,
+        beneficiary_assets=[Asset.TSLA, Asset.SMR, Asset.GDX, Asset.XLE],
+        victim_assets=[Asset.QQQ],
+        oil_sensitivity=0.05,
+    ),
+    ScenarioDefinition(
+        id=40, name="Migration Control as National Security", code="MIGRATION_SECURITY",
+        description="Migration reframed as national security — labor market disruption, "
+                    "border spending surge, social services strain",
+        trigger_indicators=["National emergency declarations", "Border deployment surge",
+                            "Immigration reform legislation", "Labor market tightening",
+                            "Social spending increase"],
+        probability=0.40, impact_severity=0.40,
+        beneficiary_assets=[Asset.GOLD, Asset.OIL],
+        victim_assets=[Asset.SPY, Asset.XLY, Asset.KRE, Asset.XLRE],
+        oil_sensitivity=0.05,
+    ),
+    ScenarioDefinition(
+        id=41, name="2100 Fortress State Consolidation", code="FORTRESS_2100",
+        description="Long-term US fortress state emergence — self-sufficient hemisphere, "
+                    "de-globalization accelerates, new world order crystallization",
+        trigger_indicators=["Long-term infrastructure plans", "Autarky policy signals",
+                            "Global trade volume decline", "Hemisphere GDP share growth",
+                            "De-globalization research trending"],
+        probability=0.15, impact_severity=0.85,
+        beneficiary_assets=[Asset.GOLD, Asset.OIL, Asset.XLE, Asset.TSLA, Asset.SMR,
+                            Asset.BTC],
+        victim_assets=[Asset.SPY, Asset.QQQ, Asset.XLF, Asset.JETS, Asset.HYG],
+        oil_sensitivity=0.3,
+    ),
+    ScenarioDefinition(
+        id=42, name="Elite Capital Redirection", code="ELITE_CAPITAL",
+        description="Institutional and elite capital flows redirect from global to "
+                    "hemisphere assets — real estate, energy, commodities, crypto",
+        trigger_indicators=["Institutional rebalancing filings", "Real estate foreign investment",
+                            "Commodity fund inflows", "Crypto institutional adoption",
+                            "Capital flight from Europe/Asia"],
+        probability=0.25, impact_severity=0.50,
+        beneficiary_assets=[Asset.GOLD, Asset.OIL, Asset.BTC, Asset.XLE, Asset.XLRE,
+                            Asset.TSLA],
+        victim_assets=[Asset.TLT, Asset.HYG],
+        oil_sensitivity=0.1,
+    ),
+    ScenarioDefinition(
+        id=43, name="Nuclear Umbrella Americas Only", code="NUCLEAR_AMERICAS",
+        description="US nuclear deterrence explicitly limited to Americas — NATO allies "
+                    "lose umbrella, triggers global arms race and safe haven surge",
+        trigger_indicators=["Nuclear posture review changes", "Deterrence doctrine shift",
+                            "European nuclear program acceleration",
+                            "Arms race indicators", "Defense spending surge global"],
+        probability=0.10, impact_severity=0.90,
+        beneficiary_assets=[Asset.GOLD, Asset.GDX, Asset.SILVER, Asset.BTC, Asset.OIL],
+        victim_assets=[Asset.SPY, Asset.QQQ, Asset.XLF, Asset.JETS, Asset.HYG,
+                       Asset.TLT],
+        oil_sensitivity=0.4,
     ),
 ]
 

@@ -423,7 +423,7 @@ def print_registry(show_missing_only: bool = False, output_json: bool = False):
 
     if output_json:
         clean = [{k: v for k, v in e.items()} for e in entries]
-        logger.info(str(json.dumps(clean, indent=2)))
+        print(json.dumps(clean, indent=2))
         return
 
     # Group by category
@@ -440,35 +440,35 @@ def print_registry(show_missing_only: bool = False, output_json: bool = False):
     no_key = len([api for api in REGISTRY if api["env_var"] is None])
     missing = total - configured - no_key
 
-    logger.info("=" * 80)
-    logger.info("  AAC API REGISTRY — All Integrations & Their Status")
-    logger.info(f"  Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
-    logger.info("=" * 80)
-    logger.info(f"\n  📊 Summary: {configured} configured | {missing} need keys | {no_key} free (no key)")
-    logger.info(f"     Total APIs: {total}\n")
+    print("=" * 80)
+    print("  AAC API REGISTRY — All Integrations & Their Status")
+    print(f"  Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
+    print("=" * 80)
+    print(f"\n  📊 Summary: {configured} configured | {missing} need keys | {no_key} free (no key)")
+    print(f"     Total APIs: {total}\n")
 
     for cat, apis in categories.items():
-        logger.info(f"\n{'─' * 80}")
-        logger.info(f"  📁 {cat.upper()}")
-        logger.info(f"{'─' * 80}")
+        print(f"\n{'─' * 80}")
+        print(f"  📁 {cat.upper()}")
+        print(f"{'─' * 80}")
 
         for api in apis:
             status = api["status"]
             pri = api["priority"]
             pri_icon = {"HIGH": "🔴", "MEDIUM": "🟡", "LOW": "⚪", "DONE": "✅"}.get(pri, "⚪")
 
-            logger.info(f"\n  {status}  {pri_icon} {api['name']}  [{pri}]")
-            logger.info(f"     🌐  {api['website']}")
-            logger.info(f"     📝  {api['signup']}")
-            logger.info(f"     💰  {api['cost']}")
+            print(f"\n  {status}  {pri_icon} {api['name']}  [{pri}]")
+            print(f"     🌐  {api['website']}")
+            print(f"     📝  {api['signup']}")
+            print(f"     💰  {api['cost']}")
             if api["env_var"]:
-                logger.info(f"     🔑  .env key: {api['env_var']}")
-            logger.info(f"     📋  {api['notes']}")
+                print(f"     🔑  .env key: {api['env_var']}")
+            print(f"     📋  {api['notes']}")
 
     # Action list
-    logger.info(f"\n\n{'=' * 80}")
-    logger.info("  🎯 RECOMMENDED ACTION ORDER")
-    logger.info(f"{'=' * 80}")
+    print(f"\n\n{'=' * 80}")
+    print("  🎯 RECOMMENDED ACTION ORDER")
+    print(f"{'=' * 80}")
 
     priority_order = ["HIGH", "MEDIUM", "LOW"]
     action_num = 1
@@ -478,17 +478,17 @@ def print_registry(show_missing_only: bool = False, output_json: bool = False):
             if api["priority"] == pri and check_env_var(api["env_var"]) == "❌ MISSING"
         ]
         if missing_apis:
-            logger.info(f"\n  {'🔴' if pri == 'HIGH' else '🟡' if pri == 'MEDIUM' else '⚪'} {pri} PRIORITY:")
+            print(f"\n  {'🔴' if pri == 'HIGH' else '🟡' if pri == 'MEDIUM' else '⚪'} {pri} PRIORITY:")
             for api in missing_apis:
-                logger.info(f"    {action_num}. {api['name']}")
-                logger.info(f"       Sign up: {api['signup']}")
-                logger.info(f"       Add to .env: {api['env_var']}=your_key_here")
+                print(f"    {action_num}. {api['name']}")
+                print(f"       Sign up: {api['signup']}")
+                print(f"       Add to .env: {api['env_var']}=your_key_here")
                 action_num += 1
 
-    logger.info(f"\n{'=' * 80}")
-    logger.info(f"  Run with --missing to show only unconfigured APIs")
-    logger.info(f"  Run with --json for machine-readable output")
-    logger.info(f"{'=' * 80}\n")
+    print(f"\n{'=' * 80}")
+    print(f"  Run with --missing to show only unconfigured APIs")
+    print(f"  Run with --json for machine-readable output")
+    print(f"{'=' * 80}\n")
 
 
 def main():

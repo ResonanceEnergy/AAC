@@ -406,6 +406,18 @@ class AccountingDatabase:
             self._connection.close()
             self._connection = None
 
+    async def health_check(self) -> bool:
+        """Check database connectivity (async-safe)."""
+        def _check():
+            try:
+                conn = sqlite3.connect(self.db_path, timeout=5)
+                conn.execute("SELECT 1")
+                conn.close()
+                return True
+            except Exception:
+                return False
+        return await asyncio.to_thread(_check)
+
     # ==========================================
     # Async Wrapper Methods for Execution Engine
     # ==========================================
