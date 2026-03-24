@@ -1,7 +1,7 @@
 """
-Storm Lifeboat Matrix — 20-Scenario Tracking Engine
+Storm Lifeboat Matrix — 43-Scenario Tracking Engine
 =====================================================
-Monitors all 20 crisis scenarios with indicator-based status tracking,
+Monitors all 43 crisis scenarios with indicator-based status tracking,
 probability updates, and cross-scenario contagion modeling.
 
 Each scenario tracks:
@@ -60,6 +60,51 @@ _CONTAGION_MAP: Dict[str, Dict[str, float]] = {
     "IRAN_NUCLEAR": {"HORMUZ": 0.20, "SUPERCYCLE": 0.10, "EM_FX_CRISIS": 0.12,
                       "FOOD_CRISIS": 0.06},
     "ELITE_EXPOSURE": {"DEBT_CRISIS": 0.08, "EU_BANKS": 0.06, "ELECTION_CHAOS": 0.10},
+    # ── Scenarios 21-43: US Western Hemisphere Pivot ──
+    "HEMISPHERE_PIVOT": {"NATO_EXIT": 0.12, "EUROPE_ABANDON": 0.10, "LATAM_LOCKIN": 0.15,
+                          "ENERGY_HEMISPHERE": 0.10, "MIDEAST_REDEPLOY": 0.08},
+    "NATO_EXIT": {"EUROPE_ABANDON": 0.20, "HEMISPHERE_PIVOT": 0.10,
+                   "NUCLEAR_AMERICAS": 0.12, "MONETARY_RESET": 0.08},
+    "EUROPE_ABANDON": {"NATO_EXIT": 0.15, "MONETARY_RESET": 0.10,
+                        "FORTRESS_2100": 0.08, "ELITE_CAPITAL": 0.06},
+    "CANADA_DECLINE": {"NORTH_BORDER": 0.12, "ENERGY_HEMISPHERE": 0.08,
+                        "HEMISPHERE_PIVOT": 0.06},
+    "GREENLAND_ACQ": {"ARCTIC_EXPAND": 0.20, "RARE_EARTH_FORTRESS": 0.10,
+                       "HEMISPHERE_PIVOT": 0.06},
+    "PANAMA_RECLAIM": {"HEMISPHERE_PIVOT": 0.10, "LATAM_LOCKIN": 0.08,
+                        "TAIWAN": 0.04},
+    "LATAM_LOCKIN": {"HEMISPHERE_PIVOT": 0.10, "LITHIUM_TRIANGLE": 0.12,
+                      "BRAZIL_ARGENTINA": 0.10, "ENERGY_HEMISPHERE": 0.08},
+    "ARCTIC_EXPAND": {"GREENLAND_ACQ": 0.15, "ENERGY_HEMISPHERE": 0.06,
+                       "HEMISPHERE_PIVOT": 0.05},
+    "BORDER_MILITARY": {"MIGRATION_SECURITY": 0.15, "HEMISPHERE_PIVOT": 0.05,
+                         "VENEZUELA_REGIME": 0.04},
+    "VENEZUELA_REGIME": {"ENERGY_HEMISPHERE": 0.12, "LATAM_LOCKIN": 0.08,
+                          "HEMISPHERE_PIVOT": 0.06},
+    "LITHIUM_TRIANGLE": {"LATAM_LOCKIN": 0.10, "RARE_EARTH_FORTRESS": 0.08,
+                          "FUSION_ROLLOUT": 0.06},
+    "CUBA_EMBARGO": {"HEMISPHERE_PIVOT": 0.04, "BORDER_MILITARY": 0.03},
+    "BRAZIL_ARGENTINA": {"LATAM_LOCKIN": 0.10, "HEMISPHERE_PIVOT": 0.06,
+                          "MONETARY_RESET": 0.04},
+    "NORTH_BORDER": {"CANADA_DECLINE": 0.10, "ENERGY_HEMISPHERE": 0.10,
+                      "HEMISPHERE_PIVOT": 0.06},
+    "MIDEAST_REDEPLOY": {"US_WITHDRAWAL": 0.15, "HORMUZ": 0.12,
+                          "HEMISPHERE_PIVOT": 0.10, "IRAN_NUCLEAR": 0.08},
+    "ENERGY_HEMISPHERE": {"HEMISPHERE_PIVOT": 0.10, "PETRODOLLAR_SPIRAL": -0.05,
+                           "FORTRESS_2100": 0.08},
+    "STARLINK_DOMINANCE": {"HEMISPHERE_PIVOT": 0.05, "FORTRESS_2100": 0.04},
+    "FUSION_ROLLOUT": {"ENERGY_HEMISPHERE": 0.10, "SUPERCYCLE": -0.08,
+                        "FORTRESS_2100": 0.06},
+    "RARE_EARTH_FORTRESS": {"LITHIUM_TRIANGLE": 0.08, "HEMISPHERE_PIVOT": 0.06,
+                              "FORTRESS_2100": 0.05},
+    "MIGRATION_SECURITY": {"BORDER_MILITARY": 0.10, "ELECTION_CHAOS": 0.06,
+                             "HEMISPHERE_PIVOT": 0.04},
+    "FORTRESS_2100": {s.code: 0.03 for s in SCENARIOS
+                       if s.code not in ("FORTRESS_2100", "MONETARY_RESET")},
+    "ELITE_CAPITAL": {"HEMISPHERE_PIVOT": 0.06, "FORTRESS_2100": 0.05,
+                       "ELITE_EXPOSURE": 0.08},
+    "NUCLEAR_AMERICAS": {"NATO_EXIT": 0.15, "EUROPE_ABANDON": 0.12,
+                          "FORTRESS_2100": 0.10, "MONETARY_RESET": 0.08},
 }
 
 

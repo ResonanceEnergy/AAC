@@ -147,16 +147,22 @@ class IBKRConnector(BaseExchangeConnector):
         """Name."""
         return "ibkr"
 
+    _PAPER_SENTINEL = object()
+
     def __init__(
         self,
         host: str = '',
         port: int = 0,
         client_id: int = 0,
         account: str = '',
-        paper: bool = True,
+        paper: Any = _PAPER_SENTINEL,
         rate_limit: int = 50,  # IBKR allows ~50 req/sec
         timeout: int = 20,
     ):
+        # Resolve paper: use explicit value if provided, else read from env
+        if paper is IBKRConnector._PAPER_SENTINEL:
+            paper = get_env_bool('IBKR_PAPER', True)
+
         # IBKR doesn't use api_key/secret — uses socket connection
         super().__init__(
             api_key='',
@@ -170,7 +176,7 @@ class IBKRConnector(BaseExchangeConnector):
         self.port = port or get_env_int('IBKR_PORT', 7497)
         self.client_id = client_id or get_env_int('IBKR_CLIENT_ID', 1)
         self.account = account or get_env('IBKR_ACCOUNT', '')
-        self.paper = paper if paper is not True else get_env_bool('IBKR_PAPER', True)
+        self.paper = paper
         self.timeout = timeout
 
         self._ib: Any = None  # IB instance, guarded by _ensure_connected()

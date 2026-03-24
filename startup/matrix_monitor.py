@@ -58,6 +58,8 @@ def launch_dash(port: int = 8502) -> int:
             get_master_dashboard, DisplayMode,
         )
         dashboard = get_master_dashboard(DisplayMode.DASH)
+        if hasattr(dashboard, "initialize"):
+            asyncio.run(dashboard.initialize())
         if hasattr(dashboard, "run_dashboard"):
             dashboard.run_dashboard(port=port)
         return 0

@@ -229,7 +229,8 @@ class ExecutionEngine:
         """Initialize IBKR connector."""
         try:
             from TradingExecution.exchange_connectors.ibkr_connector import IBKRConnector
-            port = 7497 if self.mode == ExecutionMode.PAPER else 7496
+            env_port = int(os.getenv("IBKR_PORT", "7497"))
+            port = 7497 if self.mode == ExecutionMode.PAPER else env_port
             self._ibkr = IBKRConnector(
                 host=os.getenv("IBKR_HOST", "127.0.0.1"),
                 port=port,

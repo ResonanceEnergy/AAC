@@ -405,18 +405,19 @@ class AACMasterMonitoringDashboard:
         """Check health of a specific department"""
         try:
             if department == 'CentralAccounting':
-                db_status = await self.financial_engine.health_check()
+                db_status = await self.financial_engine.get_health_status()
                 return {
-                    'status': 'healthy' if db_status.get('database_connected') else 'critical',
-                    'last_transaction': db_status.get('last_transaction_time'),
-                    'pending_reconciliations': db_status.get('pending_count', 0)
+                    'status': db_status.get('status', 'unknown'),
+                    'last_transaction': db_status.get('last_reconciliation'),
+                    'pending_reconciliations': db_status.get('reconciliation_issues', 0)
                 }
             elif department == 'CryptoIntelligence':
                 venue_status = await self.crypto_engine.get_all_venue_health()
+                avg_score = (sum(v['health_score'] for v in venue_status.values()) / len(venue_status)) if venue_status else 0.0
                 return {
-                    'status': 'healthy',
+                    'status': 'healthy' if venue_status else 'warning',
                     'venues_monitored': len(venue_status),
-                    'average_health_score': sum(v['health_score'] for v in venue_status.values()) / len(venue_status)
+                    'average_health_score': avg_score
                 }
             elif department == 'BigBrainIntelligence':
                 # Dynamically count agents from BigBrainIntelligence directory
@@ -1129,25 +1130,24 @@ class AACMasterMonitoringDashboard:
         """Get security-related alerts"""
         alerts = []
 
-        # Check for security issues
         if SECURITY_AVAILABLE:
             try:
-                # Check for failed login attempts
-                failed_logins = self.security_framework['security_monitoring'].get_failed_login_attempts()
-                if failed_logins > 10:
+                sec_status = self.security_framework['security_monitoring'].get_security_status()
+
+                critical = sec_status.get('critical_events', 0)
+                if critical > 0:
                     alerts.append({
-                        'level': 'warning',
-                        'message': f"High failed login attempts: {failed_logins}",
+                        'level': 'critical',
+                        'message': f"Critical security events in last hour: {critical}",
                         'timestamp': datetime.now(),
                         'source': 'security'
                     })
 
-                # Check for suspicious API calls
-                suspicious_calls = self.security_framework['api_security'].get_suspicious_activity()
-                if suspicious_calls > 5:
+                active_alerts = sec_status.get('active_alerts', 0)
+                if active_alerts > 0:
                     alerts.append({
                         'level': 'warning',
-                        'message': f"Suspicious API activity: {suspicious_calls} calls",
+                        'message': f"Active security alerts: {active_alerts}",
                         'timestamp': datetime.now(),
                         'source': 'security'
                     })

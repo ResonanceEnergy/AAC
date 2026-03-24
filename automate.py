@@ -548,6 +548,43 @@ TASK_XML_TEMPLATE = r"""<?xml version="1.0" encoding="UTF-16"?>
   </Actions>
 </Task>"""
 
+STARTUP_TASK_NAME = "AAC_Startup_OnLogon"
+STARTUP_TASK_XML_TEMPLATE = r"""<?xml version="1.0" encoding="UTF-16"?>
+<Task version="1.4" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
+  <RegistrationInfo>
+    <Description>AAC Barren Wuffet — full system launch on Windows logon</Description>
+    <Author>AAC</Author>
+  </RegistrationInfo>
+  <Triggers>
+    <LogonTrigger>
+      <Enabled>true</Enabled>
+      <Delay>PT30S</Delay>
+    </LogonTrigger>
+  </Triggers>
+  <Principals>
+    <Principal id="Author">
+      <LogonType>InteractiveToken</LogonType>
+      <RunLevel>LeastPrivilege</RunLevel>
+    </Principal>
+  </Principals>
+  <Settings>
+    <MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>
+    <DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>
+    <StopIfGoingOnBatteries>false</StopIfGoingOnBatteries>
+    <AllowHardTerminate>true</AllowHardTerminate>
+    <StartWhenAvailable>true</StartWhenAvailable>
+    <RunOnlyIfNetworkAvailable>true</RunOnlyIfNetworkAvailable>
+    <ExecutionTimeLimit>PT0S</ExecutionTimeLimit>
+    <Priority>7</Priority>
+  </Settings>
+  <Actions Context="Author">
+    <Exec>
+      <Command>cmd.exe</Command>
+      <Arguments>/c "cd /d {project_root} &amp;&amp; {python_exe} launch.py full"</Arguments>
+    </Exec>
+  </Actions>
+</Task>"""
+
 ROCKET_TASK_NAME = "AAC_RocketShip_DailyBriefing"
 ROCKET_TASK_XML_TEMPLATE = r"""<?xml version="1.0" encoding="UTF-16"?>
 <Task version="1.4" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
@@ -623,6 +660,46 @@ def phase8b_rocket_schedule() -> bool:
     )
     if result.returncode == 0:
         _ok(f"Task '{ROCKET_TASK_NAME}' installed — runs daily at 07:00")
+    else:
+        _warn(f"Auto-install failed (may need admin): {result.stderr.strip()}")
+        _info("Run the schtasks command above as Administrator")
+
+    return True
+
+
+def phase8c_startup_schedule() -> bool:
+    """Create a Windows Task Scheduler logon-trigger job to launch AAC on startup."""
+    logger.info(_bold("\n[Phase 8c] AAC Startup-on-Logon Task Scheduler Setup"))
+    if platform.system() != "Windows":
+        _warn("Task Scheduler is Windows-only — create a cron @reboot entry manually")
+        return True
+
+    python_exe = str(PROJECT_ROOT / ".venv" / "Scripts" / "python.exe")
+    if not Path(python_exe).exists():
+        _fail(f"Python exe not found: {python_exe}")
+        return False
+
+    xml_content = STARTUP_TASK_XML_TEMPLATE.format(
+        python_exe=python_exe,
+        project_root=str(PROJECT_ROOT),
+    )
+
+    xml_path = PROJECT_ROOT / "aac_startup_task.xml"
+    with open(xml_path, "w", encoding="utf-16") as f:
+        f.write(xml_content)
+
+    _info(f"Task XML written to {xml_path}")
+    _info("To install (run as Administrator):")
+    _info(f'  schtasks /create /tn "{STARTUP_TASK_NAME}" /xml "{xml_path}" /f')
+    _info(f'To remove: schtasks /delete /tn "{STARTUP_TASK_NAME}" /f')
+    _info(f'To run now: schtasks /run /tn "{STARTUP_TASK_NAME}"')
+
+    result = subprocess.run(
+        ["schtasks", "/create", "/tn", STARTUP_TASK_NAME, "/xml", str(xml_path), "/f"],
+        capture_output=True, text=True,
+    )
+    if result.returncode == 0:
+        _ok(f"Task '{STARTUP_TASK_NAME}' installed — AAC launches on Windows logon (30s delay)")
     else:
         _warn(f"Auto-install failed (may need admin): {result.stderr.strip()}")
         _info("Run the schtasks command above as Administrator")
@@ -762,6 +839,7 @@ def main() -> int:
     parser.add_argument("--pipeline", action="store_true", help="Run paper pipeline after tests")
     parser.add_argument("--schedule", action="store_true", help="Install Windows Task Scheduler job")
     parser.add_argument("--rocket-schedule", action="store_true", help="Install Rocket Ship 7AM daily Task Scheduler job")
+    parser.add_argument("--startup-schedule", action="store_true", help="Install AAC logon-trigger startup Task Scheduler job")
     parser.add_argument("--go-live", action="store_true", help="Switch .env to live trading (DANGER)")
     parser.add_argument("--skip-tests", action="store_true", help="Skip pytest (faster iteration)")
     parser.add_argument("--crisis", action="store_true", help="Run Black Swan Crisis Center scan only")
@@ -825,6 +903,11 @@ def main() -> int:
         results["8b. Rocket Scheduler"] = phase8b_rocket_schedule()
     else:
         results["8b. Rocket Scheduler"] = "SKIPPED (use --rocket-schedule)"
+
+    if args.startup_schedule:
+        results["8c. Startup Scheduler"] = phase8c_startup_schedule()
+    else:
+        results["8c. Startup Scheduler"] = "SKIPPED (use --startup-schedule)"
 
     # Go Live
     if args.go_live:

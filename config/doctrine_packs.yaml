@@ -397,6 +397,31 @@ doctrine_packs:
         good: <1000
         warning: 1000-5000
         critical: '>5000'
+    - metric: partial_fill_model_effectiveness
+      thresholds:
+        good: '>0.7'
+        warning: 0.5-0.7
+        critical: <0.5
+    - metric: model_a_usage
+      thresholds:
+        good: '>-1'
+        warning: '-1--1'
+        critical: '<-1'
+    - metric: model_b_usage
+      thresholds:
+        good: '>-1'
+        warning: '-1--1'
+        critical: '<-1'
+    - metric: model_c_usage
+      thresholds:
+        good: '>-1'
+        warning: '-1--1'
+        critical: '<-1'
+    - metric: model_d_usage
+      thresholds:
+        good: '>-1'
+        warning: '-1--1'
+        critical: '<-1'
     failure_modes:
     - metric_drift
     - truth_conflict_stalemate
@@ -773,6 +798,21 @@ doctrine_packs:
         good: '>-1'
         warning: '-1--1'
         critical: '<-1'
+    - metric: cycle_phase
+      thresholds:
+        good: '>-1'
+        warning: '-1--1'
+        critical: '<-1'
+    - metric: vce_signal_active
+      thresholds:
+        good: '>-1'
+        warning: '-1--1'
+        critical: '<-1'
+    - metric: superstonk_ftd_alert_count
+      thresholds:
+        good: <5
+        warning: 5-10
+        critical: '>10'
     failure_modes:
     - stablecoin_systemic_depeg
     - cbdc_launch_disruption

@@ -291,6 +291,9 @@ class AACMasterLauncher:
             if self.status.agents and self.status.monitoring:
                 await self._connect_agents_to_monitoring()
 
+            # OpenClaw multi-channel messaging bridge
+            await self._launch_openclaw()
+
             # Establish communication frameworks
             await self._initialize_communication_frameworks()
 
@@ -331,6 +334,40 @@ class AACMasterLauncher:
                 logger.info("🤖 Agents ↔ Monitoring integration skipped (monitoring not running)")
         except Exception as e:
             logger.warning(f"🤖 Agents ↔ Monitoring wiring partial: {e}")
+
+    async def _launch_openclaw(self):
+        """Connect to OpenClaw Gateway for multi-channel messaging."""
+        try:
+            from integrations.openclaw_gateway_bridge import (
+                OpenClawGatewayBridge, OpenClawCronJob,
+            )
+            import os as _os
+            gateway_url = _os.getenv("OPENCLAW_GATEWAY_URL", "ws://127.0.0.1:18789")
+            self._openclaw = OpenClawGatewayBridge(gateway_url=gateway_url)
+            connected = await self._openclaw.connect()
+            if connected:
+                logger.info(f"🦞 OpenClaw Gateway LIVE at {gateway_url}")
+                # Register daily cron jobs
+                morning = OpenClawCronJob(
+                    job_id="morning_briefing",
+                    name="Morning Market Briefing",
+                    schedule="0 7 * * *",
+                    message="Generate morning market briefing with overnight analysis",
+                    session_key="main",
+                )
+                evening = OpenClawCronJob(
+                    job_id="evening_recap",
+                    name="Evening Performance Recap",
+                    schedule="0 18 * * *",
+                    message="Generate evening performance recap and P&L summary",
+                    session_key="main",
+                )
+                await self._openclaw.register_cron_job(morning)
+                await self._openclaw.register_cron_job(evening)
+            else:
+                logger.warning("🦞 OpenClaw Gateway connect() returned False")
+        except Exception as e:
+            logger.warning(f"🦞 OpenClaw init failed (non-critical): {e}")
 
     async def _initialize_communication_frameworks(self):
         """Initialize cross-system communication"""

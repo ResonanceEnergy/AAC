@@ -370,9 +370,8 @@ def _mode_api(port: int = 8000) -> int:
     return _run([
         _python(), "-m", "uvicorn",
         "core.api:app",
-        "--host", "0.0.0.0",
+        "--host", "127.0.0.1",
         "--port", str(port),
-        "--reload",
     ])
 
 

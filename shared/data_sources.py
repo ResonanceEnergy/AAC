@@ -119,13 +119,23 @@ class CoinGeckoClient(BaseDataSource):
         self.session: Optional[aiohttp.ClientSession] = None  # set in connect()
         self._api_key = self.config.coingecko_key
         self._is_pro = bool(self._api_key)
+        self._pro_failed = False  # tracks if Pro key returned 403
         self.BASE_URL = self.PRO_URL if self._is_pro else self.FREE_URL
         # Pro: 500 req/min, Free: ~10 req/min
         self._rate_limit_delay = 0.15 if self._is_pro else 1.5
 
+    def _downgrade_to_free(self) -> None:
+        """Downgrade from Pro to Free tier (expired key / 403)."""
+        if not self._pro_failed:
+            self._pro_failed = True
+            self._is_pro = False
+            self.BASE_URL = self.FREE_URL
+            self._rate_limit_delay = 1.5
+            self.logger.warning("CoinGecko Pro key returned 403 — downgrading to Free tier")
+
     def _get_headers(self) -> Dict[str, str]:
         """Get auth headers — Pro API uses x-cg-pro-api-key"""
-        if self._is_pro:
+        if self._is_pro and not self._pro_failed:
             return {'x-cg-pro-api-key': self._api_key}
         return {}
 
@@ -141,6 +151,20 @@ class CoinGeckoClient(BaseDataSource):
         self.session = aiohttp.ClientSession(connector=connector, headers=self._get_headers())
         self.is_connected = True
         self.logger.info(f"CoinGecko client connected ({self.tier_name} tier)")
+        # Probe Pro key on first connect — downgrade early if expired
+        if self._is_pro and not self._pro_failed:
+            try:
+                async with self.session.get(
+                    f"{self.PRO_URL}/ping", timeout=aiohttp.ClientTimeout(total=8)
+                ) as resp:
+                    if resp.status == 403:
+                        self._downgrade_to_free()
+                        # Reconnect session without Pro headers
+                        await self.session.close()
+                        connector = aiohttp.TCPConnector(resolver=aiohttp.resolver.ThreadedResolver())
+                        self.session = aiohttp.ClientSession(connector=connector)
+            except Exception:
+                pass  # network error on probe — keep trying Pro
 
     async def disconnect(self):
         """Disconnect."""
@@ -179,6 +203,10 @@ class CoinGeckoClient(BaseDataSource):
                     await self._notify(tick)
                     await asyncio.sleep(self._rate_limit_delay)
                     return tick
+            elif resp.status == 403 and self._is_pro:
+                # Pro key expired/revoked — downgrade and retry via Free tier
+                self._downgrade_to_free()
+                raise aiohttp.ClientError("CoinGecko Pro 403 — retrying on Free tier")
             elif resp.status == 429:
                 # Rate limited - raise to trigger retry
                 raise aiohttp.ClientError("Rate limited by CoinGecko")

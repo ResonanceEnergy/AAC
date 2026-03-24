@@ -62,8 +62,8 @@ class TestCoreConstants:
                 assert a in vols, f"Missing vol for {a.value} in {regime.value}"
                 assert vols[a] > 0
 
-    def test_20_scenarios_defined(self):
-        assert len(SCENARIOS) == 20
+    def test_43_scenarios_defined(self):
+        assert len(SCENARIOS) == 43
 
     def test_scenario_codes_unique(self):
         codes = [s.code for s in SCENARIOS]
@@ -236,7 +236,7 @@ class TestScenarioEngine:
     def test_risk_heatmap_sorted_by_risk_score(self):
         engine = ScenarioEngine()
         heatmap = engine.get_risk_heatmap()
-        assert len(heatmap) == 20
+        assert len(heatmap) == 43
         scores = [h["risk_score"] for h in heatmap]
         assert scores == sorted(scores, reverse=True)
 

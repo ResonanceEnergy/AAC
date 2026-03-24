@@ -829,8 +829,9 @@ class TestIntegration:
         from TradingExecution.execution_engine import ExecutionEngine, OrderSide
         
         engine = ExecutionEngine()
-        # Must disable dry_run for paper trading to actually fill orders
+        # Must disable dry_run and enable paper trading to simulate fills
         engine.dry_run = False
+        engine.paper_trading = True
         
         # Open position (entry price will have slippage applied in paper trading)
         requested_price = 2500.0
@@ -877,6 +878,7 @@ class TestIntegration:
         
         engine = ExecutionEngine()
         engine.dry_run = False
+        engine.paper_trading = True
         risk_manager = RiskManager()
         
         # Create a signal

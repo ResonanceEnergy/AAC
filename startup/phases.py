@@ -7,6 +7,8 @@ Provides the ``full_startup()`` function that runs the complete boot:
   Phase 3: Health endpoint
   Phase 4: Paper trading engine
   Phase 5: Matrix Monitor dashboard
+  Phase 6: OpenClaw Gateway
+  Phase 7: Options Intelligence Pre-Market Scanner
 
 Each phase can also be invoked individually.
 """
@@ -110,6 +112,70 @@ def _start_matrix_background(display: str = "web", port: int = 8501) -> None:
     launch(display=display, port=port)
 
 
+# ── Phase 6: OpenClaw Gateway ──────────────────────────────────────────────
+
+
+def phase_openclaw() -> bool:
+    """Connect to OpenClaw Gateway for multi-channel messaging. Non-blocking."""
+    logger.info("  ═══════════════════════════════════════")
+    logger.info("  Phase 6: OpenClaw Gateway")
+    logger.info("  ═══════════════════════════════════════")
+    try:
+        import asyncio
+        from integrations.openclaw_gateway_bridge import (
+            OpenClawGatewayBridge, OpenClawCronJob,
+        )
+        gateway_url = os.environ.get("OPENCLAW_GATEWAY_URL", "ws://127.0.0.1:18789")
+        bridge = OpenClawGatewayBridge(gateway_url=gateway_url)
+        connected = asyncio.run(bridge.connect())
+        if connected:
+            logger.info(f"  [+] OpenClaw Gateway LIVE at {gateway_url}")
+            return True
+        else:
+            logger.warning("  [!] OpenClaw Gateway connect() returned False")
+            return False
+    except Exception as e:
+        logger.warning(f"  [!] OpenClaw init failed (non-critical): {e}")
+        return False
+
+
+# ── Phase 7: Options Intelligence Pre-Market Scanner ──────────────────────
+
+_premarket_scanner = None  # Module-level ref for health checks
+
+
+def phase_premarket_scanner() -> bool:
+    """Start the Options Intelligence pre-market scanner (9:15 AM ET Mon-Fri)."""
+    global _premarket_scanner
+    logger.info("  ═══════════════════════════════════════")
+    logger.info("  Phase 7: Options Intelligence Pre-Market Scanner")
+    logger.info("  ═══════════════════════════════════════")
+    try:
+        from strategies.options_intelligence.premarket_scanner import PreMarketScanner
+
+        paper = os.environ.get("LIVE_TRADING_ENABLED", "false").lower() != "true"
+        dry_run = os.environ.get("DRY_RUN", "true").lower() == "true"
+
+        scanner = PreMarketScanner(paper=paper, dry_run=dry_run)
+        scanner.start()
+        _premarket_scanner = scanner
+        logger.info(
+            "  [+] Pre-Market Scanner ACTIVE (paper=%s, dry_run=%s)",
+            paper, dry_run,
+        )
+        return True
+    except Exception as e:
+        logger.error("  [!] Pre-Market Scanner failed: %s", e)
+        return False
+
+
+def get_premarket_scanner_health() -> dict:
+    """Get pre-market scanner health for the health endpoint."""
+    if _premarket_scanner is None:
+        return {"component": "premarket_scanner", "running": False, "status": "not_started"}
+    return _premarket_scanner.health_check()
+
+
 # ── Full Startup Sequence ─────────────────────────────────────────────────
 
 
@@ -143,6 +209,14 @@ def full_startup(
 
     # Phase 2
     phase_gateways()
+    logger.info("")
+
+    # Phase 6: OpenClaw Gateway (non-critical)
+    phase_openclaw()
+    logger.info("")
+
+    # Phase 7: Options Intelligence Pre-Market Scanner (non-critical)
+    phase_premarket_scanner()
     logger.info("")
 
     # Phase 5 (before 4 so dashboard is ready while engine runs)
