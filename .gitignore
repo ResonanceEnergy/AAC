@@ -241,3 +241,14 @@ NCC/
 # WINDOWS BATCH FILES
 # ===========================================
 *.bat
+
+# Debug/test output (orphaned 2026-03-24)
+_launch_out.txt
+analysis_out.txt
+external_deps.txt
+gap_scan_v2_results.txt
+ndax_scan.txt
+scripts/_admin_fix_log.txt
+test_phase0.txt
+test_results.txt
+val_out.txt
