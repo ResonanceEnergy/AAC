@@ -42,10 +42,17 @@ Unix / macOS
 
 from __future__ import annotations
 
-import argparse
 import os
-import subprocess
 import sys
+
+# pythonw.exe sets sys.stdout/stderr to None — redirect to devnull before ANY I/O
+if sys.stdout is None:
+    sys.stdout = open(os.devnull, "w")  # noqa: SIM115
+if sys.stderr is None:
+    sys.stderr = open(os.devnull, "w")  # noqa: SIM115
+
+import argparse
+import subprocess
 from pathlib import Path
 import logging
 
@@ -88,6 +95,7 @@ MODES = [
     "test",
     "health",
     "git-sync",
+    "integrate",
 ]
 
 BANNER = r"""
@@ -113,6 +121,7 @@ MODE_DESCRIPTIONS = {
     "test":      "Run pytest suite",
     "health":    "Health check",
     "git-sync":  "Git add/commit/push, then launch dashboard",
+    "integrate": "Run Unified Component Integrator — wire all 550+ components",
 }
 
 
@@ -389,6 +398,30 @@ def _mode_deploy() -> int:
     return _run([_python(), str(deploy_script)])
 
 
+def _mode_integrate() -> int:
+    """Run the Unified Component Integrator to wire all components."""
+    logger.info(str(_cyan("  ════════════════════════════════════════")))
+    logger.info(str(_cyan("  Unified Component Integrator")))
+    logger.info(str(_cyan("  ════════════════════════════════════════")))
+    logger.info("")
+    try:
+        import asyncio
+        from core.unified_component_integrator import get_unified_integrator
+        integrator = get_unified_integrator(paper_mode=True)
+        status = asyncio.run(integrator.integrate_all())
+        logger.info("")
+        logger.info(str(_green(f"  [+] Components wired: {status.components_wired}")))
+        if status.components_failed:
+            logger.info(str(_red(f"  [!] Components failed: {status.components_failed}")))
+        if status.errors:
+            for err in status.errors:
+                logger.info(str(_red(f"  [!] {err}")))
+        return 0 if not status.errors else 1
+    except Exception as e:
+        logger.info(str(_red(f"  [X] Integration failed: {e}")))
+        return 1
+
+
 # ── Dispatch ────────────────────────────────────────────────────────────────
 
 MODE_DISPATCH = {
@@ -406,6 +439,7 @@ MODE_DISPATCH = {
     "test":      _mode_test,
     "health":    _mode_health,
     "git-sync":  _mode_git_sync,
+    "integrate": _mode_integrate,
 }
 
 
