@@ -1030,3 +1030,174 @@ def get_strategic_doctrine_engine() -> StrategicDoctrineEngine:
     if _strategic_engine is None:
         _strategic_engine = StrategicDoctrineEngine()
     return _strategic_engine
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# STRATEGY-AWARE DOCTRINE ENGINE
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+@dataclass
+class StrategyDirective:
+    """Per-strategy directive issued by the doctrine engine."""
+    strategy_name: str
+    allowed: bool = True
+    position_size_pct: float = 1.0     # fraction of normal allocation
+    bias: str = "neutral"              # "aggressive" | "defensive" | "neutral"
+    max_positions: int = 10
+    notes: str = ""
+
+
+class StrategyAwareDoctrine:
+    """
+    Doctrine engine that synthesises:
+    1. All 7 active strategy signals (War Room, Lifeboat, etc.)
+    2. Manual input from owner (override commands)
+    3. Market regime from MarketIntelligenceModel
+    4. NCL BRAIN intelligence (relayed back)
+
+    Output: Dynamic position sizing, sector allocation, risk posture
+    per strategy -- NOT just a single multiplier.
+    """
+
+    STRATEGY_DOCTRINE_MAP: Dict[str, Dict[str, str]] = {
+        "war_room": {"regime": "crisis", "bias": "defensive"},
+        "storm_lifeboat": {"regime": "lunar", "bias": "cyclical"},
+        "capital_engine": {"regime": "commodity", "bias": "rotation"},
+        "matrix_maximizer": {"regime": "options", "bias": "premium"},
+        "exploitation_matrix": {"regime": "blackswan", "bias": "conviction"},
+        "polymarket": {"regime": "event", "bias": "probability"},
+        "blackswan_authority": {"regime": "expert", "bias": "consensus"},
+    }
+
+    def __init__(self):
+        self._base_engine = get_strategic_doctrine_engine()
+        self._manual_overrides: Dict[str, Any] = {}
+        self._ncl_intel: Dict[str, Any] = {}
+        self._last_regime: str = "normal"
+
+    def set_manual_override(self, strategy_name: str, override: Dict[str, Any]) -> None:
+        """Owner manual override for a specific strategy."""
+        self._manual_overrides[strategy_name] = override
+        logger.info("Manual override set for %s: %s", strategy_name, override)
+
+    def clear_manual_override(self, strategy_name: str) -> None:
+        """Remove manual override."""
+        self._manual_overrides.pop(strategy_name, None)
+
+    def update_ncl_intel(self, intel: Dict[str, Any]) -> None:
+        """Receive intelligence from NCL BRAIN."""
+        self._ncl_intel = intel
+
+    def update_regime(self, regime: str) -> None:
+        """Update market regime from MarketIntelligenceModel."""
+        self._last_regime = regime
+
+    def generate_composite_directive(
+        self,
+        strategy_signals: Dict[str, Dict[str, Any]],
+    ) -> Dict[str, StrategyDirective]:
+        """
+        Synthesise all inputs into per-strategy directives.
+
+        Args:
+            strategy_signals: {strategy_key: {signal_data}} from each active strategy
+
+        Returns:
+            {strategy_key: StrategyDirective} with per-strategy sizing/bias/limits
+        """
+        directives: Dict[str, StrategyDirective] = {}
+
+        for strat_key, doc_map in self.STRATEGY_DOCTRINE_MAP.items():
+            signal = strategy_signals.get(strat_key, {})
+            manual = self._manual_overrides.get(strat_key, {})
+
+            # Start with defaults
+            directive = StrategyDirective(strategy_name=strat_key)
+
+            # --- Regime alignment ---
+            expected_regime = doc_map["regime"]
+            regime_match = self._regime_alignment(expected_regime, self._last_regime)
+            directive.position_size_pct = regime_match
+
+            # --- Strategy-specific bias ---
+            doc_bias = doc_map["bias"]
+            if doc_bias == "defensive" and self._last_regime in ("crisis", "crash"):
+                directive.position_size_pct = min(1.5, directive.position_size_pct * 1.3)
+                directive.bias = "aggressive"
+                directive.notes = "Crisis regime favours defensive strategies"
+            elif doc_bias == "premium" and self._last_regime in ("normal", "bull"):
+                directive.position_size_pct *= 1.2
+                directive.bias = "aggressive"
+            else:
+                directive.bias = "neutral"
+
+            # --- NCL Intelligence adjustment ---
+            ncl_caution = self._ncl_intel.get("caution_level", 0)
+            if ncl_caution > 0.7:
+                directive.position_size_pct *= 0.5
+                directive.max_positions = 3
+                directive.notes += " | NCL BRAIN: HIGH CAUTION"
+            elif ncl_caution > 0.4:
+                directive.position_size_pct *= 0.8
+                directive.max_positions = 7
+
+            # --- Signal strength from strategy itself ---
+            sig_confidence = signal.get("confidence", 0.5)
+            directive.position_size_pct *= (0.5 + sig_confidence * 0.5)
+
+            # --- Manual override (final authority) ---
+            if manual:
+                if "allowed" in manual:
+                    directive.allowed = bool(manual["allowed"])
+                if "position_size_pct" in manual:
+                    directive.position_size_pct = float(manual["position_size_pct"])
+                if "bias" in manual:
+                    directive.bias = str(manual["bias"])
+                if "max_positions" in manual:
+                    directive.max_positions = int(manual["max_positions"])
+                directive.notes += " | MANUAL OVERRIDE ACTIVE"
+
+            # Clamp
+            directive.position_size_pct = round(max(0.0, min(2.0, directive.position_size_pct)), 3)
+            directives[strat_key] = directive
+
+        return directives
+
+    def _regime_alignment(self, expected: str, current: str) -> float:
+        """
+        Score how well the current regime aligns with a strategy's expected regime.
+        Returns 0.3 (poor) to 1.5 (perfect match).
+        """
+        alignment_matrix: Dict[str, Dict[str, float]] = {
+            "crisis":    {"crisis": 1.5, "crash": 1.3, "bear": 1.0, "normal": 0.5, "bull": 0.3},
+            "lunar":     {"crisis": 0.8, "crash": 0.6, "bear": 0.8, "normal": 1.0, "bull": 1.0},
+            "commodity": {"crisis": 1.2, "crash": 0.8, "bear": 0.9, "normal": 1.0, "bull": 0.7},
+            "options":   {"crisis": 1.3, "crash": 1.5, "bear": 1.2, "normal": 1.0, "bull": 0.8},
+            "blackswan": {"crisis": 1.5, "crash": 1.5, "bear": 1.0, "normal": 0.4, "bull": 0.3},
+            "event":     {"crisis": 1.0, "crash": 1.0, "bear": 0.8, "normal": 0.8, "bull": 0.8},
+            "expert":    {"crisis": 1.2, "crash": 1.0, "bear": 0.9, "normal": 0.7, "bull": 0.6},
+        }
+        row = alignment_matrix.get(expected, {})
+        return row.get(current, 0.7)
+
+    def get_doctrine_state(self) -> Dict[str, Any]:
+        """Return current doctrine state for display/relay."""
+        return {
+            "regime": self._last_regime,
+            "manual_overrides": list(self._manual_overrides.keys()),
+            "ncl_caution": self._ncl_intel.get("caution_level", 0),
+            "strategy_count": len(self.STRATEGY_DOCTRINE_MAP),
+        }
+
+
+# Module-level accessor
+_strategy_aware_doctrine: Optional[StrategyAwareDoctrine] = None
+
+
+def get_strategy_aware_doctrine() -> StrategyAwareDoctrine:
+    """Get or create the singleton StrategyAwareDoctrine."""
+    global _strategy_aware_doctrine
+    if _strategy_aware_doctrine is None:
+        _strategy_aware_doctrine = StrategyAwareDoctrine()
+    return _strategy_aware_doctrine

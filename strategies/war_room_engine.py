@@ -2082,3 +2082,26 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+
+# ============================================================================
+# PART 12: Integration wrapper for unified_component_integrator
+# ============================================================================
+
+class WarRoomEngine:
+    """Thin wrapper exposing War Room Engine to the orchestrator/integrator."""
+
+    def __init__(self):
+        self.indicators = IndicatorState()
+
+    def get_mandate(self) -> DailyMandate:
+        return generate_mandate(indicators=self.indicators)
+
+    def get_phase(self) -> str:
+        return get_current_phase()
+
+    def get_portfolio_value(self) -> float:
+        return get_portfolio_value_usd()
+
+    def render(self) -> str:
+        return render_dashboard()

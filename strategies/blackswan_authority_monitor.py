@@ -855,3 +855,21 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+class BlackSwanAuthorityEngine:
+    """Thin wrapper exposing Authority Monitor to the orchestrator/integrator."""
+
+    def __init__(self, youtube_days: int = 90, news_days: int = 30):
+        self.youtube_days = youtube_days
+        self.news_days = news_days
+
+    def scan(self, save: bool = False):
+        return run_full_scan(
+            youtube_days=self.youtube_days,
+            news_days=self.news_days,
+            save=save,
+        )
+
+    def get_consensus(self):
+        return get_authority_consensus()
