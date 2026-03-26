@@ -30,6 +30,7 @@ exchanges:
   moomoo:
     host: 127.0.0.1
     port: 11111
+    enabled: true
   ndax:
     enabled: true
 

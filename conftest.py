@@ -27,8 +27,11 @@ for path in PACKAGE_ROOTS:
 # ── Environment ────────────────────────────────────────────────────────────────
 # Load .env if present so tests that touch real APIs can pick up keys.
 # Missing .env is fine — integration tests will be skipped via pytest marks.
-from dotenv import load_dotenv  # python-dotenv is in requirements.txt
-load_dotenv(PROJECT_ROOT / ".env", override=False)
+try:
+    from dotenv import load_dotenv
+    load_dotenv(PROJECT_ROOT / ".env", override=False)
+except ImportError:
+    pass  # python-dotenv not installed — tests use system environment
 
 # Set defaults for tests so nothing crashes on missing secrets
 os.environ.setdefault("AAC_ENV", "test")

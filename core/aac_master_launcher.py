@@ -297,10 +297,28 @@ class AACMasterLauncher:
             # Establish communication frameworks
             await self._initialize_communication_frameworks()
 
+            # ── Unified Component Integrator ──────────────────────
+            # Wires ALL remaining components: bridges, cross-pillar hub,
+            # strategy pipeline, API hub, NCC systems, doctrine feedback
+            await self._launch_unified_integrator()
+
             logger.info("✅ System integration established")
 
         except Exception as e:
             logger.warning(f"⚠️  System integration partial failure: {e}")
+
+    async def _launch_unified_integrator(self):
+        """Launch the Unified Component Integrator to wire ALL remaining systems."""
+        try:
+            from core.unified_component_integrator import get_unified_integrator
+            integrator = get_unified_integrator(paper_mode=(self.mode == 'paper'))
+            result = await integrator.integrate_all()
+            self.status.infrastructure = True
+            self.components['unified_integrator'] = integrator
+            logger.info(f"✅ Unified Component Integrator: {result.components_wired} wired, "
+                        f"{result.components_failed} failed ({result.success_rate:.0f}%%)")
+        except Exception as e:
+            logger.warning(f"⚠️  Unified Component Integrator: {e}")
 
     async def _connect_doctrine_to_trading(self):
         """Connect doctrine compliance to trading systems"""

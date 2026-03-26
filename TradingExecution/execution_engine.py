@@ -298,10 +298,7 @@ class ExecutionEngine:
         """Get exchange connector"""
         if exchange not in self._connectors:
             # Import and instantiate connector
-            if exchange == "binance":
-                from TradingExecution.exchange_connectors.binance_connector import BinanceConnector
-                self._connectors[exchange] = BinanceConnector()
-            elif exchange == "coinbase":
+            if exchange == "coinbase":
                 from TradingExecution.exchange_connectors.coinbase_connector import CoinbaseConnector
                 self._connectors[exchange] = CoinbaseConnector()
             elif exchange == "kraken":
@@ -313,7 +310,7 @@ class ExecutionEngine:
             elif exchange == "moomoo":
                 from TradingExecution.exchange_connectors.moomoo_connector import MoomooConnector
                 self._connectors[exchange] = MoomooConnector(
-                    paper=getattr(self.config, 'moomoo_paper', True),
+                    paper=getattr(self.config, 'moomoo_paper', False),
                 )
             elif exchange == "noxi_rise":
                 from TradingExecution.exchange_connectors.noxi_rise_connector import NoxiRiseConnector
@@ -399,7 +396,7 @@ class ExecutionEngine:
         side: OrderSide,
         order_type: OrderType,
         quantity: float,
-        exchange: str = "binance",
+        exchange: str = "ibkr",
         price: Optional[float] = None,
         stop_price: Optional[float] = None,
         metadata: Optional[Dict] = None,
@@ -619,7 +616,7 @@ class ExecutionEngine:
         side: OrderSide,
         quantity: float,
         entry_price: float,
-        exchange: str = "binance",
+        exchange: str = "ibkr",
         stop_loss: Optional[float] = None,
         take_profit: Optional[float] = None,
     ) -> Optional[Position]:
@@ -907,7 +904,7 @@ class ExecutionEngine:
                     side=OrderSide(row["side"]),
                     quantity=row["quantity"],
                     entry_price=row["entry_price"],
-                    exchange=row.get("exchange", "binance"),
+                    exchange=row.get("exchange", "ibkr"),
                     stop_loss=row.get("stop_loss"),
                     take_profit=row.get("take_profit"),
                 )
@@ -1860,7 +1857,7 @@ class AAC2100ExecutionEngine(ExecutionEngine):
         exchanges: List[str] = None
     ) -> Dict[str, Any]:
         """Standard venue routing fallback"""
-        exchanges = exchanges or ["binance", "coinbase", "kraken"]
+        exchanges = exchanges or ["ndax", "ibkr", "moomoo"]
 
         # Simple liquidity-based routing
         best_venue = exchanges[0]  # Default to first
@@ -1952,7 +1949,7 @@ class AAC2100ExecutionEngine(ExecutionEngine):
         side: OrderSide,
         order_type: OrderType,
         quantity: float,
-        exchange: str = "binance",
+        exchange: str = "ibkr",
         price: Optional[float] = None,
         stop_price: Optional[float] = None,
         metadata: Optional[Dict] = None,
@@ -2088,7 +2085,7 @@ if __name__ == "__main__":
             side=OrderSide.BUY,
             quantity=0.001,
             entry_price=45000.0,
-            exchange="binance",
+            exchange="ndax",
         )
         
         if position:

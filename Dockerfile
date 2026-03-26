@@ -36,7 +36,7 @@ RUN useradd -m -r aac && chown -R aac:aac /app
 USER aac
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=10s --retries=5 --start-period=10s \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')" || exit 1
 
 EXPOSE 8080

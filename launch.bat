@@ -11,16 +11,6 @@
 :: ═══════════════════════════════════════════════════════════════
 cd /d "%~dp0"
 
-:: Handle "automate" mode directly (bypass launch.py)
-if /I "%~1"=="automate" (
-    if exist ".venv\Scripts\python.exe" (
-        .venv\Scripts\python.exe automate.py %2 %3 %4 %5 %6
-    ) else (
-        python automate.py %2 %3 %4 %5 %6
-    )
-    goto :eof
-)
-
 :: Prefer .venv Python if it exists
 if exist ".venv\Scripts\python.exe" (
     .venv\Scripts\python.exe launch.py %*

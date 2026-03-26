@@ -42,7 +42,7 @@ class ModePreset:
     stop_loss_pct: float = 5.0
     take_profit_pct: float = 10.0
     cooldown_minutes: int = 5
-    allowed_venues: List[str] = field(default_factory=lambda: ["binance", "kraken"])
+    allowed_venues: List[str] = field(default_factory=lambda: ["ndax", "kraken"])
     allowed_pairs: List[str] = field(default_factory=lambda: ["BTC/USDT", "ETH/USDT"])
     custom_params: Dict[str, Any] = field(default_factory=dict)
 
@@ -163,7 +163,7 @@ PRESETS: Dict[TradingMode, ModePreset] = {
         stop_loss_pct=0.5,
         take_profit_pct=0.3,
         cooldown_minutes=0,
-        allowed_venues=["binance", "kraken", "coinbase", "bybit"],
+        allowed_venues=["ndax", "kraken", "coinbase", "bybit"],
         custom_params={
             "min_spread_pct": 0.15,
             "max_execution_time_ms": 2000,

@@ -21,6 +21,7 @@ SDK:  https://github.com/Polymarket/py-clob-client
 """
 
 import asyncio
+import json
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
@@ -101,13 +102,22 @@ class PolymarketMarket:
         """From api."""
         tokens = data.get("clobTokenIds", "") or data.get("tokens", "")
         yes_id, no_id = "", ""
-        if isinstance(tokens, list) and len(tokens) >= 2:
+        if isinstance(tokens, str) and tokens:
+            # API often returns JSON array string: '["token1","token2"]'
+            try:
+                parsed = json.loads(tokens)
+                if isinstance(parsed, list) and len(parsed) >= 2:
+                    yes_id, no_id = str(parsed[0]), str(parsed[1])
+                elif isinstance(parsed, list) and len(parsed) == 1:
+                    yes_id = str(parsed[0])
+            except (json.JSONDecodeError, TypeError):
+                parts = tokens.split(",")
+                if len(parts) >= 2:
+                    yes_id = parts[0].strip().strip('["')
+                    no_id = parts[1].strip().strip('"]')
+        elif isinstance(tokens, list) and len(tokens) >= 2:
             yes_id = str(tokens[0]) if isinstance(tokens[0], str) else str(tokens[0].get("token_id", ""))
             no_id = str(tokens[1]) if isinstance(tokens[1], str) else str(tokens[1].get("token_id", ""))
-        elif isinstance(tokens, str) and tokens:
-            parts = tokens.split(",")
-            if len(parts) >= 2:
-                yes_id, no_id = parts[0].strip(), parts[1].strip()
 
         raw_prices = data.get("outcomePrices", "0.5,0.5")
         yes_price = 0.5
@@ -385,17 +395,48 @@ class PolymarketAgent:
 
         try:
             from py_clob_client.client import ClobClient
-            self._clob_client = ClobClient(
-                CLOB_API,
-                key=private_key,
-                chain_id=self.config.polymarket_chain_id,
-                signature_type=0,  # EOA default
-                funder=self.config.polymarket_funder or None,
-            )
-            self._clob_client.set_api_creds(
-                self._clob_client.create_or_derive_api_creds()
-            )
-            logger.info("Polymarket CLOB trading client initialized")
+
+            sig_type = getattr(self.config, 'polymarket_signature_type', 2)
+            # Funder only applies to POLY_PROXY (1) and GNOSIS_SAFE (2)
+            funder = self.config.polymarket_funder or None
+            if sig_type == 0:
+                funder = None
+
+            # Check for pre-derived L2 API credentials
+            api_key = getattr(self.config, 'polymarket_api_key', '')
+            api_secret = getattr(self.config, 'polymarket_api_secret', '')
+            api_passphrase = getattr(self.config, 'polymarket_api_passphrase', '')
+
+            if api_key and api_secret and api_passphrase:
+                # Use pre-derived L2 creds (skip L1 derive call)
+                from py_clob_client.clob_types import ApiCreds
+                creds = ApiCreds(
+                    api_key=api_key,
+                    api_secret=api_secret,
+                    api_passphrase=api_passphrase,
+                )
+                self._clob_client = ClobClient(
+                    CLOB_API,
+                    key=private_key,
+                    chain_id=self.config.polymarket_chain_id,
+                    signature_type=sig_type,
+                    funder=funder,
+                    creds=creds,
+                )
+                logger.info("Polymarket CLOB trading client initialized (L2 pre-derived creds)")
+            else:
+                # Derive L2 creds from L1 private key
+                self._clob_client = ClobClient(
+                    CLOB_API,
+                    key=private_key,
+                    chain_id=self.config.polymarket_chain_id,
+                    signature_type=sig_type,
+                    funder=funder,
+                )
+                self._clob_client.set_api_creds(
+                    self._clob_client.create_or_derive_api_creds()
+                )
+                logger.info("Polymarket CLOB trading client initialized (L1 derived creds)")
         except ImportError:
             logger.warning(
                 "py-clob-client not installed. "
@@ -405,7 +446,9 @@ class PolymarketAgent:
             logger.error(f"Failed to initialize CLOB trading client: {e}")
 
     def place_limit_order(self, token_id: str, price: float, size: float,
-                          side: str = "BUY") -> Optional[Dict[str, Any]]:
+                          side: str = "BUY",
+                          tick_size: str = "0.01",
+                          neg_risk: bool = False) -> Optional[Dict[str, Any]]:
         """Place a limit order on Polymarket (requires SDK + funded wallet)."""
         self._init_clob_trading_client()
         if self._clob_client is None:
@@ -413,7 +456,9 @@ class PolymarketAgent:
             return None
 
         try:
-            from py_clob_client.clob_types import OrderArgs, OrderType
+            from py_clob_client.clob_types import (
+                OrderArgs, OrderType, PartialCreateOrderOptions,
+            )
             from py_clob_client.order_builder.constants import BUY, SELL
 
             order_side = BUY if side.upper() == "BUY" else SELL
@@ -423,7 +468,11 @@ class PolymarketAgent:
                 size=size,
                 side=order_side,
             )
-            signed = self._clob_client.create_order(order)
+            options = PartialCreateOrderOptions(
+                tick_size=tick_size,
+                neg_risk=neg_risk,
+            )
+            signed = self._clob_client.create_order(order, options)
             result = self._clob_client.post_order(signed, OrderType.GTC)
             logger.info(f"Order placed: {side} {size}@{price} on {token_id[:16]}...")
             return result

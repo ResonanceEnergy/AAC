@@ -175,14 +175,14 @@ class IBKRConfig:
 
 @dataclass
 class MoomooConfig:
-    """Configuration for Moomoo/Futu (gateway-based, similar to IBKR)"""
+    """Configuration for Moomoo/Futu (gateway-based, similar to IBKR) — Tier 1"""
     host: str = '127.0.0.1'
     port: int = 11111
-    trade_env: str = 'SIMULATE'  # SIMULATE or REAL
+    trade_env: str = 'REAL'      # SIMULATE or REAL
     market: str = 'US'           # US, HK, CN, SG, AU, JP, CA
-    security_firm: str = 'FUTUINC'
+    security_firm: str = 'FUTUCA'
     trade_password: str = field(default='', repr=False)
-    enabled: bool = False
+    enabled: bool = True
 
     def is_configured(self) -> bool:
         """Is configured."""
@@ -292,7 +292,7 @@ class Config:
     ndax_account_id: str = ''
     
     # Moomoo-specific
-    moomoo_paper: bool = True
+    moomoo_paper: bool = False
     
     # MT5 / Noxi Rise
     mt5_path: str = ''
@@ -378,6 +378,10 @@ class Config:
     polymarket_private_key: str = field(default='', repr=False)
     polymarket_funder: str = ''
     polymarket_chain_id: int = 137  # Polygon
+    polymarket_api_key: str = field(default='', repr=False)
+    polymarket_api_secret: str = field(default='', repr=False)
+    polymarket_api_passphrase: str = field(default='', repr=False)
+    polymarket_signature_type: int = 2  # 0=EOA, 1=POLY_PROXY, 2=GNOSIS_SAFE
     
     # Dashboard
     # DEV-ONLY defaults — overridden by from_env() in production
@@ -440,11 +444,11 @@ class Config:
             moomoo=MoomooConfig(
                 host=get_env('MOOMOO_HOST', '127.0.0.1'),
                 port=get_env_int('MOOMOO_PORT', 11111),
-                trade_env=get_env('MOOMOO_TRADE_ENV', 'SIMULATE'),
+                trade_env=get_env('MOOMOO_TRADE_ENV', 'REAL'),
                 market=get_env('MOOMOO_MARKET', 'US'),
-                security_firm=get_env('MOOMOO_SECURITY_FIRM', 'FUTUINC'),
+                security_firm=get_env('MOOMOO_SECURITY_FIRM', 'FUTUCA'),
                 trade_password=get_env('MOOMOO_TRADE_PASSWORD'),
-                enabled=get_env_bool('MOOMOO_ENABLED', False),
+                enabled=get_env_bool('MOOMOO_ENABLED', True),
             ),
             
             # NDAX (Canadian crypto exchange)
@@ -457,7 +461,7 @@ class Config:
             ndax_user_id=get_env('NDAX_USER_ID'),
             ndax_account_id=get_env('NDAX_ACCOUNT_ID'),
             
-            moomoo_paper=get_env_bool('MOOMOO_PAPER', True),
+            moomoo_paper=get_env_bool('MOOMOO_PAPER', False),
             
             # Metal X
             metalx=ExchangeConfig(
@@ -570,6 +574,10 @@ class Config:
             polymarket_private_key=get_env('POLYMARKET_PRIVATE_KEY'),
             polymarket_funder=get_env('POLYMARKET_FUNDER_ADDRESS'),
             polymarket_chain_id=int(get_env('POLYMARKET_CHAIN_ID', '137')),
+            polymarket_api_key=get_env('POLYMARKET_API_KEY'),
+            polymarket_api_secret=get_env('POLYMARKET_API_SECRET'),
+            polymarket_api_passphrase=get_env('POLYMARKET_API_PASSPHRASE'),
+            polymarket_signature_type=int(get_env('POLYMARKET_SIGNATURE_TYPE', '2')),
             
             # Dashboard
             dashboard_url=get_env('DASHBOARD_URL', 'http://localhost:3000'),

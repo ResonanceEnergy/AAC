@@ -113,13 +113,22 @@ class StrategyExecutionEngine:
             relevant_strategies = self._get_relevant_strategies(data)
             logger.info(f"Routing {data.get('type')} data to {len(relevant_strategies)} strategies: {relevant_strategies}")
 
-            for strategy in relevant_strategies:
-                if strategy in self.strategies:
-                    logger.info(f"Processing data for strategy {strategy}")
-                    signals = await self.strategies[strategy].process_market_data(data)
-                    all_signals.extend(signals)
-                else:
-                    logger.warning(f"Strategy {strategy} not found in active strategies")
+            # Filter to valid strategies and process in parallel
+            valid = [s for s in relevant_strategies if s in self.strategies]
+            missing = [s for s in relevant_strategies if s not in self.strategies]
+            for m in missing:
+                logger.warning(f"Strategy {m} not found in active strategies")
+
+            if valid:
+                results = await asyncio.gather(
+                    *[self.strategies[s].process_market_data(data) for s in valid],
+                    return_exceptions=True,
+                )
+                for strategy_id, result in zip(valid, results):
+                    if isinstance(result, Exception):
+                        logger.error(f"Strategy {strategy_id} failed: {result}")
+                    else:
+                        all_signals.extend(result)
 
             # Log signal generation
             if all_signals:

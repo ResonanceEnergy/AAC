@@ -40,8 +40,8 @@
 #### Moomoo (Futu) Canada
 | Field | Value |
 |-------|-------|
-| **Tier** | A — Secondary |
-| **Role** | Equity/options execution, redundant broker path |
+| **Tier** | A — Core |
+| **Role** | Equity/options co-primary execution, Tier 1 alongside IBKR |
 | **Regulation** | CIRO/CIPF via carrying broker (Canaccord) |
 | **Assets** | US/HK/CN Stocks, Options |
 | **API** | moomoo-api SDK via OpenD gateway (TCP, port 11111) |
@@ -74,16 +74,16 @@
 | **Efficiency** | ⭐⭐⭐⭐ |
 | **Reliability** | ⭐⭐⭐ |
 
-#### Binance (Deprioritized)
+#### Binance (REMOVED — Banned in Canada)
 | Field | Value |
 |-------|-------|
-| **Tier** | B — Parked |
-| **Role** | Global crypto liquidity (deprioritized for Canadian ops) |
-| **Regulation** | Various (not CIRO) |
-| **API** | CCXT |
-| **Connector** | `TradingExecution/exchange_connectors/binance_connector.py` |
-| **Env Vars** | `BINANCE_API_KEY`, `BINANCE_API_SECRET`, `BINANCE_TESTNET` |
-| **Status** | ✅ Implemented, deprioritized |
+| **Tier** | ❌ Removed |
+| **Role** | N/A — Binance exited Canada in June 2023 |
+| **Regulation** | Banned by CSA/OSC for Canadian residents |
+| **API** | CCXT (archived) |
+| **Connector** | `_archive/binance_connector.py` (archived) |
+| **Env Vars** | — |
+| **Status** | ❌ Removed from all routing, defaults, and reconciliation |
 
 #### Kraken (Deprioritized)
 | Field | Value |

@@ -19,7 +19,7 @@
 | Full capital deployment allowed | Managed by `strategy/risk_controls.py` |
 | Daily reconciliation required | Automated via `CentralAccounting/` |
 | All orders audited | `shared/audit_logger.py` |
-| Paper mode default | `IBKR_PAPER=true`, `MOOMOO_PAPER=true` |
+| Paper mode default | `IBKR_PAPER=true`, `MOOMOO_PAPER=false` |
 | Live trading gated | `LIVE_TRADING_ENABLED=true` required |
 
 **Capital allocation:** Up to 80% of total AAC capital  
@@ -29,7 +29,7 @@
 
 ### Tier B — Satellite Execution (Capped Exposure)
 
-**Venues:** NDAX, Metal X DEX, (Parked: Binance, Kraken, Coinbase)
+**Venues:** NDAX, Metal X DEX, (Parked: Kraken, Coinbase)
 
 | Rule | Enforcement |
 |------|-------------|
@@ -72,7 +72,8 @@ Tier A (Core):     up to 80%
 Tier B (Satellite): up to 30%
   ├── NDAX:        up to 15%  (crypto/CAD rails)
   └── Metal X:     up to 10%  (DeFi)
-  └── Parked:       0%        (Binance/Kraken/Coinbase)
+  └── Parked:       0%        (Kraken/Coinbase)
+  [Binance REMOVED — banned in Canada June 2023]
 
 Tier C (Sandbox):  max 5%
   ├── Noxi Rise:   max $500
@@ -225,7 +226,7 @@ some overlap. Actual deployment must sum to 100%.
 | Moomoo | ✅ Implemented | — | ⏳ | ⏳ |
 | NDAX | ✅ Primary | — | ⏳ | ⏳ |
 | Metal X | ✅ Production | — | ✅ | ⏳ |
-| Binance | ✅ Parked | — | — | — |
+| Binance | ❌ Removed (banned in Canada) | — | — | — |
 | Kraken | ✅ Parked | — | — | — |
 | Coinbase | ✅ Parked | — | — | — |
 | Noxi Rise | ✅ Sandbox | — | ⏳ | — |

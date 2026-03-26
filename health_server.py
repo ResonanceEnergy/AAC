@@ -10,7 +10,7 @@ import json
 import os
 import sys
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from pathlib import Path
 from threading import Thread
@@ -33,6 +33,8 @@ class HealthHandler(BaseHTTPRequestHandler):
             self._respond_health()
         elif self.path == '/ready':
             self._respond_ready()
+        elif self.path == '/platform_status':
+            self._respond_platform_status()
         else:
             self.send_error(404)
 
@@ -42,7 +44,7 @@ class HealthHandler(BaseHTTPRequestHandler):
         body = {
             'status': 'ok',
             'uptime_seconds': round(uptime, 1),
-            'timestamp': datetime.utcnow().isoformat() + 'Z',
+            'timestamp': datetime.now(timezone.utc).isoformat(),
             'python': sys.version.split()[0],
         }
 
@@ -66,6 +68,24 @@ class HealthHandler(BaseHTTPRequestHandler):
         except Exception:
             body['options_intelligence'] = {'status': 'unavailable'}
 
+        # Watchdog status (if running)
+        try:
+            from startup.phases import get_watchdog
+            dog = get_watchdog()
+            if dog is not None:
+                body['watchdog'] = dog.status()
+        except Exception:
+            pass
+
+        # Gateway PIDs
+        try:
+            from startup.gateways import get_gateway_pids
+            pids = get_gateway_pids()
+            if pids:
+                body['gateway_pids'] = pids
+        except Exception:
+            pass
+
         self._json_response(200, body)
 
     def _respond_ready(self):
@@ -80,6 +100,25 @@ class HealthHandler(BaseHTTPRequestHandler):
                 self._json_response(503, {'ready': False, 'issues': validation['issues']})
         except Exception as e:
             self._json_response(503, {'ready': False, 'error': str(e)})
+
+    def _respond_platform_status(self):
+        """NCC platform status — comprehensive AAC state for NCC Supreme Monitor."""
+        try:
+            from shared.ncc_integration import get_ncc_bridge
+            bridge = get_ncc_bridge()
+            body = bridge.platform_status
+            self._json_response(200, body)
+        except Exception as e:
+            # Fallback: basic status even if bridge not initialized
+            uptime = time.monotonic() - _start_time
+            self._json_response(200, {
+                'pillar_id': 'aac',
+                'status': 'online',
+                'uptime_seconds': round(uptime, 1),
+                'ncc_bridge': 'not_initialized',
+                'error': str(e),
+                'timestamp': datetime.now(timezone.utc).isoformat(),
+            })
 
     def _json_response(self, code, body):
         payload = json.dumps(body).encode()

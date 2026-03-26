@@ -1122,9 +1122,9 @@ ACCOUNTS = {
     # NDAX: last confirmed Mar 18 liquidation, no live API pull (NDAX_LOGIN not set)
     "NDAX": {"balance_cad": 4492.04, "type": "crypto_liquidated",
              "note": "unverified — last known from Mar 18 sell"},
-    # Moomoo: app running but OpenD gateway not serving — cannot pull balance
-    "Moomoo": {"balance_usd": 0.0, "type": "unknown",
-               "note": "unverified — OpenD not connected, no trade account in .env"},
+    # Moomoo: Tier 1 alongside IBKR — REAL mode, FUTUCA
+    "Moomoo": {"balance_usd": 365.15, "type": "brokerage_live",
+               "note": "Tier 1 — FUTUCA firm, REAL mode, trade PIN set"},
     # WealthSimple: no API — manual check only
     "WealthSimple": {"balance_cad": 0.0, "type": "tfsa",
                      "note": "unverified — no API integration"},

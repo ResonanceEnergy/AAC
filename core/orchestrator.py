@@ -82,7 +82,7 @@ except ImportError:
 
 # Import WebSocket feeds (optional)
 try:
-    from shared.websocket_feeds import PriceFeedManager, BinanceWebSocketFeed, CoinbaseWebSocketFeed
+    from shared.websocket_feeds import PriceFeedManager, CoinbaseWebSocketFeed
     WEBSOCKET_AVAILABLE = True
 except ImportError:
     WEBSOCKET_AVAILABLE = False
@@ -662,9 +662,6 @@ class AAC2100Orchestrator:
             # Initialize WebSocket price feeds with quantum optimization
             if self._enable_websocket:
                 self.price_feeds = PriceFeedManager()
-                self.price_feeds.add_feed(BinanceWebSocketFeed(
-                    testnet=getattr(self.config.binance, 'testnet', True)
-                ))
                 self.price_feeds.add_feed(CoinbaseWebSocketFeed())
                 self.logger.info("WebSocket price feeds initialized with quantum optimization")
 
@@ -1295,7 +1292,7 @@ class AAC2100Orchestrator:
         
         # Initial position reconciliation on startup
         self.logger.info("Running initial position reconciliation...")
-        for exchange in ["binance", "coinbase", "kraken"]:
+        for exchange in ["ndax", "ibkr", "moomoo"]:
             try:
                 results = await self.execution_engine.reconcile_positions(exchange)
                 if results.get("error"):
@@ -1605,6 +1602,23 @@ class AAC2100Orchestrator:
                 self.logger.warning("NCL prime loop error: %s", e)
             await asyncio.sleep(60)
 
+    async def _capital_engine_loop(self):
+        """Gold-oil-silver see-saw Capital Engine — hourly rotation cycle."""
+        from strategies.storm_lifeboat.capital_engine import LifeboatCapitalEngine
+        engine = LifeboatCapitalEngine()
+        self.logger.info("Capital Engine initialized, starting hourly loop")
+        while not self._shutdown_event.is_set():
+            try:
+                report = await engine.run_hourly()
+                self.logger.info(
+                    "Capital Engine cycle: phase=%s, portfolio=$%.0f, signals=%d, stops=%d",
+                    report.phase.value, report.portfolio_value,
+                    len(report.signals), len(report.stops_triggered),
+                )
+            except Exception as e:
+                self.logger.warning("Capital Engine cycle error: %s", e)
+            await asyncio.sleep(3600)  # 1 hour
+
     async def _cross_temporal_arbitrage(self):
         """Background cross-temporal arbitrage processing"""
         while not self._shutdown_event.is_set():
@@ -1751,6 +1765,10 @@ class AAC2100Orchestrator:
         background_tasks.append(self._ncl_prime_loop())
         self.logger.info("NCL BRAIN priming loop: ENABLED")
 
+        # Gold-Oil-Silver see-saw Capital Engine — hourly rotation cycle
+        background_tasks.append(self._capital_engine_loop())
+        self.logger.info("Lifeboat Capital Engine (hourly): ENABLED")
+
         # Always run advancement validation
         background_tasks.append(self._advancement_validation_loop())
         
@@ -1762,7 +1780,7 @@ class AAC2100Orchestrator:
         
         # Initial position reconciliation on startup
         self.logger.info("Running initial position reconciliation...")
-        for exchange in ["binance", "coinbase", "kraken"]:
+        for exchange in ["ndax", "ibkr", "moomoo"]:
             try:
                 results = await self.execution_engine.reconcile_positions(exchange)
                 if results.get("error"):

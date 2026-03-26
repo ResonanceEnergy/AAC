@@ -126,7 +126,7 @@ class BaseResearchAgent(ABC):
     @abstractmethod
     async def scan(self) -> List[ResearchFinding]:
         """Execute research scan - must be implemented by subclasses"""
-        pass
+        raise NotImplementedError("Subclasses must implement scan()")
 
     async def run_scan(self) -> List[ResearchFinding]:
         """Run a scan with timing and error handling"""
