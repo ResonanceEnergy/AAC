@@ -15,6 +15,22 @@ Features:
 - Circuit breaker monitoring
 - Alert management and notifications
 - Multiple display modes (terminal, web, text)
+- Elite Trading Desk consolidated command console:
+  * Jonny Bravo Division (trading education & methodology)
+  * Superstonk / Reddit WSB sentiment tracking
+  * PlanktonXD Polymarket prediction harvester
+  * Unusual Whales options flow & dark pool intel
+  * Grok AI trade scorer (xAI / Claude / GPT)
+  * OpenClaw Barren Wuffet 93-skill task hub
+  * Stock ticker ribbon (Polygon.io real-time)
+  * NCL Link cross-pillar data display (NCC/NCL/BRS)
+- Multi-Pillar Matrix Monitor Network:
+  * NCC (HUB :8765) — Governance & Command
+  * AAC (BANK :8080) — Trading & Capital (self)
+  * NCL (BRAIN :8787) — Cognitive Augmentation
+  * BRS/DL (AGENCY :8000) — Digital Labour
+  * NCC MASTER C2 (:9000) — Supreme Orchestrator
+  * Per-pillar health polling, directive tracking, heartbeat monitoring
 
 Consolidated from:
 - monitoring_dashboard.py (terminal dashboard)
@@ -165,6 +181,80 @@ try:
 except ImportError:
     STORM_LIFEBOAT_AVAILABLE = False
 
+# ── NEW INTEGRATIONS: Elite Trading Desk Consolidated ──────────────
+
+# Jonny Bravo Division (trading education agent)
+try:
+    from agent_jonny_bravo_division.jonny_bravo_agent import JonnyBravoAgent
+    JONNY_BRAVO_AVAILABLE = True
+except ImportError:
+    JONNY_BRAVO_AVAILABLE = False
+
+# Superstonk / Reddit Sentiment
+try:
+    from reddit.reddit_sentiment_integration import RedditSentimentClient, RedditSentimentConfig
+    REDDIT_SENTIMENT_AVAILABLE = True
+except ImportError:
+    REDDIT_SENTIMENT_AVAILABLE = False
+
+# PlanktonXD Prediction Market Harvester
+try:
+    from strategies.planktonxd_prediction_harvester import PlanktonXDSimulator
+    PLANKTONXD_AVAILABLE = True
+except ImportError:
+    PLANKTONXD_AVAILABLE = False
+
+# Grok AI Trade Scorer (xAI integration)
+try:
+    from strategies.options_intelligence.ai_scorer import AITradeScorer
+    GROK_SCORER_AVAILABLE = True
+except ImportError:
+    GROK_SCORER_AVAILABLE = False
+
+# OpenClaw Barren Wuffet Skills (task completion hub)
+try:
+    from integrations.openclaw_barren_wuffet_skills import (
+        get_skill_count, get_skill_names, get_skills_by_category,
+    )
+    OPENCLAW_AVAILABLE = True
+except ImportError:
+    OPENCLAW_AVAILABLE = False
+
+# Stock Ticker (Polygon.io)
+try:
+    from integrations.polygon_client import PolygonClient
+    POLYGON_AVAILABLE = True
+except ImportError:
+    POLYGON_AVAILABLE = False
+
+# Cross-Pillar Hub (NCL Link)
+try:
+    from integrations.cross_pillar_hub import CrossPillarHub
+    CROSS_PILLAR_AVAILABLE = True
+except ImportError:
+    CROSS_PILLAR_AVAILABLE = False
+
+# NCC MASTER Adapter (heartbeat, directive handling, matrix status reporting)
+try:
+    from integrations.ncc_master_adapter import NCCMasterAdapter
+    NCC_MASTER_ADAPTER_AVAILABLE = True
+except ImportError:
+    NCC_MASTER_ADAPTER_AVAILABLE = False
+
+# NCC Integration Bridge (heartbeat publisher, command consumer)
+try:
+    from shared.ncc_integration import get_ncc_bridge, NCC_AAC_Bridge
+    NCC_BRIDGE_AVAILABLE = True
+except ImportError:
+    NCC_BRIDGE_AVAILABLE = False
+
+# Pillar Matrix Federation (deep matrix data from all pillars)
+try:
+    from integrations.pillar_matrix_federation import get_pillar_federation, PillarMatrixFederation
+    PILLAR_FEDERATION_AVAILABLE = True
+except ImportError:
+    PILLAR_FEDERATION_AVAILABLE = False
+
 
 class DisplayMode:
     """Display mode enumeration"""
@@ -222,6 +312,58 @@ class AACMasterMonitoringDashboard:
 
         # System Registry (unified component tracker)
         self.system_registry = SystemRegistry() if SYSTEM_REGISTRY_AVAILABLE else None
+
+        # ── Elite Trading Desk Integrated Components ──────────────────
+        self.jonny_bravo = JonnyBravoAgent() if JONNY_BRAVO_AVAILABLE else None
+        self.reddit_sentiment = RedditSentimentClient(RedditSentimentConfig()) if REDDIT_SENTIMENT_AVAILABLE else None
+        self.planktonxd = PlanktonXDSimulator() if PLANKTONXD_AVAILABLE else None
+        self.grok_scorer = AITradeScorer() if GROK_SCORER_AVAILABLE else None
+        self.polygon_client = PolygonClient() if POLYGON_AVAILABLE else None
+        self.cross_pillar_hub = CrossPillarHub() if CROSS_PILLAR_AVAILABLE else None
+
+        # ── Multi-Pillar Matrix Monitor Network ──────────────────────
+        self.ncc_master_adapter = NCCMasterAdapter() if NCC_MASTER_ADAPTER_AVAILABLE else None
+        self.ncc_bridge = get_ncc_bridge() if NCC_BRIDGE_AVAILABLE else None
+        self.pillar_federation = get_pillar_federation() if PILLAR_FEDERATION_AVAILABLE else None
+
+        # Pillar endpoint registry — ports per the architecture
+        self._pillar_endpoints = {
+            "NCC_MASTER": {
+                "name": "NCC MASTER C2",
+                "role": "Supreme Orchestrator",
+                "port": 9000,
+                "health_url": os.environ.get("NCC_MASTER_URL", "http://localhost:9000") + "/health",
+                "matrix_url": os.environ.get("NCC_MASTER_URL", "http://localhost:9000") + "/matrix/sitrep",
+            },
+            "NCC": {
+                "name": "NCC (HUB)",
+                "role": "Governance & Command",
+                "port": 8765,
+                "health_url": os.environ.get("NCC_COMMAND_URL", "http://127.0.0.1:8765") + "/health",
+                "matrix_url": os.environ.get("NCC_COMMAND_URL", "http://127.0.0.1:8765") + "/ncc/matrix-monitor",
+            },
+            "AAC": {
+                "name": "AAC (BANK)",
+                "role": "Trading & Capital",
+                "port": 8080,
+                "health_url": "http://127.0.0.1:" + os.environ.get("HEALTH_CHECK_PORT", "8080") + "/health",
+                "matrix_url": "self",  # We ARE the AAC Matrix Monitor
+            },
+            "NCL": {
+                "name": "NCL (BRAIN)",
+                "role": "Cognitive Augmentation",
+                "port": 8787,
+                "health_url": os.environ.get("NCC_RELAY_URL", "http://127.0.0.1:8787") + "/health",
+                "matrix_url": os.environ.get("NCC_RELAY_URL", "http://127.0.0.1:8787") + "/health",
+            },
+            "BRS": {
+                "name": "BRS/DL (AGENCY)",
+                "role": "Digital Labour",
+                "port": 8000,
+                "health_url": "http://localhost:8000/monitor/overview",
+                "matrix_url": "http://localhost:8000/matrix/sitrep",
+            },
+        }
 
         # Logger
         self.logger = logging.getLogger("MasterDashboard")
@@ -324,6 +466,27 @@ class AACMasterMonitoringDashboard:
             # Storm Lifeboat Matrix
             storm_lifeboat_data = self._get_storm_lifeboat_data()
 
+            # ── Elite Trading Desk Integrated Components ──────────────
+            jonny_bravo_data = self._get_jonny_bravo_data()
+            superstonk_data = await self._get_superstonk_data()
+            planktonxd_data = self._get_planktonxd_data()
+            grok_data = self._get_grok_scorer_data()
+            openclaw_data = self._get_openclaw_data()
+            ticker_data = await self._get_stock_ticker_data()
+            ncl_link_data = await self._get_ncl_link_data()
+
+            # ── Multi-Pillar Matrix Monitor Network ───────────────────
+            pillar_network_data = await self._get_pillar_network_status()
+
+            # ── Deep Pillar Matrix Federation (all pillar matrix monitors) ─
+            pillar_matrix_deep = {}
+            if self.pillar_federation:
+                try:
+                    pillar_matrix_deep = await self.pillar_federation.collect_all()
+                except Exception as exc:
+                    self.logger.warning("Pillar federation collect failed: %s", exc)
+                    pillar_matrix_deep = {"status": "error", "error": str(exc)}
+
             return {
                 'timestamp': timestamp,
                 'health': health_data,
@@ -342,6 +505,18 @@ class AACMasterMonitoringDashboard:
                 'matrix_maximizer': maximizer_data,
                 'crisis_center': crisis_data,
                 'storm_lifeboat': storm_lifeboat_data,
+                # Elite Trading Desk panels
+                'jonny_bravo': jonny_bravo_data,
+                'superstonk': superstonk_data,
+                'planktonxd': planktonxd_data,
+                'grok_scorer': grok_data,
+                'openclaw': openclaw_data,
+                'stock_ticker': ticker_data,
+                'ncl_link': ncl_link_data,
+                # Multi-Pillar Matrix Monitor Network
+                'pillar_network': pillar_network_data,
+                # Deep Pillar Matrix Federation
+                'pillar_matrix_deep': pillar_matrix_deep,
             }
 
         except Exception as e:
@@ -363,6 +538,15 @@ class AACMasterMonitoringDashboard:
                 'matrix_maximizer': {},
                 'crisis_center': {},
                 'storm_lifeboat': {},
+                'jonny_bravo': {},
+                'superstonk': {},
+                'planktonxd': {},
+                'grok_scorer': {},
+                'openclaw': {},
+                'stock_ticker': {},
+                'ncl_link': {},
+                'pillar_network': {},
+                'pillar_matrix_deep': {},
             }
 
     async def _get_system_health(self) -> Dict[str, Any]:
@@ -1052,6 +1236,338 @@ class AACMasterMonitoringDashboard:
             self.logger.warning("Storm Lifeboat data fetch failed: %s", e)
             return {"status": "error", "error": str(e)}
 
+    # ── MULTI-PILLAR MATRIX MONITOR NETWORK ─────────────────────────
+
+    async def _get_pillar_network_status(self) -> Dict[str, Any]:
+        """
+        Poll all pillar Matrix Monitor endpoints for unified status.
+        Returns health, connectivity, and matrix status for each pillar.
+        """
+        import urllib.request
+        import urllib.error
+
+        results: Dict[str, Any] = {
+            "status": "ok",
+            "pillars": {},
+            "ncc_master": {},
+            "doctrine_mode": "UNKNOWN",
+            "total_pillars": len(self._pillar_endpoints),
+            "pillars_online": 0,
+            "pillars_offline": 0,
+        }
+
+        for pillar_id, ep in self._pillar_endpoints.items():
+            pillar_data: Dict[str, Any] = {
+                "name": ep["name"],
+                "role": ep["role"],
+                "port": ep["port"],
+                "health": "unknown",
+                "matrix_status": "unknown",
+                "latency_ms": None,
+                "error": None,
+            }
+
+            # AAC is self — always online
+            if pillar_id == "AAC":
+                pillar_data["health"] = "GREEN"
+                pillar_data["matrix_status"] = "ACTIVE"
+                pillar_data["latency_ms"] = 0
+                results["pillars_online"] += 1
+                results["pillars"][pillar_id] = pillar_data
+                continue
+
+            # Poll health endpoint
+            health_url = ep.get("health_url", "")
+            if health_url:
+                try:
+                    t0 = time.monotonic()
+                    req = urllib.request.Request(health_url, method="GET")
+                    with urllib.request.urlopen(req, timeout=3) as resp:
+                        latency = (time.monotonic() - t0) * 1000
+                        pillar_data["latency_ms"] = round(latency, 1)
+                        body = resp.read().decode("utf-8", errors="replace")
+                        try:
+                            health_json = json.loads(body)
+                            pillar_data["health"] = "GREEN"
+                            pillar_data["health_detail"] = health_json
+                        except json.JSONDecodeError:
+                            pillar_data["health"] = "GREEN"
+                            pillar_data["health_detail"] = body[:200]
+                    results["pillars_online"] += 1
+                except urllib.error.URLError as exc:
+                    pillar_data["health"] = "RED"
+                    pillar_data["error"] = str(exc.reason)[:100]
+                    results["pillars_offline"] += 1
+                except Exception as exc:
+                    pillar_data["health"] = "RED"
+                    pillar_data["error"] = str(exc)[:100]
+                    results["pillars_offline"] += 1
+
+            # Poll matrix endpoint (only if health succeeded)
+            matrix_url = ep.get("matrix_url", "")
+            if matrix_url and matrix_url != "self" and pillar_data["health"] == "GREEN":
+                try:
+                    req = urllib.request.Request(matrix_url, method="GET")
+                    with urllib.request.urlopen(req, timeout=3) as resp:
+                        body = resp.read().decode("utf-8", errors="replace")
+                        try:
+                            matrix_json = json.loads(body)
+                            pillar_data["matrix_status"] = "ACTIVE"
+                            pillar_data["matrix_detail"] = matrix_json
+                        except json.JSONDecodeError:
+                            pillar_data["matrix_status"] = "RESPONDING"
+                except Exception:
+                    pillar_data["matrix_status"] = "NO_MATRIX"
+
+            # NCC MASTER gets special treatment
+            if pillar_id == "NCC_MASTER":
+                results["ncc_master"] = pillar_data
+
+            results["pillars"][pillar_id] = pillar_data
+
+        # Overlay cross-pillar hub state if available
+        if self.cross_pillar_hub:
+            full = self.cross_pillar_hub.get_full_status()
+            results["doctrine_mode"] = full.get("doctrine_mode", "UNKNOWN")
+            results["should_trade"] = full.get("should_trade", False)
+            results["risk_multiplier"] = full.get("risk_multiplier", 0.0)
+            results["last_directive"] = full.get("last_directive")
+            results["active_strategies"] = full.get("active_strategies", [])
+
+            # Merge cross-pillar connection info into pillar entries
+            for pname, pstat in full.get("pillars", {}).items():
+                upper = pname.upper()
+                if upper in results["pillars"]:
+                    results["pillars"][upper]["cross_pillar_connected"] = pstat.get("connected", False)
+                    results["pillars"][upper]["cross_pillar_mode"] = pstat.get("mode", "unknown")
+                    results["pillars"][upper]["last_heartbeat"] = pstat.get("last_heartbeat")
+        else:
+            results["doctrine_mode"] = "UNKNOWN"
+            results["should_trade"] = True
+            results["risk_multiplier"] = 1.0
+
+        # Get NCC adapter matrix status if available
+        if self.ncc_master_adapter:
+            try:
+                matrix_report = self.ncc_master_adapter.get_matrix_status()
+                results["aac_matrix_report"] = matrix_report
+            except Exception as exc:
+                results["aac_matrix_report"] = {"error": str(exc)}
+
+        # Get NCC bridge status if available
+        if self.ncc_bridge:
+            try:
+                bridge_status = getattr(self.ncc_bridge, 'platform_status', {})
+                if callable(bridge_status):
+                    bridge_status = bridge_status()
+                results["ncc_bridge_status"] = bridge_status
+            except Exception:
+                results["ncc_bridge_status"] = {"status": "unavailable"}
+
+        return results
+
+    # ── ELITE TRADING DESK INTEGRATED DATA COLLECTORS ─────────────────
+
+    def _get_jonny_bravo_data(self) -> Dict[str, Any]:
+        """Get Jonny Bravo Division status — education agent, lessons, journal."""
+        if not self.jonny_bravo:
+            return {"status": "not_available"}
+        try:
+            status = self.jonny_bravo.get_status()
+            curriculum = self.jonny_bravo.get_curriculum_overview()
+            journal_stats = self.jonny_bravo.get_journal_stats()
+            return {
+                "status": "ok",
+                "initialized": status.get("initialized", False),
+                "lessons_loaded": status.get("lessons_loaded", 0),
+                "student_level": status.get("student_level", "unknown"),
+                "methodologies": status.get("methodologies", []),
+                "journal_entries": journal_stats.get("total_entries", 0),
+                "win_rate": journal_stats.get("win_rate", 0.0),
+                "curriculum": curriculum,
+            }
+        except Exception as e:
+            self.logger.warning("Jonny Bravo data fetch failed: %s", e)
+            return {"status": "error", "error": str(e)}
+
+    async def _get_superstonk_data(self) -> Dict[str, Any]:
+        """Get Reddit/Superstonk/WSB sentiment data."""
+        if not self.reddit_sentiment:
+            return {"status": "not_available"}
+        try:
+            sentiment = await self.reddit_sentiment.get_reddit_sentiment()
+            if not sentiment:
+                return {"status": "no_data"}
+            # Summarize top discussed tickers and aggregate sentiment
+            top_tickers = sentiment[:10] if isinstance(sentiment, list) else []
+            bullish = sum(1 for s in top_tickers if s.get("sentiment", 0) > 0)
+            bearish = sum(1 for s in top_tickers if s.get("sentiment", 0) < 0)
+            neutral = len(top_tickers) - bullish - bearish
+            return {
+                "status": "ok",
+                "tickers_tracked": len(sentiment) if isinstance(sentiment, list) else 0,
+                "top_10": [
+                    {
+                        "ticker": s.get("ticker", "?"),
+                        "mentions": s.get("mentions", 0),
+                        "sentiment": round(s.get("sentiment", 0), 2),
+                    }
+                    for s in top_tickers
+                ],
+                "bullish": bullish,
+                "bearish": bearish,
+                "neutral": neutral,
+            }
+        except Exception as e:
+            self.logger.warning("Reddit sentiment fetch failed: %s", e)
+            return {"status": "error", "error": str(e)}
+
+    def _get_planktonxd_data(self) -> Dict[str, Any]:
+        """Get PlanktonXD prediction market harvester status."""
+        if not self.planktonxd:
+            return {"status": "not_available"}
+        try:
+            # Read latest run output from persisted file
+            report_path = PROJECT_ROOT / "polymarket_scenario_bets.json"
+            if report_path.exists():
+                data = json.loads(report_path.read_text(encoding="utf-8"))
+                bets = data.get("bets", [])
+                active_bets = [b for b in bets if b.get("size_usd", 0) >= 1]
+                total_deployed = sum(b.get("size_usd", 0) for b in active_bets)
+                total_payout = sum(b.get("potential_payout", 0) for b in active_bets)
+                scenarios_matched = len(set(b.get("scenario_code", "") for b in active_bets))
+                return {
+                    "status": "ok",
+                    "total_bets": len(bets),
+                    "active_bets": len(active_bets),
+                    "scenarios_matched": scenarios_matched,
+                    "total_deployed": round(total_deployed, 2),
+                    "max_payout": round(total_payout, 2),
+                    "top_bets": [
+                        {
+                            "scenario": b.get("scenario_code", "?"),
+                            "market": b.get("market_question", "?")[:60],
+                            "size": round(b.get("size_usd", 0), 2),
+                            "crowd_price": b.get("crowd_price", 0),
+                        }
+                        for b in sorted(active_bets, key=lambda x: x.get("size_usd", 0), reverse=True)[:5]
+                    ],
+                }
+            return {"status": "no_data"}
+        except Exception as e:
+            self.logger.warning("PlanktonXD data fetch failed: %s", e)
+            return {"status": "error", "error": str(e)}
+
+    def _get_grok_scorer_data(self) -> Dict[str, Any]:
+        """Get Grok AI Trade Scorer status."""
+        if not self.grok_scorer:
+            return {"status": "not_available"}
+        try:
+            has_xai = bool(self.grok_scorer._xai_key)
+            has_anthropic = bool(getattr(self.grok_scorer, "_anthropic_key", ""))
+            has_openai = bool(getattr(self.grok_scorer, "_openai_key", ""))
+            models = []
+            if has_xai:
+                models.append("Grok (xAI)")
+            if has_anthropic:
+                models.append("Claude")
+            if has_openai:
+                models.append("GPT")
+            return {
+                "status": "ok" if models else "no_keys",
+                "models_available": models,
+                "primary_model": models[0] if models else "heuristic_fallback",
+                "scoring_threshold": 60,
+                "strong_threshold": 80,
+            }
+        except Exception as e:
+            self.logger.warning("Grok scorer status failed: %s", e)
+            return {"status": "error", "error": str(e)}
+
+    def _get_openclaw_data(self) -> Dict[str, Any]:
+        """Get OpenClaw Barren Wuffet Skills hub status."""
+        if not OPENCLAW_AVAILABLE:
+            return {"status": "not_available"}
+        try:
+            total = get_skill_count()
+            names = get_skill_names()
+            categories = {}
+            for cat in ["CORE_AAC", "TRADING_MARKETS", "CRYPTO_DEFI", "FINANCE_BANKING",
+                         "WEALTH_BUILDING", "ADVANCED_ANALYSIS", "OPENCLAW_POWER_UPS"]:
+                cat_skills = get_skills_by_category(cat)
+                if cat_skills:
+                    categories[cat] = len(cat_skills)
+            return {
+                "status": "ok",
+                "total_skills": total,
+                "categories": categories,
+                "sample_skills": names[:10] if names else [],
+            }
+        except Exception as e:
+            self.logger.warning("OpenClaw data fetch failed: %s", e)
+            return {"status": "error", "error": str(e)}
+
+    async def _get_stock_ticker_data(self) -> Dict[str, Any]:
+        """Get stock ticker snapshots from Polygon.io for key watchlist."""
+        if not self.polygon_client:
+            return {"status": "not_available"}
+        try:
+            watchlist = ["SPY", "QQQ", "IWM", "GLD", "SLV", "USO", "VIX"]
+            tickers = []
+            for symbol in watchlist:
+                snap = await self.polygon_client.get_snapshot(symbol)
+                if snap:
+                    tickers.append({
+                        "ticker": snap.ticker,
+                        "price": snap.day_close,
+                        "change_pct": round(snap.change_pct, 2) if snap.change_pct else 0,
+                        "volume": snap.day_volume,
+                    })
+            return {
+                "status": "ok" if tickers else "no_data",
+                "tickers": tickers,
+                "count": len(tickers),
+            }
+        except Exception as e:
+            self.logger.warning("Stock ticker data fetch failed: %s", e)
+            return {"status": "error", "error": str(e)}
+
+    async def _get_ncl_link_data(self) -> Dict[str, Any]:
+        """Get NCL (BRAIN pillar) cross-pillar link intelligence."""
+        if not self.cross_pillar_hub:
+            return {"status": "not_available"}
+        try:
+            governance = await self.cross_pillar_hub.check_ncc_governance()
+            ncl_intel = await self.cross_pillar_hub.get_ncl_intelligence()
+            brs_signals = await self.cross_pillar_hub.get_brs_signals()
+
+            state = self.cross_pillar_hub.state
+            return {
+                "status": "ok",
+                "doctrine_mode": state.doctrine_mode,
+                "trading_allowed": self.cross_pillar_hub.should_trade(),
+                "risk_multiplier": self.cross_pillar_hub.get_risk_multiplier(),
+                "pillars": {
+                    "NCC": state.ncc.to_dict(),
+                    "NCL": state.ncl.to_dict(),
+                    "BRS": state.brs.to_dict(),
+                },
+                "last_directive": {
+                    "action": state.last_directive.action,
+                    "reason": state.last_directive.reason,
+                } if state.last_directive else None,
+                "ncl_intelligence": {
+                    "source": ncl_intel.get("source", "none"),
+                    "has_forecasts": bool(ncl_intel.get("forecasts")),
+                    "forecast_count": len(ncl_intel.get("forecasts", [])),
+                },
+                "brs_patterns": len(brs_signals.get("patterns", [])),
+                "governance_source": governance.get("source", "none"),
+            }
+        except Exception as e:
+            self.logger.warning("NCL link data fetch failed: %s", e)
+            return {"status": "error", "error": str(e)}
+
     async def _get_alerts(self) -> List[Dict[str, Any]]:
         """Get active alerts from all systems"""
         alerts = []
@@ -1380,6 +1896,143 @@ class AACMasterMonitoringDashboard:
                 y_pos += 1
             except curses.error:
                 pass  # Terminal too small for this panel
+
+        # ── MULTI-PILLAR NETWORK (curses compact) ────────────────────
+        pn = data.get('pillar_network', {})
+        if pn and pn.get('status') == 'ok' and y_pos < height - 10:
+            y_pos += 1
+            try:
+                stdscr.addstr(y_pos, 0, "[PILLARS] MATRIX MONITOR NETWORK", curses.A_BOLD)
+                y_pos += 1
+
+                mode = pn.get('doctrine_mode', '?')
+                online = pn.get('pillars_online', 0)
+                total = pn.get('total_pillars', 0)
+                rm = pn.get('risk_multiplier', 0)
+                trade = 'Y' if pn.get('should_trade') else 'N'
+                header = f"Doctrine:{mode} Trade:{trade} Risk:{rm:.1f}x Online:{online}/{total}"
+                stdscr.addstr(y_pos, 0, header[:width - 1])
+                y_pos += 1
+
+                pillar_order = ["NCC_MASTER", "NCC", "AAC", "NCL", "BRS"]
+                for pid in pillar_order:
+                    if y_pos >= height - 6:
+                        break
+                    p = pn.get('pillars', {}).get(pid, {})
+                    if not p:
+                        continue
+                    name = p.get('name', pid)[:12]
+                    health = p.get('health', '?')
+                    h_ch = '+' if health == 'GREEN' else '-' if health == 'RED' else '?'
+                    matrix = p.get('matrix_status', '?')[:8]
+                    lat = p.get('latency_ms')
+                    lat_s = f"{lat:.0f}ms" if lat is not None else "--"
+                    line = f"  {h_ch}{name:<12} :{p.get('port','?'):<5} M:{matrix:<8} {lat_s}"
+                    stdscr.addstr(y_pos, 0, line[:width - 1])
+                    y_pos += 1
+            except curses.error:
+                pass
+
+        # ── DEEP PILLAR MATRIX (curses compact) ─────────────────────
+        pmd = data.get('pillar_matrix_deep', {})
+        if pmd and pmd.get('status') == 'ok' and y_pos < height - 10:
+            y_pos += 1
+            try:
+                stdscr.addstr(y_pos, 0, "[DEEP] PILLAR MATRIX MONITORS", curses.A_BOLD)
+                y_pos += 1
+
+                ent = pmd.get('enterprise_score', 0)
+                p_on = pmd.get('pillars_online', 0)
+                p_tot = pmd.get('pillars_total', 0)
+                stdscr.addstr(y_pos, 0, f"Enterprise:{ent}% Pillars:{p_on}/{p_tot}"[:width - 1])
+                y_pos += 1
+
+                for pid in ["NCC_MASTER", "NCC", "AAC", "NCL", "BRS"]:
+                    if y_pos >= height - 6:
+                        break
+                    p = pmd.get('pillars', {}).get(pid, {})
+                    if not p:
+                        continue
+                    h = p.get('health', '?')
+                    h_ch = '+' if h == 'GREEN' else '-' if h == 'RED' else '?'
+                    sc = p.get('overall_score', 0)
+                    ck = f"{p.get('checks_passed',0)}/{p.get('checks_total',0)}"
+                    sl = p.get('slo_violations', 0)
+                    hs = p.get('health_status', '?')[:6]
+                    line = f"  {h_ch}{pid:<10} {sc:.0%} {hs:<6} chk:{ck:<5} slo:{sl}"
+                    stdscr.addstr(y_pos, 0, line[:width - 1])
+                    y_pos += 1
+            except curses.error:
+                pass
+
+        # ── ELITE TRADING DESK (curses compact) ──────────────────────
+        if y_pos < height - 12:
+            y_pos += 1
+            try:
+                stdscr.addstr(y_pos, 0, "[ELITE] TRADING DESK", curses.A_BOLD)
+                y_pos += 1
+
+                # Stock Ticker ribbon
+                ticker = data.get('stock_ticker', {})
+                if ticker and ticker.get('status') == 'ok':
+                    ribbon = ""
+                    for t in ticker.get('tickers', []):
+                        pct = t.get('change_pct', 0)
+                        arrow = '+' if pct >= 0 else ''
+                        ribbon += f"{t['ticker']}${t.get('price',0):.0f}({arrow}{pct:.1f}%) "
+                    stdscr.addstr(y_pos, 0, ribbon[:width - 1])
+                    y_pos += 1
+
+                # NCL Link status
+                ncl = data.get('ncl_link', {})
+                if ncl and ncl.get('status') == 'ok' and y_pos < height - 8:
+                    mode = ncl.get('doctrine_mode', '?')
+                    trade_ok = 'Y' if ncl.get('trading_allowed') else 'N'
+                    rm = ncl.get('risk_multiplier', 0)
+                    line = f"NCL:{mode} Trade:{trade_ok} Mult:{rm:.1f}x"
+                    pillars = ncl.get('pillars', {})
+                    for name, p in pillars.items():
+                        con = '+' if p.get('connected') else '-'
+                        line += f" {name}:{con}"
+                    stdscr.addstr(y_pos, 0, line[:width - 1])
+                    y_pos += 1
+
+                # PlanktonXD summary
+                px = data.get('planktonxd', {})
+                if px and px.get('status') == 'ok' and y_pos < height - 6:
+                    line = (f"PLKTN: {px.get('active_bets',0)}/{px.get('total_bets',0)} bets "
+                            f"${px.get('total_deployed',0):.0f} deployed "
+                            f"payout=${px.get('max_payout',0):.0f}")
+                    stdscr.addstr(y_pos, 0, line[:width - 1])
+                    y_pos += 1
+
+                # Superstonk
+                ss = data.get('superstonk', {})
+                if ss and ss.get('status') == 'ok' and y_pos < height - 5:
+                    line = f"WSB: {ss.get('tickers_tracked',0)} tickers B:{ss.get('bullish',0)} R:{ss.get('bearish',0)}"
+                    top = ss.get('top_10', [])
+                    if top:
+                        line += " top:" + ",".join(t['ticker'] for t in top[:3])
+                    stdscr.addstr(y_pos, 0, line[:width - 1])
+                    y_pos += 1
+
+                # Grok + OpenClaw + Jonny Bravo on one line
+                parts = []
+                grok = data.get('grok_scorer', {})
+                if grok:
+                    parts.append(f"GROK:{grok.get('primary_model','off')}")
+                oc = data.get('openclaw', {})
+                if oc and oc.get('status') == 'ok':
+                    parts.append(f"CLAW:{oc.get('total_skills',0)}skills")
+                jb = data.get('jonny_bravo', {})
+                if jb and jb.get('status') == 'ok':
+                    parts.append(f"JB:{jb.get('student_level','?')} L:{jb.get('lessons_loaded',0)}")
+                if parts and y_pos < height - 4:
+                    stdscr.addstr(y_pos, 0, "  ".join(parts)[:width - 1])
+                    y_pos += 1
+
+            except curses.error:
+                pass  # Terminal too small for Elite Desk panel
 
         # Alerts
         alerts = data.get('alerts', [])
@@ -1781,6 +2434,249 @@ class AACMasterMonitoringDashboard:
                         print(f"    {ind.get('weight', 0):.2f}  {ind.get('name', '?')}")
             print("=" * 60)
 
+        # ═══════════════════════════════════════════════════════════════
+        #  MULTI-PILLAR MATRIX MONITOR NETWORK
+        # ═══════════════════════════════════════════════════════════════
+
+        pn = data.get('pillar_network', {})
+        if pn and pn.get('status') == 'ok':
+            print("\n" + "▓" * 80)
+            print("  🌐 MULTI-PILLAR MATRIX MONITOR NETWORK")
+            print("▓" * 80)
+
+            # Doctrine & governance summary
+            mode = pn.get('doctrine_mode', 'UNKNOWN')
+            mode_icon = {'NORMAL': '🟢', 'CAUTION': '🟡', 'SAFE_MODE': '🟠', 'HALT': '🔴'}.get(mode, '⚪')
+            trade_ok = '✅ YES' if pn.get('should_trade', False) else '🚫 NO'
+            risk_m = pn.get('risk_multiplier', 0)
+            online = pn.get('pillars_online', 0)
+            total = pn.get('total_pillars', 0)
+            offline = pn.get('pillars_offline', 0)
+            print(f"  Doctrine: {mode_icon} {mode}  |  Trading: {trade_ok}  |  Risk: {risk_m:.1f}x  |  Pillars: {online}/{total} online")
+
+            # Per-pillar status grid
+            print(f"\n  {'PILLAR':<16} {'ROLE':<28} {'PORT':<6} {'HEALTH':<8} {'MATRIX':<12} {'LATENCY':<10} {'LINK':<6}")
+            print("  " + "─" * 86)
+
+            pillar_order = ["NCC_MASTER", "NCC", "AAC", "NCL", "BRS"]
+            for pid in pillar_order:
+                p = pn.get('pillars', {}).get(pid, {})
+                if not p:
+                    continue
+                name = p.get('name', pid)[:15]
+                role = p.get('role', '')[:27]
+                port = str(p.get('port', '?'))
+                health = p.get('health', 'unknown')
+                h_icon = {'GREEN': '🟢', 'RED': '🔴', 'unknown': '⚪'}.get(health, '⚪')
+                matrix = p.get('matrix_status', 'unknown')[:11]
+                lat = p.get('latency_ms')
+                lat_str = f"{lat:.0f}ms" if lat is not None else "—"
+                cp_con = p.get('cross_pillar_connected')
+                link_str = '✅' if cp_con else ('🔴' if cp_con is False else '—')
+                print(f"  {name:<16} {role:<28} {port:<6} {h_icon} {health:<6} {matrix:<12} {lat_str:<10} {link_str}")
+
+            # Last directive
+            directive = pn.get('last_directive')
+            if directive:
+                print(f"\n  📜 Last NCC Directive: {directive.get('action', '?').upper()} — {directive.get('reason', '?')}")
+
+            # Active strategies from cross-pillar state
+            strats = pn.get('active_strategies', [])
+            if strats:
+                print(f"  ⚡ Active Strategies: {', '.join(strats[:8])}")
+
+            # NCC Bridge status
+            bridge = pn.get('ncc_bridge_status', {})
+            if bridge and bridge.get('status') != 'unavailable':
+                print(f"  🔌 NCC Bridge: {bridge.get('status', '?')} | uptime={bridge.get('uptime_seconds', '?')}s")
+
+            # AAC Matrix Report
+            matrix_rpt = pn.get('aac_matrix_report', {})
+            if matrix_rpt and not matrix_rpt.get('error'):
+                h = matrix_rpt.get('health', '?')
+                hs = matrix_rpt.get('health_score', '?')
+                print(f"  📊 AAC Matrix Report: health={h} score={hs}")
+
+            print("▓" * 80)
+
+        # ═══════════════════════════════════════════════════════════════
+        #  DEEP PILLAR MATRIX MONITOR — per-pillar health intelligence
+        # ═══════════════════════════════════════════════════════════════
+
+        pmd = data.get('pillar_matrix_deep', {})
+        if pmd and pmd.get('status') == 'ok':
+            print("\n" + "╔" + "═" * 78 + "╗")
+            print("║  🔬 DEEP PILLAR MATRIX MONITOR — ALL PILLARS HEALTH INTELLIGENCE" + " " * 12 + "║")
+            print("╠" + "═" * 78 + "╣")
+
+            ent_score = pmd.get('enterprise_score', 0)
+            p_online = pmd.get('pillars_online', 0)
+            p_total = pmd.get('pillars_total', 0)
+            score_icon = '🟢' if ent_score >= 80 else ('🟡' if ent_score >= 50 else '🔴')
+            print(f"║  Enterprise Score: {score_icon} {ent_score}%  |  Pillars: {p_online}/{p_total} online" + " " * 30 + "║")
+            print("╠" + "═" * 78 + "╣")
+
+            pillar_order = ["NCC_MASTER", "NCC", "AAC", "NCL", "BRS"]
+            for pid in pillar_order:
+                p = pmd.get('pillars', {}).get(pid, {})
+                if not p:
+                    continue
+                name = p.get('name', pid)
+                health = p.get('health', '?')
+                h_icon = {'GREEN': '🟢', 'YELLOW': '🟡', 'RED': '🔴'}.get(health, '⚫')
+                matrix = p.get('matrix_status', '?')
+                m_icon = '✅' if matrix == 'ACTIVE' else ('⚠️' if matrix == 'NO_MATRIX' else '❌')
+                score = p.get('overall_score', 0)
+                h_status = p.get('health_status', '?')
+                checks_p = p.get('checks_passed', 0)
+                checks_t = p.get('checks_total', 0)
+                slo_v = p.get('slo_violations', 0)
+                alerts = p.get('active_alerts', 0)
+                lat = p.get('latency_ms')
+                lat_str = f"{lat:.0f}ms" if lat is not None else "—"
+                uptime = p.get('uptime_s', 0)
+                err = p.get('error')
+
+                print(f"║  {h_icon} {name:<22} Matrix:{m_icon} {matrix:<12} Latency:{lat_str:<8}" + " " * max(0, 19 - len(lat_str)) + "║")
+                print(f"║    Score: {score:.0%}  Status: {h_status:<10} Checks: {checks_p}/{checks_t}  SLO violations: {slo_v}  Alerts: {alerts}" + " " * max(0, 5) + "║")
+                if uptime > 0:
+                    hrs = int(uptime // 3600)
+                    mins = int((uptime % 3600) // 60)
+                    print(f"║    Uptime: {hrs}h {mins}m" + " " * 60 + "║")
+                if err:
+                    print(f"║    ⚠️  {err[:70]}" + " " * max(0, 7) + "║")
+                print("║" + " " * 78 + "║")
+
+            print("╚" + "═" * 78 + "╝")
+
+        # ═══════════════════════════════════════════════════════════════
+        #  ELITE TRADING DESK — CONSOLIDATED COMMAND PANELS
+        # ═══════════════════════════════════════════════════════════════
+
+        print("\n" + "█" * 80)
+        print("  ⚜️  ELITE TRADING DESK — INTEGRATED COMMAND CONSOLE")
+        print("█" * 80)
+
+        # ── Stock Ticker Ribbon ──────────────────────────────────────
+        ticker = data.get('stock_ticker', {})
+        if ticker and ticker.get('status') == 'ok':
+            ribbon = "  📊 "
+            for t in ticker.get('tickers', []):
+                pct = t.get('change_pct', 0)
+                arrow = '▲' if pct >= 0 else '▼'
+                ribbon += f"{t['ticker']} ${t.get('price', 0):,.2f} {arrow}{abs(pct):.1f}%  "
+            print(ribbon)
+        else:
+            print("  📊 Stock Ticker: offline (no Polygon key)")
+        print("-" * 80)
+
+        # ── NCL Link / Cross-Pillar Hub ──────────────────────────────
+        ncl = data.get('ncl_link', {})
+        if ncl and ncl.get('status') == 'ok':
+            print("\n  🔗 NCL LINK — CROSS-PILLAR HUB")
+            mode = ncl.get('doctrine_mode', '?')
+            mode_icon = {'NORMAL': '🟢', 'CAUTION': '🟡', 'SAFE_MODE': '🟠', 'HALT': '🔴'}.get(mode, '⚪')
+            print(f"    Doctrine: {mode_icon} {mode}  |  Trading: {'✅' if ncl.get('trading_allowed') else '🚫'}  |  Risk Mult: {ncl.get('risk_multiplier', 0):.1f}x")
+            pillars = ncl.get('pillars', {})
+            for name, p in pillars.items():
+                con = '🟢' if p.get('connected') else '🔴'
+                print(f"    {con} {name:4} mode={p.get('mode','?'):10} hb={p.get('last_heartbeat','never')[:19]}")
+            directive = ncl.get('last_directive')
+            if directive:
+                print(f"    📜 Last Directive: {directive['action'].upper()} — {directive['reason']}")
+            ncl_intel = ncl.get('ncl_intelligence', {})
+            if ncl_intel.get('has_forecasts'):
+                print(f"    🧠 NCL Forecasts: {ncl_intel['forecast_count']} available")
+            gov_src = ncl.get('governance_source', 'none')
+            print(f"    Governance: via {gov_src}  |  BRS Patterns: {ncl.get('brs_patterns', 0)}")
+        elif ncl and ncl.get('status') != 'not_available':
+            print(f"\n  🔗 NCL LINK: ⚠️  {ncl.get('error', 'error')}")
+
+        # ── Jonny Bravo Division ─────────────────────────────────────
+        jb = data.get('jonny_bravo', {})
+        if jb and jb.get('status') == 'ok':
+            print(f"\n  🥋 JONNY BRAVO DIVISION")
+            print(f"    Level: {jb.get('student_level','?').upper()}  |  Lessons: {jb.get('lessons_loaded', 0)}  |  Journal: {jb.get('journal_entries', 0)} entries")
+            wr = jb.get('win_rate', 0)
+            wr_icon = '🟢' if wr >= 0.6 else '🟡' if wr >= 0.4 else '🔴'
+            print(f"    Win Rate: {wr_icon} {wr:.0%}  |  Methods: {', '.join(jb.get('methodologies', [])[:4])}")
+        elif jb and jb.get('status') != 'not_available':
+            print(f"\n  🥋 JONNY BRAVO: ⚠️  {jb.get('error', 'error')}")
+
+        # ── Superstonk / Reddit Sentiment ────────────────────────────
+        ss = data.get('superstonk', {})
+        if ss and ss.get('status') == 'ok':
+            print(f"\n  🦍 SUPERSTONK / WSB SENTIMENT")
+            print(f"    Tracked: {ss.get('tickers_tracked', 0)} tickers  |  🟢 Bull: {ss.get('bullish', 0)}  🔴 Bear: {ss.get('bearish', 0)}  ⚪ Neutral: {ss.get('neutral', 0)}")
+            top = ss.get('top_10', [])
+            if top:
+                print(f"    Top Discussed:")
+                for t in top[:5]:
+                    sent = t.get('sentiment', 0)
+                    icon = '🟢' if sent > 0 else '🔴' if sent < 0 else '⚪'
+                    print(f"      {icon} {t['ticker']:6} mentions={t.get('mentions', 0):4}  sent={sent:+.2f}")
+        elif ss and ss.get('status') != 'not_available':
+            print(f"\n  🦍 SUPERSTONK: {ss.get('status', 'offline')}")
+
+        # ── PlanktonXD Prediction Markets ────────────────────────────
+        px = data.get('planktonxd', {})
+        if px and px.get('status') == 'ok':
+            print(f"\n  🐙 PLANKTONXD PREDICTION HARVESTER")
+            print(f"    Bets: {px.get('active_bets', 0)}/{px.get('total_bets', 0)} active  |  Scenarios: {px.get('scenarios_matched', 0)}")
+            print(f"    Deployed: ${px.get('total_deployed', 0):,.2f}  |  Max Payout: ${px.get('max_payout', 0):,.2f}")
+            top_bets = px.get('top_bets', [])
+            if top_bets:
+                print(f"    Top Bets:")
+                for b in top_bets[:3]:
+                    print(f"      ${b.get('size', 0):.2f}  [{b.get('scenario', '?'):20}]  {b.get('market', '?')}")
+        elif px and px.get('status') != 'not_available':
+            print(f"\n  🐙 PLANKTONXD: {px.get('status', 'offline')}")
+
+        # ── Unusual Whales (already wired — add summary) ────────────
+        mi = data.get('market_intelligence', {})
+        if mi and mi.get('status') != 'error':
+            pcr = mi.get('put_call_ratio', '?')
+            tone = mi.get('market_tone', '?')
+            flow = mi.get('options_flow_signal_count', 0)
+            dp = mi.get('dark_pool_trade_count', 0)
+            dp_vol = mi.get('dark_pool_notional', 0)
+            congress = mi.get('congress_trade_count', 0)
+            print(f"\n  🐋 UNUSUAL WHALES")
+            print(f"    P/C: {pcr}  Tone: {tone}  |  Flow Signals: {flow}  |  Dark Pool: {dp} trades (${dp_vol:,.0f})")
+            if congress:
+                print(f"    📜 Congress Trades: {congress}")
+
+        # ── Grok AI Trade Scorer ─────────────────────────────────────
+        grok = data.get('grok_scorer', {})
+        if grok and grok.get('status') in ('ok', 'no_keys'):
+            models = grok.get('models_available', [])
+            primary = grok.get('primary_model', 'none')
+            status_icon = '🟢' if models else '🟡'
+            print(f"\n  🤖 GROK AI TRADE SCORER")
+            print(f"    {status_icon} Primary: {primary}  |  Models: {', '.join(models) if models else 'heuristic only'}")
+            print(f"    Thresholds: actionable ≥{grok.get('scoring_threshold', 60)}  strong ≥{grok.get('strong_threshold', 80)}")
+        elif grok and grok.get('status') != 'not_available':
+            print(f"\n  🤖 GROK: ⚠️  {grok.get('error', 'error')}")
+
+        # ── OpenClaw Task Hub ────────────────────────────────────────
+        oc = data.get('openclaw', {})
+        if oc and oc.get('status') == 'ok':
+            print(f"\n  🦀 OPENCLAW — BARREN WUFFET SKILLS HUB")
+            print(f"    Total Skills: {oc.get('total_skills', 0)}")
+            cats = oc.get('categories', {})
+            if cats:
+                cat_line = "    "
+                for cat, count in cats.items():
+                    cat_line += f"{cat.replace('_', ' ')}: {count}  "
+                print(cat_line)
+            sample = oc.get('sample_skills', [])
+            if sample:
+                print(f"    Sample: {', '.join(sample[:6])}")
+        elif oc and oc.get('status') != 'not_available':
+            print(f"\n  🦀 OPENCLAW: ⚠️  {oc.get('error', 'error')}")
+
+        print("█" * 80)
+
         # Alerts
         alerts = data.get('alerts', [])
         if alerts:
@@ -2009,8 +2905,48 @@ class AACMasterMonitoringDashboard:
                     data = dashboard_ref._latest_data
                     mm = data.get('matrix_maximizer', {}) if data else {}
                     self._json_response(self._serializable(mm))
+                elif self.path == '/api/elite-desk':
+                    data = dashboard_ref._latest_data or {}
+                    self._json_response(self._serializable({
+                        'stock_ticker': data.get('stock_ticker', {}),
+                        'ncl_link': data.get('ncl_link', {}),
+                        'jonny_bravo': data.get('jonny_bravo', {}),
+                        'superstonk': data.get('superstonk', {}),
+                        'planktonxd': data.get('planktonxd', {}),
+                        'grok_scorer': data.get('grok_scorer', {}),
+                        'openclaw': data.get('openclaw', {}),
+                        'market_intelligence': data.get('market_intelligence', {}),
+                    }))
+                elif self.path == '/api/pillar-network':
+                    data = dashboard_ref._latest_data or {}
+                    self._json_response(self._serializable(data.get('pillar_network', {})))
+                elif self.path == '/api/matrix-monitors':
+                    data = dashboard_ref._latest_data or {}
+                    self._json_response(self._serializable(data.get('pillar_matrix_deep', {})))
+                elif self.path == '/api/integration-status':
+                    try:
+                        from core.unified_component_integrator import get_unified_integrator
+                        integrator = get_unified_integrator(paper_mode=True)
+                        s = integrator.status
+                        self._json_response(self._serializable({
+                            'bridge_orchestrator': s.bridge_orchestrator,
+                            'cross_pillar_hub': s.cross_pillar_hub,
+                            'strategy_loader': s.strategy_loader,
+                            'strategy_execution': s.strategy_execution,
+                            'strategy_integrator': s.strategy_integrator,
+                            'api_hub': s.api_hub,
+                            'ncc_master_adapter': s.ncc_master_adapter,
+                            'ncc_bridge': s.ncc_bridge,
+                            'pillar_matrix_federation': s.pillar_matrix_federation,
+                            'doctrine_feedback_loop': s.doctrine_feedback_loop,
+                            'components_wired': s.components_wired,
+                            'components_failed': s.components_failed,
+                            'errors': s.errors,
+                        }))
+                    except Exception as e:
+                        self._json_response({'error': str(e), 'components_wired': 0})
                 else:
-                    self.send_error(404, 'Endpoints: /health, /api/status, /api/alerts, /api/registry, /api/maximizer')
+                    self.send_error(404, 'Endpoints: /health, /api/status, /api/alerts, /api/registry, /api/maximizer, /api/elite-desk, /api/pillar-network, /api/matrix-monitors, /api/integration-status')
 
             def _json_response(self, obj):
                 body = json.dumps(obj, default=str).encode('utf-8')
@@ -2039,7 +2975,7 @@ class AACMasterMonitoringDashboard:
         api_thread = threading.Thread(target=server.serve_forever, daemon=True)
         api_thread.start()
         logger.info(f"API dashboard running on http://localhost:{port}")
-        logger.info("  Endpoints: /health, /api/status, /api/alerts, /api/registry, /api/maximizer")
+        logger.info("  Endpoints: /health, /api/status, /api/alerts, /api/registry, /api/maximizer, /api/elite-desk, /api/pillar-network, /api/matrix-monitors, /api/integration-status")
 
         # Main monitoring loop
         self.running = True
