@@ -1409,6 +1409,20 @@ class FullActivationEngine:
 
         return reconciliation
 
+    def _calc_max_concentration(self, reconciliation: Dict) -> float:
+        """Calculate max single-position concentration as % of capital."""
+        try:
+            positions = reconciliation.get("positions", [])
+            capital = max(self.tracker.current_capital, 1)
+            if not positions:
+                return 0.0
+            max_value = max(
+                abs(getattr(p, "market_value", 0) or 0) for p in positions
+            )
+            return (max_value / capital) * 100
+        except Exception:
+            return 0.0
+
     # ════════════════════════════════════════════════════════════════════
     # DOCTRINE CHECK — Evaluate compliance & enforce state machine
     # ════════════════════════════════════════════════════════════════════
@@ -1497,7 +1511,7 @@ class FullActivationEngine:
             "paper_mode": self.paper_mode,
             "drawdown_pct": (self.doctrine_status.drawdown_pct * 100) if self.doctrine_status else 0.0,
             "doctrine_online": self.doctrine_engine is not None,
-            "max_concentration_pct": 0.0,  # TODO: calculate from positions
+            "max_concentration_pct": self._calc_max_concentration(reconciliation),
             "daily_loss_pct": abs(unrealized_pnl / max(self.tracker.current_capital, 1)) * 100,
             "agents_online": self.telemetry.active_agents,
             "crisis_monitor_active": True,

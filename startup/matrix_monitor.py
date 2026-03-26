@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import socket
 import subprocess
 import sys
 from pathlib import Path
@@ -16,6 +17,15 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+
+def _port_in_use(port: int, host: str = "127.0.0.1") -> bool:
+    """Return True if *host*:*port* is already bound (another monitor running)."""
+    try:
+        with socket.create_connection((host, port), timeout=1.0):
+            return True
+    except (OSError, ConnectionRefusedError):
+        return False
 
 
 def launch_terminal(port: int = 8501) -> int:
@@ -38,6 +48,9 @@ def launch_terminal(port: int = 8501) -> int:
 
 def launch_web(port: int = 8501) -> int:
     """Start the Matrix Monitor Streamlit web UI."""
+    if _port_in_use(port):
+        logger.warning(f"  [!] Matrix Monitor (web): port {port} already in use — skipping duplicate launch")
+        return 0
     logger.info(f"  Starting Matrix Monitor — Streamlit on port {port} ...")
     dashboard_path = PROJECT_ROOT / "monitoring" / "aac_master_monitoring_dashboard.py"
     if not dashboard_path.exists():
@@ -52,6 +65,9 @@ def launch_web(port: int = 8501) -> int:
 
 def launch_dash(port: int = 8502) -> int:
     """Start the Matrix Monitor Plotly Dash analytics dashboard."""
+    if _port_in_use(port):
+        logger.warning(f"  [!] Matrix Monitor (dash): port {port} already in use — skipping duplicate launch")
+        return 0
     logger.info(f"  Starting Matrix Monitor — Dash on port {port} ...")
     try:
         from monitoring.aac_master_monitoring_dashboard import (

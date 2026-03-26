@@ -18,10 +18,11 @@ Connection:
 Configuration via .env:
     MOOMOO_HOST=127.0.0.1
     MOOMOO_PORT=11111
-    MOOMOO_TRADE_ENV=SIMULATE    # SIMULATE or REAL
+    MOOMOO_TRADE_ENV=REAL        # SIMULATE or REAL
     MOOMOO_MARKET=US             # US, HK, CN, SG, AU, JP, CA
-    MOOMOO_SECURITY_FIRM=FUTUINC
+    MOOMOO_SECURITY_FIRM=FUTUCA
     MOOMOO_TRADE_PASSWORD=       # Required for live trading unlock
+    MOOMOO_ENABLED=true          # Tier 1 alongside IBKR
 """
 
 import asyncio
@@ -137,9 +138,9 @@ class MoomooConnector(BaseExchangeConnector):
         self._host = get_env('MOOMOO_HOST', '127.0.0.1')
         self._port = get_env_int('MOOMOO_PORT', 11111)
         self._market = get_env('MOOMOO_MARKET', 'US')
-        self._security_firm_str = get_env('MOOMOO_SECURITY_FIRM', 'FUTUINC')
+        self._security_firm_str = get_env('MOOMOO_SECURITY_FIRM', 'FUTUCA')
         self._trade_password = get_env('MOOMOO_TRADE_PASSWORD', '')
-        self._trade_env_str = get_env('MOOMOO_TRADE_ENV', 'SIMULATE')
+        self._trade_env_str = get_env('MOOMOO_TRADE_ENV', 'REAL')
 
         # SDK contexts (initialized on connect)
         self._quote_ctx: Optional[Any] = None

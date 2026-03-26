@@ -145,11 +145,11 @@ ACCOUNTS: Dict[str, Account] = {
         name="Moomoo (Futu)",
         account_type=AccountType.BROKERAGE,
         currency=Currency.USD,
-        balance=500.0,
-        available_cash=500.0,
+        balance=365.15,
+        available_cash=365.15,
         in_positions=0.0,
         platform="OpenD",
-        notes="FUTUCA firm. $365.15 real + paper accounts. Options approval pending.",
+        notes="Tier 1 alongside IBKR. FUTUCA firm. REAL mode. Options approval pending.",
     ),
     "wealthsimple": Account(
         name="WealthSimple TFSA",
@@ -947,14 +947,15 @@ def generate_daily_mandate(target_date: date,
         ndax_actions.append("HOLD CAD cash  --  no crypto entry signals")
     account_actions["NDAX ($4,400 CAD)"] = ndax_actions
 
-    # Moomoo  --  options if approved, else stock
+    # Moomoo  --  TIER 1 alongside IBKR, options + equity
     moo_actions = []
     if days_from_today < 7:
         moo_actions.append("CHECK options approval status (applied Mar 15)")
     if days_from_today >= 7:
         moo_actions.append("If options approved: deploy $300 in credit/equity puts")
+    moo_actions.append("TIER 1: Co-primary with IBKR — route US equity/options here too")
     moo_actions.append("Research US-listed gold miners (GDX, GDXJ) for equity positions")
-    account_actions["Moomoo ($500)"] = moo_actions
+    account_actions["Moomoo ($365 — Tier 1)"] = moo_actions
 
     # WealthSimple TFSA  --  tax-free, Canadian-listed
     ws_actions = []

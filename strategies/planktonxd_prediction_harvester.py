@@ -96,6 +96,8 @@ class PredictionMarket:
     liquidity: float = 0.0
     resolution_time: Optional[datetime] = None
     source: str = "polymarket"
+    yes_token_id: str = ""                  # CLOB token ID for Yes outcome
+    no_token_id: str = ""                   # CLOB token ID for No outcome
 
     @property
     def cheapest_outcome_price(self) -> float:
@@ -366,6 +368,8 @@ class PlanktonXDPredictionHarvester(BaseArbitrageStrategy):
                 volume_24h=pm.volume,
                 liquidity=pm.liquidity,
                 source="polymarket",
+                yes_token_id=getattr(pm, 'yes_token_id', '') or '',
+                no_token_id=getattr(pm, 'no_token_id', '') or '',
             )
             self.scanned_markets[mkt.market_id] = mkt
             converted.append(mkt)
@@ -564,7 +568,8 @@ class PlanktonXDPredictionHarvester(BaseArbitrageStrategy):
         bet = min(bet, self.ABSOLUTE_MAX_BET_USD)
 
         # Never exceed 2% of bankroll per market
-        max_market_bet = self.bankroll * (self.MAX_SINGLE_MARKET_EXPOSURE_PCT / 100)
+        # Never exceed 2% of bankroll per market (min $2 floor for small bankrolls)
+        max_market_bet = max(self.bankroll * (self.MAX_SINGLE_MARKET_EXPOSURE_PCT / 100), 2.0)
         existing_exposure = sum(
             b.cost for b in self.open_bets.values()
             if b.market.market_id == market.market_id
@@ -580,6 +585,8 @@ class PlanktonXDPredictionHarvester(BaseArbitrageStrategy):
         # Never bet more than we can afford
         bet = min(bet, self.bankroll * 0.05)  # Hard 5% single-bet cap
 
+        # For small bankrolls, allow bets down to $1 if sizing permits
+        floor = min(self.MIN_BET_USD, self.bankroll * 0.04)
         return max(round(bet, 2), 0.0)
 
     # ─── Bet Execution ────────────────────────────────────────────────
@@ -608,7 +615,8 @@ class PlanktonXDPredictionHarvester(BaseArbitrageStrategy):
             return None
 
         cost = self.calculate_bet_size(bet_type, edge, market)
-        if cost < self.MIN_BET_USD:
+        min_bet = min(self.MIN_BET_USD, self.bankroll * 0.04)
+        if cost < min_bet:
             return None
 
         entry_price = market.prices.get(outcome, 0.0)
@@ -658,6 +666,53 @@ class PlanktonXDPredictionHarvester(BaseArbitrageStrategy):
             f"({bet.potential_roi:.0%} ROI) | Edge={edge:.4f}"
         )
         return bet
+
+    # ─── Live Execution ─────────────────────────────────────────────
+
+    def execute_bet(self, bet: 'PlanktonBet') -> Optional[Dict[str, Any]]:
+        """
+        Execute a PlanktonBet as a real CLOB limit order on Polymarket.
+        Returns the order result dict, or None if execution failed.
+        """
+        market = bet.market
+        # Resolve token_id from outcome
+        if bet.outcome.lower() in ("yes", "y"):
+            token_id = market.yes_token_id
+        else:
+            token_id = market.no_token_id
+
+        if not token_id:
+            logger.warning(
+                f"[{bet.bet_id}] No token_id for outcome '{bet.outcome}' "
+                f"on market '{market.question[:50]}' — skipping"
+            )
+            return None
+
+        price = round(bet.entry_price, 2)
+        size = round(bet.shares, 1)
+        if size < 0.1 or price < 0.01:
+            logger.warning(f"[{bet.bet_id}] Size {size} or price {price} too small")
+            return None
+
+        agent = PolymarketAgent()
+        try:
+            result = agent.place_limit_order(
+                token_id=token_id,
+                price=price,
+                size=size,
+                side="BUY",
+            )
+            if result:
+                logger.info(
+                    f"EXECUTED [{bet.bet_id}] BUY {size}@{price} "
+                    f"token={token_id[:16]}... → {result}"
+                )
+            else:
+                logger.error(f"[{bet.bet_id}] Execution returned None")
+            return result
+        except Exception as e:
+            logger.error(f"[{bet.bet_id}] Execution failed: {e}")
+            return None
 
     # ─── Resolution Handling ────────────────────────────────────────────
 

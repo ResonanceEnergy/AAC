@@ -23,7 +23,6 @@ from shared.secrets_manager import validate_order, OrderValidator
 
 # Import exchange connectors
 try:
-    from TradingExecution.exchange_connectors.binance_connector import BinanceConnector
     from TradingExecution.exchange_connectors.coinbase_connector import CoinbaseConnector
     from TradingExecution.exchange_connectors.kraken_connector import KrakenConnector
     from TradingExecution.exchange_connectors.ibkr_connector import IBKRConnector
@@ -173,13 +172,7 @@ class TradingEngine:
                 
                 # Create actual exchange connector
                 connector = None
-                if exchange_name == 'binance':
-                    connector = BinanceConnector(
-                        api_key=exchange_config.api_key,
-                        api_secret=exchange_config.api_secret,
-                        testnet=exchange_config.testnet,
-                    )
-                elif exchange_name == 'coinbase':
+                if exchange_name == 'coinbase':
                     connector = CoinbaseConnector(
                         api_key=exchange_config.api_key,
                         api_secret=exchange_config.api_secret,
@@ -209,7 +202,7 @@ class TradingEngine:
                     )
                 elif exchange_name == 'moomoo':
                     connector = MoomooConnector(
-                        paper=getattr(self.config, 'moomoo_paper', True),
+                        paper=getattr(self.config, 'moomoo_paper', False),
                     )
                 
                 if connector:
@@ -461,8 +454,8 @@ if __name__ == '__main__':
         
         # Test order creation
         order = await engine.create_order(
-            exchange='binance',
-            symbol='BTC/USDT',
+            exchange='ndax',
+            symbol='BTC/CAD',
             side=OrderSide.BUY,
             order_type=OrderType.MARKET,
             quantity=100.0,  # $100 worth
@@ -471,7 +464,7 @@ if __name__ == '__main__':
         if order:
             logger.info(f"Order created: {order.order_id}, Status: {order.status.value}")
         
-        balance = await engine.get_account_balance('binance')
+        balance = await engine.get_account_balance('ndax')
         logger.info(f"Account balance: {balance}")
         
         await engine.stop()

@@ -76,7 +76,10 @@ class HealthChecker:
         """Built-in system resource health check."""
         cpu = psutil.cpu_percent(interval=0.1)
         mem = psutil.virtual_memory().percent
-        disk = psutil.disk_usage("/").percent if hasattr(psutil.disk_usage, "__call__") else 0.0
+        try:
+            disk = psutil.disk_usage("/").percent
+        except Exception:
+            disk = 0.0
 
         if cpu > 95 or mem > 95:
             status = HealthStatus.UNHEALTHY

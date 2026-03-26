@@ -297,6 +297,10 @@ def main() -> None:
     parser.add_argument("--coherence", action="store_true", help="PlanckPhire coherence")
     parser.add_argument("--put", type=str, metavar="ASSET", help="Put payoff sim for asset")
     parser.add_argument("--briefing", action="store_true", help="Full Helix News briefing")
+    parser.add_argument("--capital-engine", action="store_true",
+                        help="Run one cycle of the gold-oil-silver see-saw Capital Engine")
+    parser.add_argument("--capital-loop", action="store_true",
+                        help="Run the Capital Engine in continuous hourly mode")
     parser.add_argument("--all", action="store_true", help="Run everything")
     parser.add_argument("--json", action="store_true", help="JSON output")
     parser.add_argument("--paths", type=int, default=100_000, help="MC paths (default: 100000)")
@@ -322,7 +326,8 @@ def main() -> None:
 
     # Default to briefing if no command specified
     if not any([args.monte_carlo, args.scenarios, args.lunar,
-                args.coherence, args.put, args.briefing, args.all]):
+                args.coherence, args.put, args.briefing, args.all,
+                args.capital_engine, args.capital_loop]):
         args.briefing = True
 
     # ── Live data feed ──
@@ -384,6 +389,27 @@ def main() -> None:
 
     if args.all or args.briefing:
         results["briefing"] = cmd_briefing(args)
+
+    # Capital Engine (single cycle or continuous loop)
+    if args.capital_engine or args.capital_loop:
+        import asyncio as _asyncio
+        from strategies.storm_lifeboat.capital_engine import LifeboatCapitalEngine
+        engine = LifeboatCapitalEngine()
+        if args.capital_loop:
+            _print_header("CAPITAL ENGINE — CONTINUOUS HOURLY LOOP")
+            print("  Press Ctrl+C to stop.")
+            print()
+            _asyncio.run(engine.run_forever())
+        else:
+            _print_header("CAPITAL ENGINE — SINGLE CYCLE")
+            report = _asyncio.run(engine.run_hourly())
+            engine._print_cycle_summary(report)
+            results["capital_engine"] = {
+                "phase": report.phase.value,
+                "portfolio": report.portfolio_value,
+                "signals": len(report.signals),
+                "stops": len(report.stops_triggered),
+            }
 
     if args.json and len(results) > 1:
         # Consolidate JSON output (skip non-serializable forecast objects)

@@ -2,6 +2,7 @@
 startup.gateways — Trading gateway management (IBKR TWS, Moomoo OpenD).
 
 Extracted from launch.py so other modules can reuse gateway startup logic.
+Tracks PIDs for graceful shutdown.
 """
 
 from __future__ import annotations
@@ -15,12 +16,23 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
+
+def _find_moomoo_exe() -> str:
+    """Auto-discover the latest Moomoo OpenD GUI exe under C:\\FutuOpenD."""
+    import glob
+    pattern = r"C:\FutuOpenD\moomoo_OpenD_*_Windows\moomoo_OpenD-GUI_*_Windows\moomoo_OpenD-GUI_*_Windows.exe"
+    matches = sorted(glob.glob(pattern), reverse=True)
+    if matches:
+        return matches[0]
+    return r"C:\FutuOpenD\moomoo_OpenD.exe"  # fallback
+
+
 # ── Gateway Configurations ──────────────────────────────────────────────────
 
 GATEWAY_CONFIGS: dict[str, dict] = {
     "ibkr": {
         "name": "IBKR TWS",
-        "exe": Path(r"C:\Jts\tws.exe"),
+        "exe": Path(os.environ.get("IBKR_TWS_EXE", r"C:\Jts\tws.exe")),
         "process_name": "tws",
         "host": "127.0.0.1",
         "port": int(os.environ.get("IBKR_PORT", "7497")),
@@ -28,13 +40,22 @@ GATEWAY_CONFIGS: dict[str, dict] = {
     },
     "moomoo": {
         "name": "Moomoo OpenD",
-        "exe": Path(r"C:\FutuOpenD\moomoo_OpenD_10.0.6018_Windows\moomoo_OpenD-GUI_10.0.6018_Windows\moomoo_OpenD-GUI_10.0.6018_Windows.exe"),
+        "exe": Path(os.environ.get("MOOMOO_OPEND_EXE", "") or _find_moomoo_exe()),
         "process_name": "moomoo_OpenD-GUI",
         "host": "127.0.0.1",
-        "port": 11111,
+        "port": int(os.environ.get("MOOMOO_PORT", "11111")),
         "wait_secs": 15,
     },
 }
+
+# ── PID Tracking ────────────────────────────────────────────────────────────
+
+_gateway_pids: dict[str, int] = {}
+
+
+def get_gateway_pids() -> dict[str, int]:
+    """Return a copy of tracked gateway PIDs."""
+    return dict(_gateway_pids)
 
 
 def port_open(host: str, port: int, timeout: float = 2.0) -> bool:
@@ -73,8 +94,9 @@ def start_gateway(key: str) -> bool:
 
     # Launch
     logger.info(f"  [>] Starting {name} ...")
+    proc = None
     try:
-        subprocess.Popen(
+        proc = subprocess.Popen(
             [str(cfg["exe"])],
             cwd=str(cfg["exe"].parent),
             stdout=subprocess.DEVNULL,
@@ -83,6 +105,11 @@ def start_gateway(key: str) -> bool:
     except OSError:
         # WinError 740: needs elevation — use shell start
         os.startfile(str(cfg["exe"]))
+
+    # Track PID
+    if proc is not None:
+        _gateway_pids[key] = proc.pid
+        logger.info(f"  [>] {name}: PID {proc.pid}")
 
     # Wait for port
     deadline = time.time() + cfg["wait_secs"]

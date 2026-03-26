@@ -52,13 +52,13 @@ if sys.stderr is None:
     sys.stderr = open(os.devnull, "w")  # noqa: SIM115
 
 import argparse
+import logging
 import subprocess
 from pathlib import Path
-import logging
 
 logging.basicConfig(
     level=logging.INFO,
-    format='%(message)s',
+    format="%(message)s",
     stream=sys.stdout,
 )
 logger = logging.getLogger(__name__)
@@ -67,10 +67,19 @@ logger = logging.getLogger(__name__)
 # Python 3.14+ causes aiohttp and other C-extension packages to hang.
 # Require 3.9–3.13 for stable operation on both QUSAR and QFORGE.
 if sys.version_info[:2] >= (3, 14):
-    print(f"\033[93m  [!] Python {sys.version_info[0]}.{sys.version_info[1]} detected — "
-          f"AAC requires Python 3.9–3.13.\033[0m")
-    logger.info(f"\033[93m      Run: python setup_machine.py  to create a .venv with Python 3.12\033[0m")
-    _venv_py = Path(__file__).resolve().parent / ".venv" / ("Scripts" if os.name == "nt" else "bin") / ("python.exe" if os.name == "nt" else "python")
+    print(
+        f"\033[93m  [!] Python {sys.version_info[0]}.{sys.version_info[1]} detected — "
+        f"AAC requires Python 3.9–3.13.\033[0m"
+    )
+    logger.info(
+        "\033[93m      Run: python setup_machine.py  to create a .venv with Python 3.12\033[0m"
+    )
+    _venv_py = (
+        Path(__file__).resolve().parent
+        / ".venv"
+        / ("Scripts" if os.name == "nt" else "bin")
+        / ("python.exe" if os.name == "nt" else "python")
+    )
     if _venv_py.exists():
         logger.info(f"\033[92m  [+] Found .venv — re-launching with {_venv_py}\033[0m")
         os.execv(str(_venv_py), [str(_venv_py)] + sys.argv)
@@ -107,25 +116,26 @@ BANNER = r"""
 """
 
 MODE_DESCRIPTIONS = {
-    "all":       "Full startup: preflight → gateways → matrix monitor → paper engine",
-    "api":       "Start FastAPI/uvicorn API server",
+    "all": "Full startup: preflight -> gateways -> matrix monitor -> paper engine",
+    "api": "Start FastAPI/uvicorn API server",
     "dashboard": "Dash monitoring dashboard (web UI)",
-    "deploy":    "Run production deployment with config validation",
-    "matrix":    "Matrix Monitor dashboard (--display terminal|web|dash)",
-    "monitor":   "System monitor (terminal)",
-    "paper":     "Paper trading engine",
-    "core":      "Core orchestrator",
-    "full":      "Full system (orchestrator + dashboard)",
-    "gateways":  "Start trading gateways (IBKR TWS, Moomoo OpenD)",
+    "deploy": "Run production deployment with config validation",
+    "matrix": "Matrix Monitor dashboard (--display terminal|web|dash)",
+    "monitor": "System monitor (terminal)",
+    "paper": "Paper trading engine",
+    "core": "Core orchestrator",
+    "full": "Full system (orchestrator + dashboard)",
+    "gateways": "Start trading gateways (IBKR TWS, Moomoo OpenD)",
     "preflight": "Pre-flight validation (env, imports, config)",
-    "test":      "Run pytest suite",
-    "health":    "Health check",
-    "git-sync":  "Git add/commit/push, then launch dashboard",
-    "integrate": "Run Unified Component Integrator — wire all 550+ components",
+    "test": "Run pytest suite",
+    "health": "Health check",
+    "git-sync": "Git add/commit/push, then launch dashboard",
+    "integrate": "Run Unified Component Integrator -- wire all 550+ components",
 }
 
 
 # ── Helpers ─────────────────────────────────────────────────────────────────
+
 
 def _cyan(text: str) -> str:
     """Return text wrapped in ANSI cyan (no-op on dumb terminals)."""
@@ -183,15 +193,19 @@ def _load_env() -> None:
     if not env_file.exists() and template.exists():
         logger.info(str(_yellow("  [!] No .env found — copying from .env.template")))
         import shutil
+
         shutil.copy2(template, env_file)
 
     if env_file.exists():
         try:
             from dotenv import load_dotenv
+
             load_dotenv(env_file)
             logger.info(str(_green("  [+] Loaded .env")))
         except ImportError:
-            logger.info(str(_yellow("  [!] python-dotenv not installed — .env not loaded")))
+            logger.info(
+                str(_yellow("  [!] python-dotenv not installed — .env not loaded"))
+            )
 
 
 def _python() -> str:
@@ -209,9 +223,11 @@ def _run(cmd: list[str], **kwargs) -> int:
 
 # ── Mode Handlers ───────────────────────────────────────────────────────────
 
+
 def _mode_gateways() -> int:
     """Start all trading gateways and verify connectivity."""
-    from startup.gateways import start_all_gateways, gateway_summary
+    from startup.gateways import gateway_summary, start_all_gateways
+
     logger.info(str(_cyan("  ════════════════════════════════════════")))
     logger.info(str(_cyan("  Starting Trading Gateways")))
     logger.info(str(_cyan("  ════════════════════════════════════════")))
@@ -225,6 +241,7 @@ def _mode_gateways() -> int:
 def _mode_matrix(display: str = "terminal", port: int = 8501) -> int:
     """Start the Matrix Monitor dashboard."""
     from startup.matrix_monitor import launch
+
     logger.info(str(_cyan("  ════════════════════════════════════════")))
     logger.info(str(_cyan(f"  Matrix Monitor — {display} mode")))
     logger.info(str(_cyan("  ════════════════════════════════════════")))
@@ -234,12 +251,14 @@ def _mode_matrix(display: str = "terminal", port: int = 8501) -> int:
 def _mode_preflight() -> int:
     """Run pre-flight validation checks."""
     from startup.preflight import run_all
+
     return 0 if run_all() else 1
 
 
 def _mode_all(display: str = "web", port: int = 8501) -> int:
-    """Full startup: preflight → gateways → health → matrix monitor → paper engine."""
+    """Full startup: preflight -> gateways -> health -> matrix monitor -> paper engine."""
     from startup.phases import full_startup
+
     return full_startup(display=display, port=port)
 
 
@@ -257,6 +276,7 @@ def _start_health_endpoint():
     """Start background health HTTP endpoint."""
     try:
         from health_server import start_health_server
+
         start_health_server(background=True)
         logger.info(str(_green("  [+] Health endpoint: http://localhost:8080/health")))
     except Exception as e:
@@ -265,6 +285,7 @@ def _start_health_endpoint():
 
 def _mode_paper() -> int:
     from startup.gateways import start_all_gateways
+
     logger.info(str(_cyan("  Starting Paper Trading Engine ...")))
     logger.info(str(_cyan("  Pre-flight: checking gateways ...")))
     start_all_gateways()
@@ -289,7 +310,9 @@ def _run_compliance_preflight() -> None:
     """Run compliance review checks before full launch (warn-only)."""
     try:
         import asyncio
+
         from shared.compliance_review import ComplianceReviewSystem
+
         logger.info(str(_cyan("  Running compliance pre-flight checks ...")))
         system = ComplianceReviewSystem()
         report = asyncio.run(system.run_compliance_review())
@@ -297,7 +320,13 @@ def _run_compliance_preflight() -> None:
             logger.info(str(_green("  [OK] Compliance pre-flight passed")))
         else:
             failed = [k for k, v in report.check_results.items() if not v.get("passed")]
-            logger.info(str(_red(f"  [!] Compliance pre-flight: {len(failed)} check(s) failed: {', '.join(failed)}")))
+            logger.info(
+                str(
+                    _red(
+                        f"  [!] Compliance pre-flight: {len(failed)} check(s) failed: {', '.join(failed)}"
+                    )
+                )
+            )
             logger.info(str(_red("  Review compliance before going live.")))
     except Exception as exc:
         logger.info(str(_red(f"  [!] Compliance pre-flight skipped: {exc}")))
@@ -306,9 +335,14 @@ def _run_compliance_preflight() -> None:
 def _mode_test(extra_args: list[str] | None = None) -> int:
     logger.info(str(_cyan("  Running Test Suite ...")))
     cmd = [
-        _python(), "-m", "pytest", "tests/",
-        "-q", "--tb=short",
-        "-m", "not live and not exchange and not slow",
+        _python(),
+        "-m",
+        "pytest",
+        "tests/",
+        "-q",
+        "--tb=short",
+        "-m",
+        "not live and not exchange and not slow",
         "--timeout=15",
     ]
     if extra_args:
@@ -326,7 +360,7 @@ def _mode_health() -> int:
 
 
 def _mode_git_sync() -> int:
-    """Git add → commit → push, then launch dashboard."""
+    """Git add -> commit -> push, then launch dashboard."""
     logger.info(str(_cyan("  ════════════════════════════════════════")))
     logger.info(str(_cyan("  Git Sync + Dashboard Launch")))
     logger.info(str(_cyan("  ════════════════════════════════════════")))
@@ -335,7 +369,9 @@ def _mode_git_sync() -> int:
     # Check git status
     result = subprocess.run(
         ["git", "status", "--porcelain"],
-        capture_output=True, text=True, cwd=str(PROJECT_ROOT),
+        capture_output=True,
+        text=True,
+        cwd=str(PROJECT_ROOT),
     )
     if result.returncode != 0:
         logger.info(str(_red("  [X] Not a git repository")))
@@ -350,22 +386,29 @@ def _mode_git_sync() -> int:
 
         # Commit
         from datetime import datetime
+
         msg = f"Auto-commit: AAC system update — {datetime.now():%Y-%m-%d %H:%M:%S}"
         logger.info(str(_green(f"  [+] Committing: {msg}")))
         commit = subprocess.run(
             ["git", "commit", "-m", msg],
-            capture_output=True, text=True, cwd=str(PROJECT_ROOT),
+            capture_output=True,
+            text=True,
+            cwd=str(PROJECT_ROOT),
         )
         if commit.returncode == 0:
             logger.info(str(_green("  [+] Commit successful")))
             push = subprocess.run(
                 ["git", "push", "origin", "main"],
-                capture_output=True, text=True, cwd=str(PROJECT_ROOT),
+                capture_output=True,
+                text=True,
+                cwd=str(PROJECT_ROOT),
             )
             if push.returncode == 0:
                 logger.info(str(_green("  [+] Push successful")))
             else:
-                logger.info(str(_yellow("  [!] Push failed — check remote configuration")))
+                logger.info(
+                    str(_yellow("  [!] Push failed — check remote configuration"))
+                )
         else:
             logger.info(str(_yellow("  [!] Nothing to commit")))
 
@@ -376,12 +419,18 @@ def _mode_git_sync() -> int:
 def _mode_api(port: int = 8000) -> int:
     """Start FastAPI/uvicorn API server."""
     logger.info(str(_cyan("  Starting API Server ...")))
-    return _run([
-        _python(), "-m", "uvicorn",
-        "core.api:app",
-        "--host", "127.0.0.1",
-        "--port", str(port),
-    ])
+    return _run(
+        [
+            _python(),
+            "-m",
+            "uvicorn",
+            "core.api:app",
+            "--host",
+            "127.0.0.1",
+            "--port",
+            str(port),
+        ]
+    )
 
 
 def _mode_deploy() -> int:
@@ -393,7 +442,9 @@ def _mode_deploy() -> int:
     _run_compliance_preflight()
     deploy_script = PROJECT_ROOT / "deployment" / "production_deployment_system.py"
     if not deploy_script.exists():
-        logger.info(str(_red("  [X] deployment/production_deployment_system.py not found")))
+        logger.info(
+            str(_red("  [X] deployment/production_deployment_system.py not found"))
+        )
         return 1
     return _run([_python(), str(deploy_script)])
 
@@ -406,13 +457,17 @@ def _mode_integrate() -> int:
     logger.info("")
     try:
         import asyncio
+
         from core.unified_component_integrator import get_unified_integrator
+
         integrator = get_unified_integrator(paper_mode=True)
         status = asyncio.run(integrator.integrate_all())
         logger.info("")
         logger.info(str(_green(f"  [+] Components wired: {status.components_wired}")))
         if status.components_failed:
-            logger.info(str(_red(f"  [!] Components failed: {status.components_failed}")))
+            logger.info(
+                str(_red(f"  [!] Components failed: {status.components_failed}"))
+            )
         if status.errors:
             for err in status.errors:
                 logger.info(str(_red(f"  [!] {err}")))
@@ -425,35 +480,34 @@ def _mode_integrate() -> int:
 # ── Dispatch ────────────────────────────────────────────────────────────────
 
 MODE_DISPATCH = {
-    "all":       _mode_all,
-    "api":       _mode_api,
+    "all": _mode_all,
+    "api": _mode_api,
     "dashboard": _mode_dashboard,
-    "deploy":    _mode_deploy,
-    "matrix":    _mode_matrix,
-    "monitor":   _mode_monitor,
-    "paper":     _mode_paper,
-    "core":      _mode_core,
-    "full":      _mode_full,
-    "gateways":  _mode_gateways,
+    "deploy": _mode_deploy,
+    "matrix": _mode_matrix,
+    "monitor": _mode_monitor,
+    "paper": _mode_paper,
+    "core": _mode_core,
+    "full": _mode_full,
+    "gateways": _mode_gateways,
     "preflight": _mode_preflight,
-    "test":      _mode_test,
-    "health":    _mode_health,
-    "git-sync":  _mode_git_sync,
+    "test": _mode_test,
+    "health": _mode_health,
+    "git-sync": _mode_git_sync,
     "integrate": _mode_integrate,
 }
 
 
 # ── CLI ─────────────────────────────────────────────────────────────────────
 
+
 def main() -> int:
     """Main."""
     parser = argparse.ArgumentParser(
         prog="launch",
-        description="BARREN WUFFET — Unified Launcher",
+        description="BARREN WUFFET - Unified Launcher",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="\n".join(
-            f"  {m:<12} {d}" for m, d in MODE_DESCRIPTIONS.items()
-        ),
+        epilog="\n".join(f"  {m:<12} {d}" for m, d in MODE_DESCRIPTIONS.items()),
     )
     parser.add_argument(
         "mode",
@@ -463,7 +517,8 @@ def main() -> int:
         help="Launch mode (default: health)",
     )
     parser.add_argument(
-        "--verbose", "-v",
+        "--verbose",
+        "-v",
         action="store_true",
         help="Extra output for test / debug modes",
     )
@@ -498,8 +553,11 @@ def main() -> int:
     if args.mode not in ("test", "health", "git-sync", "preflight"):
         try:
             from shared.config_loader import validate_startup_requirements
+
             if not validate_startup_requirements():
-                logger.info(str(_red("  [!] Configuration validation FAILED — check .env")))
+                logger.info(
+                    str(_red("  [!] Configuration validation FAILED — check .env"))
+                )
                 logger.info(str(_red("  [!] Set exchange API keys or DRY_RUN=true")))
                 return 1
         except Exception as e:

@@ -22,4 +22,5 @@ __all__ = [
     "preflight",
     "matrix_monitor",
     "phases",
+    "watchdog",
 ]

@@ -187,7 +187,7 @@ ENV_REQUIRED_DEFAULTS: Dict[str, str] = {
     "REDIS_HOST": "localhost",
     "REDIS_PORT": "6379",
     "REDIS_DB": "0",
-    "DASHBOARD_HOST": "0.0.0.0",
+    "DASHBOARD_HOST": "127.0.0.1",
     "DASHBOARD_PORT": "8050",
     "DASHBOARD_URL": "http://localhost:3000",
     "API_PORT": "8000",
@@ -537,13 +537,13 @@ TASK_XML_TEMPLATE = r"""<?xml version="1.0" encoding="UTF-16"?>
     <AllowHardTerminate>true</AllowHardTerminate>
     <StartWhenAvailable>true</StartWhenAvailable>
     <RunOnlyIfNetworkAvailable>true</RunOnlyIfNetworkAvailable>
-    <ExecutionTimeLimit>PT10M</ExecutionTimeLimit>
+    <ExecutionTimeLimit>PT30M</ExecutionTimeLimit>
     <Priority>7</Priority>
   </Settings>
   <Actions Context="Author">
     <Exec>
-      <Command>cmd.exe</Command>
-      <Arguments>/c "cd /d {project_root} &amp;&amp; {python_exe} automate.py --pipeline"</Arguments>
+      <Command>wscript.exe</Command>
+      <Arguments>"C:\dev\silent-launch.vbs" "{python_exe} {project_root}\automate.py --pipeline"</Arguments>
     </Exec>
   </Actions>
 </Task>"""
@@ -579,8 +579,8 @@ STARTUP_TASK_XML_TEMPLATE = r"""<?xml version="1.0" encoding="UTF-16"?>
   </Settings>
   <Actions Context="Author">
     <Exec>
-      <Command>cmd.exe</Command>
-      <Arguments>/c "cd /d {project_root} &amp;&amp; {python_exe} launch.py full"</Arguments>
+      <Command>wscript.exe</Command>
+      <Arguments>"C:\dev\silent-launch.vbs" "{python_exe} {project_root}\launch.py full"</Arguments>
     </Exec>
   </Actions>
 </Task>"""
@@ -614,13 +614,13 @@ ROCKET_TASK_XML_TEMPLATE = r"""<?xml version="1.0" encoding="UTF-16"?>
     <AllowHardTerminate>true</AllowHardTerminate>
     <StartWhenAvailable>true</StartWhenAvailable>
     <RunOnlyIfNetworkAvailable>false</RunOnlyIfNetworkAvailable>
-    <ExecutionTimeLimit>PT5M</ExecutionTimeLimit>
+    <ExecutionTimeLimit>PT30M</ExecutionTimeLimit>
     <Priority>7</Priority>
   </Settings>
   <Actions Context="Author">
     <Exec>
-      <Command>cmd.exe</Command>
-      <Arguments>/c "cd /d {project_root} &amp;&amp; {python_exe} -m strategies.rocket_ship.daily_ops --once"</Arguments>
+      <Command>wscript.exe</Command>
+      <Arguments>"C:\dev\silent-launch.vbs" "{python_exe} -m strategies.rocket_ship.daily_ops --once"</Arguments>
     </Exec>
   </Actions>
 </Task>"""
@@ -759,6 +759,11 @@ def go_live() -> bool:
     logger.info(_red("  ║  WARNING: This enables REAL MONEY trading!   ║"))
     logger.info(_red("  ║  Make sure ALL paper tests pass first!       ║"))
     logger.info(_red("  ╚═══════════════════════════════════════════════╝"))
+
+    confirm = input("  Type YES_I_UNDERSTAND_REAL_MONEY to confirm (or Enter to abort): ").strip()
+    if confirm != "YES_I_UNDERSTAND_REAL_MONEY":
+        _fail("Aborted — confirmation NOT provided. .env unchanged.")
+        return False
 
     env_path = PROJECT_ROOT / ".env"
     if not env_path.exists():

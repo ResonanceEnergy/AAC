@@ -593,18 +593,34 @@ class CrossDepartmentIntegrationEngine:
             
         self.is_running = True
         
-        # Start event processing loop
-        asyncio.create_task(self._process_events())
+        # Start event processing loop (tracked for clean shutdown)
+        self._event_task = asyncio.create_task(self._process_events())
+        self._event_task.add_done_callback(self._task_done_cb)
         
-        # Start metric collection loop
-        asyncio.create_task(self._collect_metrics())
+        # Start metric collection loop (tracked for clean shutdown)
+        self._metrics_task = asyncio.create_task(self._collect_metrics())
+        self._metrics_task.add_done_callback(self._task_done_cb)
         
         logger.info("Integration Engine started successfully")
         return True
         
+    @staticmethod
+    def _task_done_cb(task: asyncio.Task) -> None:
+        """Log exceptions from background tasks."""
+        if task.cancelled():
+            return
+        exc = task.exception()
+        if exc:
+            logger.error(f"Background task {task.get_name()} failed: {exc}")
+
     async def stop(self) -> None:
         """Stop the integration engine."""
         self.is_running = False
+        
+        # Cancel background tasks
+        for task in (getattr(self, '_event_task', None), getattr(self, '_metrics_task', None)):
+            if task and not task.done():
+                task.cancel()
         
         # Disconnect from all departments
         await asyncio.gather(*[

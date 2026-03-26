@@ -7,7 +7,7 @@ name = "aac"
 version = "2.7.0"
 description = "Accelerated Arbitrage Corp — AI-driven multi-exchange trading system"
 readme = "README.md"
-requires-python = ">=3.9"  # README badge: 3.9+
+requires-python = ">=3.9,<3.14"  # aiohttp hangs on 3.14+
 license = { text = "Proprietary" }
 authors = [
     { name = "Resonance Energy Corp", email = "acceleratedarbitrage@outlook.com" },
@@ -219,6 +219,8 @@ max-line-length = 100
 
 [tool.pyright]
 typeCheckingMode = "off"
+venvPath = "."
+venv = ".venv"
 reportMissingTypeStubs = false
 reportRedefinition = false
 

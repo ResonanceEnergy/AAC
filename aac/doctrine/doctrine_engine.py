@@ -18,6 +18,7 @@ Doctrine Packs:
 
 import asyncio
 import logging
+from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
@@ -570,7 +571,7 @@ class DoctrineApplicationService:
     def _register_default_handlers(self) -> None:
         """Register default handlers for all action types."""
         if not hasattr(self, '_incident_log'):
-            self._incident_log: List[Dict[str, Any]] = []
+            self._incident_log: deque = deque(maxlen=10000)
 
         def create_incident(ctx):
             """Create incident."""

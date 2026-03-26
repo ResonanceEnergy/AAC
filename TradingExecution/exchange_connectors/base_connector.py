@@ -250,7 +250,7 @@ class BaseExchangeConnector(ABC):
         Returns:
             ExchangeOrder object
         """
-        logger.debug("create_order called")
+        raise NotImplementedError("Subclasses must implement create_order()")
 
     @abstractmethod
     async def cancel_order(self, order_id: str, symbol: str) -> bool:

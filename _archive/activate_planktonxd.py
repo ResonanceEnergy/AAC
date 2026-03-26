@@ -94,6 +94,75 @@ def run_simulation():
     return mc
 
 
+async def run_live_execution(opportunities, bankroll: float, max_bets: int):
+    """Execute PlanktonXD bets live on Polymarket via CLOB."""
+    from shared.audit_logger import AuditLogger
+    from shared.communication_framework import CommunicationFramework
+    from strategies.planktonxd_prediction_harvester import (
+        create_planktonxd_strategy,
+    )
+
+    print("\n" + "=" * 70)
+    print("  ⚡  LIVE EXECUTION — PlanktonXD CLOB Orders")
+    print("=" * 70)
+    print(f"  Bankroll: ${bankroll:.2f} | Max bets: {max_bets}")
+
+    comm = CommunicationFramework()
+    audit = AuditLogger()
+    harvester = create_planktonxd_strategy(comm, audit, bankroll=bankroll)
+
+    # Fetch markets with token IDs
+    print("\n  Fetching markets with CLOB token IDs...")
+    markets = await harvester.fetch_polymarket_markets(limit=300)
+    print(f"  Loaded {len(markets)} markets with token IDs")
+
+    # Scan for planktonXD-style plays
+    print("\n  Running PlanktonXD signal generation...")
+    signals = harvester.scan_for_opportunities(markets)
+    print(f"  Generated {len(signals)} signals")
+
+    if not signals:
+        print("  No actionable signals found. Markets may be efficiently priced.")
+        return
+
+    # Place + execute each signal
+    placed = 0
+    executed = 0
+    total_cost = 0.0
+
+    print(f"\n  Placing up to {max_bets} bets...\n")
+    for market, bet_type, outcome, edge in signals[:max_bets]:
+        bet = harvester.place_bet(market, bet_type, outcome, edge)
+        if bet is None:
+            continue
+        placed += 1
+
+        # Execute on CLOB
+        result = harvester.execute_bet(bet)
+        if result:
+            executed += 1
+            total_cost += bet.cost
+            print(
+                f"  ✅ #{placed:3d} | {bet.bet_type.name:20s} | "
+                f"{outcome:3s} @ ${bet.entry_price:.4f} | "
+                f"${bet.cost:.2f} | {market.question[:50]}"
+            )
+        else:
+            print(
+                f"  ❌ #{placed:3d} | {bet.bet_type.name:20s} | "
+                f"FAILED | {market.question[:50]}"
+            )
+
+    print("\n" + "=" * 70)
+    print(f"  EXECUTION SUMMARY")
+    print(f"  Signals:  {len(signals)}")
+    print(f"  Placed:   {placed}")
+    print(f"  Executed: {executed}")
+    print(f"  Cost:     ${total_cost:.2f}")
+    print(f"  Bankroll: ${harvester.bankroll:.2f} remaining")
+    print("=" * 70)
+
+
 def get_strategy_status():
     """Check PlanktonXD strategy registration status."""
     print("\n" + "=" * 70)
@@ -153,12 +222,19 @@ async def main():
     parser.add_argument("--scan-only", action="store_true", help="Just scan Polymarket")
     parser.add_argument("--simulate", action="store_true", help="Run Monte Carlo simulation")
     parser.add_argument("--status", action="store_true", help="Check activation status")
+    parser.add_argument("--live", action="store_true", help="Execute bets on Polymarket (real money)")
+    parser.add_argument("--bankroll", type=float, default=500.0, help="Bankroll in USD")
+    parser.add_argument("--max-bets", type=int, default=50, help="Max bets to place")
     args = parser.parse_args()
 
     print("\n" + "=" * 70)
     print("  🐋  PLANKTONXD PREDICTION MARKET HARVESTER — ACTIVATION")
     print("=" * 70)
     print(f"  Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    if args.live:
+        print("  ⚡ MODE: LIVE EXECUTION (real money)")
+    else:
+        print("  📋 MODE: DRY RUN (scan only)")
 
     # Always show status
     get_strategy_status()
@@ -180,10 +256,18 @@ async def main():
         print(f"\n  ⚠️  Scan failed: {e}")
         print("  This is expected if no internet or Polymarket API is down.")
         print("  PlanktonXD strategy is still registered and ready.")
+        return
 
-    if not args.scan_only:
+    if args.live and opportunities:
+        await run_live_execution(opportunities, args.bankroll, args.max_bets)
+    elif args.live:
+        # Black swan scanner found 0 thesis-aligned, but PlanktonXD scans ALL markets
+        print("\n  Black swan scanner found 0 thesis-aligned opportunities.")
+        print("  Running PlanktonXD's own broader market scan...")
+        await run_live_execution([], args.bankroll, args.max_bets)
+    elif not args.scan_only:
         print("\n  📊 PlanktonXD harvester is registered in the strategy framework (s51).")
-        print("  📊 It will auto-activate when the strategy execution engine runs.")
+        print("  📊 Use --live to execute bets with real money.")
         print("  📊 Use --simulate to run Monte Carlo validation.")
 
 
