@@ -600,6 +600,12 @@ class UnifiedComponentIntegrator:
                 ("War Room Engine", "strategies.war_room_engine", "WarRoomEngine"),
                 ("Market Forecaster", "strategies.market_forecaster_runner", "MarketForecasterRunner"),
                 ("PlanktonXD Harvester", "strategies.plankton_xd_prediction_harvester", "PlanktonXDHarvester"),
+                # ── 7 ACTIVE STRATEGIES (War Room Doctrine) ──────────
+                ("Storm Lifeboat Capital", "strategies.storm_lifeboat.capital_engine", "LifeboatCapitalEngine"),
+                ("Matrix Maximizer", "strategies.matrix_maximizer", "MatrixMaximizer"),
+                ("Exploitation Matrix", "strategies.blackswan_exploitation_matrix", "ExploitationMatrixEngine"),
+                ("Polymarket BlackSwan", "strategies.polymarket_blackswan_scanner", "PolymarketBlackSwanScanner"),
+                ("BlackSwan Authority", "strategies.blackswan_authority_monitor", "BlackSwanAuthorityEngine"),
             ]
 
             for name, module_path, class_name in strategy_modules:

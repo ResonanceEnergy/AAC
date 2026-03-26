@@ -5,7 +5,7 @@ AAC 2100 MASTER MONITORING DASHBOARD
 Unified comprehensive monitoring and display system combining all AAC monitoring capabilities.
 
 Features:
-- Real-time doctrine compliance monitoring (8 packs)
+- Real-time doctrine compliance monitoring (11 packs)
 - System health and performance metrics
 - Trading activity and P&L tracking
 - Risk management dashboard
@@ -306,6 +306,35 @@ try:
 except ImportError:
     PILLAR_FEDERATION_AVAILABLE = False
 
+# Strategy Advisor Engine (paper-proof leaderboard)
+try:
+    from strategies.strategy_advisor_engine import (
+        StrategyAdvisorEngine,
+        get_strategy_advisor_engine,
+    )
+
+    STRATEGY_ADVISOR_AVAILABLE = True
+except ImportError:
+    STRATEGY_ADVISOR_AVAILABLE = False
+
+# Strategy-Aware Doctrine
+try:
+    from aac.doctrine.strategic_doctrine import (
+        get_strategy_aware_doctrine,
+    )
+
+    STRATEGY_DOCTRINE_AVAILABLE = True
+except ImportError:
+    STRATEGY_DOCTRINE_AVAILABLE = False
+
+# Doctrine Packs YAML
+try:
+    import yaml
+
+    YAML_AVAILABLE = True
+except ImportError:
+    YAML_AVAILABLE = False
+
 
 class DisplayMode:
     """Display mode enumeration"""
@@ -321,7 +350,7 @@ class AACMasterMonitoringDashboard:
     Master monitoring dashboard consolidating all AAC monitoring capabilities.
 
     Features:
-    - Doctrine compliance monitoring (8 packs)
+    - Doctrine compliance monitoring (11 packs)
     - System health and performance
     - Trading activity and P&L
     - Risk management
@@ -544,6 +573,15 @@ class AACMasterMonitoringDashboard:
             # ── Capital Rotation Matrix (7 strategies) ────────────────
             capital_rotation_data = self._get_capital_rotation_matrix()
 
+            # ── Doctrine Pack Reader (all 11 packs) ───────────────────
+            doctrine_packs_data = self._get_doctrine_packs_data()
+
+            # ── Strategy Advisor Leaderboard ──────────────────────────
+            strategy_advisor_data = self._get_strategy_advisor_data()
+
+            # ── Active Strategy Doctrine (per-strategy directives) ────
+            active_doctrine_data = self._get_active_strategy_doctrine_data()
+
             # ── Elite Trading Desk Integrated Components ──────────────
             jonny_bravo_data = self._get_jonny_bravo_data()
             superstonk_data = await self._get_superstonk_data()
@@ -585,6 +623,12 @@ class AACMasterMonitoringDashboard:
                 "storm_lifeboat": storm_lifeboat_data,
                 # Capital Rotation Matrix
                 "capital_rotation": capital_rotation_data,
+                # Doctrine Pack Reader
+                "doctrine_packs": doctrine_packs_data,
+                # Strategy Advisor Leaderboard
+                "strategy_advisor": strategy_advisor_data,
+                # Active Strategy Doctrine
+                "active_doctrine": active_doctrine_data,
                 # Elite Trading Desk panels
                 "jonny_bravo": jonny_bravo_data,
                 "superstonk": superstonk_data,
@@ -619,6 +663,9 @@ class AACMasterMonitoringDashboard:
                 "crisis_center": {},
                 "storm_lifeboat": {},
                 "capital_rotation": {},
+                "doctrine_packs": {},
+                "strategy_advisor": {},
+                "active_doctrine": {},
                 "jonny_bravo": {},
                 "superstonk": {},
                 "planktonxd": {},
@@ -1619,6 +1666,79 @@ class AACMasterMonitoringDashboard:
             "progress_pct": round(progress_pct, 4),
             "remaining_to_target": round(max(0, TARGET_BALANCE - live_balance), 2),
         }
+
+    # ── DOCTRINE PACK READER ──────────────────────────────────────────
+
+    def _get_doctrine_packs_data(self) -> Dict[str, Any]:
+        """Load and return all 11 doctrine packs from config/doctrine_packs.yaml."""
+        try:
+            packs_file = PROJECT_ROOT / "config" / "doctrine_packs.yaml"
+            if not packs_file.exists():
+                return {"status": "not_found", "packs": [], "count": 0}
+
+            if YAML_AVAILABLE:
+                with packs_file.open("r", encoding="utf-8") as f:
+                    raw = yaml.safe_load(f)
+                packs = raw.get("doctrine_packs", raw) if isinstance(raw, dict) else raw
+                pack_list = []
+                if isinstance(packs, list):
+                    pack_list = packs
+                elif isinstance(packs, dict):
+                    for k, v in packs.items():
+                        if isinstance(v, dict):
+                            v["id"] = k
+                            pack_list.append(v)
+                return {"status": "ok", "packs": pack_list, "count": len(pack_list)}
+            else:
+                # Fallback: read as text
+                text = packs_file.read_text(encoding="utf-8")
+                return {"status": "ok_text", "raw": text[:4000], "count": 11}
+        except Exception as exc:
+            return {"status": "error", "error": str(exc), "packs": [], "count": 0}
+
+    # ── STRATEGY ADVISOR LEADERBOARD ────────────────────────────────
+
+    def _get_strategy_advisor_data(self) -> Dict[str, Any]:
+        """Get strategy advisor engine leaderboard + summary."""
+        if not STRATEGY_ADVISOR_AVAILABLE:
+            return {"status": "not_available"}
+        try:
+            advisor = get_strategy_advisor_engine()
+            summary = advisor.get_summary()
+            return {"status": "ok", **summary}
+        except Exception as exc:
+            return {"status": "error", "error": str(exc)}
+
+    # ── ACTIVE STRATEGY DOCTRINE ────────────────────────────────────
+
+    def _get_active_strategy_doctrine_data(self) -> Dict[str, Any]:
+        """Get per-strategy doctrine directives from StrategyAwareDoctrine."""
+        if not STRATEGY_DOCTRINE_AVAILABLE:
+            return {"status": "not_available"}
+        try:
+            doctrine = get_strategy_aware_doctrine()
+            state = doctrine.get_doctrine_state()
+            # Generate directives with empty signals (display current state)
+            directives = doctrine.generate_composite_directive({})
+            directive_list = []
+            for key, d in directives.items():
+                directive_list.append({
+                    "strategy": d.strategy_name,
+                    "allowed": d.allowed,
+                    "position_size_pct": d.position_size_pct,
+                    "bias": d.bias,
+                    "max_positions": d.max_positions,
+                    "notes": d.notes,
+                })
+            return {
+                "status": "ok",
+                "regime": state.get("regime", "unknown"),
+                "manual_overrides": state.get("manual_overrides", []),
+                "ncl_caution": state.get("ncl_caution", 0),
+                "directives": directive_list,
+            }
+        except Exception as exc:
+            return {"status": "error", "error": str(exc)}
 
     # ── MULTI-PILLAR MATRIX MONITOR NETWORK ─────────────────────────
 
@@ -3012,6 +3132,89 @@ class AACMasterMonitoringDashboard:
                 if len(orphans) > 10:
                     print(f"    ... and {len(orphans) - 10} more")
 
+            print("=" * 60)
+
+        # ═══════════════════════════════════════════════════════════════
+        #  DOCTRINE PACK READER (all 11 packs)
+        # ═══════════════════════════════════════════════════════════════
+        dpacks = data.get("doctrine_packs", {})
+        if dpacks and dpacks.get("status") in ("ok", "ok_text"):
+            print("")
+            print("=" * 60)
+            print("  DOCTRINE PACK READER -- 11 Packs")
+            print("=" * 60)
+            packs = dpacks.get("packs", [])
+            if packs:
+                for i, pack in enumerate(packs, 1):
+                    name = pack.get("name", pack.get("id", f"Pack {i}"))
+                    owner = pack.get("owner", "?")
+                    metrics = pack.get("metrics", pack.get("key_metrics", []))
+                    if isinstance(metrics, list):
+                        metric_str = ", ".join(str(m) for m in metrics[:4])
+                    elif isinstance(metrics, dict):
+                        metric_str = ", ".join(list(metrics.keys())[:4])
+                    else:
+                        metric_str = str(metrics)[:60]
+                    print(f"  [{i:2d}] {str(name):35} Owner: {str(owner):20} Metrics: {metric_str}")
+            elif dpacks.get("raw"):
+                print("  (YAML loaded as text -- install PyYAML for structured view)")
+            print(f"  Total: {dpacks.get('count', 0)} doctrine packs loaded")
+            print("=" * 60)
+
+        # ═══════════════════════════════════════════════════════════════
+        #  STRATEGY ADVISOR LEADERBOARD
+        # ═══════════════════════════════════════════════════════════════
+        advisor = data.get("strategy_advisor", {})
+        if advisor and advisor.get("status") == "ok":
+            print("")
+            print("=" * 60)
+            print("  STRATEGY ADVISOR -- Paper-Proof Leaderboard")
+            print("=" * 60)
+            print(f"  Strategies Loaded: {advisor.get('total_strategies', 0)}")
+            print(f"  Open Paper Positions: {advisor.get('total_open_positions', 0)}")
+            print(f"  Closed Positions: {advisor.get('total_closed_positions', 0)}")
+            approved = advisor.get("approved_for_live", [])
+            if approved:
+                print(f"  APPROVED FOR LIVE: {', '.join(approved)}")
+            else:
+                print("  APPROVED FOR LIVE: (none yet -- need 10+ trades + positive Sharpe)")
+            board = advisor.get("leaderboard_top5", [])
+            if board:
+                print("  TOP 5:")
+                print(f"  {'#':>3}  {'Strategy':30}  {'Trades':>6}  {'Win%':>6}  {'P&L':>10}  {'Sharpe':>7}  {'Score':>7}")
+                for idx, row in enumerate(board, 1):
+                    print(
+                        f"  {idx:3d}  {row['strategy']:30}  {row['trades']:6d}  "
+                        f"{row['win_rate']*100:5.1f}%  ${row['total_pnl']:9.2f}  "
+                        f"{row['sharpe']:7.3f}  {row['composite_score']:7.4f}"
+                    )
+            print("=" * 60)
+
+        # ═══════════════════════════════════════════════════════════════
+        #  ACTIVE STRATEGY DOCTRINE (per-strategy directives)
+        # ═══════════════════════════════════════════════════════════════
+        adoc = data.get("active_doctrine", {})
+        if adoc and adoc.get("status") == "ok":
+            print("")
+            print("=" * 60)
+            print("  ACTIVE STRATEGY DOCTRINE -- Per-Strategy Directives")
+            print("=" * 60)
+            print(f"  Regime: {adoc.get('regime', '?').upper()}")
+            overrides = adoc.get("manual_overrides", [])
+            if overrides:
+                print(f"  Manual Overrides Active: {', '.join(overrides)}")
+            ncl_c = adoc.get("ncl_caution", 0)
+            ncl_icon = "HIGH" if ncl_c > 0.7 else "MODERATE" if ncl_c > 0.4 else "LOW"
+            print(f"  NCL Caution Level: {ncl_c:.2f} ({ncl_icon})")
+            directives = adoc.get("directives", [])
+            if directives:
+                print(f"  {'Strategy':25}  {'Allowed':>7}  {'Size%':>6}  {'Bias':>12}  {'MaxPos':>6}  Notes")
+                for d in directives:
+                    allowed = "YES" if d["allowed"] else "NO"
+                    print(
+                        f"  {d['strategy']:25}  {allowed:>7}  {d['position_size_pct']*100:5.1f}%  "
+                        f"{d['bias']:>12}  {d['max_positions']:6d}  {d.get('notes', '')[:30]}"
+                    )
             print("=" * 60)
 
         # Black Swan Crisis Center

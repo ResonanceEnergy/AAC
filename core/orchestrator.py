@@ -12,6 +12,7 @@ import logging
 import signal
 import json
 import platform
+import time
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any, Callable
@@ -1582,9 +1583,11 @@ class AAC2100Orchestrator:
             self.logger.error("MarketIntelligenceModel loop crashed: %s", exc)
 
     async def _ncl_prime_loop(self):
-        """Pull NCL BRAIN intelligence and inject into engines every 60s."""
+        """Pull NCL BRAIN intelligence, read MI recommendations, relay to NCL, and inject into engines every 60s."""
         from integrations.cross_pillar_hub import get_cross_pillar_hub
+        from shared.strategy_relay_bridge import get_strategy_relay
         hub = get_cross_pillar_hub()
+        relay = get_strategy_relay()
         while not self._shutdown_event.is_set():
             try:
                 ncl_intel = await hub.get_ncl_intelligence()
@@ -1600,6 +1603,47 @@ class AAC2100Orchestrator:
                     self.logger.debug("NCL BRAIN priming complete")
             except Exception as e:
                 self.logger.warning("NCL prime loop error: %s", e)
+
+            # ── Read MarketIntelligenceModel recommendations ──────────
+            if self._intelligence_model:
+                try:
+                    recs = self._intelligence_model.get_recommendations()
+                    for rec in recs:
+                        if rec.entry_urgency in ("IMMEDIATE", "NEXT_OPEN"):
+                            sig = QuantumSignal(
+                                signal_id=f"mi_{rec.ticker}_{int(time.time())}",
+                                source_agent="market_intelligence_model",
+                                theater="theater_c",
+                                signal_type=rec.expression,
+                                symbol=rec.ticker,
+                                direction="short" if rec.direction == "bearish" else "long",
+                                strength=min(rec.composite_score / 100.0, 1.0),
+                                confidence=min(rec.composite_score / 100.0, 1.0),
+                                quantum_advantage=0.0,
+                                cross_temporal_score=rec.regime_confidence,
+                                expires_at=datetime.now() + timedelta(hours=4),
+                                metadata=rec.to_dict(),
+                            )
+                            self.signal_aggregator.add_signal(sig)
+                    if recs:
+                        self.logger.info(
+                            "MI recommendations injected: %d total, %d actionable",
+                            len(recs),
+                            sum(1 for r in recs if r.entry_urgency in ("IMMEDIATE", "NEXT_OPEN")),
+                        )
+                except Exception as e:
+                    self.logger.warning("MI recommendation read error: %s", e)
+
+            # ── Relay intelligence to NCL BRAIN ───────────────────────
+            try:
+                relay.publish_strategy("capital_engine", {
+                    "source": "orchestrator_ncl_prime",
+                    "signals_injected": self.signal_aggregator.signals_count
+                    if hasattr(self.signal_aggregator, "signals_count") else 0,
+                })
+            except Exception as e:
+                self.logger.debug("Relay publish error (non-fatal): %s", e)
+
             await asyncio.sleep(60)
 
     async def _capital_engine_loop(self):
