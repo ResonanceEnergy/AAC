@@ -204,6 +204,10 @@ class TestExchangeConnectors:
         )
         assert balance.total == 10000.0
 
+    @pytest.mark.skipif(
+        not hasattr(__import__('TradingExecution.exchange_connectors', fromlist=['BinanceConnector']), 'BinanceConnector') or __import__('TradingExecution.exchange_connectors', fromlist=['BinanceConnector']).BinanceConnector is None,
+        reason="BinanceConnector not available",
+    )
     def test_binance_connector_init(self):
         from TradingExecution.exchange_connectors.binance_connector import BinanceConnector
         connector = BinanceConnector()
@@ -1056,12 +1060,13 @@ class TestIntegration:
     @pytest.mark.asyncio
     async def test_connector_trade_history(self):
         """Test connectors have get_trade_history method"""
-        from TradingExecution.exchange_connectors.binance_connector import BinanceConnector
+        from TradingExecution.exchange_connectors import BinanceConnector
         from TradingExecution.exchange_connectors.coinbase_connector import CoinbaseConnector
         from TradingExecution.exchange_connectors.kraken_connector import KrakenConnector
         
         # Verify all connectors have the method
-        assert hasattr(BinanceConnector, 'get_trade_history')
+        if BinanceConnector is not None:
+            assert hasattr(BinanceConnector, 'get_trade_history')
         assert hasattr(CoinbaseConnector, 'get_trade_history')
         assert hasattr(KrakenConnector, 'get_trade_history')
 

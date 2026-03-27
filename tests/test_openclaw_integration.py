@@ -44,8 +44,18 @@ def test_config_sensitive_fields_include_openclaw():
     assert 'openclaw_gateway_token' in cfg._SENSITIVE_FIELDS
 
 
-# ─── ClawHub Client ─────────────────────────────────────────────────────
+# ─── ClawHub Client (archived — skip if module missing) ─────────────────
 
+_clawhub_available = True
+try:
+    import integrations.clawhub_client  # noqa: F401
+except (ImportError, ModuleNotFoundError):
+    _clawhub_available = False
+
+_skip_clawhub = pytest.mark.skipif(not _clawhub_available, reason="clawhub_client archived")
+
+
+@_skip_clawhub
 def test_clawhub_client_singleton():
     """get_clawhub_client returns a singleton instance."""
     import integrations.clawhub_client as mod
@@ -57,6 +67,7 @@ def test_clawhub_client_singleton():
     mod._client_instance = None  # cleanup
 
 
+@_skip_clawhub
 def test_clawhub_client_offline_search():
     """Offline search returns matching curated skills."""
     from integrations.clawhub_client import ClawHubClient
@@ -67,6 +78,7 @@ def test_clawhub_client_offline_search():
     assert "self-improving-agent" in names
 
 
+@_skip_clawhub
 def test_clawhub_client_offline_popular():
     """Offline popular returns skills sorted by downloads."""
     from integrations.clawhub_client import ClawHubClient
@@ -76,6 +88,7 @@ def test_clawhub_client_offline_popular():
     assert popular[0].downloads >= popular[-1].downloads
 
 
+@_skip_clawhub
 def test_clawhub_client_offline_get_skill():
     """Offline get_skill returns a known skill."""
     from integrations.clawhub_client import ClawHubClient
@@ -85,6 +98,7 @@ def test_clawhub_client_offline_get_skill():
     assert skill.name == "summarize"
 
 
+@_skip_clawhub
 def test_clawhub_client_install_command():
     """Install command format is correct."""
     from integrations.clawhub_client import ClawHubClient
@@ -93,6 +107,7 @@ def test_clawhub_client_install_command():
     assert cmd == "npx clawhub@latest install proactive-agent"
 
 
+@_skip_clawhub
 def test_clawhub_client_status():
     """Status dict has expected keys."""
     from integrations.clawhub_client import ClawHubClient
@@ -102,6 +117,7 @@ def test_clawhub_client_status():
     assert "curated_skills" in status
 
 
+@_skip_clawhub
 @pytest.mark.asyncio
 async def test_clawhub_client_search_fallback():
     """search_skills falls back to offline when httpx unavailable."""

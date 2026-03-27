@@ -6,6 +6,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [3.6.0] — 2026-03-26
+
+### System Optimization & Integration Consolidation
+
+**Resilience**
+- Wrapped 6 hard imports in core/orchestrator.py with try/except (QuantumArbitrageEngine, AIIncidentPredictor, AdvancementValidator, CrossTemporalProcessor, PredictiveMaintenanceEngine, get_circuit_breaker)
+- Added availability-flag guards to all quantum/AI component initialization
+- Removed duplicate GTA import block in orchestrator
+
+**Deduplication & Cleanup**
+- Archived unused agents/avatar_system.py (23KB) — shared/avatar_system.py is canonical
+- Archived integrations/aac_wallstreetodds_integration.py (sports betting, unused)
+- Archived integrations/clawhub_client.py (legacy, only try/except reference)
+
+**Version Consolidation**
+- Unified version to 3.6.0 across pyproject.toml, shared/constants.py, aac/__init__.py
+- Updated launch.py banner to v3.6 (517 components, 12 doctrine packs)
+- Windows startup registered via Startup folder shortcut
+
+**Prior (v3.4–v3.5)**
+- v3.4: Port 9000→8765, CI workflow, 26 tests, event schema, strategy dedup, /enterprise/health, correlation IDs, Redis/Kafka cleanup, NCC adapter consolidation
+- v3.5: Doctrine Pack 12 "Matrix Monitor Command & Control", MatrixMonitorDoctrineAdapter
+
+---
+
 ## [2.7.0] — 2026-02-28
 
 ### Options & Crypto Deep Dive — 13 New Skills, 500 Insights, 10 RESEARCH_INTEL Domains

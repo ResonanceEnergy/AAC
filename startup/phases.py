@@ -210,17 +210,16 @@ def full_startup(
     skip_preflight: bool = False,
 ) -> int:
     """
-    Run the complete AAC startup sequence.
+    Run the complete AAC v3.6 startup sequence.
 
     1. Pre-flight checks
-    2. Trading gateways
-    3. Matrix Monitor (background thread — web mode)
-    4. Paper trading engine (supervised by ProcessWatchdog)
-       The orchestrator starts its own health endpoint on port 8080.
+    2. Trading gateways (IBKR TWS, Moomoo OpenD)
+    6. OpenClaw Gateway (non-critical)
+    7. Options Intelligence Pre-Market Scanner (non-critical)
+    5. Matrix Monitor (background thread — web mode)
+    4. Trading engine — watchdog-supervised (blocks until SIGINT/SIGTERM)
 
     The watchdog supervises the orchestrator and auto-restarts it on crash.
-    Blocks until SIGINT/SIGTERM (Ctrl+C).
-
     Returns 0 on clean shutdown, 1 on startup failure.
     """
     global _watchdog, _monitor_thread
