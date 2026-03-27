@@ -65,8 +65,11 @@ class AACConfig:
 
     # Infrastructure
     database_url: str = "sqlite:///data/aac.db"
-    redis_url: str = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
-    kafka_broker: str = os.getenv('KAFKA_BROKER', 'localhost:9092')
+    # NOTE: Redis and Kafka are NOT deployed. These placeholders are retained
+    # for future infrastructure expansion only. Current transport uses
+    # NCC Relay (HTTP :8787) with NDJSON outbox fallback.
+    redis_url: str = ""   # UNUSED — set REDIS_URL env var when deployed
+    kafka_broker: str = ""  # UNUSED — set KAFKA_BROKER env var when deployed
 
     # Notifications
     telegram_bot_token: str = ""
@@ -91,8 +94,8 @@ def load_config() -> AACConfig:
         live_trading_enabled=os.getenv("LIVE_TRADING_ENABLED", "false").lower() == "true",
         debug=os.getenv("DEBUG", "false").lower() == "true",
         database_url=os.getenv("DATABASE_URL", "sqlite:///data/aac.db"),
-        redis_url=os.getenv("REDIS_URL", "redis://localhost:6379/0"),
-        kafka_broker=os.getenv("KAFKA_BROKER", "localhost:9092"),
+        redis_url=os.getenv("REDIS_URL", ""),  # UNUSED — no Redis deployed
+        kafka_broker=os.getenv("KAFKA_BROKER", ""),  # UNUSED — no Kafka deployed
         telegram_bot_token=os.getenv("TELEGRAM_BOT_TOKEN", ""),
         telegram_chat_id=os.getenv("TELEGRAM_CHAT_ID", ""),
         slack_webhook_url=os.getenv("SLACK_WEBHOOK_URL", ""),

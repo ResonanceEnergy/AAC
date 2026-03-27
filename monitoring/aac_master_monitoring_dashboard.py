@@ -29,7 +29,7 @@ Features:
   * AAC (BANK :8080) — Trading & Capital (self)
   * NCL (BRAIN :8787) — Cognitive Augmentation
   * BRS/DL (AGENCY :8000) — Digital Labour
-  * NCC MASTER C2 (:9000) — Supreme Orchestrator
+  * NCC MASTER C2 (:8765) — Supreme Orchestrator
   * Per-pillar health polling, directive tracking, heartbeat monitoring
 
 Consolidated from:
@@ -422,10 +422,10 @@ class AACMasterMonitoringDashboard:
             "NCC_MASTER": {
                 "name": "NCC MASTER C2",
                 "role": "Supreme Orchestrator",
-                "port": 9000,
-                "health_url": os.environ.get("NCC_MASTER_URL", "http://localhost:9000")
+                "port": 8765,
+                "health_url": os.environ.get("NCC_MASTER_URL", "http://localhost:8765")
                 + "/health",
-                "matrix_url": os.environ.get("NCC_MASTER_URL", "http://localhost:9000")
+                "matrix_url": os.environ.get("NCC_MASTER_URL", "http://localhost:8765")
                 + "/matrix/sitrep",
             },
             "NCC": {

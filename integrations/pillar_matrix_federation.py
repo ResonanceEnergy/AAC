@@ -5,7 +5,7 @@ Fetches DEEP matrix monitor data from all 4 pillars + NCC MASTER,
 standardises into a unified view, and exposes for dashboard display.
 
 Pillar matrix sources:
-    NCC MASTER (:9000)  /matrix/sitrep    → enterprise SITREP
+    NCC MASTER (:8765)  /matrix/sitrep    → enterprise SITREP
     NCC (:8765)         /ncc/matrix-monitor → governance matrix
     AAC (:8080)         self               → local integrator status
     NCL (:8787)         /health + file     → MatrixReport (checks, SLOs, tiles)
@@ -34,7 +34,7 @@ from typing import Any, Dict, List, Optional
 logger = logging.getLogger("pillar_matrix_federation")
 
 # ── Defaults ──────────────────────────────────────────────────
-NCC_MASTER_URL = os.environ.get("NCC_MASTER_URL", "http://localhost:9000")
+NCC_MASTER_URL = os.environ.get("NCC_MASTER_URL", "http://localhost:8765")
 NCC_COMMAND_URL = os.environ.get("NCC_COMMAND_URL", "http://127.0.0.1:8765")
 NCL_RELAY_URL = os.environ.get("NCC_RELAY_URL", "http://127.0.0.1:8787")
 BRS_URL = os.environ.get("BRS_URL", "http://localhost:8000")
@@ -151,7 +151,7 @@ class PillarMatrixFederation:
     # ── Per-Pillar Fetchers ───────────────────────────────────
 
     def _fetch_ncc_master(self) -> PillarMatrixSnapshot:
-        """NCC MASTER — Supreme Orchestrator on :9000."""
+        """NCC MASTER — Supreme Orchestrator on :8765."""
         snap = PillarMatrixSnapshot(
             pillar_id="NCC_MASTER", name="NCC MASTER C2", role="Supreme Orchestrator"
         )

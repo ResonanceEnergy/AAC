@@ -35,6 +35,8 @@ class HealthHandler(BaseHTTPRequestHandler):
             self._respond_ready()
         elif self.path == '/platform_status':
             self._respond_platform_status()
+        elif self.path == '/enterprise/health':
+            self._respond_enterprise_health()
         else:
             self.send_error(404)
 
@@ -119,6 +121,42 @@ class HealthHandler(BaseHTTPRequestHandler):
                 'error': str(e),
                 'timestamp': datetime.now(timezone.utc).isoformat(),
             })
+
+    def _respond_enterprise_health(self):
+        """Aggregate health from all four pillars for NCC Supreme Monitor."""
+        import urllib.request
+        import urllib.error
+
+        pillars = {
+            "NCC":  {"url": "http://127.0.0.1:8765/health",  "status": "UNKNOWN"},
+            "AAC":  {"url": "http://127.0.0.1:8080/health",  "status": "UNKNOWN"},
+            "NCL":  {"url": "http://127.0.0.1:8000/health",  "status": "UNKNOWN"},
+            "BRS":  {"url": "http://127.0.0.1:8000/health",  "status": "UNKNOWN"},
+            "RELAY": {"url": "http://127.0.0.1:8787/health", "status": "UNKNOWN"},
+        }
+        online = 0
+        for pid, info in pillars.items():
+            try:
+                req = urllib.request.Request(info["url"], method="GET")
+                with urllib.request.urlopen(req, timeout=2) as resp:  # noqa: S310
+                    if resp.status == 200:
+                        info["status"] = "GREEN"
+                        online += 1
+                    else:
+                        info["status"] = "RED"
+            except (urllib.error.URLError, OSError, ValueError):
+                info["status"] = "RED"
+
+        total = len(pillars)
+        overall = "GREEN" if online == total else ("YELLOW" if online > 0 else "RED")
+        body = {
+            "enterprise_status": overall,
+            "pillars_online": online,
+            "pillars_total": total,
+            "pillars": {pid: info["status"] for pid, info in pillars.items()},
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+        self._json_response(200, body)
 
     def _json_response(self, code, body):
         payload = json.dumps(body).encode()

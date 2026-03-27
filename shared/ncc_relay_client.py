@@ -32,6 +32,7 @@ import threading
 import time
 import urllib.request
 import urllib.error
+import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -62,16 +63,34 @@ class NCCRelayClient:
         self._queued_count = 0
         self._last_relay_ok: float | None = None
 
+    # ── Event Schema ────────────────────────────────────────────
+
+    REQUIRED_EVENT_PREFIX = "ncl.sync.v1."
+
     # ── Event Construction ──────────────────────────────────────
 
     def _make_event(self, event_type: str, data: dict) -> dict:
         return {
             "event_type": event_type,
+            "correlation_id": str(uuid.uuid4()),
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "source": SOURCE,
             "pillar": PILLAR,
             "data": data,
         }
+
+    @staticmethod
+    def _validate_event(event: dict) -> None:
+        """Validate event envelope matches ncl.sync.v1 schema.
+
+        Raises ValueError if event_type is missing or data is not a dict.
+        """
+        required = ("event_type", "timestamp", "source", "pillar", "data", "correlation_id")
+        missing = [k for k in required if k not in event]
+        if missing:
+            raise ValueError(f"Event envelope missing fields: {missing}")
+        if not isinstance(event.get("data"), dict):
+            raise ValueError("Event 'data' must be a dict")
 
     # ── Transport ───────────────────────────────────────────────
 
@@ -105,6 +124,7 @@ class NCCRelayClient:
     def publish(self, event_type: str, data: dict) -> bool:
         """Publish an event to the relay. Queues locally on failure."""
         event = self._make_event(event_type, data)
+        self._validate_event(event)
         if self._post(event):
             self._published_count += 1
             logger.debug("Published %s to relay", event_type)
