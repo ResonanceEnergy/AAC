@@ -37,7 +37,7 @@ logger = logging.getLogger(__name__)
 # Configuration
 # ──────────────────────────────────────────────────────────────────────
 
-NCC_MASTER_URL = os.environ.get("NCC_MASTER_URL", "http://localhost:9000")
+NCC_MASTER_URL = os.environ.get("NCC_MASTER_URL", "http://localhost:8765")
 AAC_HEARTBEAT_INTERVAL = int(os.environ.get("AAC_HEARTBEAT_INTERVAL", "30"))
 AAC_STATE_DIR = Path(os.environ.get("AAC_STATE_DIR", "data/pillar_state"))
 

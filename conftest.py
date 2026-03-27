@@ -103,3 +103,4 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "slow: mark test as slow (> 5s)")
     config.addinivalue_line("markers", "paper: mark test as requiring paper-trading mode")
     config.addinivalue_line("markers", "exchange: mark test as requiring an exchange connection")
+    config.addinivalue_line("markers", "cross_pillar: mark test as cross-pillar integration (needs services)")

@@ -487,7 +487,7 @@ class UnifiedComponentIntegrator:
         """Activate NCC Master Adapter and NCC-AAC Bridge."""
         logger.info("\n[Phase E] NCC SYSTEMS — Master Adapter + AAC Bridge")
 
-        # NCC Master Adapter (port 9000)
+        # NCC Master Adapter (port 8765 — NCC Command API)
         try:
             from integrations.ncc_master_adapter import NCCMasterAdapter
             adapter = NCCMasterAdapter()
@@ -495,7 +495,7 @@ class UnifiedComponentIntegrator:
             self._ncc_master_adapter = adapter
             self.status.ncc_master_adapter = True
             self.status.components_wired += 1
-            logger.info("  ✅ NCCMasterAdapter started (heartbeat to :9000)")
+            logger.info("  ✅ NCCMasterAdapter started (heartbeat to :8765)")
         except Exception as e:
             self.status.components_failed += 1
             self.status.errors.append(f"NCCMasterAdapter: {e}")
