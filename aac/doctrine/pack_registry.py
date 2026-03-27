@@ -243,6 +243,98 @@ def build_builtin_doctrine_packs(
         "category": "monetary-transition",
     }
 
+    # ─── Pack 12: Matrix Monitor Command & Control ────────────────────────
+    # The AAC Matrix Monitor is a hybrid process/user-interface dashboard,
+    # console display, and command-control center that monitors AND commands
+    # every component of AAC.  It is the central go-to hub to access and
+    # peek inside the inner workings of the organisation and make changes
+    # as necessary.
+    packs[12] = {
+        "name": "Matrix Monitor Command & Control",
+        "owner": Department.SHARED_INFRASTRUCTURE,
+        "key_metrics": [
+            "monitor_uptime_pct",
+            "panel_coverage_pct",
+            "data_freshness_seconds",
+            "pillar_connectivity_pct",
+            "api_endpoint_health_pct",
+            "elite_desk_components_online",
+            "doctrine_compliance_visibility",
+            "command_response_latency_ms",
+        ],
+        "required_metrics": [
+            {"metric": "monitor_uptime_pct", "thresholds": {"good": ">99", "warning": "95-99", "critical": "<95"}},
+            {"metric": "panel_coverage_pct", "thresholds": {"good": ">95", "warning": "85-95", "critical": "<85"}},
+            {"metric": "data_freshness_seconds", "thresholds": {"good": "<10", "warning": "10-30", "critical": ">30"}},
+            {"metric": "pillar_connectivity_pct", "thresholds": {"good": ">80", "warning": "60-80", "critical": "<60"}},
+            {"metric": "api_endpoint_health_pct", "thresholds": {"good": ">95", "warning": "85-95", "critical": "<85"}},
+            {"metric": "elite_desk_components_online", "thresholds": {"good": ">7", "warning": "5-7", "critical": "<5"}},
+            {"metric": "doctrine_compliance_visibility", "thresholds": {"good": ">90", "warning": "75-90", "critical": "<75"}},
+            {"metric": "command_response_latency_ms", "thresholds": {"good": "<500", "warning": "500-2000", "critical": ">2000"}},
+        ],
+        "failure_modes": [
+            "dashboard_blind_spot",          # Panel data collection fails silently
+            "pillar_disconnect",             # One or more pillars unreachable
+            "stale_data_display",            # Data refresh stalls but UI keeps showing old data
+            "command_channel_failure",       # REST API / directive channel offline
+            "elite_desk_desync",             # Trading desk components report stale state
+            "doctrine_visibility_gap",       # Compliance data not reaching the monitor
+        ],
+        "barren_wuffet_triggers": [
+            ("monitor_uptime_pct < 90", BarrenWuffetState.CAUTION, ActionType.A_CREATE_INCIDENT),
+            ("pillar_connectivity_pct < 40", BarrenWuffetState.SAFE_MODE, ActionType.A_PAGE_ONCALL),
+            ("data_freshness_seconds > 60", BarrenWuffetState.CAUTION, ActionType.A_CREATE_INCIDENT),
+            ("elite_desk_components_online < 3", BarrenWuffetState.CAUTION, ActionType.A_THROTTLE_RISK),
+        ],
+        "version": "1.0",
+        "category": "command-control",
+        "role": "CENTRAL_C2_HUB",
+        "description": (
+            "The AAC Matrix Monitor is the supreme command-and-control centre "
+            "of the entire AAC organisation.  It is simultaneously a real-time "
+            "monitoring dashboard (4 display modes: Terminal, Web, Dash, API), "
+            "an operational console that surfaces every metric from every "
+            "department, and a command interface through which operators can "
+            "inspect and modify the inner workings of the system.  It polls 5 "
+            "pillar endpoints (NCC_MASTER, NCC, AAC, NCL, BRS), integrates 9 "
+            "elite trading-desk components, tracks 11 doctrine packs, manages "
+            "the capital rotation matrix (7 strategies, $10M target), and "
+            "exposes a REST API for external orchestration.  When the Matrix "
+            "Monitor is down, AAC is blind — making its uptime a top-level "
+            "organisational priority."
+        ),
+        "capabilities": [
+            "real_time_system_health_monitoring",
+            "doctrine_compliance_display",
+            "pnl_and_risk_dashboard",
+            "trading_activity_oversight",
+            "strategy_metrics_leaderboard",
+            "market_intelligence_aggregation",
+            "crisis_center_awareness",
+            "capital_rotation_tracking",
+            "multi_pillar_network_status",
+            "elite_trading_desk_integration",
+            "rest_api_command_interface",
+            "cross_pillar_directive_execution",
+            "circuit_breaker_state_reporting",
+            "regime_forecaster_display",
+            "system_registry_inventory",
+        ],
+        "display_modes": ["TERMINAL", "WEB", "DASH", "API"],
+        "pillar_endpoints": {
+            "NCC_MASTER": {"port": 8765, "role": "Supreme Orchestrator"},
+            "NCC": {"port": 8765, "role": "Governance & Command"},
+            "AAC": {"port": 8080, "role": "Trading & Capital"},
+            "NCL": {"port": 8787, "role": "Cognitive Augmentation"},
+            "BRS": {"port": 8000, "role": "Digital Labour"},
+        },
+        "elite_desk_components": [
+            "jonny_bravo", "wsb_reddit", "planktonxd", "grok_ai",
+            "openclaw", "stock_ticker", "ncl_link", "unusual_whales",
+            "matrix_maximizer",
+        ],
+    }
+
     return packs
 
 

@@ -10,9 +10,10 @@
 > *"Every byte of information is an edge. Store it. Search it. Trade on it."* — BARREN WUFFET
 
 ### Key Features
+- **AAC Matrix Monitor** — Central command-and-control hub: hybrid dashboard / console / C2 center with 4 display modes (Terminal, Web, Dash, API), 20+ panels, 5 pillar endpoints, 9 elite trading desk components
 - **35 OpenClaw Skills** — Market intelligence, trading, crypto/DeFi, banking, wealth building, advanced analysis
 - **Telegram Bot** — `@barrenwuffet069bot` with NL intent detection and 7-department routing
-- **Doctrine Engine** — 4-state machine (NORMAL → CAUTION → SAFE_MODE → HALT)
+- **Doctrine Engine** — 12 packs, 4-state machine (NORMAL → CAUTION → SAFE_MODE → HALT)
 - **7 Departments** — Executive, BigBrainIntelligence, TradingExecution, CryptoIntelligence, CentralAccounting, SharedInfrastructure, Jonny Bravo Division
 - **Scam Detection** — FrankenClaw patterns, token legitimacy checks
 - **Deep Dive Research** — 1000+ lines of curated OpenClaw intelligence in doctrine memory
@@ -56,7 +57,7 @@ AAC/
 │   ├── trading/              # Order execution engine
 │   ├── models/               # ML model training pipeline
 │   ├── integrations/         # Exchange + data connectors
-│   ├── monitoring/           # Health, metrics, alerts
+│   ├── monitoring/           # AAC Matrix Monitor — Central C2 Hub
 │   ├── shared/               # Canonical shared infrastructure
 │   └── divisions/            # 12 business unit stubs
 ├── TradingExecution/         # Exchange connector layer
