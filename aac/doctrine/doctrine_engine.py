@@ -2,18 +2,28 @@
 AAC Doctrine Application Engine
 ===============================
 
-Analyzes and applies all 8 Doctrine Packs across the organization.
+Analyzes and applies all 12 Doctrine Packs across the organization.
 Provides automated compliance checking, gap detection, and enforcement.
 
+The **AAC Matrix Monitor** (monitoring/aac_master_monitoring_dashboard.py)
+is the central command-and-control hub through which all doctrine state is
+observed and all operational directives are issued.  Every compliance check,
+every BARREN WUFFET state transition, and every automated action surfaces
+in the Matrix Monitor's 20+ display panels.
+
 Doctrine Packs:
-1. Risk Envelope & Capital Allocation (CentralAccounting)
-2. Security / Secrets / IAM / Key Custody (SharedInfrastructure)
-3. Testing / Simulation / Replay / Chaos (BigBrainIntelligence)
-4. Incident Response + On-Call + Postmortems (SharedInfrastructure)
-5. Liquidity / Market Impact / Partial Fill Logic (TradingExecution)
-6. Counterparty Scoring + Venue Health (CryptoIntelligence)
-7. Research Factory + Experimentation (BigBrainIntelligence)
-8. Metric Canon + Truth Arbitration (CentralAccounting)
+ 1. Risk Envelope & Capital Allocation (CentralAccounting)
+ 2. Security / Secrets / IAM / Key Custody (SharedInfrastructure)
+ 3. Testing / Simulation / Replay / Chaos (BigBrainIntelligence)
+ 4. Incident Response + On-Call + Postmortems (SharedInfrastructure)
+ 5. Liquidity / Market Impact / Partial Fill Logic (TradingExecution)
+ 6. Counterparty Scoring + Venue Health (CryptoIntelligence)
+ 7. Research Factory + Experimentation (BigBrainIntelligence)
+ 8. Metric Canon + Truth Arbitration (CentralAccounting)
+ 9. Strategic Warfare — Art of War / Sun Tzu (TradingExecution)
+10. Power Dynamics — 48 Laws of Power / Greene (TradingExecution)
+11. Future Financial Doctrine — FFD (CentralAccounting)
+12. Matrix Monitor Command & Control (SharedInfrastructure)
 """
 
 import asyncio
@@ -323,7 +333,7 @@ class DoctrineEngine:
             8: ActionType.A_FORCE_RECON,
             9: ActionType.A_TACTICAL_RETREAT,
             10: ActionType.A_CONCEAL_POSITION,
-            11: ActionType.A_THROTTLE_RISK,
+        12: ActionType.A_CREATE_INCIDENT,
         }
         return default_actions.get(pack_id, ActionType.A_CREATE_INCIDENT)
     
@@ -809,6 +819,16 @@ class DoctrineApplicationService:
             "capital_flight_signal": 18.0,
             "cross_chain_settlement_score": 84.0,
             "defi_yield_sustainability": 74.0,
+
+            # Pack 12: Matrix Monitor Command & Control
+            "monitor_uptime_pct": 99.8,
+            "panel_coverage_pct": 97.0,
+            "data_freshness_seconds": 5.0,
+            "pillar_connectivity_pct": 100.0,
+            "api_endpoint_health_pct": 100.0,
+            "elite_desk_components_online": 9,
+            "doctrine_compliance_visibility": 95.0,
+            "command_response_latency_ms": 120,
         }
     
     def print_doctrine_summary(self) -> None:
@@ -851,7 +871,7 @@ async def main(quiet_mode: bool = False):
     import time
     logger.info("\n%s", "█" * 80)
     logger.info("  AAC DOCTRINE APPLICATION ENGINE")
-    logger.info("  Analyzing and Applying 11 Doctrine Packs")
+    logger.info("  Analyzing and Applying 12 Doctrine Packs")
     logger.info("█" * 80)
 
     # Initialize engine and service

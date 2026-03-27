@@ -12,7 +12,13 @@ Maps ancient strategic principles to modern quantitative trading:
 - Deception → Order flow concealment
 - Power dynamics → Market presence management
 
-Doctrine Pack 9: "Strategic Warfare" (Art of War / Sun Tzu)
+All strategic state — terrain, force ratio, posture, active principles,
+and per-strategy directives — is surfaced in the **AAC Matrix Monitor**,
+the organisation's central command-and-control hub.  The Matrix Monitor
+is the single pane of glass through which operators observe, interpret,
+and override strategic doctrine in real time.
+
+Doctrine Pack  9: "Strategic Warfare" (Art of War / Sun Tzu)
 Doctrine Pack 10: "Power Dynamics" (48 Laws of Power / Greene)
 """
 
@@ -1055,9 +1061,15 @@ class StrategyAwareDoctrine:
     2. Manual input from owner (override commands)
     3. Market regime from MarketIntelligenceModel
     4. NCL BRAIN intelligence (relayed back)
+    5. Matrix Monitor C2 feedback (operator overrides via dashboard)
 
     Output: Dynamic position sizing, sector allocation, risk posture
     per strategy -- NOT just a single multiplier.
+
+    The Matrix Monitor is the primary consumer of these directives.
+    It displays the per-strategy doctrine table (Active Strategy Doctrine
+    panel) and feeds operator override commands back into this engine
+    via ``set_manual_override()``.
     """
 
     STRATEGY_DOCTRINE_MAP: Dict[str, Dict[str, str]] = {
