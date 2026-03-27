@@ -14,7 +14,7 @@ from __future__ import annotations
 
 # ── Version ──────────────────────────────────────────────────────────────────
 
-VERSION = "2.3.0"
+VERSION = "3.6.0"
 APP_NAME = "AAC"
 APP_FULL_NAME = "Accelerated Arbitrage Corp"
 

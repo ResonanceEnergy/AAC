@@ -5,7 +5,10 @@ Unified interface for multiple cryptocurrency and traditional exchanges.
 """
 
 from .base_connector import BaseExchangeConnector, ExchangeError
-from .binance_connector import BinanceConnector
+try:
+    from .binance_connector import BinanceConnector
+except (ImportError, ModuleNotFoundError):
+    BinanceConnector = None
 from .coinbase_connector import CoinbaseConnector
 from .kraken_connector import KrakenConnector
 try:

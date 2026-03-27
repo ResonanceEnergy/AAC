@@ -111,7 +111,8 @@ BANNER = r"""
   ╔══════════════════════════════════════════════╗
   ║       BARREN WUFFET Trading System           ║
   ║       Codename: AZ SUPREME                   ║
-  ║       Unified Launcher v1.0                   ║
+  ║       Unified Launcher v3.6                   ║
+  ║       517 components · 12 doctrine packs      ║
   ╚══════════════════════════════════════════════╝
 """
 

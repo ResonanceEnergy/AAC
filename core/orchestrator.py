@@ -45,13 +45,48 @@ from shared.symbol_classifier import (
 # Backward-compat alias used by execute_signals / _auto_execute_loop
 _route_exchange = route_exchange
 
-# AAC 2100 Quantum and AI Enhancements
-from shared.quantum_arbitrage_engine import QuantumArbitrageEngine
-from shared.ai_incident_predictor import AIIncidentPredictor
-from shared.advancement_validator import AdvancementValidator
-from shared.quantum_circuit_breaker import get_circuit_breaker
-from shared.cross_temporal_processor import CrossTemporalProcessor
-from shared.predictive_maintenance import PredictiveMaintenanceEngine
+# AAC 2100 Quantum and AI Enhancements (optional — graceful fallback)
+try:
+    from shared.quantum_arbitrage_engine import QuantumArbitrageEngine
+    QUANTUM_ARBITRAGE_AVAILABLE = True
+except ImportError:
+    QuantumArbitrageEngine = None  # type: ignore[misc,assignment]
+    QUANTUM_ARBITRAGE_AVAILABLE = False
+
+try:
+    from shared.ai_incident_predictor import AIIncidentPredictor
+    AI_INCIDENT_AVAILABLE = True
+except ImportError:
+    AIIncidentPredictor = None  # type: ignore[misc,assignment]
+    AI_INCIDENT_AVAILABLE = False
+
+try:
+    from shared.advancement_validator import AdvancementValidator
+    ADVANCEMENT_AVAILABLE = True
+except ImportError:
+    AdvancementValidator = None  # type: ignore[misc,assignment]
+    ADVANCEMENT_AVAILABLE = False
+
+try:
+    from shared.quantum_circuit_breaker import get_circuit_breaker
+    CIRCUIT_BREAKER_AVAILABLE = True
+except ImportError:
+    get_circuit_breaker = None  # type: ignore[misc,assignment]
+    CIRCUIT_BREAKER_AVAILABLE = False
+
+try:
+    from shared.cross_temporal_processor import CrossTemporalProcessor
+    CROSS_TEMPORAL_AVAILABLE = True
+except ImportError:
+    CrossTemporalProcessor = None  # type: ignore[misc,assignment]
+    CROSS_TEMPORAL_AVAILABLE = False
+
+try:
+    from shared.predictive_maintenance import PredictiveMaintenanceEngine
+    PREDICTIVE_MAINTENANCE_AVAILABLE = True
+except ImportError:
+    PredictiveMaintenanceEngine = None  # type: ignore[misc,assignment]
+    PREDICTIVE_MAINTENANCE_AVAILABLE = False
 
 # Import health server (optional)
 try:
@@ -94,13 +129,6 @@ try:
     GLN_AVAILABLE = True
 except ImportError:
     GLN_AVAILABLE = False
-
-# Import Global Talent Acquisition integration
-try:
-    from shared.global_talent_integration import get_gta_integration, initialize_gta_integration
-    GTA_AVAILABLE = True
-except ImportError:
-    GTA_AVAILABLE = False
 
 # Import Global Talent Acquisition integration
 try:
@@ -619,12 +647,15 @@ class AAC2100Orchestrator:
             self.logger.info("Strategy execution engine initialized with real arbitrage algorithms")
 
             # Initialize AAC 2100 Quantum Components
-            if self._enable_quantum:
+            if self._enable_quantum and QUANTUM_ARBITRAGE_AVAILABLE:
                 self.logger.info("Initializing quantum components...")
                 self.quantum_arbitrage_engine = QuantumArbitrageEngine()
-                self.quantum_circuit_breaker = get_circuit_breaker("aac2100_main_system")
+                if CIRCUIT_BREAKER_AVAILABLE:
+                    self.quantum_circuit_breaker = get_circuit_breaker("aac2100_main_system")
                 self.quantum_arbitrage_engine.set_data_aggregator(self.data_aggregator)
                 self.logger.info("Quantum arbitrage engine and circuit breaker initialized")
+            elif self._enable_quantum:
+                self.logger.warning("Quantum components requested but not available")
 
             # ── Wire live connectors into DataAggregator ──
             try:
@@ -644,13 +675,16 @@ class AAC2100Orchestrator:
             # Initialize AAC 2100 AI Components
             if self._enable_ai_autonomy:
                 self.logger.info("Initializing AI autonomy components...")
-                self.ai_incident_predictor = AIIncidentPredictor()
-                self.advancement_validator = AdvancementValidator()
-                self.predictive_maintenance = PredictiveMaintenanceEngine()
-                self.logger.info("AI incident predictor, advancement validator, and predictive maintenance initialized")
+                if AI_INCIDENT_AVAILABLE:
+                    self.ai_incident_predictor = AIIncidentPredictor()
+                if ADVANCEMENT_AVAILABLE:
+                    self.advancement_validator = AdvancementValidator()
+                if PREDICTIVE_MAINTENANCE_AVAILABLE:
+                    self.predictive_maintenance = PredictiveMaintenanceEngine()
+                self.logger.info("AI autonomy components initialized")
 
             # Initialize Cross-Temporal Processor
-            if self._enable_cross_temporal:
+            if self._enable_cross_temporal and CROSS_TEMPORAL_AVAILABLE:
                 self.logger.info("Initializing cross-temporal processor...")
                 self.cross_temporal_processor = CrossTemporalProcessor()
                 self.logger.info("Cross-temporal processor initialized")

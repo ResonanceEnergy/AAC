@@ -1,7 +1,7 @@
 """
 Accelerated Arbitrage Corp - Shared Utilities
 ==============================================
-Common utilities and configuration management for all ACC components.
+Common utilities and configuration management for all AAC components.
 """
 
 from .config_loader import (
@@ -15,6 +15,7 @@ from .config_loader import (
     get_env_float,
     PROJECT_ROOT,
 )
+from .constants import VERSION
 
 __all__ = [
     'Config',
@@ -26,4 +27,5 @@ __all__ = [
     'get_env_int',
     'get_env_float',
     'PROJECT_ROOT',
+    'VERSION',
 ]
