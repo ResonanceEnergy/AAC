@@ -149,11 +149,6 @@ except ImportError:
 
 # Additional dashboard components
 try:
-    from strategies.strategy_analysis_engine import (
-        initialize_strategy_analysis,
-        strategy_analysis_engine,
-    )
-    from tools.enhanced_metrics_display import AACMetricsDisplay
     from trading.aac_arbitrage_execution_system import (
         AACArbitrageExecutionSystem,
         ExecutionConfig,
@@ -166,6 +161,11 @@ try:
 
     from monitoring.continuous_monitoring import ContinuousMonitoringService
     from monitoring.security_dashboard import SecurityDashboard
+    from strategies.strategy_analysis_engine import (
+        initialize_strategy_analysis,
+        strategy_analysis_engine,
+    )
+    from tools.enhanced_metrics_display import AACMetricsDisplay
 
     ARBITRAGE_COMPONENTS_AVAILABLE = True
     TRADING_AVAILABLE = True
@@ -242,6 +242,18 @@ try:
     PLANKTONXD_AVAILABLE = True
 except ImportError:
     PLANKTONXD_AVAILABLE = False
+
+# Polymarket Division — War Room Poly + PolyMC Agent + Monitor
+try:
+    from strategies.polymarket_division import get_division_status
+    from strategies.polymarket_division.account_tracker import PolymarketAccountTracker
+    from strategies.polymarket_division.polymc_agent import PolyMCAgent
+    from strategies.polymarket_division.polymc_monitor import PolyMCMonitor
+    from strategies.polymarket_division.war_room_poly import WarRoomPoly
+
+    POLYMARKET_DIVISION_AVAILABLE = True
+except ImportError:
+    POLYMARKET_DIVISION_AVAILABLE = False
 
 # Grok AI Trade Scorer (xAI integration)
 try:
@@ -404,6 +416,10 @@ class AACMasterMonitoringDashboard:
             else None
         )
         self.planktonxd = PlanktonXDSimulator() if PLANKTONXD_AVAILABLE else None
+        self.polymc_agent = PolyMCAgent() if POLYMARKET_DIVISION_AVAILABLE else None
+        self.polymc_monitor = PolyMCMonitor() if POLYMARKET_DIVISION_AVAILABLE else None
+        self.war_room_poly = WarRoomPoly() if POLYMARKET_DIVISION_AVAILABLE else None
+        self.poly_account_tracker = PolymarketAccountTracker() if POLYMARKET_DIVISION_AVAILABLE else None
         self.grok_scorer = AITradeScorer() if GROK_SCORER_AVAILABLE else None
         self.polygon_client = PolygonClient() if POLYGON_AVAILABLE else None
         self.cross_pillar_hub = CrossPillarHub() if CROSS_PILLAR_AVAILABLE else None
@@ -516,166 +532,126 @@ class AACMasterMonitoringDashboard:
             self.logger.error(f"[CROSS] Failed to initialize master dashboard: {e}")
             return False
 
-    async def collect_monitoring_data(self) -> Dict[str, Any]:
-        """Collect comprehensive monitoring data from all systems"""
+    # Per-collector timeout (seconds).  Network-heavy collectors
+    # (IBKR, pillar network) get the same budget as local ones —
+    # if they can't respond in this time, they're down.
+    _COLLECTOR_TIMEOUT: float = 5.0
+
+    async def _safe_collect(
+        self,
+        name: str,
+        coro_or_callable,
+    ) -> tuple[str, Any, str]:
+        """Run a single collector with a timeout.
+
+        Returns (name, result, status) where status is 'ok', 'timeout', or 'error'.
+        Sync callables are wrapped so they participate in the gather.
+        """
         try:
-            # Timestamp
-            timestamp = datetime.now()
+            if asyncio.iscoroutinefunction(coro_or_callable):
+                result = await asyncio.wait_for(
+                    coro_or_callable(), timeout=self._COLLECTOR_TIMEOUT
+                )
+            elif asyncio.iscoroutine(coro_or_callable):
+                result = await asyncio.wait_for(
+                    coro_or_callable, timeout=self._COLLECTOR_TIMEOUT
+                )
+            else:
+                # Sync callable — just call it
+                result = coro_or_callable()
+            return (name, result, "ok")
+        except asyncio.TimeoutError:
+            self.logger.warning("Collector %s timed out (%.1fs)", name, self._COLLECTOR_TIMEOUT)
+            return (name, {}, "timeout")
+        except Exception as exc:
+            self.logger.warning("Collector %s failed: %s", name, exc)
+            return (name, {}, "error")
 
-            # System health
-            health_data = await self._get_system_health()
+    async def collect_monitoring_data(self) -> Dict[str, Any]:
+        """Collect comprehensive monitoring data from all systems **in parallel**.
 
-            # P&L data
-            pnl_data = await self._get_pnl_data()
+        Every collector runs concurrently with a per-collector timeout
+        (default 5 s).  The result dict always contains a ``_collector_status``
+        key that reports which collectors succeeded, timed out, or errored —
+        so the display layer can show a degradation panel.
+        """
+        timestamp = datetime.now()
 
-            # Risk metrics
-            risk_data = await self._get_risk_metrics()
+        # Build the list of (key, callable/coroutine-function) pairs.
+        # Sync helpers are fine — _safe_collect handles both.
+        collectors: list[tuple[str, Any]] = [
+            ("health", self._get_system_health),
+            ("pnl", self._get_pnl_data),
+            ("risk", self._get_risk_metrics),
+            ("trading", self._get_trading_activity),
+            ("doctrine", self._get_doctrine_compliance),
+            ("market_intelligence", self._get_market_intelligence),
+            ("security", self._get_security_status),
+            ("strategy", self._get_strategy_metrics),
+            ("safeguards", get_safeguards_health),
+            ("forecaster", self._get_forecaster_intel),
+            ("ibkr_orders", self._get_ibkr_orders),
+            ("alerts", self._get_alerts),
+            ("registry", self._get_registry_snapshot),
+            ("matrix_maximizer", self._get_matrix_maximizer_deep),
+            ("crisis_center", self._get_crisis_center_data),
+            ("storm_lifeboat", self._get_storm_lifeboat_data),
+            ("capital_rotation", self._get_capital_rotation_matrix),
+            ("doctrine_packs", self._get_doctrine_packs_data),
+            ("strategy_advisor", self._get_strategy_advisor_data),
+            ("active_doctrine", self._get_active_strategy_doctrine_data),
+            ("jonny_bravo", self._get_jonny_bravo_data),
+            ("superstonk", self._get_superstonk_data),
+            ("planktonxd", self._get_planktonxd_data),
+            ("polymarket_division", self._get_polymarket_division_data),
+            ("grok_scorer", self._get_grok_scorer_data),
+            ("openclaw", self._get_openclaw_data),
+            ("stock_ticker", self._get_stock_ticker_data),
+            ("ncl_link", self._get_ncl_link_data),
+            ("pillar_network", self._get_pillar_network_status),
+        ]
 
-            # Trading activity
-            trading_data = await self._get_trading_activity()
+        # Pillar federation (conditional)
+        if self.pillar_federation:
+            collectors.append(("pillar_matrix_deep", self.pillar_federation.collect_all))
 
-            # Doctrine compliance
-            doctrine_data = await self._get_doctrine_compliance()
+        # Fire all collectors concurrently
+        tasks = [self._safe_collect(name, fn) for name, fn in collectors]
+        results = await asyncio.gather(*tasks)
 
-            # Market intelligence
-            market_intelligence_data = await self._get_market_intelligence()
+        # Assemble output dict + collector health report
+        data: Dict[str, Any] = {"timestamp": timestamp}
+        collector_status: Dict[str, str] = {}
+        ok_count = 0
+        fail_count = 0
+        timeout_count = 0
 
-            # Security status
-            security_data = await self._get_security_status()
+        for name, value, status in results:
+            data[name] = value
+            collector_status[name] = status
+            if status == "ok":
+                ok_count += 1
+            elif status == "timeout":
+                timeout_count += 1
+            else:
+                fail_count += 1
 
-            # Strategy metrics
-            strategy_data = await self._get_strategy_metrics()
+        # Fill any missing keys with empty dicts
+        all_keys = [k for k, _ in collectors]
+        if not self.pillar_federation:
+            all_keys.append("pillar_matrix_deep")
+            data.setdefault("pillar_matrix_deep", {})
 
-            # Safeguards status
-            safeguards_data = get_safeguards_health()
+        total = ok_count + fail_count + timeout_count
+        data["_collector_status"] = {
+            "ok": ok_count,
+            "failed": fail_count,
+            "timed_out": timeout_count,
+            "total": total,
+            "details": collector_status,
+        }
 
-            # Regime forecaster intelligence
-            forecaster_data = await self._get_forecaster_intel()
-
-            # IBKR open orders + maximization plan
-            ibkr_orders_data = await self._get_ibkr_orders()
-
-            # Alerts
-            alerts_data = await self._get_alerts()
-
-            # System Registry snapshot (APIs, exchanges, infra, strategies, orphans)
-            registry_data = self._get_registry_snapshot()
-
-            # Matrix Maximizer deep integration
-            maximizer_data = self._get_matrix_maximizer_deep()
-
-            # Black Swan Crisis Center
-            crisis_data = self._get_crisis_center_data()
-
-            # Storm Lifeboat Matrix
-            storm_lifeboat_data = self._get_storm_lifeboat_data()
-
-            # ── Capital Rotation Matrix (7 strategies) ────────────────
-            capital_rotation_data = self._get_capital_rotation_matrix()
-
-            # ── Doctrine Pack Reader (all 11 packs) ───────────────────
-            doctrine_packs_data = self._get_doctrine_packs_data()
-
-            # ── Strategy Advisor Leaderboard ──────────────────────────
-            strategy_advisor_data = self._get_strategy_advisor_data()
-
-            # ── Active Strategy Doctrine (per-strategy directives) ────
-            active_doctrine_data = self._get_active_strategy_doctrine_data()
-
-            # ── Elite Trading Desk Integrated Components ──────────────
-            jonny_bravo_data = self._get_jonny_bravo_data()
-            superstonk_data = await self._get_superstonk_data()
-            planktonxd_data = self._get_planktonxd_data()
-            grok_data = self._get_grok_scorer_data()
-            openclaw_data = self._get_openclaw_data()
-            ticker_data = await self._get_stock_ticker_data()
-            ncl_link_data = await self._get_ncl_link_data()
-
-            # ── Multi-Pillar Matrix Monitor Network ───────────────────
-            pillar_network_data = await self._get_pillar_network_status()
-
-            # ── Deep Pillar Matrix Federation (all pillar matrix monitors) ─
-            pillar_matrix_deep = {}
-            if self.pillar_federation:
-                try:
-                    pillar_matrix_deep = await self.pillar_federation.collect_all()
-                except Exception as exc:
-                    self.logger.warning("Pillar federation collect failed: %s", exc)
-                    pillar_matrix_deep = {"status": "error", "error": str(exc)}
-
-            return {
-                "timestamp": timestamp,
-                "health": health_data,
-                "pnl": pnl_data,
-                "risk": risk_data,
-                "trading": trading_data,
-                "doctrine": doctrine_data,
-                "market_intelligence": market_intelligence_data,
-                "security": security_data,
-                "strategy": strategy_data,
-                "safeguards": safeguards_data,
-                "forecaster": forecaster_data,
-                "ibkr_orders": ibkr_orders_data,
-                "alerts": alerts_data,
-                "registry": registry_data,
-                "matrix_maximizer": maximizer_data,
-                "crisis_center": crisis_data,
-                "storm_lifeboat": storm_lifeboat_data,
-                # Capital Rotation Matrix
-                "capital_rotation": capital_rotation_data,
-                # Doctrine Pack Reader
-                "doctrine_packs": doctrine_packs_data,
-                # Strategy Advisor Leaderboard
-                "strategy_advisor": strategy_advisor_data,
-                # Active Strategy Doctrine
-                "active_doctrine": active_doctrine_data,
-                # Elite Trading Desk panels
-                "jonny_bravo": jonny_bravo_data,
-                "superstonk": superstonk_data,
-                "planktonxd": planktonxd_data,
-                "grok_scorer": grok_data,
-                "openclaw": openclaw_data,
-                "stock_ticker": ticker_data,
-                "ncl_link": ncl_link_data,
-                # Multi-Pillar Matrix Monitor Network
-                "pillar_network": pillar_network_data,
-                # Deep Pillar Matrix Federation
-                "pillar_matrix_deep": pillar_matrix_deep,
-            }
-
-        except Exception as e:
-            self.logger.error(f"Error collecting monitoring data: {e}", exc_info=True)
-            return {
-                "timestamp": datetime.now(),
-                "error": str(e),
-                "health": {},
-                "pnl": {},
-                "risk": {},
-                "trading": {},
-                "doctrine": {},
-                "market_intelligence": {},
-                "security": {},
-                "strategy": {},
-                "safeguards": {},
-                "alerts": [],
-                "registry": {},
-                "matrix_maximizer": {},
-                "crisis_center": {},
-                "storm_lifeboat": {},
-                "capital_rotation": {},
-                "doctrine_packs": {},
-                "strategy_advisor": {},
-                "active_doctrine": {},
-                "jonny_bravo": {},
-                "superstonk": {},
-                "planktonxd": {},
-                "grok_scorer": {},
-                "openclaw": {},
-                "stock_ticker": {},
-                "ncl_link": {},
-                "pillar_network": {},
-                "pillar_matrix_deep": {},
-            }
+        return data
 
     async def _get_system_health(self) -> Dict[str, Any]:
         """Get comprehensive system health data"""
@@ -1564,25 +1540,38 @@ class AACMasterMonitoringDashboard:
             }
         )
 
-        # ── 5. POLYMARKET — PlanktonXD powered ──
+        # ── 5. POLYMARKET DIVISION — 3 Strategies ──
         poly_balance = 0.0
         poly_bets = 0
+        poly_strategies_loaded = 0
         try:
             if self.planktonxd:
                 px_data = self._get_planktonxd_data()
                 if px_data.get("status") == "ok":
                     poly_balance = px_data.get("total_deployed", 0.0)
                     poly_bets = px_data.get("active_bets", 0)
+            div_data = self._get_polymarket_division_data()
+            if div_data.get("status") == "ok":
+                poly_strategies_loaded = div_data.get("strategies_loaded", 0)
+                # Use real account tracker total if available
+                acct = div_data.get("account", {})
+                if acct.get("status") == "ok":
+                    poly_balance = acct.get("total_account_value", poly_balance)
+                    poly_bets = acct.get("total_positions", poly_bets)
+                else:
+                    mc = div_data.get("polymc", {})
+                    if mc.get("status") == "ok":
+                        poly_balance += mc.get("total_cost", 0)
         except Exception:
             pass
         strategies.append(
             {
                 "id": 5,
-                "name": "POLYMARKET",
+                "name": "POLYMARKET DIV",
                 "broker": "Polymarket",
-                "api": "Polymarket API / PlanktonXD",
+                "api": f"Division ({poly_strategies_loaded}/3 loaded)",
                 "type": "PREDICTION",
-                "role": "Prediction market bets via PlanktonXD",
+                "role": "War Room + PlanktonXD + PolyMC Agent",
                 "is_live": True,
                 "balance_usd": poly_balance,
                 "currency": "USDC",
@@ -1606,7 +1595,7 @@ class AACMasterMonitoringDashboard:
                 "id": 6,
                 "name": "QUE THE FIRE!",
                 "broker": "IBKR Paper",
-                "api": "IBKR TWS API (port 7497)",
+                "api": "IBKR TWS API (port 7496)",
                 "type": "PAPER",
                 "role": "Jonny Bravo strategy — paper trading",
                 "is_live": False,
@@ -1619,14 +1608,8 @@ class AACMasterMonitoringDashboard:
         )
 
         # ── 7. UNUSUAL WHALES — Paper ──
-        uw_balance = 1000.0  # Arbitrary starting balance
-        try:
-            uw_path = PROJECT_ROOT / "data" / "unusual_whales_paper_balance.json"
-            if uw_path.exists():
-                uw_data = json.loads(uw_path.read_text(encoding="utf-8"))
-                uw_balance = uw_data.get("balance", 1000.0)
-        except Exception:
-            pass
+        uw_balance = 1000.0  # Paper strategy not yet implemented
+        # TODO: Implement UW paper trading strategy and persist balance
         strategies.append(
             {
                 "id": 7,
@@ -1972,6 +1955,101 @@ class AACMasterMonitoringDashboard:
             return {"status": "no_data"}
         except Exception as e:
             self.logger.warning("PlanktonXD data fetch failed: %s", e)
+            return {"status": "error", "error": str(e)}
+
+    def _get_polymarket_division_data(self) -> Dict[str, Any]:
+        """Get full Polymarket Division status — all 3 strategies."""
+        if not POLYMARKET_DIVISION_AVAILABLE:
+            return {"status": "not_available"}
+        try:
+            # Division registry status
+            division_status = get_division_status()
+            loaded = sum(1 for v in division_status.values() if v["status"] == "loaded")
+
+            # War Room Poly
+            war_room_data: Dict[str, Any] = {"status": "not_available"}
+            if self.war_room_poly:
+                try:
+                    wr_dict = self.war_room_poly.to_dict()
+                    war_room_data = {
+                        "status": "ok",
+                        "pressure_level": wr_dict.get("pressure_level", 0),
+                        "n_matches": wr_dict.get("n_matches", 0),
+                        "stages": wr_dict.get("stages", {}),
+                        "top_matches": wr_dict.get("top_matches", [])[:5],
+                    }
+                except Exception as e:
+                    war_room_data = {"status": "error", "error": str(e)}
+
+            # PolyMC Agent — portfolio + MC summary
+            polymc_data: Dict[str, Any] = {"status": "not_available"}
+            if self.polymc_agent:
+                try:
+                    portfolio = self.polymc_agent.portfolio
+                    mc_result = self.polymc_agent.run_portfolio_monte_carlo(n_sims=10_000)
+                    polymc_data = {
+                        "status": "ok",
+                        "portfolio_size": len(portfolio),
+                        "total_cost": mc_result.get("total_cost", 0),
+                        "mean_return": mc_result.get("mean_return", 0),
+                        "ev_pct": mc_result.get("ev_pct", 0),
+                        "prob_profit": mc_result.get("prob_profit", 0),
+                        "max_payout": mc_result.get("max_payout", 0),
+                        "var_95": mc_result.get("var_95", 0),
+                        "sharpe": mc_result.get("sharpe", 0),
+                        "per_bet": mc_result.get("per_bet", []),
+                        "bets": [
+                            {
+                                "name": b.name[:40],
+                                "side": b.side,
+                                "entry": b.entry_price,
+                                "bet_size": b.bet_size,
+                                "our_prob": b.our_prob,
+                                "take_profit": b.take_profit,
+                                "stop_loss": b.stop_loss,
+                            }
+                            for b in portfolio
+                        ],
+                    }
+                except Exception as e:
+                    polymc_data = {"status": "error", "error": str(e)}
+
+            # PolyMC Monitor — exit signals
+            monitor_data: Dict[str, Any] = {"status": "not_available"}
+            if self.polymc_monitor:
+                try:
+                    signals = self.polymc_monitor.check_exit_signals()
+                    immediate = [s for s in signals if s.urgency == "immediate"]
+                    monitor_data = {
+                        "status": "ok",
+                        "total_signals": len(signals),
+                        "immediate_exits": len(immediate),
+                        "check_count": self.polymc_monitor.check_count,
+                    }
+                except Exception as e:
+                    monitor_data = {"status": "error", "error": str(e)}
+
+            # Account Tracker — per-strategy balance breakdown
+            account_data: Dict[str, Any] = {"status": "not_available"}
+            if self.poly_account_tracker:
+                try:
+                    acct_state = self.poly_account_tracker.get_account_state()
+                    account_data = acct_state.to_dict()
+                except Exception as e:
+                    account_data = {"status": "error", "error": str(e)}
+
+            return {
+                "status": "ok",
+                "strategies_loaded": loaded,
+                "strategies_total": len(division_status),
+                "division_status": division_status,
+                "war_room": war_room_data,
+                "polymc": polymc_data,
+                "monitor": monitor_data,
+                "account": account_data,
+            }
+        except Exception as e:
+            self.logger.warning("Polymarket Division data fetch failed: %s", e)
             return {"status": "error", "error": str(e)}
 
     def _get_grok_scorer_data(self) -> Dict[str, Any]:
@@ -2449,7 +2527,7 @@ class AACMasterMonitoringDashboard:
             except curses.error:
                 pass  # Terminal too small for this panel
 
-        # ── IBKR Orders + $920 Maximization (curses panel) ─────────────────
+        # ── IBKR Orders + $30,148 Maximization (curses panel) ────────────────
         ibkr = data.get("ibkr_orders", {})
         if ibkr and ibkr.get("status") == "ok" and y_pos < height - 6:
             y_pos += 1
@@ -2725,6 +2803,30 @@ class AACMasterMonitoringDashboard:
         )
         print("")
 
+        # ── Collector Health (degradation report) ─────────────────────
+        cstatus = data.get("_collector_status", {})
+        total = cstatus.get("total", 0)
+        ok = cstatus.get("ok", 0)
+        failed = cstatus.get("failed", 0)
+        timed_out = cstatus.get("timed_out", 0)
+        if total > 0:
+            if failed == 0 and timed_out == 0:
+                print(f"COLLECTORS: {ok}/{total} OK")
+            else:
+                parts = [f"{ok} ok"]
+                if failed:
+                    parts.append(f"{failed} FAILED")
+                if timed_out:
+                    parts.append(f"{timed_out} TIMEOUT")
+                print(f"COLLECTORS: {' | '.join(parts)}  ({total} total)")
+                # Show which ones failed/timed out
+                details = cstatus.get("details", {})
+                for cname, cstat in details.items():
+                    if cstat != "ok":
+                        tag = "TIMEOUT" if cstat == "timeout" else "ERROR"
+                        print(f"  [{tag}] {cname}")
+            print("")
+
         # System Health
         health = data.get("health", {})
         print("🔍 SYSTEM HEALTH")
@@ -2948,7 +3050,7 @@ class AACMasterMonitoringDashboard:
                     print(f"         {o['thesis']}")
             print("=" * 60)
 
-        # ── IBKR OPEN ORDERS + $920 MAXIMIZATION PLAN ───────────────────
+        # ── IBKR OPEN ORDERS + $30,148 MAXIMIZATION PLAN ────────────────
         ibkr = data.get("ibkr_orders", {})
         if ibkr and ibkr.get("status") == "ok":
             print("")
@@ -3566,25 +3668,137 @@ class AACMasterMonitoringDashboard:
         elif ss and ss.get("status") != "not_available":
             print(f"\n  🦍 SUPERSTONK: {ss.get('status', 'offline')}")
 
-        # ── PlanktonXD Prediction Markets ────────────────────────────
+        # ── POLYMARKET DIVISION — 3 Strategies ────────────────────────
         px = data.get("planktonxd", {})
-        if px and px.get("status") == "ok":
-            print("\n  🐙 PLANKTONXD PREDICTION HARVESTER")
-            print(
-                f"    Bets: {px.get('active_bets', 0)}/{px.get('total_bets', 0)} active  |  Scenarios: {px.get('scenarios_matched', 0)}"
-            )
-            print(
-                f"    Deployed: ${px.get('total_deployed', 0):,.2f}  |  Max Payout: ${px.get('max_payout', 0):,.2f}"
-            )
-            top_bets = px.get("top_bets", [])
-            if top_bets:
-                print("    Top Bets:")
-                for b in top_bets[:3]:
-                    print(
-                        f"      ${b.get('size', 0):.2f}  [{b.get('scenario', '?'):20}]  {b.get('market', '?')}"
-                    )
+        pdiv = data.get("polymarket_division", {})
+        if (px and px.get("status") == "ok") or (pdiv and pdiv.get("status") == "ok"):
+            loaded = pdiv.get("strategies_loaded", 0) if pdiv else 0
+            total = pdiv.get("strategies_total", 3) if pdiv else 3
+            print("")
+            print("  " + "▓" * 76)
+            print(f"  🎯 POLYMARKET DIVISION — {loaded}/{total} STRATEGIES LOADED")
+            print("  " + "▓" * 76)
+
+            # 1. PlanktonXD Harvester
+            if px and px.get("status") == "ok":
+                print(f"    🐙 PLANKTONXD HARVESTER")
+                print(
+                    f"       Bets: {px.get('active_bets', 0)}/{px.get('total_bets', 0)} active  |  "
+                    f"Scenarios: {px.get('scenarios_matched', 0)}"
+                )
+                print(
+                    f"       Deployed: ${px.get('total_deployed', 0):,.2f}  |  "
+                    f"Max Payout: ${px.get('max_payout', 0):,.2f}"
+                )
+                top_bets = px.get("top_bets", [])
+                if top_bets:
+                    for b in top_bets[:3]:
+                        print(
+                            f"         ${b.get('size', 0):.2f}  [{b.get('scenario', '?'):20}]  {b.get('market', '?')}"
+                        )
+            else:
+                print(f"    🐙 PLANKTONXD: {px.get('status', 'offline') if px else 'not loaded'}")
+
+            # 2. War Room Poly
+            wr = pdiv.get("war_room", {}) if pdiv else {}
+            if wr.get("status") == "ok":
+                pressure = wr.get("pressure_level", 0)
+                p_icon = "🔴" if pressure >= 0.8 else "🟡" if pressure >= 0.4 else "🟢"
+                print(f"    ⚔️  WAR ROOM POLY — Thesis Chain")
+                print(
+                    f"       Pressure: {p_icon} {pressure:.0%}  |  "
+                    f"Matches: {wr.get('n_matches', 0)}"
+                )
+                stages = wr.get("stages", {})
+                if stages:
+                    stage_parts = []
+                    for sname, sinfo in list(stages.items())[:6]:
+                        short = sname.replace("stage_", "S").replace("_", " ")[:12]
+                        n = sinfo.get("matches", 0)
+                        stage_parts.append(f"{short}={n}")
+                    print(f"       Stages: {' | '.join(stage_parts)}")
+                top_wr = wr.get("top_matches", [])
+                if top_wr:
+                    for m in top_wr[:3]:
+                        q = m.get("question", "?")[:40]
+                        print(
+                            f"         {m.get('stage', '?'):12}  ${m.get('price', 0):.3f}  "
+                            f"edge={m.get('edge', 0):+.3f}  {m.get('multiplier', 0):.1f}x  {q}"
+                        )
+            elif wr.get("status") == "error":
+                print(f"    ⚔️  WAR ROOM POLY: ⚠️  {wr.get('error', 'error')}")
+            else:
+                print(f"    ⚔️  WAR ROOM POLY: not loaded")
+
+            # 3. PolyMC Agent — Monte Carlo Portfolio
+            mc = pdiv.get("polymc", {}) if pdiv else {}
+            if mc.get("status") == "ok":
+                ev_pct = mc.get("ev_pct", 0)
+                ev_icon = "🟢" if ev_pct > 5 else "🟡" if ev_pct > 0 else "🔴"
+                print(f"    🎲 POLYMC AGENT — 100K Monte Carlo")
+                print(
+                    f"       Portfolio: {mc.get('portfolio_size', 0)} bets  |  "
+                    f"Cost: ${mc.get('total_cost', 0):,.2f}  |  "
+                    f"Max Payout: ${mc.get('max_payout', 0):,.2f}"
+                )
+                print(
+                    f"       {ev_icon} EV: {ev_pct:+.1f}%  |  "
+                    f"Mean Return: ${mc.get('mean_return', 0):+,.2f}  |  "
+                    f"P(profit): {mc.get('prob_profit', 0):.1%}"
+                )
+                print(
+                    f"       VaR(95): ${mc.get('var_95', 0):,.2f}  |  "
+                    f"Sharpe: {mc.get('sharpe', 0):.3f}"
+                )
+                per_bet = mc.get("per_bet", [])
+                if per_bet:
+                    for pb in per_bet[:5]:
+                        ev = pb.get("ev", 0)
+                        ev_sym = "+" if ev >= 0 else ""
+                        print(
+                            f"         {pb.get('name', '?')[:35]:<35}  "
+                            f"EV=${ev_sym}{ev:.2f}  P={pb.get('prob_profit', 0):.0%}"
+                        )
+            elif mc.get("status") == "error":
+                print(f"    🎲 POLYMC AGENT: ⚠️  {mc.get('error', 'error')}")
+            else:
+                print(f"    🎲 POLYMC AGENT: not loaded")
+
+            # 4. Monitor — Exit Signals
+            mon = pdiv.get("monitor", {}) if pdiv else {}
+            if mon.get("status") == "ok":
+                imm = mon.get("immediate_exits", 0)
+                imm_icon = "🔴" if imm > 0 else "🟢"
+                print(
+                    f"    📡 MONITOR: {imm_icon} {mon.get('total_signals', 0)} signals  |  "
+                    f"Immediate exits: {imm}  |  Checks: {mon.get('check_count', 0)}"
+                )
+
+            # 5. Account Tracker — Per-Strategy Balances
+            acct = pdiv.get("account", {}) if pdiv else {}
+            if acct.get("status") == "ok":
+                wallet = acct.get("wallet_balance", 0)
+                total_val = acct.get("total_account_value", 0)
+                total_pos = acct.get("total_positions", 0)
+                total_ord = acct.get("total_orders", 0)
+                print(f"    💰 ACCOUNT TRACKER — Per-Strategy Allocation")
+                print(f"       Wallet: ${wallet:,.2f}  |  Positions: {total_pos}  |  Orders: {total_ord}  |  Total: ${total_val:,.2f}")
+                strats = acct.get("strategies", {})
+                for skey, slabel in [("war_room", "⚔️  War Room"), ("planktonxd", "🐙 PlanktonXD"), ("polymc", "🎲 PolyMC   ")]:
+                    s = strats.get(skey, {})
+                    s_pos = s.get("positions", 0)
+                    s_ord = s.get("orders", 0)
+                    s_val = s.get("total_deployed", 0)
+                    s_pct = (s_val / total_val * 100) if total_val > 0 else 0
+                    print(f"         {slabel}:  {s_pos:>3} pos  {s_ord:>3} ord  ${s_val:>9,.2f}  ({s_pct:5.1f}%)")
+            elif acct.get("status") == "error":
+                print(f"    💰 ACCOUNT: ⚠️  {acct.get('error', 'error')}")
+
+            print("  " + "▓" * 76)
         elif px and px.get("status") != "not_available":
-            print(f"\n  🐙 PLANKTONXD: {px.get('status', 'offline')}")
+            print(f"\n  🎯 POLYMARKET DIVISION: {px.get('status', 'offline')}")
+        elif pdiv and pdiv.get("status") == "error":
+            print(f"\n  🎯 POLYMARKET DIVISION: ⚠️  {pdiv.get('error', 'error')}")
 
         # ── Unusual Whales (already wired — add summary) ────────────
         mi = data.get("market_intelligence", {})
@@ -3696,6 +3910,8 @@ class AACMasterMonitoringDashboard:
         print("Press Ctrl+C to quit | Auto-refresh: 1s")
         print("")
 
+        _shown_waiting = False
+
         while self.running:
             try:
                 # Get latest data (thread-safe read)
@@ -3703,8 +3919,12 @@ class AACMasterMonitoringDashboard:
                     data = self._latest_data.copy() if self._latest_data else {}
 
                 if data:
+                    _shown_waiting = False
                     # Display dashboard
                     self._display_text_dashboard(data)
+                elif not _shown_waiting:
+                    print("Collecting data from all sources (first pass) ...")
+                    _shown_waiting = True
 
                 # Wait before next update
                 time.sleep(1)

@@ -54,6 +54,7 @@ if sys.stderr is None:
 import argparse
 import logging
 import subprocess
+import webbrowser
 from pathlib import Path
 
 logging.basicConfig(
@@ -105,15 +106,17 @@ MODES = [
     "health",
     "git-sync",
     "integrate",
+    "war-room",
+    "mission-control",
 ]
 
 BANNER = r"""
-  ╔══════════════════════════════════════════════╗
-  ║       BARREN WUFFET Trading System           ║
-  ║       Codename: AZ SUPREME                   ║
-  ║       Unified Launcher v3.6                   ║
-  ║       517 components · 12 doctrine packs      ║
-  ╚══════════════════════════════════════════════╝
+  +----------------------------------------------+
+  |       BARREN WUFFET Trading System           |
+  |       Codename: AZ SUPREME                   |
+  |       Unified Launcher v3.6                   |
+  |       517 components -- 12 doctrine packs     |
+  +----------------------------------------------+
 """
 
 MODE_DESCRIPTIONS = {
@@ -132,6 +135,8 @@ MODE_DESCRIPTIONS = {
     "health": "Health check",
     "git-sync": "Git add/commit/push, then launch dashboard",
     "integrate": "Run Unified Component Integrator -- wire all 550+ components",
+    "war-room": "Start War Room Streamlit (kills stale instances, opens War Room + 13 Moon tabs)",
+    "mission-control": "Unified Mission Control dashboard — single pane of glass (port 8069)",
 }
 
 
@@ -478,6 +483,87 @@ def _mode_integrate() -> int:
         return 1
 
 
+def _kill_existing_war_room_processes() -> None:
+    """Kill stale War Room Streamlit processes to avoid stale code/port conflicts."""
+    if os.name != "nt":
+        return
+
+    ps_cmd = (
+        "Get-CimInstance Win32_Process | "
+        "Where-Object { $_.CommandLine -and $_.CommandLine -like '*streamlit*' "
+        "-and $_.CommandLine -like '*monitoring/war_room_storyboard.py*' } | "
+        "ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }"
+    )
+    subprocess.run(
+        ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", ps_cmd],
+        cwd=str(PROJECT_ROOT),
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        check=False,
+    )
+
+
+def _mode_war_room(port: int = 8502, open_browsers: bool = True) -> int:
+    """Start War Room Streamlit in background and optionally open browser tabs."""
+    logger.info(str(_cyan("  ════════════════════════════════════════")))
+    logger.info(str(_cyan("  War Room Startup")))
+    logger.info(str(_cyan("  ════════════════════════════════════════")))
+
+    _kill_existing_war_room_processes()
+
+    cmd = [
+        _python(),
+        "-m",
+        "streamlit",
+        "run",
+        "monitoring/war_room_storyboard.py",
+        "--server.port",
+        str(port),
+        "--server.headless",
+        "true",
+    ]
+
+    popen_kwargs = {
+        "cwd": str(PROJECT_ROOT),
+        "stdout": subprocess.DEVNULL,
+        "stderr": subprocess.DEVNULL,
+        "stdin": subprocess.DEVNULL,
+    }
+    if os.name == "nt":
+        popen_kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.DETACHED_PROCESS
+
+    try:
+        subprocess.Popen(cmd, **popen_kwargs)
+    except Exception as e:
+        logger.info(str(_red(f"  [X] Failed to start War Room: {e}")))
+        return 1
+
+    logger.info(str(_green(f"  [+] War Room started on http://localhost:{port}")))
+
+    if open_browsers:
+        try:
+            war_room_url = f"http://localhost:{port}"
+            storyboard_path = PROJECT_ROOT / "data" / "storyboard" / "thirteen_moon_storyboard.html"
+            webbrowser.open(war_room_url, new=2)
+            if storyboard_path.exists():
+                webbrowser.open(storyboard_path.resolve().as_uri(), new=2)
+                logger.info(str(_green("  [+] Opened War Room + 13 Moon browser tabs")))
+            else:
+                logger.info(str(_yellow("  [!] 13 Moon storyboard HTML not found")))
+        except Exception as e:
+            logger.info(str(_yellow(f"  [!] Browser auto-open failed: {e}")))
+
+    return 0
+
+
+def _mode_mission_control(port: int = 8069, open_browser: bool = True) -> int:
+    """Start Mission Control — unified dashboard."""
+    logger.info(str(_cyan("  [*] Starting Mission Control on port %d ...") % port))
+    from monitoring.mission_control import run
+    run(port=port, open_browser=open_browser)
+    return 0
+
+
 # ── Dispatch ────────────────────────────────────────────────────────────────
 
 MODE_DISPATCH = {
@@ -496,6 +582,8 @@ MODE_DISPATCH = {
     "health": _mode_health,
     "git-sync": _mode_git_sync,
     "integrate": _mode_integrate,
+    "war-room": _mode_war_room,
+    "mission-control": _mode_mission_control,
 }
 
 
@@ -533,7 +621,12 @@ def main() -> int:
         "--port",
         type=int,
         default=8501,
-        help="Port for matrix monitor web/dash modes (default: 8501)",
+        help="Port for matrix/api/war-room modes (default: 8501)",
+    )
+    parser.add_argument(
+        "--no-browser",
+        action="store_true",
+        help="Do not auto-open browser tabs when starting war-room mode",
     )
 
     args, extra = parser.parse_known_args()
@@ -580,6 +673,12 @@ def main() -> int:
         return handler(display=display, port=args.port)
     elif args.mode == "api":
         return handler(port=args.port)
+    elif args.mode == "war-room":
+        port = args.port if args.port != 8501 else 8502
+        return handler(port=port, open_browsers=not args.no_browser)
+    elif args.mode == "mission-control":
+        port = args.port if args.port != 8501 else 8069
+        return handler(port=port, open_browser=not args.no_browser)
     else:
         return handler()
 

@@ -89,6 +89,10 @@ class TestMasterDashboard:
     @pytest.mark.asyncio
     async def test_collect_monitoring_data_returns_dict(self, dashboard):
         """collect_monitoring_data should return a dict with standard keys."""
+        # Mock all internal async methods to avoid real network calls
+        for attr in dir(dashboard):
+            if attr.startswith('_get_') and callable(getattr(dashboard, attr)):
+                setattr(dashboard, attr, AsyncMock(return_value={}))
         data = await dashboard.collect_monitoring_data()
         assert isinstance(data, dict)
         assert 'timestamp' in data or 'error' in data
@@ -263,6 +267,7 @@ class TestDashboardFixes:
     def test_data_lock_exists(self):
         """CRITICAL #5: _data_lock must exist for thread safety."""
         import threading
+
         from monitoring.aac_master_monitoring_dashboard import AACMasterMonitoringDashboard
         d = AACMasterMonitoringDashboard()
         assert hasattr(d, '_data_lock')
@@ -286,6 +291,7 @@ class TestDashboardFixes:
     def test_text_dashboard_uses_print(self):
         """CRITICAL #1: _display_text_dashboard must use print(), not logger.info()."""
         import inspect
+
         from monitoring.aac_master_monitoring_dashboard import AACMasterMonitoringDashboard
         source = inspect.getsource(AACMasterMonitoringDashboard._display_text_dashboard)
         # Should have print calls, not logger.info for display output
@@ -296,17 +302,20 @@ class TestDashboardFixes:
     def test_ibkr_orders_no_hardcoded_balance(self):
         """CRITICAL #3: _get_ibkr_orders must not have hardcoded 920.0 balance."""
         import inspect
+
         from monitoring.aac_master_monitoring_dashboard import AACMasterMonitoringDashboard
         source = inspect.getsource(AACMasterMonitoringDashboard._get_ibkr_orders)
         assert '920.0' not in source
         assert '920' not in source.split('get_balances')[0]  # no hardcoded before balance fetch
 
-    def test_collect_monitoring_data_logs_exc_info(self):
-        """CRITICAL #4: collect_monitoring_data exception handler must include exc_info."""
+    def test_collect_monitoring_data_uses_safe_collect(self):
+        """collect_monitoring_data should use _safe_collect for per-collector error handling."""
         import inspect
+
         from monitoring.aac_master_monitoring_dashboard import AACMasterMonitoringDashboard
         source = inspect.getsource(AACMasterMonitoringDashboard.collect_monitoring_data)
-        assert 'exc_info=True' in source
+        assert '_safe_collect' in source
+        assert '_collector_status' in source
 
 
 # ── Storm Lifeboat Integration Tests ──────────────────────────────────────────
@@ -322,9 +331,10 @@ class TestStormLifeboatIntegration:
     def test_collect_monitoring_data_has_storm_lifeboat_key(self):
         """collect_monitoring_data return dict must include 'storm_lifeboat'."""
         import inspect
+
         from monitoring.aac_master_monitoring_dashboard import AACMasterMonitoringDashboard
         source = inspect.getsource(AACMasterMonitoringDashboard.collect_monitoring_data)
-        assert "'storm_lifeboat'" in source
+        assert '"storm_lifeboat"' in source
 
     def test_get_storm_lifeboat_data_method_exists(self):
         """Dashboard must have _get_storm_lifeboat_data method."""
@@ -343,7 +353,8 @@ class TestStormLifeboatIntegration:
     def test_storm_lifeboat_data_has_scenario_heatmap(self):
         """When available, result must include scenario_heatmap."""
         from monitoring.aac_master_monitoring_dashboard import (
-            AACMasterMonitoringDashboard, STORM_LIFEBOAT_AVAILABLE,
+            STORM_LIFEBOAT_AVAILABLE,
+            AACMasterMonitoringDashboard,
         )
         if not STORM_LIFEBOAT_AVAILABLE:
             pytest.skip("Storm Lifeboat not importable")
@@ -355,7 +366,8 @@ class TestStormLifeboatIntegration:
     def test_storm_lifeboat_data_has_lunar(self):
         """When available, result must include lunar position."""
         from monitoring.aac_master_monitoring_dashboard import (
-            AACMasterMonitoringDashboard, STORM_LIFEBOAT_AVAILABLE,
+            STORM_LIFEBOAT_AVAILABLE,
+            AACMasterMonitoringDashboard,
         )
         if not STORM_LIFEBOAT_AVAILABLE:
             pytest.skip("Storm Lifeboat not importable")
