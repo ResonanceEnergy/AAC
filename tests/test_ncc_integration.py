@@ -24,9 +24,8 @@ import pytest
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from shared.ncc_relay_client import NCCRelayClient
 from shared.ncc_integration import NCC_AAC_Bridge, NCCCommand, PillarStatus
-
+from shared.ncc_relay_client import NCCRelayClient
 
 # ════════════════════════════════════════════════════════════════
 # Fixtures

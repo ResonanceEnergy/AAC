@@ -6,12 +6,13 @@ Explore the OpenTransformer/goddess-crawl dataset from Hugging Face.
 This dataset may contain valuable data for arbitrage analysis.
 """
 
-import sys
-from datasets import load_dataset
-import pandas as pd
-from typing import Dict, List, Any
 import json
 import logging
+import sys
+from typing import Any, Dict, List
+
+import pandas as pd
+from datasets import load_dataset
 
 logger = logging.getLogger(__name__)
 

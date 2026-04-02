@@ -273,8 +273,9 @@ class APIKeyAgent:
             return result
 
         # Live validation
-        import aiohttp
         import time
+
+        import aiohttp
 
         url = api_def.base_url + api_def.test_endpoint
         params = dict(api_def.test_params)

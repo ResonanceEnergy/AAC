@@ -67,6 +67,58 @@ _EXCLUSION_KEYWORDS = [
 # Minimum edge threshold — we want outcomes that are underpriced
 MIN_EDGE_MULTIPLIER = 2.0  # Market says 2%, we think 4%+
 
+# ═══════════════════════════════════════════════════════════════════════════
+# 3 SCAN TIERS — switch ACTIVE_TIER to compare spreads
+# ═══════════════════════════════════════════════════════════════════════════
+#   "conservative" (15c) — deep OTM lottery tickets only
+#   "standard"     (25c) — sweet spot: catches Iran/Oil/Crypto value plays
+#   "aggressive"   (40c) — widest net, tighter edge requirements
+#
+# >>> SET THIS TO CHANGE SCAN MODE <<<
+ACTIVE_TIER = "aggressive"  # "conservative" | "standard" | "aggressive"
+
+TIER_PRESETS = {
+    "conservative": {
+        "cap": 0.15,
+        "edge_tiers": [
+            (0.05, 1.5, "deep_value"),
+            (0.10, 2.0, "value"),
+            (0.15, 2.5, "momentum"),
+        ],
+    },
+    "standard": {
+        "cap": 0.25,
+        "edge_tiers": [
+            (0.10, 1.5, "deep_value"),
+            (0.25, 2.0, "value"),
+        ],
+    },
+    "aggressive": {
+        "cap": 0.40,
+        "edge_tiers": [
+            (0.10, 1.5, "deep_value"),
+            (0.25, 2.0, "value"),
+            (0.40, 2.5, "momentum"),
+        ],
+    },
+}
+
+# Resolve active preset
+_preset = TIER_PRESETS[ACTIVE_TIER]
+CATEGORY_PRICE_CAPS = {k: _preset["cap"] for k in [
+    "iran_war", "us_withdrawal", "oil_shock", "gold_reprice", "gulf_shift",
+    "usd_collapse", "yuan_rise", "israel_conflict", "credit_crisis",
+    "geopolitical", "fed_trapped", "inflation", "recession", "crypto_crisis",
+]}
+DEFAULT_PRICE_CAP = _preset["cap"]
+EDGE_TIERS = _preset["edge_tiers"]
+
+# Minimum price floor — CLOB rejects sub-penny, we want 5c+ for liquidity
+MIN_PRICE_FLOOR = 0.05
+
+# Minimum 24h volume — skip dead markets nobody trades
+MIN_VOLUME_24H = 1000  # $1K/day minimum activity
+
 
 # ═══════════════════════════════════════════════════════════════════════════
 # DATA CLASSES
@@ -77,7 +129,7 @@ class BlackSwanOpportunity:
     """A Polymarket outcome that aligns with our black swan thesis."""
     market_question: str
     condition_id: str
-    outcome: str
+    outcome: str                  # "YES" or "NO" — which side we're betting
     market_price: float           # What Polymarket says (e.g. 0.03 = 3%)
     thesis_probability: float     # What WE think (e.g. 0.15 = 15%)
     edge: float                   # thesis_prob - market_price
@@ -86,6 +138,8 @@ class BlackSwanOpportunity:
     potential_payout_per_dollar: float = 0.0
     volume_24h: float = 0.0
     liquidity: float = 0.0
+    tier: str = "deep_value"      # deep_value | value | momentum
+    token_id: str = ""            # CLOB token ID for order execution
     detected_at: datetime = field(default_factory=datetime.now)
 
     @property
@@ -205,6 +259,7 @@ class PolymarketBlackSwanScanner:
         logger.info("Black Swan Scanner: scanning Polymarket for thesis-aligned opportunities...")
         self.opportunities = []
         all_markets: List[PolymarketMarket] = []
+        api_reachable = True
 
         # Fetch multiple pages of active markets
         for page in range(max_pages):
@@ -217,35 +272,64 @@ class PolymarketBlackSwanScanner:
                     break
             except Exception as e:
                 logger.warning("Failed to fetch page %d: %s", page, e)
+                if page == 0:
+                    api_reachable = False
                 break
 
         logger.info("Fetched %d active markets from Polymarket", len(all_markets))
 
-        # Also do targeted keyword searches for thesis topics
-        for category, keywords in THESIS_KEYWORDS.items():
-            for keyword in keywords[:2]:  # Search first 2 keywords per category
-                try:
-                    results = await self.agent.search_markets(keyword, limit=10)
-                    for mkt in results:
-                        if not any(m.condition_id == mkt.condition_id for m in all_markets):
-                            all_markets.append(mkt)
-                except Exception as e:
-                    logger.debug("Search for '%s' failed: %s", keyword, e)
+        # Gamma API text search is non-functional (ignores query params).
+        # Instead, fetch additional pages sorted by total volume to get
+        # older high-volume thesis markets that may rank lower on 24h volume.
+        if api_reachable:
+            extra_before = len(all_markets)
+            try:
+                vol_markets = await self.agent.get_active_markets(
+                    limit=100, offset=0, order="volume"
+                )
+                for mkt in vol_markets:
+                    if not any(m.condition_id == mkt.condition_id for m in all_markets):
+                        all_markets.append(mkt)
+            except Exception as e:
+                logger.debug("Volume-sorted fetch failed: %s", e)
+            added = len(all_markets) - extra_before
+            if added:
+                logger.info("Added %d unique markets from volume sort", added)
 
         logger.info("Total unique markets to evaluate: %d", len(all_markets))
 
         # Evaluate each market against our thesis
+        thesis_matches = 0
+        price_rejections = 0
+        volume_rejections = 0
+        edge_rejections = 0
         for mkt in all_markets:
             matches = self._match_thesis_category(mkt.question)
             if not matches:
                 continue
+            thesis_matches += 1
 
             # Check YES side (cheap YES = crowd thinks unlikely)
             for category, matched_kws in matches:
+                # Tiered price cap — high-conviction categories get wider net
+                price_cap = CATEGORY_PRICE_CAPS.get(category, DEFAULT_PRICE_CAP)
+
                 for outcome, price in [("YES", mkt.yes_price), ("NO", mkt.no_price)]:
-                    if price > 0.15:  # Only interested in cheap outcomes (<15¢)
+                    if price > price_cap:
+                        price_rejections += 1
+                        logger.debug(
+                            "PRICE REJECT [%s] %s @ %.4f > cap %.2f: %s",
+                            category, outcome, price, price_cap,
+                            mkt.question[:60],
+                        )
                         continue
-                    if price <= 0.0:
+                    if price < MIN_PRICE_FLOOR:
+                        price_rejections += 1
+                        continue
+
+                    # Skip dead markets (optional — 0 volume still tracked)
+                    if mkt.volume < MIN_VOLUME_24H and mkt.volume > 0:
+                        volume_rejections += 1
                         continue
 
                     thesis_prob = self._estimate_thesis_probability(
@@ -253,7 +337,18 @@ class PolymarketBlackSwanScanner:
                     )
                     edge = thesis_prob - price
 
-                    if edge > 0 and thesis_prob >= price * MIN_EDGE_MULTIPLIER:
+                    # Tiered edge requirement — higher price = higher bar
+                    tier_label = "deep_value"
+                    required_mult = MIN_EDGE_MULTIPLIER
+                    for max_p, mult, label in EDGE_TIERS:
+                        if price <= max_p:
+                            required_mult = mult
+                            tier_label = label
+                            break
+
+                    if edge > 0 and thesis_prob >= price * required_mult:
+                        # Resolve token_id for the chosen side
+                        tid = mkt.yes_token_id if outcome == "YES" else mkt.no_token_id
                         opp = BlackSwanOpportunity(
                             market_question=mkt.question,
                             condition_id=mkt.condition_id,
@@ -266,8 +361,22 @@ class PolymarketBlackSwanScanner:
                             potential_payout_per_dollar=1.0 / price if price > 0 else 0,
                             volume_24h=mkt.volume,
                             liquidity=mkt.liquidity,
+                            tier=tier_label,
+                            token_id=tid,
                         )
                         self.opportunities.append(opp)
+                    else:
+                        edge_rejections += 1
+                        logger.debug(
+                            "EDGE REJECT [%s] %s @ %.4f, thesis=%.4f, edge=%.4f, need %.1fx: %s",
+                            category, outcome, price, thesis_prob, edge,
+                            required_mult, mkt.question[:60],
+                        )
+
+        logger.info(
+            "Filter stats: %d thesis matches, %d price rejects, %d volume rejects, %d edge rejects",
+            thesis_matches, price_rejections, volume_rejections, edge_rejections,
+        )
 
         # Sort by edge (best opportunities first)
         self.opportunities.sort(key=lambda o: o.edge, reverse=True)
@@ -277,6 +386,18 @@ class PolymarketBlackSwanScanner:
             "Black Swan Scanner complete: %d thesis-aligned opportunities found",
             len(self.opportunities),
         )
+
+        # TurboQuant: record Polymarket scan snapshot
+        try:
+            from strategies.turboquant_integrations import IntegrationHub
+            _tq_hub = IntegrationHub()
+            _tq_hub.record_polymarket(
+                [o.__dict__ if hasattr(o, '__dict__') else o for o in self.opportunities]
+            )
+            _tq_hub.save_all()
+        except Exception as _tq_err:
+            logger.debug("TurboQuant record skipped: %s", _tq_err)
+
         return self.opportunities
 
     # ─── Output ───────────────────────────────────────────────────────
@@ -285,7 +406,7 @@ class PolymarketBlackSwanScanner:
         """Generate a human-readable report of black swan opportunities."""
         lines = [
             "=" * 70,
-            "  🌋  POLYMARKET BLACK SWAN OPPORTUNITIES",
+            "  POLYMARKET BLACK SWAN OPPORTUNITIES",
             "=" * 70,
             f"  Scan Time: {self._last_scan or 'never'}",
             f"  Total Opportunities: {len(self.opportunities)}",
@@ -294,11 +415,13 @@ class PolymarketBlackSwanScanner:
         ]
 
         for i, opp in enumerate(self.opportunities[:top_n], 1):
-            payout = f"${opp.potential_payout_per_dollar:.0f}" if opp.potential_payout_per_dollar < 10000 else f"${opp.potential_payout_per_dollar:.0f}"
+            payout = f"${opp.potential_payout_per_dollar:.0f}"
+            tier_tag = opp.tier.upper().replace("_", " ")
+            bet_tag = f"BUY {opp.outcome}"
             lines.extend([
-                f"\n  #{i}  [{opp.category.upper()}]  {opp.outcome} @ {opp.market_price:.4f}",
+                f"\n  #{i}  [{opp.category.upper()}]  ** {bet_tag} ** @ {opp.market_price:.4f}  [{tier_tag}]",
                 f"      Q: {opp.market_question[:80]}",
-                f"      Market: {opp.market_price:.2%} → Thesis: {opp.thesis_probability:.2%}  "
+                f"      Market: {opp.market_price:.2%} -> Thesis: {opp.thesis_probability:.2%}  "
                 f"(Edge: {opp.edge:.2%}, {opp.edge_multiple:.1f}x)",
                 f"      Payout: {payout}/$ | Kelly: {opp.kelly_fraction:.1%} | "
                 f"Vol: ${opp.volume_24h:,.0f} | Liq: ${opp.liquidity:,.0f}",
@@ -307,8 +430,8 @@ class PolymarketBlackSwanScanner:
 
         lines.extend([
             "\n" + "=" * 70,
-            "  💡 These are thesis-aligned mispriced outcomes.",
-            "  💡 Feed to PlanktonXD for automated execution.",
+            "  These are thesis-aligned mispriced outcomes.",
+            "  Feed to PlanktonXD for automated execution.",
             "=" * 70,
         ])
 
@@ -321,6 +444,7 @@ class PolymarketBlackSwanScanner:
                 "question": o.market_question,
                 "condition_id": o.condition_id,
                 "outcome": o.outcome,
+                "token_id": o.token_id,
                 "market_price": o.market_price,
                 "thesis_probability": o.thesis_probability,
                 "edge": o.edge,
@@ -331,6 +455,7 @@ class PolymarketBlackSwanScanner:
                 "kelly_fraction": o.kelly_fraction,
                 "volume_24h": o.volume_24h,
                 "liquidity": o.liquidity,
+                "tier": o.tier,
                 "detected_at": o.detected_at.isoformat(),
             }
             for o in self.opportunities

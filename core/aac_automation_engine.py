@@ -13,12 +13,12 @@ EXECUTION DATE: February 6, 2026
 """
 
 import asyncio
-import sys
-import logging
-from pathlib import Path
-from typing import Dict, List, Any, Optional
-from datetime import datetime
 import json
+import logging
+import sys
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 # Add project root to path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -84,9 +84,10 @@ class AACAutomationEngine:
         logger.info("📈 PHASE 1: STRATEGY IMPLEMENTATION (16 → 50)")
 
         from strategy_implementation_factory import StrategyImplementationFactory
-        from shared.data_sources import DataAggregator
-        from shared.communication import CommunicationFramework
+
         from shared.audit_logger import AuditLogger
+        from shared.communication import CommunicationFramework
+        from shared.data_sources import DataAggregator
 
         # Initialize components
         data_agg = DataAggregator()
@@ -147,10 +148,11 @@ class AACAutomationEngine:
         """Phase 2: Connect all strategies to live market data"""
         logger.info("🔗 PHASE 2: MARKET DATA INTEGRATION")
 
-        from strategy_integration_system import StrategyIntegrationSystem
         from market_data_aggregator import MarketDataAggregator
-        from shared.communication import CommunicationFramework
+        from strategy_integration_system import StrategyIntegrationSystem
+
         from shared.audit_logger import AuditLogger
+        from shared.communication import CommunicationFramework
 
         # Initialize components
         comm = CommunicationFramework()
@@ -607,10 +609,11 @@ class OrderSimulator:
 
         # Check that all components can initialize
         try:
-            from strategy_integration_system import StrategyIntegrationSystem
             from market_data_aggregator import MarketDataAggregator
-            from shared.communication import CommunicationFramework
+            from strategy_integration_system import StrategyIntegrationSystem
+
             from shared.audit_logger import AuditLogger
+            from shared.communication import CommunicationFramework
 
             comm = CommunicationFramework()
             audit = AuditLogger()

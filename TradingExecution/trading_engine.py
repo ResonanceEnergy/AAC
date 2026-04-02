@@ -7,96 +7,47 @@ Main orchestrator for trade execution across multiple exchanges.
 
 import asyncio
 import logging
-from datetime import datetime
-from typing import Dict, List, Optional, Any
-from pathlib import Path
-from dataclasses import dataclass, field
-from enum import Enum
 import sys
+from dataclasses import dataclass, field
+from datetime import datetime
+from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 # Add shared module to path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from shared.config_loader import get_config, get_project_path
-from shared.secrets_manager import validate_order, OrderValidator
+from shared.secrets_manager import OrderValidator, validate_order
+
+# Use canonical models from models.py
+from TradingExecution.models import (
+    Order,
+    OrderSide,
+    OrderStatus,
+    OrderType,
+    Position,
+    PositionStatus,
+)
 
 # Import exchange connectors
 try:
     from TradingExecution.exchange_connectors.coinbase_connector import CoinbaseConnector
-    from TradingExecution.exchange_connectors.kraken_connector import KrakenConnector
     from TradingExecution.exchange_connectors.ibkr_connector import IBKRConnector
-    from TradingExecution.exchange_connectors.ndax_connector import NDAXConnector
+    from TradingExecution.exchange_connectors.kraken_connector import KrakenConnector
     from TradingExecution.exchange_connectors.moomoo_connector import MoomooConnector
+    from TradingExecution.exchange_connectors.ndax_connector import NDAXConnector
     from TradingExecution.exchange_connectors.noxi_rise_connector import NoxiRiseConnector
     CONNECTORS_AVAILABLE = True
 except ImportError:
     CONNECTORS_AVAILABLE = False
 
 
-class OrderSide(Enum):
-    """OrderSide class."""
-    BUY = "buy"
-    SELL = "sell"
-
-
-class OrderType(Enum):
-    """OrderType class."""
-    MARKET = "market"
-    LIMIT = "limit"
-    STOP_LOSS = "stop_loss"
-    TAKE_PROFIT = "take_profit"
-
-
-class OrderStatus(Enum):
-    """OrderStatus class."""
-    PENDING = "pending"
-    OPEN = "open"
-    FILLED = "filled"
-    PARTIALLY_FILLED = "partially_filled"
-    CANCELLED = "cancelled"
-    REJECTED = "rejected"
-    EXPIRED = "expired"
-
-
-@dataclass
-class Order:
-    """Represents a trading order"""
-    order_id: str
-    exchange: str
-    symbol: str
-    side: OrderSide
-    order_type: OrderType
-    quantity: float
-    price: Optional[float] = None
-    status: OrderStatus = OrderStatus.PENDING
-    filled_quantity: float = 0.0
-    average_fill_price: float = 0.0
-    created_at: datetime = field(default_factory=datetime.now)
-    updated_at: datetime = field(default_factory=datetime.now)
-    metadata: Dict[str, Any] = field(default_factory=dict)
-
-
-@dataclass
-class Position:
-    """Represents an open position"""
-    position_id: str
-    exchange: str
-    symbol: str
-    side: OrderSide
-    quantity: float
-    entry_price: float
-    current_price: float = 0.0
-    unrealized_pnl: float = 0.0
-    realized_pnl: float = 0.0
-    opened_at: datetime = field(default_factory=datetime.now)
-    metadata: Dict[str, Any] = field(default_factory=dict)
-
-
 class TradingEngine:
     """
     Core trading engine for executing arbitrage strategies.
-    
+
     Handles:
     - Order creation and execution
     - Position management
@@ -107,17 +58,17 @@ class TradingEngine:
     def __init__(self):
         self.config = get_config()
         self.logger = self._setup_logging()
-        
+
         # State
         self.orders: Dict[str, Order] = {}
         self.positions: Dict[str, Position] = {}
         self.exchange_connections: Dict[str, Any] = {}
-        
+
         # Flags
         self.is_running = False
         self.dry_run = self.config.risk.dry_run
         self.paper_trading = self.config.risk.paper_trading
-        
+
         self.logger.info(f"TradingEngine initialized (dry_run={self.dry_run}, paper_trading={self.paper_trading})")
 
     def _setup_logging(self) -> logging.Logger:
@@ -152,24 +103,24 @@ class TradingEngine:
         """Initialize connections to configured exchanges"""
         results = {}
         enabled_exchanges = self.config.get_enabled_exchanges()
-        
+
         if not enabled_exchanges:
             self.logger.warning("No exchanges configured with API keys")
             return results
-        
+
         if not CONNECTORS_AVAILABLE:
             self.logger.error("Exchange connectors not available")
             return results
-        
+
         for exchange_name, exchange_config in enabled_exchanges.items():
             try:
                 self.logger.info(f"Connecting to {exchange_name}...")
-                
+
                 if self.dry_run:
                     self.logger.info(f"DRY RUN: Simulated connection to {exchange_name}")
                     results[exchange_name] = True
                     continue
-                
+
                 # Create actual exchange connector
                 connector = None
                 if exchange_name == 'coinbase':
@@ -188,7 +139,7 @@ class TradingEngine:
                 elif exchange_name == 'ibkr':
                     connector = IBKRConnector(
                         host=getattr(self.config, 'ibkr_host', '127.0.0.1'),
-                        port=getattr(self.config, 'ibkr_port', 7497),
+                        port=getattr(self.config, 'ibkr_port', 7496),
                         client_id=getattr(self.config, 'ibkr_client_id', 1),
                         account=getattr(self.config, 'ibkr_account', ''),
                         paper=exchange_config.testnet,
@@ -204,7 +155,7 @@ class TradingEngine:
                     connector = MoomooConnector(
                         paper=getattr(self.config, 'moomoo_paper', False),
                     )
-                
+
                 if connector:
                     connected = await connector.connect()
                     if connected:
@@ -217,11 +168,11 @@ class TradingEngine:
                 else:
                     results[exchange_name] = False
                     self.logger.warning(f"No connector available for {exchange_name}")
-                    
+
             except Exception as e:
                 self.logger.error(f"Failed to connect to {exchange_name}: {e}")
                 results[exchange_name] = False
-        
+
         # Handle Noxi Rise / MT5 (not in get_enabled_exchanges — uses separate mt5_* config fields)
         if CONNECTORS_AVAILABLE and not self.dry_run:
             mt5_path = getattr(self.config, 'mt5_path', '')
@@ -260,7 +211,7 @@ class TradingEngine:
     ) -> Optional[Order]:
         """
         Create a new order.
-        
+
         Args:
             exchange: Target exchange name
             symbol: Trading pair (e.g., 'BTC/USDT')
@@ -268,7 +219,7 @@ class TradingEngine:
             order_type: Market, limit, etc.
             quantity: Amount to trade
             price: Price for limit orders
-            
+
         Returns:
             Order object if successful, None otherwise
         """
@@ -291,10 +242,10 @@ class TradingEngine:
         if not validation.valid:
             self.logger.warning(f"Order validation failed: {validation.error}")
             return None
-        
+
         # Generate order ID
         order_id = f"{exchange}_{symbol}_{datetime.now().strftime('%Y%m%d%H%M%S%f')}"
-        
+
         order = Order(
             order_id=order_id,
             exchange=exchange,
@@ -304,13 +255,13 @@ class TradingEngine:
             quantity=quantity,
             price=price,
         )
-        
+
         # Pre-execution risk checks
         if not await self._validate_order(order):
             self.logger.warning(f"Order {order_id} failed validation")
             order.status = OrderStatus.REJECTED
             return order
-        
+
         # Execute order
         if self.dry_run or self.paper_trading:
             self.logger.info(f"{'DRY RUN' if self.dry_run else 'PAPER'}: {side.value} {quantity} {symbol} @ {price or 'market'}")
@@ -333,7 +284,7 @@ class TradingEngine:
                         quantity=quantity,
                         price=price,
                     )
-                    order.status = OrderStatus.FILLED if result.status == 'filled' else OrderStatus.OPEN
+                    order.status = OrderStatus.FILLED if result.status == 'filled' else OrderStatus.SUBMITTED
                     order.filled_quantity = result.filled_quantity
                     order.average_fill_price = getattr(result, 'average_fill_price', getattr(result, 'average_price', 0.0))
                     order.metadata['exchange_order_id'] = result.order_id
@@ -342,7 +293,7 @@ class TradingEngine:
                     self.logger.error(f"Order execution failed: {e}")
                     order.status = OrderStatus.REJECTED
                     order.metadata['rejection_reason'] = str(e)
-        
+
         self.orders[order_id] = order
         return order
 
@@ -352,13 +303,13 @@ class TradingEngine:
         if len(self.positions) >= self.config.risk.max_open_positions:
             self.logger.warning("Max open positions limit reached")
             return False
-        
+
         # Check position size (would need price conversion in real impl)
         # For now, assume quantity is in USD terms
         if order.quantity > self.config.risk.max_position_size_usd:
             self.logger.warning(f"Order size {order.quantity} exceeds max {self.config.risk.max_position_size_usd}")
             return False
-        
+
         return True
 
     async def close_position(self, position_id: str) -> Optional[Order]:
@@ -366,12 +317,12 @@ class TradingEngine:
         if position_id not in self.positions:
             self.logger.warning(f"Position {position_id} not found")
             return None
-        
+
         position = self.positions[position_id]
-        
+
         # Create opposite order to close
         close_side = OrderSide.SELL if position.side == OrderSide.BUY else OrderSide.BUY
-        
+
         order = await self.create_order(
             exchange=position.exchange,
             symbol=position.symbol,
@@ -379,11 +330,11 @@ class TradingEngine:
             order_type=OrderType.MARKET,
             quantity=position.quantity,
         )
-        
+
         if order and order.status == OrderStatus.FILLED:
             del self.positions[position_id]
             self.logger.info(f"Closed position {position_id}")
-        
+
         return order
 
     async def get_account_balance(self, exchange: str) -> Dict[str, float]:
@@ -395,12 +346,12 @@ class TradingEngine:
                 'BTC': 1.0,
                 'ETH': 10.0,
             }
-        
+
         # Get balance from exchange connector
         if exchange not in self.exchange_connections:
             self.logger.warning(f"No connection to {exchange}")
             return {}
-        
+
         try:
             connector = self.exchange_connections[exchange]
             balances = await connector.get_balances()
@@ -415,23 +366,23 @@ class TradingEngine:
 
     def get_pending_orders(self) -> List[Order]:
         """Get all pending orders"""
-        return [o for o in self.orders.values() if o.status in (OrderStatus.PENDING, OrderStatus.OPEN)]
+        return [o for o in self.orders.values() if o.status in (OrderStatus.PENDING, OrderStatus.SUBMITTED)]
 
     async def start(self):
         """Start the trading engine"""
         self.logger.info("Starting TradingEngine...")
         self.is_running = True
-        
+
         # Initialize exchange connections
         await self.initialize_exchanges()
-        
+
         self.logger.info("TradingEngine started")
 
     async def stop(self):
         """Stop the trading engine gracefully"""
         self.logger.info("Stopping TradingEngine...")
         self.is_running = False
-        
+
         # Close all exchange connections properly
         for exchange_name, connector in list(self.exchange_connections.items()):
             try:
@@ -441,7 +392,7 @@ class TradingEngine:
                 self.logger.info(f"Disconnected from {exchange_name}")
             except Exception as e:
                 self.logger.error(f"Error closing {exchange_name} connection: {e}")
-        
+
         self.logger.info("TradingEngine stopped")
 
 
@@ -451,7 +402,7 @@ if __name__ == '__main__':
         """Main."""
         engine = TradingEngine()
         await engine.start()
-        
+
         # Test order creation
         order = await engine.create_order(
             exchange='ndax',
@@ -460,13 +411,13 @@ if __name__ == '__main__':
             order_type=OrderType.MARKET,
             quantity=100.0,  # $100 worth
         )
-        
+
         if order:
-            logger.info(f"Order created: {order.order_id}, Status: {order.status.value}")
-        
+            print(f"Order created: {order.order_id}, Status: {order.status.value}")
+
         balance = await engine.get_account_balance('ndax')
-        logger.info(f"Account balance: {balance}")
-        
+        print(f"Account balance: {balance}")
+
         await engine.stop()
-    
+
     asyncio.run(main())

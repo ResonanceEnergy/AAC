@@ -7,11 +7,11 @@ This script provides a simple interface for PowerShell scripts to call
 BigBrainIntelligence agents without complex inline Python code.
 """
 
-import sys
 import asyncio
-import os
-from typing import List
 import logging
+import os
+import sys
+from typing import List
 
 logger = logging.getLogger(__name__)
 

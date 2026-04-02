@@ -6,24 +6,28 @@ Final verification that all Phase 1 critical blockers are resolved.
 """
 
 import asyncio
+import logging
 import sys
 from pathlib import Path
-import logging
 
 logger = logging.getLogger(__name__)
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from shared.compliance_review import compliance_review_system
-from shared.capital_management import capital_management_system
-from shared.audit_trail_integrity import audit_trail_integrity_system
-from shared.risk_disclosure import risk_disclosure_framework
-from shared.business_continuity import business_continuity_system
-from shared.security_framework import (
-    initialize_security_framework, rbac, api_security, security_monitoring
-)
 from security_dashboard import SecurityDashboard
+
+from shared.audit_trail_integrity import audit_trail_integrity_system
+from shared.business_continuity import business_continuity_system
+from shared.capital_management import capital_management_system
+from shared.compliance_review import compliance_review_system
+from shared.risk_disclosure import risk_disclosure_framework
+from shared.security_framework import (
+    api_security,
+    initialize_security_framework,
+    rbac,
+    security_monitoring,
+)
 
 
 async def initialize_all_systems():

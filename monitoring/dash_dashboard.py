@@ -7,8 +7,8 @@ Plotly Dash-based analytics dashboard extracted from the master monitoring modul
 
 import logging
 import os
-from pathlib import Path
 import sys
+from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
@@ -19,14 +19,20 @@ DASH_AVAILABLE = False
 
 # Strategy testing (optional)
 try:
-    from strategies.strategy_testing_lab_fixed import strategy_testing_lab, initialize_strategy_testing_lab
+    from strategies.strategy_testing_lab_fixed import (
+        initialize_strategy_testing_lab,
+        strategy_testing_lab,
+    )
     STRATEGY_TESTING_AVAILABLE = True
 except ImportError:
     STRATEGY_TESTING_AVAILABLE = False
 
 # Strategy analysis (optional)
 try:
-    from strategies.strategy_analysis_engine import strategy_analysis_engine, initialize_strategy_analysis
+    from strategies.strategy_analysis_engine import (
+        initialize_strategy_analysis,
+        strategy_analysis_engine,
+    )
     ARBITRAGE_COMPONENTS_AVAILABLE = True
 except ImportError:
     ARBITRAGE_COMPONENTS_AVAILABLE = False
@@ -49,8 +55,8 @@ class AACDashDashboard:
         # Try to import Dash here
         try:
             import dash  # noqa: F401
-            from dash import html, dcc  # noqa: F401
             import dash_bootstrap_components as dbc  # noqa: F401
+            from dash import dcc, html  # noqa: F401
             global DASH_AVAILABLE
             DASH_AVAILABLE = True
         except ImportError:
@@ -77,11 +83,11 @@ class AACDashDashboard:
             return None
 
         import dash
-        from dash import html, dcc
-        from dash.dependencies import Output, Input, State
         import dash_bootstrap_components as dbc
         import pandas as pd
         import plotly.graph_objects as go
+        from dash import dcc, html
+        from dash.dependencies import Input, Output, State
         from plotly.subplots import make_subplots
 
         app = dash.Dash(__name__, external_stylesheets=[dbc.themes.DARKLY])

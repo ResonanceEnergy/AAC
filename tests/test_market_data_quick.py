@@ -6,10 +6,12 @@ Quick test to verify market data connectors are working.
 """
 
 import asyncio
-import pytest
 from pathlib import Path
 
-from shared.market_data_connector import market_data_manager, initialize_market_data_system
+import pytest
+
+from shared.market_data_connector import initialize_market_data_system, market_data_manager
+
 
 @pytest.mark.slow
 @pytest.mark.timeout(30)

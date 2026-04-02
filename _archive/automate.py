@@ -32,9 +32,10 @@ from __future__ import annotations
 
 import argparse
 import asyncio
-import io
 import importlib
+import io
 import json
+import logging
 import os
 import platform
 import shutil
@@ -44,7 +45,7 @@ import time
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Tuple
-import logging
+
 logger = logging.getLogger(__name__)
 
 # ── UTF-8 stdout fix for Windows Task Scheduler ────────────────────────────
@@ -476,6 +477,7 @@ def phase6c_rocket_briefing() -> bool:
     logger.info(_bold("\n[Phase 6c] Rocket Ship Mission Briefing"))
     try:
         from types import SimpleNamespace
+
         from strategies.rocket_ship.runner import cmd_full_briefing
 
         args = SimpleNamespace(

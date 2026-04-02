@@ -5,10 +5,10 @@ AAC Premium Market Data API Setup Guide
 Complete guide for setting up premium market data APIs for enhanced trading performance.
 """
 
+import logging
 import os
 from pathlib import Path
-from typing import Dict, List, Any
-import logging
+from typing import Any, Dict, List
 
 logger = logging.getLogger(__name__)
 

@@ -15,14 +15,20 @@ Key Components:
 
 import asyncio
 import logging
-from typing import Dict, List, Any, Optional, Tuple
 from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional, Tuple
+
 import numpy as np
 from scipy.stats import norm
 
-from shared.strategy_framework import BaseArbitrageStrategy, TradingSignal, SignalType, StrategyConfig
-from shared.communication import CommunicationFramework
 from shared.audit_logger import AuditLogger
+from shared.communication import CommunicationFramework
+from shared.strategy_framework import (
+    BaseArbitrageStrategy,
+    SignalType,
+    StrategyConfig,
+    TradingSignal,
+)
 
 logger = logging.getLogger(__name__)
 

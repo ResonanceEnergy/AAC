@@ -11,12 +11,12 @@ Core concepts:
   - Large GEX concentrations at strikes create "sticky" price magnets
 """
 
+import logging
+import math
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta
 from enum import Enum
 from typing import Dict, List, Optional, Tuple
-import math
-import logging
-from datetime import datetime, timedelta
 
 logger = logging.getLogger(__name__)
 
@@ -121,7 +121,7 @@ class DealerExposure:
 class GammaExposureEngine:
     """
     Core engine for computing gamma exposure (GEX) profiles.
-    
+
     Assumptions:
     - Dealers are generally SHORT calls to customers (customer buys calls)
     - Dealers are generally LONG puts to customers (customer buys puts)
@@ -164,15 +164,15 @@ class GammaExposureEngine:
     def compute_gex_profile(self) -> GEXProfile:
         """Compute full GEX profile across all strikes."""
         levels = [self.compute_gex_at_strike(oi) for oi in self.oi_data]
-        levels.sort(key=lambda l: l.strike)
+        levels.sort(key=lambda lvl: lvl.strike)
 
-        total_gex = sum(l.net_gex for l in levels)
+        total_gex = sum(lvl.net_gex for lvl in levels)
 
         # Find flip level (where GEX crosses zero)
         flip_level = self._find_flip_level(levels)
 
         # Find max gamma strike
-        max_gamma_level = max(levels, key=lambda l: abs(l.net_gex)) if levels else None
+        max_gamma_level = max(levels, key=lambda lvl: abs(lvl.net_gex)) if levels else None
         max_gamma_strike = max_gamma_level.strike if max_gamma_level else 0
 
         # Find put wall (largest negative put GEX below spot)
@@ -208,16 +208,16 @@ class GammaExposureEngine:
 
     def _find_put_wall(self, levels: List[GEXLevel]) -> float:
         """Find the strike with largest put gamma below spot."""
-        below = [l for l in levels if l.strike < self.S and l.put_gex < 0]
+        below = [lvl for lvl in levels if lvl.strike < self.S and lvl.put_gex < 0]
         if below:
-            return min(below, key=lambda l: l.put_gex).strike
+            return min(below, key=lambda lvl: lvl.put_gex).strike
         return 0.0
 
     def _find_call_wall(self, levels: List[GEXLevel]) -> float:
         """Find the strike with largest call gamma above spot."""
-        above = [l for l in levels if l.strike > self.S and l.call_gex < 0]
+        above = [lvl for lvl in levels if lvl.strike > self.S and lvl.call_gex < 0]
         if above:
-            return min(above, key=lambda l: l.call_gex).strike
+            return min(above, key=lambda lvl: lvl.call_gex).strike
         return 0.0
 
     def _determine_regime(
@@ -239,7 +239,7 @@ class GammaExposureEngine:
 class DealerHedgingTracker:
     """
     Estimates dealer hedging flows based on GEX profile changes.
-    
+
     Key insights from 250 options insights (BARREN WUFFET doctrine):
       - GEX regime determines whether dealers are WITH or AGAINST price
       - Large OI concentrations at strikes → pinning effect near OPEX
@@ -253,10 +253,10 @@ class DealerHedgingTracker:
     def estimate_hedging_flow(self, price_change_pct: float) -> DealerExposure:
         """
         Estimate required dealer hedging for a given price change.
-        
+
         Args:
             price_change_pct: Expected price change in percent (e.g., 1.0 = +1%)
-        
+
         Returns:
             DealerExposure with estimated hedging requirements
         """
@@ -293,7 +293,7 @@ class DealerHedgingTracker:
     def get_support_resistance(self) -> Dict[str, List[float]]:
         """
         Identify support/resistance levels from GEX profile.
-        
+
         High positive GEX = resistance (dealers sell rallies)
         High negative GEX = support (dealers buy dips)
         """
@@ -321,7 +321,7 @@ class DealerHedgingTracker:
     def opex_week_analysis(self, days_to_opex: int) -> Dict:
         """
         Analyze expected behavior as OPEX approaches.
-        
+
         As expiration nears:
           - Gamma increases dramatically for ATM options
           - Theta decay accelerates (T-3 to T-0 is critical)
@@ -372,7 +372,7 @@ class DealerHedgingTracker:
 class VolatilitySurfaceAnalyzer:
     """
     Analyze the IV surface for skew, term structure, and anomalies.
-    
+
     From BARREN WUFFET insights:
       - IV skew reveals market fear/greed for a stock
       - Term structure inversions signal short-term event risk
@@ -419,7 +419,7 @@ class VolatilitySurfaceAnalyzer:
     ) -> Dict:
         """
         Detect IV crush setup (e.g., pre-earnings).
-        
+
         IV typically:
           - Rises 2-3 weeks before earnings
           - Peaks day before announcement
@@ -461,7 +461,7 @@ class VolatilitySurfaceAnalyzer:
 class PutCallAnalyzer:
     """
     Track put/call ratios for sentiment signals.
-    
+
     BARREN WUFFET doctrine:
       - Equity P/C > 0.7 = elevated fear → contrarian bullish
       - Equity P/C < 0.4 = complacency → contrarian warning

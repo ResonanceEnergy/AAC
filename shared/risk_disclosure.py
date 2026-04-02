@@ -6,15 +6,16 @@ Standardized risk warnings, client risk profiling, and regulatory disclosure tem
 """
 
 import asyncio
-import logging
 import json
-import time
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Callable
-from dataclasses import dataclass, field
-from pathlib import Path
-from enum import Enum
+import logging
 import sys
+import time
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from enum import Enum
+from pathlib import Path
+from typing import Any, Callable, Dict, List, Optional
+
 import yaml
 
 logger = logging.getLogger(__name__)
@@ -22,8 +23,8 @@ logger = logging.getLogger(__name__)
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from shared.config_loader import get_config, get_project_path
 from shared.audit_logger import get_audit_logger
+from shared.config_loader import get_config, get_project_path
 
 
 class RiskLevel(Enum):

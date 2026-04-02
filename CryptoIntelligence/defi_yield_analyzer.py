@@ -17,12 +17,12 @@ From BARREN WUFFET Insights (641-685):
   - Yield layering (base + bribe + boost) creates complexity risk
 """
 
-from dataclasses import dataclass, field
-from enum import Enum
-from typing import Dict, List, Optional, Tuple
 import logging
 import math
+from dataclasses import dataclass, field
 from datetime import datetime
+from enum import Enum
+from typing import Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -129,11 +129,11 @@ class FarmingOpportunity:
 class ImpermanentLossCalculator:
     """
     Calculate impermanent loss for various LP configurations.
-    
+
     IL Formula (50/50 pool):
       IL = 2*sqrt(r) / (1+r) - 1
       where r = price_final / price_initial
-    
+
     IL at key ratios:
       1.25x =  0.6% loss
       1.50x =  2.0% loss
@@ -141,7 +141,7 @@ class ImpermanentLossCalculator:
       3.00x = 13.4% loss
       5.00x = 25.5% loss
       10.0x = 42.5% loss
-    
+
     Concentrated liquidity (CLMMs) AMPLIFY IL by the concentration factor!
     """
 
@@ -192,7 +192,7 @@ class ImpermanentLossCalculator:
     ) -> ImpermanentLossResult:
         """
         Calculate IL for concentrated liquidity (Uniswap V3 style).
-        
+
         Concentrated IL is amplified by the concentration factor:
           concentration = sqrt(upper/lower) / (sqrt(upper/lower) - 1)
         """
@@ -246,7 +246,7 @@ class ImpermanentLossCalculator:
 class YieldSustainabilityAnalyzer:
     """
     Determine if yield is sustainable or inflationary ponzinomics.
-    
+
     Red flags for unsustainable yield:
       1. APY >500% with no clear revenue source
       2. Token emissions > protocol revenue
@@ -254,7 +254,7 @@ class YieldSustainabilityAnalyzer:
       4. Token price declining despite high emissions
       5. No veToken / governance mechanism to align incentives
       6. Anonymous team with no track record
-    
+
     Signs of sustainable yield:
       1. Revenue from actual usage (trading fees, lending interest)
       2. Growing TVL with stable/declining APY (organic growth)
@@ -329,7 +329,7 @@ class YieldSustainabilityAnalyzer:
 class ProtocolRiskScorer:
     """
     Score DeFi protocols on safety dimensions.
-    
+
     Risk areas:
       - Smart contract risk (audits, track record, complexity)
       - Admin/governance risk (upgradeable, multisig, EOA control)
@@ -463,7 +463,7 @@ class ProtocolRiskScorer:
 class DeFiOpportunityScreener:
     """
     Screen and rank DeFi farming opportunities.
-    
+
     Ranking factors:
       1. Risk-adjusted yield (higher = better)
       2. Sustainability score (sustainable > emissions)
@@ -552,7 +552,8 @@ if __name__ == "__main__":
     )
     logger.info(f"\nConcentrated IL (same move, tight range):")
     logger.info(f"  IL: {il_conc.il_percentage:.2f}%")
-    for n in il_conc.notes: print(f"  → {n}")
+    for n in il_conc.notes:
+        print(f"  → {n}")
 
     # Yield Sustainability
     yield_info = YieldSustainabilityAnalyzer.analyze(
@@ -562,7 +563,8 @@ if __name__ == "__main__":
     logger.info(f"\nYield Analysis: {yield_info.protocol} — {yield_info.pool}")
     logger.info(f"  Total APY: {yield_info.total_apy}% | Real: {yield_info.real_yield_apy}%")
     logger.info(f"  Sustainability: {yield_info.sustainability.value}")
-    for n in yield_info.notes: print(f"  → {n}")
+    for n in yield_info.notes:
+        print(f"  → {n}")
 
     # Ponzi yield
     ponzi = YieldSustainabilityAnalyzer.analyze(
@@ -573,7 +575,8 @@ if __name__ == "__main__":
     logger.info(f"\n⚠️  {ponzi.protocol} — {ponzi.pool}:")
     logger.info(f"  Total APY: {ponzi.total_apy}% | Real: {ponzi.real_yield_apy}%")
     logger.info(f"  Sustainability: {ponzi.sustainability.value}")
-    for n in ponzi.notes: print(f"  → {n}")
+    for n in ponzi.notes:
+        print(f"  → {n}")
 
     # Protocol Risk
     risk = ProtocolRiskScorer.score(

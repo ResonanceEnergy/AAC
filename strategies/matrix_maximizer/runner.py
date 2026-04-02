@@ -56,23 +56,23 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from strategies.matrix_maximizer.bridge import PillarBridge, RegimeContext
 from strategies.matrix_maximizer.core import (
+    DEFAULT_PRICES,
     Asset,
     MatrixConfig,
     PortfolioForecast,
     ScenarioWeights,
     SystemMandate,
-    DEFAULT_PRICES,
 )
-from strategies.matrix_maximizer.monte_carlo import MonteCarloEngine
 from strategies.matrix_maximizer.greeks import BlackScholesEngine, GreeksResult
-from strategies.matrix_maximizer.scanner import OptionsScanner, Position, PutRecommendation
+from strategies.matrix_maximizer.monte_carlo import MonteCarloEngine
 from strategies.matrix_maximizer.risk import (
     CircuitBreaker,
     RiskManager,
     RiskSnapshot,
 )
-from strategies.matrix_maximizer.bridge import PillarBridge, RegimeContext
+from strategies.matrix_maximizer.scanner import OptionsScanner, Position, PutRecommendation
 
 logger = logging.getLogger(__name__)
 
@@ -161,7 +161,7 @@ class MatrixMaximizer:
         if self.chatbot_engine is not None:
             return self.chatbot_engine
         try:
-            from strategies.matrix_maximizer.chatbot import MatrixChatbot, ChatContext
+            from strategies.matrix_maximizer.chatbot import ChatContext, MatrixChatbot
             ctx = ChatContext(
                 runner=self,
                 execution=self.execution,

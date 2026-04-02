@@ -4,10 +4,10 @@ Simple Metrics Display for ACC Arbitrage Strategies
 Shows current system status and what's missing
 """
 
+import logging
 import os
 import sys
 from pathlib import Path
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -70,9 +70,9 @@ def show_metrics():
     # Check dependencies
     try:
         import dash
-        import plotly
-        import pandas
         import numpy
+        import pandas
+        import plotly
         logger.info("DEPENDENCIES:")
         logger.info("✓ Dash installed")
         logger.info("✓ Plotly installed")

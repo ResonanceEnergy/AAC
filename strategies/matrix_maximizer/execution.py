@@ -229,7 +229,7 @@ class ExecutionEngine:
         """Initialize IBKR connector."""
         try:
             from TradingExecution.exchange_connectors.ibkr_connector import IBKRConnector
-            env_port = int(os.getenv("IBKR_PORT", "7497"))
+            env_port = int(os.getenv("IBKR_PORT", "7496"))
             port = 7497 if self.mode == ExecutionMode.PAPER else env_port
             self._ibkr = IBKRConnector(
                 host=os.getenv("IBKR_HOST", "127.0.0.1"),
@@ -520,8 +520,8 @@ class ExecutionEngine:
 
     def update_positions(self, prices: Dict[str, float]) -> None:
         """Update all open positions with current prices via BS repricing."""
-        from strategies.matrix_maximizer.greeks import BlackScholesEngine
         from strategies.matrix_maximizer.core import ASSET_VOLATILITIES, Asset
+        from strategies.matrix_maximizer.greeks import BlackScholesEngine
 
         bs = BlackScholesEngine()
         today = datetime.utcnow().date()

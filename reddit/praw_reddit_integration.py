@@ -19,15 +19,16 @@ Rate Limit: 600 requests per 10 minutes (for authenticated users)
 For detailed API endpoint documentation, see: reddit_api_documentation.py
 """
 
-import praw
-import re
 import asyncio
 import logging
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Tuple
-from dataclasses import dataclass
-from collections import Counter
 import os
+import re
+from collections import Counter
+from dataclasses import dataclass
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional, Tuple
+
+import praw
 from dotenv import load_dotenv
 
 logger = logging.getLogger(__name__)

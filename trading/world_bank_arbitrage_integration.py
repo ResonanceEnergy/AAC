@@ -18,14 +18,15 @@ API: Free, no API key required
 Data: Historical macroeconomic data for 200+ countries
 """
 
-import requests
 import json
-import os
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Tuple
-from dataclasses import dataclass
-from dotenv import load_dotenv
 import logging
+import os
+from dataclasses import dataclass
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional, Tuple
+
+import requests
+from dotenv import load_dotenv
 
 logger = logging.getLogger(__name__)
 

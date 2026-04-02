@@ -20,7 +20,6 @@ from integrations.barren_wuffet_telegram_bot import (
     TelegramMessage,
 )
 
-
 # ── Fixtures ───────────────────────────────────────────────────────────────
 
 

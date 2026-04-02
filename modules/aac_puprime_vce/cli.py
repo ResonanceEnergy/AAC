@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import argparse
+import logging
 import sys
 from pathlib import Path
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -16,25 +16,24 @@ for p in (_MODULE_ROOT, _PROJECT_ROOT):
     if str(p) not in sys.path:
         sys.path.insert(0, str(p))
 
-from modules.aac_puprime_vce.src.config import (
-    load_instruments,
-    load_strategy,
-    load_risk,
-    load_costs,
-)
-from modules.aac_puprime_vce.src.ingest.mt5_csv import read_mt5_csv
-from modules.aac_puprime_vce.src.ingest.normalize import validate_ohlcv, normalize, save_processed
-from modules.aac_puprime_vce.src.strategy.portfolio import compute_signals_for_instrument
 from modules.aac_puprime_vce.src.backtest.engine import backtest_instrument
 from modules.aac_puprime_vce.src.backtest.metrics import compute_metrics
 from modules.aac_puprime_vce.src.backtest.reports import (
     generate_markdown_report,
-    save_report,
     save_equity_curve_csv,
+    save_report,
 )
+from modules.aac_puprime_vce.src.config import (
+    load_costs,
+    load_instruments,
+    load_risk,
+    load_strategy,
+)
+from modules.aac_puprime_vce.src.ingest.mt5_csv import read_mt5_csv
+from modules.aac_puprime_vce.src.ingest.normalize import normalize, save_processed, validate_ohlcv
 from modules.aac_puprime_vce.src.journal.writer import write_trades_to_journal
+from modules.aac_puprime_vce.src.strategy.portfolio import compute_signals_for_instrument
 from modules.aac_puprime_vce.src.strategy.risk_controls import make_initial_state
-
 
 _DATA_RAW = _MODULE_ROOT / "data" / "raw"
 _DATA_PROC = _MODULE_ROOT / "data" / "processed"

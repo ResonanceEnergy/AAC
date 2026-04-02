@@ -9,7 +9,7 @@ Covers: data_feeds, intelligence, execution, advanced_strategies,
 import json
 import math
 from datetime import datetime, timedelta
-from unittest.mock import MagicMock, patch, PropertyMock
+from unittest.mock import MagicMock, PropertyMock, patch
 
 import numpy as np
 import pytest
@@ -21,8 +21,8 @@ import pytest
 
 class TestCorrelationStress:
     def test_stress_returns_dict(self):
-        from strategies.matrix_maximizer.risk import RiskManager
         from strategies.matrix_maximizer.core import MatrixConfig
+        from strategies.matrix_maximizer.risk import RiskManager
         from strategies.matrix_maximizer.scanner import Position
 
         rm = RiskManager(MatrixConfig(account_size=5000))
@@ -38,8 +38,8 @@ class TestCorrelationStress:
         assert bool(result["survival"]) in (True, False)  # numpy bool compatible
 
     def test_stress_deeper_shock_worse_pnl(self):
-        from strategies.matrix_maximizer.risk import RiskManager
         from strategies.matrix_maximizer.core import MatrixConfig
+        from strategies.matrix_maximizer.risk import RiskManager
         from strategies.matrix_maximizer.scanner import Position
 
         rm = RiskManager(MatrixConfig(account_size=5000))
@@ -56,8 +56,8 @@ class TestCorrelationStress:
         assert severe["stressed_pnl"] >= mild["stressed_pnl"]
 
     def test_empty_positions(self):
-        from strategies.matrix_maximizer.risk import RiskManager
         from strategies.matrix_maximizer.core import MatrixConfig
+        from strategies.matrix_maximizer.risk import RiskManager
 
         rm = RiskManager(MatrixConfig(account_size=5000))
         result = rm.correlation_stress_test([], {})
@@ -67,12 +67,16 @@ class TestCorrelationStress:
 
 class TestTailRisk:
     def test_fat_tails_wider_than_normal(self):
-        from strategies.matrix_maximizer.risk import RiskManager
         from strategies.matrix_maximizer.core import (
-            MatrixConfig, Asset, AssetForecast,
-            PortfolioForecast, MandateLevel, SystemMandate,
+            Asset,
+            AssetForecast,
+            MandateLevel,
+            MatrixConfig,
+            PortfolioForecast,
             ScenarioWeights,
+            SystemMandate,
         )
+        from strategies.matrix_maximizer.risk import RiskManager
 
         rm = RiskManager(MatrixConfig())
         spy_forecast = AssetForecast(
@@ -109,12 +113,16 @@ class TestTailRisk:
         assert result["tail_risk_multiplier"] >= 1.0
 
     def test_higher_df_closer_to_normal(self):
-        from strategies.matrix_maximizer.risk import RiskManager
         from strategies.matrix_maximizer.core import (
-            MatrixConfig, Asset, AssetForecast,
-            PortfolioForecast, MandateLevel, SystemMandate,
+            Asset,
+            AssetForecast,
+            MandateLevel,
+            MatrixConfig,
+            PortfolioForecast,
             ScenarioWeights,
+            SystemMandate,
         )
+        from strategies.matrix_maximizer.risk import RiskManager
 
         rm = RiskManager(MatrixConfig())
         spy_forecast = AssetForecast(
@@ -152,12 +160,13 @@ class TestTailRisk:
 
 class TestLiquidityRisk:
     def test_wide_spread_flagged(self):
-        from strategies.matrix_maximizer.risk import RiskManager
-        from strategies.matrix_maximizer.core import MatrixConfig, MandateLevel
-        from strategies.matrix_maximizer.scanner import (
-            PutRecommendation, OptionContract,
-        )
+        from strategies.matrix_maximizer.core import MandateLevel, MatrixConfig
         from strategies.matrix_maximizer.greeks import GreeksResult
+        from strategies.matrix_maximizer.risk import RiskManager
+        from strategies.matrix_maximizer.scanner import (
+            OptionContract,
+            PutRecommendation,
+        )
 
         rm = RiskManager(MatrixConfig())
         contract = OptionContract(
@@ -185,12 +194,13 @@ class TestLiquidityRisk:
         assert results[0]["passed"] is False  # 0.50/2.00 = 0.25 < 0.80
 
     def test_tight_spread_passes(self):
-        from strategies.matrix_maximizer.risk import RiskManager
-        from strategies.matrix_maximizer.core import MatrixConfig, MandateLevel
-        from strategies.matrix_maximizer.scanner import (
-            PutRecommendation, OptionContract,
-        )
+        from strategies.matrix_maximizer.core import MandateLevel, MatrixConfig
         from strategies.matrix_maximizer.greeks import GreeksResult
+        from strategies.matrix_maximizer.risk import RiskManager
+        from strategies.matrix_maximizer.scanner import (
+            OptionContract,
+            PutRecommendation,
+        )
 
         rm = RiskManager(MatrixConfig())
         contract = OptionContract(
@@ -220,8 +230,8 @@ class TestLiquidityRisk:
 
 class TestMarginEstimate:
     def test_long_put_margin_equals_cost(self):
-        from strategies.matrix_maximizer.risk import RiskManager
         from strategies.matrix_maximizer.core import MatrixConfig
+        from strategies.matrix_maximizer.risk import RiskManager
         from strategies.matrix_maximizer.scanner import Position
 
         rm = RiskManager(MatrixConfig(account_size=5000))
@@ -294,7 +304,7 @@ class TestIntelligence:
         assert sig.strength == 0.8
 
     def test_intel_brief_filtering(self):
-        from strategies.matrix_maximizer.intelligence import IntelSignal, IntelBrief
+        from strategies.matrix_maximizer.intelligence import IntelBrief, IntelSignal
         brief = IntelBrief()
         brief.signals.extend([
             IntelSignal("ncl", "rotation", "SPY", "bearish", 0.7, "test"),
@@ -484,7 +494,8 @@ class TestAdvancedStrategies:
 
     def test_multi_leg_print_card(self):
         from strategies.matrix_maximizer.advanced_strategies import (
-            StrategyLeg, MultiLegStrategy,
+            MultiLegStrategy,
+            StrategyLeg,
         )
         legs = [
             StrategyLeg("SPY", 400, "2026-06-30", "put", "buy", 1, 3.00),
@@ -527,7 +538,7 @@ class TestAlerts:
         assert mgr is not None
 
     def test_alert_dataclass(self):
-        from strategies.matrix_maximizer.alerts import Alert, AlertLevel, AlertChannel
+        from strategies.matrix_maximizer.alerts import Alert, AlertChannel, AlertLevel
         alert = Alert(
             level=AlertLevel.INFO,
             title="Test alert",
@@ -537,7 +548,7 @@ class TestAlerts:
         assert alert.level == AlertLevel.INFO
 
     def test_log_only_alert(self):
-        from strategies.matrix_maximizer.alerts import AlertManager, Alert, AlertLevel, AlertChannel
+        from strategies.matrix_maximizer.alerts import Alert, AlertChannel, AlertLevel, AlertManager
         mgr = AlertManager()
         alert = Alert(
             level=AlertLevel.INFO,
@@ -549,7 +560,7 @@ class TestAlerts:
         assert result is True
 
     def test_rate_limiting(self):
-        from strategies.matrix_maximizer.alerts import AlertManager, Alert, AlertLevel, AlertChannel
+        from strategies.matrix_maximizer.alerts import Alert, AlertChannel, AlertLevel, AlertManager
         mgr = AlertManager(enable_telegram=False, enable_email=False)
         alert = Alert(
             level=AlertLevel.INFO,
@@ -568,7 +579,7 @@ class TestAlerts:
         assert mgr.send(alert2) is True
 
     def test_dedup(self):
-        from strategies.matrix_maximizer.alerts import AlertManager, Alert, AlertLevel, AlertChannel
+        from strategies.matrix_maximizer.alerts import Alert, AlertChannel, AlertLevel, AlertManager
         mgr = AlertManager()
         alert = Alert(
             level=AlertLevel.INFO,
@@ -614,13 +625,13 @@ class TestAlerts:
 
 class TestWatchdog:
     def test_watchdog_init(self):
-        from strategies.matrix_maximizer.alerts import Watchdog, AlertManager
+        from strategies.matrix_maximizer.alerts import AlertManager, Watchdog
         mgr = AlertManager()
         wd = Watchdog(mgr)
         assert wd is not None
 
     def test_watchdog_circuit_breaker_change(self):
-        from strategies.matrix_maximizer.alerts import Watchdog, AlertManager
+        from strategies.matrix_maximizer.alerts import AlertManager, Watchdog
         mgr = AlertManager()
         mgr._send_telegram = MagicMock(return_value=True)
         mgr._send_email = MagicMock(return_value=True)
@@ -766,7 +777,7 @@ class TestDashboard:
         assert snap.circuit_breaker == "GREEN"
 
     def test_record_and_retrieve_snapshot(self):
-        from strategies.matrix_maximizer.dashboard import MatrixDashboard, DailySnapshot
+        from strategies.matrix_maximizer.dashboard import DailySnapshot, MatrixDashboard
         dash = MatrixDashboard()
         snap = DailySnapshot(
             date="2026-03-20", equity=920.0, unrealized_pnl=-15.0,
@@ -786,7 +797,7 @@ class TestDashboard:
         assert "MATRIX MAXIMIZER" in report or "DAILY" in report.upper() or len(report) > 0
 
     def test_weekly_summary(self):
-        from strategies.matrix_maximizer.dashboard import MatrixDashboard, DailySnapshot
+        from strategies.matrix_maximizer.dashboard import DailySnapshot, MatrixDashboard
         dash = MatrixDashboard()
         # Add a few snapshots
         for i in range(5):
@@ -933,8 +944,8 @@ class TestRunnerV2:
     def test_run_full_cycle_with_prices(self, mock_urlopen):
         import urllib.error
         mock_urlopen.side_effect = urllib.error.URLError("no network")
-        from strategies.matrix_maximizer.runner import MatrixMaximizer
         from strategies.matrix_maximizer.core import MatrixConfig
+        from strategies.matrix_maximizer.runner import MatrixMaximizer
         mm = MatrixMaximizer(MatrixConfig(account_size=920, n_simulations=100))
         result = mm.run_full_cycle(
             prices={"oil": 95, "vix": 28},
@@ -945,8 +956,8 @@ class TestRunnerV2:
     def test_auto_execute_flag(self, mock_urlopen):
         import urllib.error
         mock_urlopen.side_effect = urllib.error.URLError("no network")
-        from strategies.matrix_maximizer.runner import MatrixMaximizer
         from strategies.matrix_maximizer.core import MatrixConfig
+        from strategies.matrix_maximizer.runner import MatrixMaximizer
         mm = MatrixMaximizer(MatrixConfig(account_size=920, n_simulations=100))
         result = mm.run_full_cycle(
             prices={"oil": 85, "vix": 22},
@@ -958,8 +969,8 @@ class TestRunnerV2:
     def test_enhanced_risk_in_output(self, mock_urlopen):
         import urllib.error
         mock_urlopen.side_effect = urllib.error.URLError("no network")
-        from strategies.matrix_maximizer.runner import MatrixMaximizer
         from strategies.matrix_maximizer.core import MatrixConfig
+        from strategies.matrix_maximizer.runner import MatrixMaximizer
         mm = MatrixMaximizer(MatrixConfig(account_size=920, n_simulations=100))
         result = mm.run_full_cycle(prices={"oil": 80, "vix": 22})
         if result["status"] == "complete":
@@ -975,18 +986,29 @@ class TestRunnerV2:
 class TestPackageExports:
     def test_core_exports(self):
         from strategies.matrix_maximizer import (
-            MatrixMaximizer, MonteCarloEngine, BlackScholesEngine,
-            Asset, MatrixConfig, RiskManager, PillarBridge,
+            Asset,
+            BlackScholesEngine,
+            MatrixConfig,
+            MatrixMaximizer,
+            MonteCarloEngine,
+            PillarBridge,
+            RiskManager,
         )
         assert MatrixMaximizer is not None
         assert MonteCarloEngine is not None
 
     def test_extended_exports(self):
         from strategies.matrix_maximizer import (
-            DataFeedManager, IntelligenceEngine, ExecutionEngine,
-            AdvancedStrategyEngine, AlertManager, Watchdog,
-            MatrixScheduler, MatrixBacktester, MatrixDashboard,
+            AdvancedStrategyEngine,
+            AlertManager,
+            DataFeedManager,
+            ExecutionEngine,
+            IntelligenceEngine,
+            MatrixBacktester,
             MatrixChatbot,
+            MatrixDashboard,
+            MatrixScheduler,
+            Watchdog,
         )
         # These may be None if import fails, but shouldn't raise
         # Just verify they're accessible

@@ -6,21 +6,19 @@ Integrates security framework with compliance system for Phase 1 completion.
 """
 
 import asyncio
+import logging
 import sys
 from datetime import datetime
 from pathlib import Path
-import logging
 
 logger = logging.getLogger(__name__)
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from shared.compliance_review import compliance_review_system
-from shared.security_framework import (
-    rbac, api_security, security_monitoring, advanced_encryption
-)
 from monitoring.security_dashboard import SecurityDashboard
+from shared.compliance_review import compliance_review_system
+from shared.security_framework import advanced_encryption, api_security, rbac, security_monitoring
 
 
 async def run_security_compliance_check():

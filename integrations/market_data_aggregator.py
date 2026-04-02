@@ -9,19 +9,20 @@ This system enables real-time strategy execution with live data.
 """
 
 import asyncio
-import logging
-import websockets
 import json
+import logging
 import time
-from typing import Dict, List, Any, Optional, Callable
-from datetime import datetime, timedelta
 from concurrent.futures import ThreadPoolExecutor
-import pandas as pd
-import numpy as np
+from datetime import datetime, timedelta
+from typing import Any, Callable, Dict, List, Optional
 
-from shared.communication import CommunicationFramework
-from shared.audit_logger import AuditLogger
 import ccxt.async_support as ccxt
+import numpy as np
+import pandas as pd
+import websockets
+
+from shared.audit_logger import AuditLogger
+from shared.communication import CommunicationFramework
 
 logger = logging.getLogger(__name__)
 

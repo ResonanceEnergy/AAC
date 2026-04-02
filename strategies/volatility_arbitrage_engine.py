@@ -11,11 +11,11 @@ From BARREN WUFFET Insights 456-535:
   - Vol-of-vol (VVIX) predicts VIX regime changes 1-3 days early
 """
 
+import logging
+import math
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Dict, List, Optional, Tuple
-import math
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -118,13 +118,13 @@ class TermStructureSignal:
 class VarianceRiskPremiumEngine:
     """
     Compute and trade the Variance Risk Premium (VRP).
-    
+
     The VRP is one of the most robust and well-documented risk premia:
       - IV systematically overstates actual RV (insurance premium)
       - Average VRP = 2-5 vol points (200-500bps annualized)
       - VRP is regime-dependent: larger in high-vol, sometimes negative in low-vol
       - Best harvested via short straddles, iron condors, or variance swaps
-    
+
     Key BARREN WUFFET insights:
       - VRP > 3 vol points + IVR > 50% = high-confidence sell
       - VRP < 0 (RV > IV) = STOP selling vol
@@ -140,7 +140,7 @@ class VarianceRiskPremiumEngine:
     ) -> VRPSignal:
         """
         Compute VRP signal.
-        
+
         Args:
             iv_30d: 30-day implied volatility
             rv_20d: 20-day realized volatility
@@ -207,14 +207,14 @@ class VarianceRiskPremiumEngine:
 class TermStructureAnalyzer:
     """
     Analyze and trade volatility term structure.
-    
+
     Term structure concepts:
       - Contango (normal): front-month IV < back-month IV
         → Time value of uncertainty increases with time
       - Backwardation (stressed): front-month IV > back-month IV
         → Market pricing immediate risk (catalyst, event, crash)
       - Flat: similar IV across terms → transitional state
-    
+
     Trade signals:
       - Deep backwardation → sell front/buy back calendar (mean reversion)
       - Steep contango → buy front/sell back (if event expected)
@@ -318,7 +318,7 @@ class TermStructureAnalyzer:
 class SkewAnalyzer:
     """
     Analyze IV skew for trade signals and market sentiment.
-    
+
     Skew metrics:
       - 25Δ Risk Reversal = 25Δ call IV - 25Δ put IV
         → Negative = puts are expensive (bearish skew)
@@ -413,14 +413,14 @@ class SkewAnalyzer:
 class VolRegimeDetector:
     """
     Detect and classify volatility regimes using VIX/VVIX.
-    
+
     Regime hierarchy:
       VIX < 13: Low vol → sell far OTM, small premium, high POP
       VIX 13-20: Normal → standard strategies apply
       VIX 20-30: Elevated → increase position sizes for premium
       VIX 30-40: High → widen wings, reduce exposure, expect mean reversion
       VIX > 40: Extreme → buy vol for crash continuation, or wait for signal
-    
+
     VVIX (vol of VIX):
       VVIX < 80: Low VIX volatility → VIX likely range-bound
       VVIX 80-100: Normal

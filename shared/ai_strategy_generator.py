@@ -6,30 +6,31 @@ Machine learning-powered arbitrage strategy discovery and generation.
 """
 
 import asyncio
-import logging
 import json
-import numpy as np
-import pandas as pd
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Tuple, Callable
+import logging
+import random
+import sys
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta
 from enum import Enum
 from pathlib import Path
-import sys
-import random
-from sklearn.ensemble import RandomForestClassifier, GradientBoostingRegressor
-from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, mean_squared_error
+from typing import Any, Callable, Dict, List, Optional, Tuple
+
 import joblib
+import numpy as np
+import pandas as pd
+from sklearn.ensemble import GradientBoostingRegressor, RandomForestClassifier
+from sklearn.metrics import accuracy_score, mean_squared_error
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
 
 logger = logging.getLogger(__name__)
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from shared.config_loader import get_config, get_project_path
 from shared.audit_logger import get_audit_logger
+from shared.config_loader import get_config, get_project_path
 from shared.market_data_integration import market_data_integration
 
 

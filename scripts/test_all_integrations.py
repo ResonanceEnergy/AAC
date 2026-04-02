@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 """Test all 5 integrations: IBKR, Moomoo, NDAX, CoinGecko, EQ Bank"""
-import sys, asyncio, os, logging, socket
-from pathlib import Path
+import asyncio
 import logging
+import os
+import socket
+import sys
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -34,8 +37,8 @@ async def main():
     logger.info("\n[1/5] INTERACTIVE BROKERS (IBKR)")
     logger.info("-" * 40)
     try:
-        from TradingExecution.exchange_connectors.ibkr_connector import IBKRConnector
         from shared.config_loader import get_config
+        from TradingExecution.exchange_connectors.ibkr_connector import IBKRConnector
         cfg = get_config()
         acct = cfg.ibkr.account if cfg.ibkr.account else "(not set)"
         logger.info(f"  Module import:  OK")
@@ -70,7 +73,10 @@ async def main():
     logger.info("\n[2/5] MOOMOO / FUTU")
     logger.info("-" * 40)
     try:
-        from TradingExecution.exchange_connectors.moomoo_connector import MoomooConnector, MOOMOO_AVAILABLE
+        from TradingExecution.exchange_connectors.moomoo_connector import (
+            MOOMOO_AVAILABLE,
+            MoomooConnector,
+        )
         cfg = get_config()
         logger.info(f"  Module import:  OK")
         logger.info(f"  SDK installed:  {MOOMOO_AVAILABLE}")
@@ -106,8 +112,12 @@ async def main():
     logger.info("\n[3/5] NDAX (Canadian Crypto Exchange)")
     logger.info("-" * 40)
     try:
-        from TradingExecution.exchange_connectors.ndax_connector import NDAXConnector, CCXT_AVAILABLE
         import ccxt
+
+        from TradingExecution.exchange_connectors.ndax_connector import (
+            CCXT_AVAILABLE,
+            NDAXConnector,
+        )
         logger.info(f"  Module import:  OK")
         logger.info(f"  ccxt installed: {CCXT_AVAILABLE}")
         logger.info(f"  ccxt version:   {ccxt.__version__}")

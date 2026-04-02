@@ -7,33 +7,40 @@ Provides real-time monitoring, deep dives, and actionable insights.
 """
 
 import asyncio
-import logging
 import json
-import pandas as pd
-import numpy as np
-from datetime import datetime, timedelta
-from pathlib import Path
-from typing import Dict, List, Any, Optional, Tuple
-import sys
-import matplotlib.pyplot as plt
-import seaborn as sns
-from dataclasses import dataclass, field
-from enum import Enum
-import plotly.graph_objects as go
-import plotly.express as px
-from plotly.subplots import make_subplots
-import dash
-from dash import html, dcc, Input, Output, State
-import dash_bootstrap_components as dbc
+import logging
 import os
+import sys
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
+import dash
+import dash_bootstrap_components as dbc
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
+import seaborn as sns
+from dash import Input, Output, State, dcc, html
+from plotly.subplots import make_subplots
 
 logger = logging.getLogger(__name__)
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from strategies.strategy_testing_lab_fixed import strategy_testing_lab, initialize_strategy_testing_lab
-from strategies.strategy_analysis_engine import strategy_analysis_engine, initialize_strategy_analysis
+from strategies.strategy_analysis_engine import (
+    initialize_strategy_analysis,
+    strategy_analysis_engine,
+)
+from strategies.strategy_testing_lab_fixed import (
+    initialize_strategy_testing_lab,
+    strategy_testing_lab,
+)
 
 
 class MetricType(Enum):
@@ -696,7 +703,7 @@ class StrategyMetricsDashboard:
         """Get strategy metrics by running simulation"""
         # Run simulation
         sim_results = await strategy_testing_lab.run_strategy_simulation(strategy_id, timeframe)
-        
+
         # Mock analysis for now
         analysis = {
             'performance_analysis': {
@@ -713,7 +720,7 @@ class StrategyMetricsDashboard:
                 'trend_prediction': 'bullish' if sim_results['total_return_pct'] > 0 else 'bearish'
             }
         }
-        
+
         return {
             'simulation': sim_results,
             'analysis': analysis
@@ -722,16 +729,16 @@ class StrategyMetricsDashboard:
     async def _perform_deep_dive(self, strategy_id: str) -> Dict[str, Any]:
         """Perform deep dive analysis for a strategy"""
         try:
-            from strategies.strategy_analysis_engine import StrategyAnalysisEngine, AnalysisType
+            from strategies.strategy_analysis_engine import AnalysisType, StrategyAnalysisEngine
         except ImportError:
-            from strategy_analysis_engine import StrategyAnalysisEngine, AnalysisType
+            from strategy_analysis_engine import AnalysisType, StrategyAnalysisEngine
 
         analysis_engine = StrategyAnalysisEngine()
         await analysis_engine.initialize()
 
         # Perform comprehensive analysis
         analysis = await analysis_engine.perform_comprehensive_analysis(
-            [strategy_id], 
+            [strategy_id],
             [AnalysisType.PERFORMANCE, AnalysisType.RISK, AnalysisType.PREDICTIVE, AnalysisType.MARKET_REGIME]
         )
 

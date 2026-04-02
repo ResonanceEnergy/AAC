@@ -19,7 +19,7 @@ import asyncio
 import logging
 import time
 from datetime import datetime
-from typing import Dict, List, Optional, Any
+from typing import Any, Dict, List, Optional
 
 import aiohttp
 

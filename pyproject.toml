@@ -152,17 +152,8 @@ exclude = [".venv", "archive", "version_control", "aac/aac069"]
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP"]
 ignore = [
-    "E128",   # continuation line under-indented
-    "E127",   # continuation line over-indented
-    "E126",   # continuation line over-indented for hanging indent
-    "E131",   # continuation line unaligned for block comment
-    "E203",   # whitespace before ':'
-    "E301",   # expected N blank lines
-    "E302",   # expected 2 blank lines
-    "E303",   # too many blank lines
-    "E401",   # multiple imports on one line
     "E402",   # module-level import not at top (sys.path inserts)
-    "E501",   # line-length handled by black
+    "E501",   # line-length handled by formatter
     "E711",   # comparison to None
     "E712",   # comparison to True/False
     "E721",   # type comparison (use isinstance)
@@ -174,13 +165,6 @@ ignore = [
     "F541",   # f-string without placeholders
     "F811",   # redefinition of unused name
     "F841",   # unused local variable
-    "W191",   # indentation contains tabs
-    "W291",   # trailing whitespace
-    "W292",   # no newline at end of file
-    "W293",   # whitespace before comment
-    "W391",   # blank line at end of file
-    "W503",   # line break before binary operator
-    "W504",   # line break after binary operator
     "UP",     # pyupgrade (all rules — not critical)
 ]
 

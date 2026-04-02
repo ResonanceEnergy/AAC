@@ -7,24 +7,25 @@ Order lifecycle management, tracking, and persistence.
 
 import json
 import logging
-from datetime import datetime
-from typing import Dict, List, Optional
-from pathlib import Path
-from dataclasses import asdict
 import sys
+from dataclasses import asdict
+from datetime import datetime
+from pathlib import Path
+from typing import Dict, List, Optional
 
 # Add shared module to path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from shared.config_loader import get_project_path
-from .trading_engine import Order, OrderStatus, OrderSide, OrderType
+
+from .trading_engine import Order, OrderSide, OrderStatus, OrderType
 
 
 class OrderManager:
     """
     Manages order lifecycle and persistence.
-    
+
     Responsibilities:
     - Track all orders (open, filled, cancelled)
     - Persist order history
@@ -34,20 +35,20 @@ class OrderManager:
 
     def __init__(self, persistence_path: Optional[Path] = None):
         self.logger = logging.getLogger('OrderManager')
-        
+
         # Order storage
         self.orders: Dict[str, Order] = {}
         self.order_history: List[Order] = []
-        
+
         # Persistence
         if persistence_path is None:
             self.persistence_path = get_project_path('TradingExecution', 'data', 'orders.json')
         else:
             self.persistence_path = persistence_path
-        
+
         # Ensure data directory exists
         self.persistence_path.parent.mkdir(parents=True, exist_ok=True)
-        
+
         # Load existing orders
         self._load_orders()
 
@@ -118,7 +119,7 @@ class OrderManager:
         if order.order_id in self.orders:
             self.logger.warning(f"Order {order.order_id} already exists")
             return False
-        
+
         self.orders[order.order_id] = order
         self._save_orders()
         self.logger.info(f"Added order {order.order_id}")
@@ -129,22 +130,22 @@ class OrderManager:
         if order_id not in self.orders:
             self.logger.warning(f"Order {order_id} not found")
             return None
-        
+
         order = self.orders[order_id]
-        
+
         # Apply updates
         for key, value in updates.items():
             if hasattr(order, key):
                 setattr(order, key, value)
-        
+
         order.updated_at = datetime.now()
         self._save_orders()
-        
+
         # Move to history if terminal state
         if order.status in (OrderStatus.FILLED, OrderStatus.CANCELLED, OrderStatus.REJECTED, OrderStatus.EXPIRED):
             self.order_history.append(order)
             del self.orders[order_id]
-        
+
         return order
 
     def get_order(self, order_id: str) -> Optional[Order]:
@@ -153,13 +154,13 @@ class OrderManager:
 
     def get_open_orders(self, exchange: Optional[str] = None, symbol: Optional[str] = None) -> List[Order]:
         """Get all open orders, optionally filtered"""
-        orders = [o for o in self.orders.values() if o.status in (OrderStatus.PENDING, OrderStatus.OPEN, OrderStatus.PARTIALLY_FILLED)]
-        
+        orders = [o for o in self.orders.values() if o.status in (OrderStatus.PENDING, OrderStatus.SUBMITTED, OrderStatus.PARTIAL)]
+
         if exchange:
             orders = [o for o in orders if o.exchange == exchange]
         if symbol:
             orders = [o for o in orders if o.symbol == symbol]
-        
+
         return orders
 
     def get_orders_by_status(self, status: OrderStatus) -> List[Order]:
@@ -180,7 +181,7 @@ class OrderManager:
         total_orders = len(self.orders) + len(self.order_history)
         filled_orders = len([o for o in self.order_history if o.status == OrderStatus.FILLED])
         cancelled_orders = len([o for o in self.order_history if o.status == OrderStatus.CANCELLED])
-        
+
         return {
             'total_orders': total_orders,
             'open_orders': len(self.orders),

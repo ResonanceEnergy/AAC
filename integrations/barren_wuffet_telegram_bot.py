@@ -14,14 +14,14 @@ Architecture:
         → Skill Handler → AAC Agent → Response → Telegram
 """
 
-import os
-import json
 import asyncio
+import json
 import logging
-from datetime import datetime, timezone
-from typing import Dict, List, Optional, Any, Callable
+import os
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from enum import Enum
+from typing import Any, Callable, Dict, List, Optional
 
 logger = logging.getLogger("barren_wuffet.telegram")
 
@@ -226,7 +226,7 @@ def parse_command_args(text: str) -> Dict[str, str]:
 class BarrenWuffetTelegramBot:
     """
     Main Telegram bot for BARREN WUFFET.
-    
+
     Handles message routing, skill dispatch, and response delivery
     via the Telegram Bot API.
     """
@@ -247,7 +247,8 @@ class BarrenWuffetTelegramBot:
         """Register skill handler functions."""
         # Each skill gets a handler that formats the response
         from integrations.openclaw_barren_wuffet_skills import (
-            BARREN_WUFFET_SKILLS, get_skill_definition
+            BARREN_WUFFET_SKILLS,
+            get_skill_definition,
         )
         for skill_name in BARREN_WUFFET_SKILLS:
             self._skill_handlers[skill_name] = self._create_handler(skill_name)
@@ -419,7 +420,7 @@ class BarrenWuffetTelegramBot:
     def _skills_list_response(self, message: TelegramMessage) -> BotResponse:
         """List all 35 skills."""
         from integrations.openclaw_barren_wuffet_skills import BARREN_WUFFET_SKILLS
-        
+
         categories = {
             "📊 Core AAC": [s for s in BARREN_WUFFET_SKILLS if s.startswith(("bw-market", "bw-trading", "bw-portfolio", "bw-risk", "bw-crypto-intel", "bw-az-", "bw-doctrine", "bw-morning", "bw-agent", "bw-strategy"))],
             "⚡ Trading": [s for s in BARREN_WUFFET_SKILLS if s.startswith(("bw-digital", "bw-arbitrage", "bw-day", "bw-options", "bw-calls", "bw-hedging", "bw-currency"))],

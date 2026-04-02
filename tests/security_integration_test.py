@@ -7,13 +7,18 @@ Comprehensive testing of all security components for production readiness.
 
 import asyncio
 import os
+import sys
 from pathlib import Path
 
-from shared.security_framework import (
-    mfa, advanced_encryption, rbac, api_security, security_monitoring,
-    initialize_security_framework
-)
 from shared.audit_logger import get_audit_logger
+from shared.security_framework import (
+    advanced_encryption,
+    api_security,
+    initialize_security_framework,
+    mfa,
+    rbac,
+    security_monitoring,
+)
 
 
 async def test_mfa_system():

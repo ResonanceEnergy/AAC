@@ -1,4 +1,4 @@
-"""
+r"""
 Polymarket Scenario Betting System — All 43 AAC Crisis Scenarios
 ================================================================
 
@@ -37,7 +37,8 @@ logger = logging.getLogger("poly_scenario_bets")
 
 # ── Imports ──────────────────────────────────────────────────────────────
 import aiohttp  # noqa: E402
-from strategies.storm_lifeboat.core import SCENARIOS, SCENARIO_MAP  # noqa: E402
+
+from strategies.storm_lifeboat.core import SCENARIO_MAP, SCENARIOS  # noqa: E402
 
 CLOB_API = "https://clob.polymarket.com"
 GAMMA_API = "https://gamma-api.polymarket.com"

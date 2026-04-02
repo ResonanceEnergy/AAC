@@ -3,9 +3,10 @@
 AAC 2100 Department Audit Script
 """
 
-from core.orchestrator import AAC2100Orchestrator
 import asyncio
 import logging
+
+from core.orchestrator import AAC2100Orchestrator
 
 logger = logging.getLogger(__name__)
 

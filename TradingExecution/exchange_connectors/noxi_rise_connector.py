@@ -16,10 +16,10 @@ Requires:
 
 import asyncio
 import logging
-from datetime import datetime
-from typing import Dict, List, Optional, Any
 import sys
+from datetime import datetime
 from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
@@ -27,7 +27,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 from shared.config_loader import get_config
 
 try:
-    from shared.utils import with_circuit_breaker, CircuitOpenError
+    from shared.utils import CircuitOpenError, with_circuit_breaker
 except ImportError:
     def with_circuit_breaker(*args, **kwargs):
         """With circuit breaker."""
@@ -40,16 +40,16 @@ except ImportError:
         pass
 
 from .base_connector import (
-    BaseExchangeConnector,
-    Ticker,
-    OrderBook,
-    Balance,
-    ExchangeOrder,
-    ExchangeError,
-    ConnectionError,
     AuthenticationError,
+    Balance,
+    BaseExchangeConnector,
+    ConnectionError,
+    ExchangeError,
+    ExchangeOrder,
     InsufficientFundsError,
+    OrderBook,
     OrderError,
+    Ticker,
 )
 
 try:

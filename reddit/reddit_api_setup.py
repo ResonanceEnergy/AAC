@@ -31,9 +31,10 @@ For read-only access:
 API Documentation: See reddit_api_documentation.py for detailed endpoint specs
 """
 
-import os
-from dotenv import load_dotenv
 import logging
+import os
+
+from dotenv import load_dotenv
 
 logger = logging.getLogger(__name__)
 

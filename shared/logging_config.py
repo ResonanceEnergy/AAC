@@ -23,7 +23,6 @@ import sys
 from pathlib import Path
 from typing import Optional
 
-
 # ── Defaults ─────────────────────────────────────────────────────────────────
 
 _DEFAULT_LEVEL = os.getenv("AAC_LOG_LEVEL", "INFO").upper()

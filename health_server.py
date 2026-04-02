@@ -7,14 +7,14 @@ Runs on port 8080 by default. No external dependencies (stdlib only).
 """
 
 import json
+import logging
 import os
 import sys
 import time
 from datetime import datetime, timezone
-from http.server import HTTPServer, BaseHTTPRequestHandler
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 from threading import Thread
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -124,8 +124,8 @@ class HealthHandler(BaseHTTPRequestHandler):
 
     def _respond_enterprise_health(self):
         """Aggregate health from all four pillars for NCC Supreme Monitor."""
-        import urllib.request
         import urllib.error
+        import urllib.request
 
         pillars = {
             "NCC":  {"url": "http://127.0.0.1:8765/health",  "status": "UNKNOWN"},

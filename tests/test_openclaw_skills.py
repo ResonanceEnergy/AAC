@@ -21,7 +21,6 @@ from integrations.openclaw_barren_wuffet_skills import (
     get_skills_by_category,
 )
 
-
 # ── Skill Definitions ─────────────────────────────────────────────────────
 
 

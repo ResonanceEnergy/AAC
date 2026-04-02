@@ -12,20 +12,21 @@ Integrates with Doctrine Packs 1 (Risk) & 8 (Metrics).
 """
 
 import asyncio
-import logging
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any
-from dataclasses import dataclass
 import json
+import logging
 import os
+from dataclasses import dataclass
+from datetime import datetime, timedelta
 from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 # Add project root to path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 import sys
+
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from shared.audit_logger import AuditLogger, AuditCategory, AuditSeverity
+from shared.audit_logger import AuditCategory, AuditLogger, AuditSeverity
 
 logger = logging.getLogger("FinancialAnalysisEngine")
 audit = AuditLogger()

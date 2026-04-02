@@ -32,12 +32,12 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import json
 import logging
 import os
 import sys
-import json
-import urllib.request
 import urllib.error
+import urllib.request
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -45,15 +45,26 @@ from typing import Any, Dict, List, Optional, Tuple
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
+from strategies.crypto_forecaster import (
+    CryptoForecaster,
+    CryptoRegimeState,
+    CryptoSnapshot,
+    snapshot_from_coingecko,
+)
 from strategies.regime_engine import (
-    RegimeEngine, MacroSnapshot, RegimeState, Regime, snapshot_from_fred
+    MacroSnapshot,
+    Regime,
+    RegimeEngine,
+    RegimeState,
+    snapshot_from_fred,
 )
 from strategies.stock_forecaster import (
-    StockForecaster, IndustryForecast, Horizon, TradeOpportunity,
-    Industry, print_industry_regime_matrix
-)
-from strategies.crypto_forecaster import (
-    CryptoForecaster, CryptoSnapshot, CryptoRegimeState, snapshot_from_coingecko
+    Horizon,
+    Industry,
+    IndustryForecast,
+    StockForecaster,
+    TradeOpportunity,
+    print_industry_regime_matrix,
 )
 
 logging.basicConfig(
@@ -271,10 +282,14 @@ def print_full_report(
     print(BANNER)
     print(f"\n  Generated: {datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}")
     print(f"  War: {'YES' if snap.war_active else 'no'}  |  Hormuz: {'BLOCKED' if snap.hormuz_blocked else 'open'}")
-    if snap.vix: print(f"  VIX: {snap.vix:.1f}", end="")
-    if snap.hy_spread_bps: print(f"  |  HY Spread: {snap.hy_spread_bps:.0f}bps", end="")
-    if snap.oil_price: print(f"  |  Oil: ${snap.oil_price:.1f}/bbl", end="")
-    if snap.gold_price: print(f"  |  Gold: ${snap.gold_price:.0f}", end="")
+    if snap.vix:
+        print(f"  VIX: {snap.vix:.1f}", end="")
+    if snap.hy_spread_bps:
+        print(f"  |  HY Spread: {snap.hy_spread_bps:.0f}bps", end="")
+    if snap.oil_price:
+        print(f"  |  Oil: ${snap.oil_price:.1f}/bbl", end="")
+    if snap.gold_price:
+        print(f"  |  Gold: ${snap.gold_price:.0f}", end="")
     print()
 
     # ── REGIME SECTION
@@ -460,10 +475,14 @@ def main() -> None:
         print(f" Finnhub({len(ticker_returns)})", end="", flush=True)
 
     # Apply manual return overrides
-    if args.hyg_ret is not None: ticker_returns["HYG"] = args.hyg_ret
-    if args.spy_ret is not None: ticker_returns["SPY"] = args.spy_ret
-    if args.kre_ret is not None: ticker_returns["KRE"] = args.kre_ret
-    if args.jets_ret is not None: ticker_returns["JETS"] = args.jets_ret
+    if args.hyg_ret is not None:
+        ticker_returns["HYG"] = args.hyg_ret
+    if args.spy_ret is not None:
+        ticker_returns["SPY"] = args.spy_ret
+    if args.kre_ret is not None:
+        ticker_returns["KRE"] = args.kre_ret
+    if args.jets_ret is not None:
+        ticker_returns["JETS"] = args.jets_ret
 
     # ── Fear & Greed
     fear_greed: Optional[float] = None

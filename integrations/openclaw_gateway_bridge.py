@@ -3,7 +3,7 @@ OpenClaw Gateway Bridge for AAC
 ================================
 
 Connects the AAC ecosystem to OpenClaw's WebSocket Gateway control plane.
-Enables AZ SUPREME and all AAC agents to be reachable via WhatsApp, Telegram, 
+Enables AZ SUPREME and all AAC agents to be reachable via WhatsApp, Telegram,
 Discord, Slack, Signal, iMessage, and WebChat through OpenClaw's multi-channel
 messaging infrastructure.
 
@@ -18,7 +18,7 @@ Key Features:
     - Skill registration and hot-reload for AAC capabilities
     - Cron job scheduling for automated market intelligence
     - Webhook ingestion for real-time market event triggers
-    - Multi-agent routing: route OpenClaw messages to AZ SUPREME, AX HELIX, 
+    - Multi-agent routing: route OpenClaw messages to AZ SUPREME, AX HELIX,
       or department-specific agents based on intent classification
     - Heartbeat monitoring for always-on operation
     - Memory persistence via OpenClaw's markdown memory system
@@ -27,16 +27,16 @@ Reference: https://docs.openclaw.ai/concepts/architecture
 """
 
 import asyncio
+import hashlib
 import json
 import logging
 import os
-import hashlib
 import random
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Callable, Tuple
 from dataclasses import dataclass, field
-from pathlib import Path
+from datetime import datetime, timedelta
 from enum import Enum
+from pathlib import Path
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -221,7 +221,7 @@ class AACIntentClassifier:
 class OpenClawGatewayBridge:
     """
     Main bridge connecting AAC to OpenClaw's WebSocket Gateway.
-    
+
     This is the primary integration point. It:
     1. Connects to the OpenClaw Gateway via WebSocket
     2. Receives messages from any connected channel (WhatsApp, Telegram, etc.)
@@ -523,7 +523,7 @@ class OpenClawGatewayBridge:
     def register_agent_handler(self, agent_id: str, handler: Callable):
         """
         Register an AAC agent handler for inbound message routing.
-        
+
         The handler must be an async callable with signature:
             async def handler(message: OpenClawMessage, session: OpenClawSession) -> str
         """

@@ -11,14 +11,14 @@ import asyncio
 import logging
 from typing import Dict, List, Optional
 
-from shared.data_sources import BaseDataSource, MarketTick
 from integrations.knightsbridge_fx_client import (
-    KnightsbridgeFXClient,
-    MAJOR_PAIRS,
     CAD_PAIRS,
-    UYU_PAIRS,
     CROSS_PAIRS,
+    MAJOR_PAIRS,
+    UYU_PAIRS,
+    KnightsbridgeFXClient,
 )
+from shared.data_sources import BaseDataSource, MarketTick
 
 logger = logging.getLogger(__name__)
 

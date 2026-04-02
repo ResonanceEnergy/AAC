@@ -8,10 +8,11 @@ Note: Updated from deprecated coinbasepro to coinbase exchange ID.
 
 import asyncio
 import logging
-from datetime import datetime
-from typing import Dict, List, Optional, Any
 import sys
+from datetime import datetime
 from pathlib import Path
+from typing import Any, Dict, List, Optional
+
 logger = logging.getLogger(__name__)
 
 # Add project root to path
@@ -19,19 +20,19 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from shared.config_loader import get_config
-from shared.utils import with_circuit_breaker, CircuitOpenError
+from shared.utils import CircuitOpenError, with_circuit_breaker
 
 from .base_connector import (
-    BaseExchangeConnector,
-    Ticker,
-    OrderBook,
-    Balance,
-    ExchangeOrder,
-    ExchangeError,
-    ConnectionError,
     AuthenticationError,
+    Balance,
+    BaseExchangeConnector,
+    ConnectionError,
+    ExchangeError,
+    ExchangeOrder,
     InsufficientFundsError,
+    OrderBook,
     OrderError,
+    Ticker,
 )
 
 # Try to import ccxt
@@ -46,7 +47,7 @@ except ImportError:
 class CoinbaseConnector(BaseExchangeConnector):
     """
     Coinbase exchange connector using ccxt library (Advanced Trade API).
-    
+
     Note: Requires API key and secret. Passphrase is optional (legacy compat).
     """
 
@@ -70,7 +71,7 @@ class CoinbaseConnector(BaseExchangeConnector):
             testnet=testnet,
             rate_limit=rate_limit,
         )
-        
+
         # Load from config if not provided
         if not api_key:
             config = get_config()
@@ -82,12 +83,12 @@ class CoinbaseConnector(BaseExchangeConnector):
         """Connect to Coinbase Pro"""
         import time
         start_time = time.time()
-        
+
         if not CCXT_AVAILABLE:
             self.logger.error("ccxt library not installed. Run: pip install ccxt")
             await self._audit_auth("failure", "ccxt library not installed")
             return False
-        
+
         try:
             options = {
                 'apiKey': self.api_key,
@@ -95,28 +96,28 @@ class CoinbaseConnector(BaseExchangeConnector):
                 'password': self.passphrase,  # Coinbase uses 'password' for passphrase
                 'enableRateLimit': True,
             }
-            
+
             if self.testnet:
                 options['sandbox'] = True
                 self.logger.info("Connecting to Coinbase SANDBOX")
             else:
                 self.logger.info("Connecting to Coinbase Advanced Trade")
-            
+
             self._client = ccxt_async.coinbase(options)
-            
+
             # Test connection
             await self._client.load_markets()
-            
+
             self._connected = True
             self.logger.info(f"Connected to Coinbase ({'sandbox' if self.testnet else 'production'})")
-            
+
             # Audit successful connection
             duration_ms = (time.time() - start_time) * 1000
             await self._audit_api_call("load_markets", "GET", "success", duration_ms)
             await self._audit_auth("success")
-            
+
             return True
-            
+
         except ccxt.AuthenticationError as e:
             self.logger.error(f"Coinbase authentication failed: {e}")
             await self._audit_auth("failure", str(e))
@@ -186,13 +187,13 @@ class CoinbaseConnector(BaseExchangeConnector):
         if not self._check_credentials():
             self.logger.warning("No API credentials - returning empty balances")
             return {}
-        
+
         await self._rate_limit_wait()
-        
+
         try:
             balance = await self._client.fetch_balance()
             result = {}
-            
+
             for asset, data in balance.get('total', {}).items():
                 if data > 0:
                     result[asset] = Balance(
@@ -200,7 +201,7 @@ class CoinbaseConnector(BaseExchangeConnector):
                         free=balance.get('free', {}).get(asset, 0),
                         locked=balance.get('used', {}).get(asset, 0),
                     )
-            
+
             return result
         except ccxt.AuthenticationError as e:
             raise AuthenticationError(str(e))
@@ -220,17 +221,17 @@ class CoinbaseConnector(BaseExchangeConnector):
         """Create a new order on Coinbase"""
         if not self._check_credentials():
             raise AuthenticationError("API credentials required for trading")
-        
+
         await self._rate_limit_wait()
-        
+
         import time
         start_time = time.time()
-        
+
         try:
             params = {}
             if client_order_id:
                 params['client_oid'] = client_order_id
-            
+
             order = await self._client.create_order(
                 symbol=symbol,
                 type=order_type,
@@ -239,9 +240,9 @@ class CoinbaseConnector(BaseExchangeConnector):
                 price=price,
                 params=params,
             )
-            
+
             result = self._parse_order(order)
-            
+
             # Audit successful order
             duration_ms = (time.time() - start_time) * 1000
             await self._audit_api_call("create_order", "POST", "success", duration_ms)
@@ -249,9 +250,9 @@ class CoinbaseConnector(BaseExchangeConnector):
                 symbol, side, order_type, quantity, price,
                 result.order_id, "created"
             )
-            
+
             return result
-            
+
         except ccxt.InsufficientFunds as e:
             await self._audit_order(symbol, side, order_type, quantity, price, None, "failed", str(e))
             raise InsufficientFundsError(str(e))
@@ -268,9 +269,9 @@ class CoinbaseConnector(BaseExchangeConnector):
         """Cancel an order"""
         if not self._check_credentials():
             raise AuthenticationError("API credentials required")
-        
+
         await self._rate_limit_wait()
-        
+
         try:
             await self._client.cancel_order(order_id, symbol)
             return True
@@ -285,9 +286,9 @@ class CoinbaseConnector(BaseExchangeConnector):
         """Get order details"""
         if not self._check_credentials():
             raise AuthenticationError("API credentials required")
-        
+
         await self._rate_limit_wait()
-        
+
         try:
             order = await self._client.fetch_order(order_id, symbol)
             return self._parse_order(order)
@@ -301,9 +302,9 @@ class CoinbaseConnector(BaseExchangeConnector):
         """Get all open orders"""
         if not self._check_credentials():
             return []
-        
+
         await self._rate_limit_wait()
-        
+
         try:
             orders = await self._client.fetch_open_orders(symbol)
             return [self._parse_order(o) for o in orders]
@@ -315,9 +316,9 @@ class CoinbaseConnector(BaseExchangeConnector):
         """Get actual trading fees from exchange"""
         if not self._check_credentials():
             return {'maker': 0.005, 'taker': 0.005}
-        
+
         await self._rate_limit_wait()
-        
+
         try:
             fees = await self._client.fetch_trading_fee(symbol)
             return {
@@ -339,17 +340,17 @@ class CoinbaseConnector(BaseExchangeConnector):
     ) -> ExchangeOrder:
         """
         Create a stop-loss order on Coinbase.
-        
+
         Coinbase Pro supports stop orders via the stop parameter.
         """
         if not self._check_credentials():
             raise AuthenticationError("API credentials required for stop-loss orders")
-        
+
         await self._rate_limit_wait()
-        
+
         import time
         start_time = time.time()
-        
+
         try:
             params = {
                 'stopPrice': stop_price,
@@ -357,12 +358,12 @@ class CoinbaseConnector(BaseExchangeConnector):
             }
             if client_order_id:
                 params['clientOrderId'] = client_order_id
-            
+
             if limit_price:
                 # Stop-limit order
                 order_type = 'limit'
                 params['timeInForce'] = 'GTC'
-                
+
                 order = await self._client.create_order(
                     symbol=symbol,
                     type=order_type,
@@ -374,7 +375,7 @@ class CoinbaseConnector(BaseExchangeConnector):
             else:
                 # Stop-market order
                 order_type = 'market'
-                
+
                 order = await self._client.create_order(
                     symbol=symbol,
                     type=order_type,
@@ -382,9 +383,9 @@ class CoinbaseConnector(BaseExchangeConnector):
                     amount=quantity,
                     params=params,
                 )
-            
+
             result = self._parse_order(order)
-            
+
             # Audit successful order
             duration_ms = (time.time() - start_time) * 1000
             await self._audit_api_call("create_stop_loss", "POST", "success", duration_ms)
@@ -392,10 +393,10 @@ class CoinbaseConnector(BaseExchangeConnector):
                 symbol, side, f"stop_{order_type}", quantity, limit_price,
                 result.order_id, "stop_loss_created"
             )
-            
+
             self.logger.info(f"Stop-loss order created: {result.order_id} @ {stop_price}")
             return result
-            
+
         except ccxt.InsufficientFunds as e:
             await self._audit_order(symbol, side, "stop_loss", quantity, limit_price, None, "failed", str(e))
             raise InsufficientFundsError(str(e))
@@ -417,9 +418,9 @@ class CoinbaseConnector(BaseExchangeConnector):
         """Get trade history from exchange"""
         if not self._check_credentials():
             return []
-        
+
         await self._rate_limit_wait()
-        
+
         try:
             since_ts = int(since.timestamp() * 1000) if since else None
             trades = await self._client.fetch_my_trades(
@@ -427,7 +428,7 @@ class CoinbaseConnector(BaseExchangeConnector):
                 since=since_ts,
                 limit=limit,
             )
-            
+
             return [
                 {
                     'trade_id': t['id'],
@@ -476,18 +477,18 @@ if __name__ == '__main__':
     async def test():
         """Test."""
         connector = CoinbaseConnector(testnet=True)
-        
+
         try:
             connected = await connector.connect()
             logger.info(f"Connected: {connected}")
-            
+
             if connected:
                 ticker = await connector.get_ticker('BTC/USD')
                 logger.info(f"BTC/USD Ticker: bid={ticker.bid}, ask={ticker.ask}")
-                
+
         except Exception as e:
             logger.info(f"Error: {e}")
         finally:
             await connector.disconnect()
-    
+
     asyncio.run(test())

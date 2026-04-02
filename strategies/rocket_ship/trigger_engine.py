@@ -33,12 +33,12 @@ from datetime import date, datetime, timedelta
 from typing import Dict, List, Optional, Tuple
 
 from strategies.rocket_ship.core import (
-    LIFEBOAT_INCEPTION,
     INDICATORS_REQUIRED_FOR_IGNITION,
+    LIFEBOAT_INCEPTION,
     ROCKET_MOON_START,
+    STARTING_CAPITAL_USD,
     SystemPhase,
     TriggerStatus,
-    STARTING_CAPITAL_USD,
 )
 from strategies.rocket_ship.indicators import IndicatorEngine
 from strategies.rocket_ship.lunar_cycles import NEW_MOON_DATES, RocketLunarEngine

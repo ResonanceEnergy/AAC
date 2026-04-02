@@ -122,19 +122,19 @@ class TestMatrixConfig:
 
 class TestSystemMandate:
     def test_standard_mandate(self):
-        from strategies.matrix_maximizer.core import SystemMandate, MandateLevel, MatrixConfig
+        from strategies.matrix_maximizer.core import MandateLevel, MatrixConfig, SystemMandate
         cfg = MatrixConfig()
         m = SystemMandate.from_probabilities(prob_10_down=0.25, oil_price=95, vix=20, config=cfg)
         assert m.level == MandateLevel.STANDARD
 
     def test_aggressive_mandate_high_prob(self):
-        from strategies.matrix_maximizer.core import SystemMandate, MandateLevel, MatrixConfig
+        from strategies.matrix_maximizer.core import MandateLevel, MatrixConfig, SystemMandate
         cfg = MatrixConfig()
         m = SystemMandate.from_probabilities(prob_10_down=0.45, oil_price=110, vix=35, config=cfg)
         assert m.level in (MandateLevel.AGGRESSIVE, MandateLevel.MAX_CONVICTION)
 
     def test_defensive_mandate_low_prob(self):
-        from strategies.matrix_maximizer.core import SystemMandate, MandateLevel, MatrixConfig
+        from strategies.matrix_maximizer.core import MandateLevel, MatrixConfig, SystemMandate
         cfg = MatrixConfig()
         m = SystemMandate.from_probabilities(prob_10_down=0.10, oil_price=75, vix=15, config=cfg)
         assert m.level == MandateLevel.DEFENSIVE
@@ -178,7 +178,7 @@ class TestConstants:
             assert DEFAULT_PRICES[asset] > 0
 
     def test_scenario_drifts_all_scenarios(self):
-        from strategies.matrix_maximizer.core import SCENARIO_DRIFTS, Scenario, Asset
+        from strategies.matrix_maximizer.core import SCENARIO_DRIFTS, Asset, Scenario
         for scenario in Scenario:
             assert len(SCENARIO_DRIFTS[scenario]) == len(Asset)
 
@@ -505,8 +505,13 @@ class TestRiskManager:
     @pytest.fixture
     def mock_forecast(self):
         from strategies.matrix_maximizer.core import (
-            Asset, AssetForecast, MatrixConfig, PortfolioForecast,
-            ScenarioWeights, SystemMandate, MandateLevel,
+            Asset,
+            AssetForecast,
+            MandateLevel,
+            MatrixConfig,
+            PortfolioForecast,
+            ScenarioWeights,
+            SystemMandate,
         )
         spy_fc = AssetForecast(
             asset=Asset.SPY, current_price=667, mean_price=645,
@@ -656,8 +661,8 @@ class TestPillarBridge:
         assert ctx.vix > 0
 
     def test_adjust_scenario_weights(self, bridge):
-        from strategies.matrix_maximizer.core import ScenarioWeights
         from strategies.matrix_maximizer.bridge import RegimeContext
+        from strategies.matrix_maximizer.core import ScenarioWeights
         w = ScenarioWeights()
         ctx = bridge.get_regime_context()
         adjusted = bridge.adjust_scenario_weights(w, ctx)
@@ -666,8 +671,8 @@ class TestPillarBridge:
 
     def test_adjust_weights_high_oil(self, bridge):
         """Oil > 105 should shift weights bearish."""
-        from strategies.matrix_maximizer.core import ScenarioWeights
         from strategies.matrix_maximizer.bridge import RegimeContext
+        from strategies.matrix_maximizer.core import ScenarioWeights
         w = ScenarioWeights()  # default 50/40/10
         ctx = RegimeContext(oil_price=110.0, vix=20.0)
         adjusted = bridge.adjust_scenario_weights(w, ctx)
@@ -677,8 +682,8 @@ class TestPillarBridge:
 
     def test_adjust_weights_low_oil(self, bridge):
         """Oil < 85 should shift weights bullish."""
-        from strategies.matrix_maximizer.core import ScenarioWeights
         from strategies.matrix_maximizer.bridge import RegimeContext
+        from strategies.matrix_maximizer.core import ScenarioWeights
         w = ScenarioWeights()  # default 50/40/10
         ctx = RegimeContext(oil_price=70.0, vix=20.0)
         adjusted = bridge.adjust_scenario_weights(w, ctx)
@@ -688,8 +693,8 @@ class TestPillarBridge:
 
     def test_adjust_weights_high_vix(self, bridge):
         """VIX > 30 should shift weights bearish."""
-        from strategies.matrix_maximizer.core import ScenarioWeights
         from strategies.matrix_maximizer.bridge import RegimeContext
+        from strategies.matrix_maximizer.core import ScenarioWeights
         w = ScenarioWeights()
         ctx = RegimeContext(oil_price=90.0, vix=35.0)
         adjusted = bridge.adjust_scenario_weights(w, ctx)
@@ -712,8 +717,8 @@ class TestPillarBridge:
 class TestMatrixMaximizer:
     @pytest.fixture
     def mm(self):
-        from strategies.matrix_maximizer.runner import MatrixMaximizer
         from strategies.matrix_maximizer.core import MatrixConfig
+        from strategies.matrix_maximizer.runner import MatrixMaximizer
         cfg = MatrixConfig(n_simulations=200, scan_tickers=["SPY", "QQQ"])  # Fewer for speed
         return MatrixMaximizer(cfg)
 
@@ -767,8 +772,14 @@ class TestPackageImports:
 
     def test_import_core(self):
         from strategies.matrix_maximizer import (
-            Asset, Scenario, ScenarioWeights, MatrixConfig,
-            AssetForecast, PortfolioForecast, MandateLevel, SystemMandate,
+            Asset,
+            AssetForecast,
+            MandateLevel,
+            MatrixConfig,
+            PortfolioForecast,
+            Scenario,
+            ScenarioWeights,
+            SystemMandate,
         )
         assert Asset.SPY.value == "SPY"
 
@@ -785,7 +796,7 @@ class TestPackageImports:
         assert OptionsScanner is not None
 
     def test_import_risk(self):
-        from strategies.matrix_maximizer import RiskManager, RiskSnapshot, CircuitBreaker
+        from strategies.matrix_maximizer import CircuitBreaker, RiskManager, RiskSnapshot
         assert CircuitBreaker.GREEN.value == "green"
 
     def test_import_bridge(self):

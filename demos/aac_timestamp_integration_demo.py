@@ -5,17 +5,18 @@ This example demonstrates how to integrate the AAC timestamp converter
 into arbitrage operations for proper timing and signal management.
 """
 
-from tools.aac_timestamp_converter import (
-    AACTimestampConverter,
-    AACArbitrageTiming,
-    epoch_to_human,
-    human_to_epoch,
-    current_epoch
-)
+import logging
+import time
 from dataclasses import dataclass
 from typing import Dict, List, Optional
-import time
-import logging
+
+from tools.aac_timestamp_converter import (
+    AACArbitrageTiming,
+    AACTimestampConverter,
+    current_epoch,
+    epoch_to_human,
+    human_to_epoch,
+)
 
 logger = logging.getLogger(__name__)
 

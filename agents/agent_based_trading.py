@@ -17,24 +17,24 @@ EXECUTION DATE: February 6, 2026
 """
 
 import asyncio
-import logging
 import json
+import logging
+import random
+import sys
 import uuid
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Set
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta
 from enum import Enum
 from pathlib import Path
-import sys
-import random
+from typing import Any, Dict, List, Optional, Set
 
 # Add project root to path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
+from integrations.market_data_aggregator import MarketDataAggregator
 from shared.audit_logger import AuditLogger
 from shared.communication import CommunicationFramework
-from integrations.market_data_aggregator import MarketDataAggregator
 from trading.trading_desk_security import TradingDeskSecurity
 
 

@@ -65,8 +65,8 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 os.chdir(PROJECT_ROOT)
 
-from shared.config_loader import get_config, get_project_path
 from shared.audit_logger import AuditLogger
+from shared.config_loader import get_config, get_project_path
 
 logger = logging.getLogger("AutonomousEngine")
 
@@ -301,10 +301,10 @@ class AutonomousEngine:
 
     Runs a continuous loop:
       sense → analyze → decide → act → reconcile → introspect → report
-    
+
     When stuck internally, searches for answers in logs/state.
     When stuck externally, can fetch web resources for solutions.
-    
+
     Only escalates to human for CRITICAL_ONLY situations:
       - Doctrine HALT requiring manual override
       - Live trading authorization
@@ -392,7 +392,7 @@ class AutonomousEngine:
 
     async def _init_ibkr(self) -> bool:
         try:
-            ibkr_port = int(os.environ.get("IBKR_PORT", "7497"))
+            ibkr_port = int(os.environ.get("IBKR_PORT", "7496"))
             if not _port_open("127.0.0.1", ibkr_port):
                 self.components["ibkr"].record_failure(f"TWS not running on port {ibkr_port}")
                 return False
@@ -457,7 +457,8 @@ class AutonomousEngine:
     async def _init_strategies(self) -> bool:
         try:
             from strategies.golden_ratio_finance import (
-                FibonacciCalculator, fractal_compression_index,
+                FibonacciCalculator,
+                fractal_compression_index,
                 phase_conjugation_score,
             )
             self._fib_calculator = FibonacciCalculator()
@@ -486,8 +487,9 @@ class AutonomousEngine:
     async def _init_intelligence_model(self) -> bool:
         """Initialize the 24/7 Market Intelligence Model (sentiment + event ingest)."""
         try:
+            from config.account_balances import Balances
             from strategies.market_intelligence_model import MarketIntelligenceModel
-            balance = float(os.getenv("ACCOUNT_BALANCE_USD", "920"))
+            balance = Balances.ibkr_total()
             doctrine_mult = 0.5 if self.doctrine.is_caution else 1.0
             self._intelligence_model = MarketIntelligenceModel(
                 available_capital=balance,
@@ -505,7 +507,9 @@ class AutonomousEngine:
         """Connect to OpenClaw Gateway for multi-channel messaging."""
         try:
             from integrations.openclaw_gateway_bridge import (
-                OpenClawGatewayBridge, OpenClawChannel, OpenClawCronJob,
+                OpenClawChannel,
+                OpenClawCronJob,
+                OpenClawGatewayBridge,
             )
             gateway_url = os.getenv("OPENCLAW_GATEWAY_URL", "ws://127.0.0.1:18789")
             self._openclaw = OpenClawGatewayBridge(gateway_url=gateway_url)
@@ -555,6 +559,25 @@ class AutonomousEngine:
         self.register_task("daily_brief", 86400.0, self._task_daily_brief)
         self.register_task("intelligence_cycle", 3600.0, self._task_intelligence_cycle)
         self.register_task("rocket_ship_brief", 86400.0, self._task_rocket_ship_brief)
+
+        # War Room auto-update & auto-evolve tasks
+        self._register_war_room_tasks()
+
+    def _register_war_room_tasks(self):
+        """Register War Room auto-update and auto-evolve tasks."""
+        try:
+            from strategies.war_room_auto import WarRoomAutoEngine
+            self._war_room_auto = WarRoomAutoEngine()
+            for task_def in self._war_room_auto.get_task_registry():
+                self.register_task(
+                    task_def["name"],
+                    task_def["interval"],
+                    task_def["callback"],
+                    critical=task_def.get("critical", False),
+                )
+            logger.info("War Room auto-engine registered: %d tasks", len(self._war_room_auto.get_task_registry()))
+        except Exception as e:
+            logger.warning("War Room auto-engine registration failed (non-critical): %s", e)
 
     def register_task(self, name: str, interval: float, callback, critical: bool = False):
         """Register task."""
@@ -1144,7 +1167,7 @@ class AutonomousEngine:
                 self.components["ndax"].record_failure(str(e))
 
         # Check gateway ports
-        ibkr_port = int(os.environ.get("IBKR_PORT", "7497"))
+        ibkr_port = int(os.environ.get("IBKR_PORT", "7496"))
         if _port_open("127.0.0.1", ibkr_port):
             if self.components["ibkr"].health == ComponentHealth.DOWN:
                 # Try to reconnect
@@ -1328,7 +1351,8 @@ class AutonomousEngine:
         if not self._intelligence_model:
             return
         try:
-            balance = float(os.getenv("ACCOUNT_BALANCE_USD", str(self._intelligence_model._capital)))
+            from config.account_balances import Balances
+            balance = Balances.ibkr_total()
             self._intelligence_model.update_capital(balance)
             doctrine_mult = 0.5 if self.doctrine.is_caution else 1.0
             self._intelligence_model.update_doctrine_mult(doctrine_mult)

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Quick validation test for the Autonomous Engine."""
-import sys
-import os
 import logging
+import os
+import sys
 
 logger = logging.getLogger(__name__)
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
@@ -15,11 +15,20 @@ logger.info("=" * 60)
 # Test 1: Imports
 logger.info("\n[1] Testing imports...")
 from core.autonomous_engine import (
-    AutonomousEngine, DoctrineState, DoctrineStatus,
-    ComponentHealth, ComponentStatus, SignalAction, TradingSignal,
-    MarketDataSnapshot, GapSeverity, SystemGap, ScheduledTask,
     AggregatedSignal,
+    AutonomousEngine,
+    ComponentHealth,
+    ComponentStatus,
+    DoctrineState,
+    DoctrineStatus,
+    GapSeverity,
+    MarketDataSnapshot,
+    ScheduledTask,
+    SignalAction,
+    SystemGap,
+    TradingSignal,
 )
+
 logger.info("    All classes imported: OK")
 
 # Test 2: Engine instantiation

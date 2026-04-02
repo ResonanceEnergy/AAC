@@ -9,16 +9,16 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
-from .fills import apply_costs
-from ..strategy.sizing import size_by_risk
 from ..strategy.risk_controls import (
     RiskState,
     can_open_position,
     make_initial_state,
 )
+from ..strategy.sizing import size_by_risk
+from .fills import apply_costs
 
 
 @dataclass

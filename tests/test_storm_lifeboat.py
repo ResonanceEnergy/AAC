@@ -16,26 +16,25 @@ import numpy as np
 import pytest
 
 # ─── Core ───────────────────────────────────────────────────────────────
-
 from strategies.storm_lifeboat.core import (
-    Asset,
     ASSET_ORDER,
-    build_correlation_matrix,
     CRISIS_DRIFTS,
     DEFAULT_PRICES,
-    MandateLevel,
     MC_DEFAULT_PATHS,
+    REGIME_VOLATILITIES,
+    SCENARIO_MAP,
+    SCENARIOS,
+    STARTING_CAPITAL_CAD,
+    Asset,
+    MandateLevel,
     MoonPhase,
     PortfolioForecast,
-    REGIME_VOLATILITIES,
-    SCENARIOS,
-    SCENARIO_MAP,
     ScenarioDefinition,
     ScenarioState,
     ScenarioStatus,
-    STARTING_CAPITAL_CAD,
     StormConfig,
     VolRegime,
+    build_correlation_matrix,
 )
 
 
@@ -259,7 +258,7 @@ class TestScenarioEngine:
 
 # ─── Lunar Phi ──────────────────────────────────────────────────────────
 
-from strategies.storm_lifeboat.lunar_phi import LunarPhiEngine, MOON_NAMES, PHI
+from strategies.storm_lifeboat.lunar_phi import MOON_NAMES, PHI, LunarPhiEngine
 
 
 class TestLunarPhi:

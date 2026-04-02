@@ -6,33 +6,37 @@ Advanced analysis, prediction, and interpretation tools for arbitrage strategies
 Provides comprehensive insights and mastery capabilities.
 """
 
-import asyncio
 import argparse
-import logging
+import asyncio
 import json
-import pandas as pd
-import numpy as np
-from datetime import datetime, timedelta
-from pathlib import Path
-from typing import Dict, List, Any, Optional, Tuple
-import sys
+import logging
 import random
+import sys
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta
 from enum import Enum
-import matplotlib.pyplot as plt
-import seaborn as sns
-from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestRegressor, GradientBoostingClassifier
-from sklearn.metrics import accuracy_score, precision_score, recall_score
-from sklearn.preprocessing import StandardScaler
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
 import joblib
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import seaborn as sns
+from sklearn.ensemble import GradientBoostingClassifier, RandomForestRegressor
+from sklearn.metrics import accuracy_score, precision_score, recall_score
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
 
 logger = logging.getLogger(__name__)
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from strategies.strategy_testing_lab_fixed import strategy_testing_lab, initialize_strategy_testing_lab
+from strategies.strategy_testing_lab_fixed import (
+    initialize_strategy_testing_lab,
+    strategy_testing_lab,
+)
 
 
 class AnalysisType(Enum):

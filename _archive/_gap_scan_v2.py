@@ -1,8 +1,8 @@
 """Gap scanner v2 - finds real implementation gaps across the codebase."""
+import io
 import os
 import re
 import sys
-import io
 
 if sys.stdout.encoding.lower() != "utf-8":
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")

@@ -15,14 +15,20 @@ Strategy Logic:
 
 import asyncio
 import logging
-import numpy as np
-from typing import List, Dict, Any, Optional
 from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
+
+import numpy as np
 import pandas as pd
 
-from shared.strategy_framework import BaseArbitrageStrategy, TradingSignal, SignalType, StrategyConfig
-from shared.communication import CommunicationFramework
 from shared.audit_logger import AuditLogger
+from shared.communication import CommunicationFramework
+from shared.strategy_framework import (
+    BaseArbitrageStrategy,
+    SignalType,
+    StrategyConfig,
+    TradingSignal,
+)
 
 logger = logging.getLogger(__name__)
 

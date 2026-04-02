@@ -369,8 +369,8 @@ class UnifiedComponentIntegrator:
 
         # Step 2: Initialize StrategyExecutionEngine
         try:
-            from shared.communication import CommunicationFramework
             from shared.audit_logger import AuditLogger
+            from shared.communication import CommunicationFramework
             from shared.strategy_execution_engine import StrategyExecutionEngine
 
             comms = CommunicationFramework()
@@ -580,7 +580,7 @@ class UnifiedComponentIntegrator:
         logger.info("\n[Phase G] SYSTEM REGISTRY — registering all components")
 
         try:
-            from monitoring.aac_system_registry import SystemRegistry, ComponentStatus, Health
+            from monitoring.aac_system_registry import ComponentStatus, Health, SystemRegistry
 
             registry = SystemRegistry()
             now = datetime.utcnow().isoformat()
@@ -599,7 +599,7 @@ class UnifiedComponentIntegrator:
                 ("Worldwide Arbitrage", "strategies.worldwide_arbitrage_strategy", "WorldwideArbitrageStrategy"),
                 ("War Room Engine", "strategies.war_room_engine", "WarRoomEngine"),
                 ("Market Forecaster", "strategies.market_forecaster_runner", "MarketForecasterRunner"),
-                ("PlanktonXD Harvester", "strategies.plankton_xd_prediction_harvester", "PlanktonXDHarvester"),
+                ("PlanktonXD Harvester", "strategies.planktonxd_prediction_harvester", "PlanktonXDPredictionHarvester"),
                 # ── 7 ACTIVE STRATEGIES (War Room Doctrine) ──────────
                 ("Storm Lifeboat Capital", "strategies.storm_lifeboat.capital_engine", "LifeboatCapitalEngine"),
                 ("Matrix Maximizer", "strategies.matrix_maximizer", "MatrixMaximizer"),

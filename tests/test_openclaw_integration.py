@@ -202,6 +202,7 @@ def test_webhook_auth_rejects_unsigned():
 def test_error_recording():
     """record_error writes to error-log.jsonl."""
     import tempfile
+
     from integrations.openclaw_gateway_bridge import OpenClawGatewayBridge
     with tempfile.TemporaryDirectory() as tmpdir:
         bridge = OpenClawGatewayBridge(workspace_dir=tmpdir)
@@ -281,6 +282,7 @@ def test_skill_md_generation():
 def test_write_all_skills_to_tmpdir():
     """write_all_skills writes SKILL.md files to a temp directory."""
     import tempfile
+
     from integrations.openclaw_barren_wuffet_skills import write_all_skills
     with tempfile.TemporaryDirectory() as tmpdir:
         written = write_all_skills(tmpdir)
@@ -296,6 +298,7 @@ def test_write_all_skills_to_tmpdir():
 def test_deprecated_openclaw_skills_warns():
     """Importing openclaw_skills emits a DeprecationWarning."""
     import importlib
+
     import integrations.openclaw_skills as mod
     # Force re-import to trigger warning
     with warnings.catch_warnings(record=True) as w:

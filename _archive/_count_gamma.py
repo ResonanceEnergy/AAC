@@ -1,6 +1,8 @@
 """Count total active Gamma markets with pagination."""
 import asyncio
+
 import aiohttp
+
 
 async def count():
     total = 0

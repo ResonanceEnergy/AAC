@@ -32,11 +32,11 @@ logger = logging.getLogger(__name__)
 # ── War Room imports ────────────────────────────────────────────────────
 try:
     from strategies.war_room_engine import (
+        CURRENT_POSITIONS,
+        ArmAllocation,
         ArmType,
         Position,
-        ArmAllocation,
         get_arm_allocations,
-        CURRENT_POSITIONS,
     )
     WAR_ROOM_AVAILABLE = True
 except ImportError:
@@ -51,8 +51,8 @@ except ImportError:
 
 # ── IBKR connector ─────────────────────────────────────────────────────
 try:
-    from TradingExecution.exchange_connectors.ibkr_connector import IBKRConnector
     from TradingExecution.exchange_connectors.base_connector import ExchangeOrder
+    from TradingExecution.exchange_connectors.ibkr_connector import IBKRConnector
     IBKR_AVAILABLE = True
 except ImportError:
     IBKR_AVAILABLE = False

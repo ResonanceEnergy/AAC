@@ -1,13 +1,15 @@
 """Async Coinbase Exchange REST API client for authenticated trading operations."""
 
+import base64
+import hashlib
+import hmac
+import json
 import os
 import time
-import hmac
-import hashlib
-import base64
-import json
+from typing import Any, Dict
+
 import aiohttp
-from typing import Dict, Any
+
 
 class CoinbaseAPI:
     """Async Coinbase Exchange API Client (REST)"""

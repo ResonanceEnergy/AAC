@@ -6,20 +6,20 @@ Comprehensive testing for the live trading safety system.
 """
 
 import asyncio
+import json
 import time
 from pathlib import Path
-from typing import Dict, Any
-import json
+from typing import Any, Dict
 
+from shared.audit_logger import get_audit_logger
 from shared.live_trading_safeguards import (
-    live_trading_safeguards,
-    SafetyAction,
     AlertLevel,
     RiskLevel,
+    SafetyAction,
+    SafetyAlert,
     SafetyRule,
-    SafetyAlert
+    live_trading_safeguards,
 )
-from shared.audit_logger import get_audit_logger
 
 
 async def test_safety_rules():

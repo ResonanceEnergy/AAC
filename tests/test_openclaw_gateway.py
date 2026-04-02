@@ -5,8 +5,9 @@ Verifies the AAC ↔ OpenClaw WebSocket bridge initializes correctly,
 handles sessions, classifies intents, and routes messages.
 """
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 
 class TestOpenClawGatewayBridge:
@@ -15,11 +16,11 @@ class TestOpenClawGatewayBridge:
     def test_import_and_models(self):
         """OpenClaw models (channels, intents, messages) are importable."""
         from integrations.openclaw_gateway_bridge import (
-            OpenClawChannel,
             MessageIntent,
+            OpenClawChannel,
+            OpenClawCronJob,
             OpenClawMessage,
             OpenClawSession,
-            OpenClawCronJob,
             OpenClawSkill,
         )
         assert OpenClawChannel.WHATSAPP.value == "whatsapp"
@@ -52,9 +53,9 @@ class TestOpenClawGatewayBridge:
     def test_message_defaults(self):
         """OpenClawMessage has sane defaults."""
         from integrations.openclaw_gateway_bridge import (
-            OpenClawMessage,
-            OpenClawChannel,
             MessageIntent,
+            OpenClawChannel,
+            OpenClawMessage,
         )
 
         msg = OpenClawMessage(
@@ -73,7 +74,8 @@ class TestOpenClawGatewayBridge:
     def test_session_tracks_metadata(self):
         """Session dataclass stores channel and agent."""
         from integrations.openclaw_gateway_bridge import (
-            OpenClawSession, OpenClawChannel,
+            OpenClawChannel,
+            OpenClawSession,
         )
 
         sess = OpenClawSession(

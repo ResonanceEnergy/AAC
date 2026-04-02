@@ -12,12 +12,12 @@ From BARREN WUFFET Insights 571-600:
     4. Portfolio is diversified across sectors and expiries
 """
 
+import logging
+import math
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta
 from enum import Enum
 from typing import Dict, List, Optional, Tuple
-from datetime import datetime, timedelta
-import math
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -180,14 +180,14 @@ class IncomePortfolio:
 class WheelEngine:
     """
     Full Wheel strategy automation engine.
-    
+
     The Wheel:
       1. Sell cash-secured put (CSP) on a stock you'd buy
       2. If assigned → you now own 100 shares at strike - premium
       3. Sell covered calls on those shares
       4. If called away → you sold at strike + premium
       5. Repeat
-    
+
     Edge comes from:
       - Selling elevated IV systematically
       - Lowering cost basis with each cycle
@@ -203,7 +203,7 @@ class WheelEngine:
     ) -> List[Dict]:
         """
         Screen stocks for CSP selling.
-        
+
         Criteria:
           - Quality company (would own long-term)
           - Liquid options (tight bid-ask)
@@ -278,7 +278,7 @@ class WheelEngine:
     ) -> Tuple[bool, ManagementAction, str]:
         """
         Determine if a Wheel position should be rolled.
-        
+
         Rules:
           - Close at 50% profit (don't get greedy)
           - Roll at 21 DTE if not profitable
@@ -318,7 +318,7 @@ class WheelEngine:
 class CreditSpreadEngine:
     """
     Systematic credit spread selling engine.
-    
+
     From BARREN WUFFET Insights:
       - Sell 1/3 of spread width as credit (minimum)
       - 15-25 delta short strike for iron condors
@@ -337,7 +337,7 @@ class CreditSpreadEngine:
     ) -> Optional[Dict]:
         """
         Select optimal credit spread from option chain.
-        
+
         Args:
             chain_data: List of option chain entries
             outlook: 'bullish' (bull put spread) or 'bearish' (bear call spread)
@@ -402,7 +402,7 @@ class CreditSpreadEngine:
     ) -> Tuple[ManagementAction, str]:
         """
         Manage an open credit spread.
-        
+
         Rules (from insights 571-585):
           1. Close at 50% max profit
           2. Close at 21 DTE
@@ -444,7 +444,7 @@ class CreditSpreadEngine:
 class IronCondorEngine:
     """
     Systematic Iron Condor management.
-    
+
     The iron condor is the bread-and-butter neutral income strategy.
     From BARREN WUFFET insights:
       - Enter at 30-45 DTE, IVR > 50%
@@ -487,7 +487,7 @@ class IronCondorEngine:
     ) -> Dict:
         """
         Iron Condor adjustment logic.
-        
+
         The "untested side roll" technique:
           - When one side is threatened, the other side has mostly decayed
           - Roll the untested side closer to collect additional credit
@@ -566,7 +566,7 @@ class IronCondorEngine:
 class CoveredCallScreener:
     """
     Screen for optimal covered call candidates.
-    
+
     From BARREN WUFFET insights:
       - Best CC stocks: moderate volatility, uptrend or range
       - Sell 0.25-0.35 delta for income; 0.15-0.20 for growth

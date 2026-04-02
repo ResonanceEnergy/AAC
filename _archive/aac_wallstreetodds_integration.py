@@ -21,16 +21,17 @@ API Features:
 WallStreetOdds API: https://wallstreetodds.com/api-documentation/
 """
 
-import requests
-import pandas as pd
-import numpy as np
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Union
-from dataclasses import dataclass
 import json
-import os
-from dotenv import load_dotenv
 import logging
+import os
+from dataclasses import dataclass
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional, Union
+
+import numpy as np
+import pandas as pd
+import requests
+from dotenv import load_dotenv
 
 logger = logging.getLogger(__name__)
 

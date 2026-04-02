@@ -1,14 +1,24 @@
 #!/usr/bin/env python3
 """Check Moomoo account status, balance, positions, and options capability."""
-import sys, io, os
+import io
+import os
+import sys
+
 if hasattr(sys.stdout, "buffer") and sys.stdout.encoding.lower() != "utf-8":
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
 sys.path.insert(0, r"c:\dev\AAC_fresh")
 os.chdir(r"c:\dev\AAC_fresh")
 
-from moomoo import (OpenQuoteContext, OpenSecTradeContext,
-                     TrdEnv, SecurityFirm, TrdMarket, Currency, RET_OK)
+from moomoo import (
+    RET_OK,
+    Currency,
+    OpenQuoteContext,
+    OpenSecTradeContext,
+    SecurityFirm,
+    TrdEnv,
+    TrdMarket,
+)
 
 HOST = "127.0.0.1"
 PORT = 11111

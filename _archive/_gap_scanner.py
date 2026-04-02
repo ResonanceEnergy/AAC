@@ -1,10 +1,10 @@
 """Comprehensive gap scanner for AAC codebase."""
+import ast
+import logging
 import os
 import re
-import ast
 import sys
 from collections import Counter
-import logging
 
 logger = logging.getLogger(__name__)
 

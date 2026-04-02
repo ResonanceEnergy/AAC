@@ -14,13 +14,13 @@ EXECUTION DATE: February 6, 2026
 """
 
 import asyncio
-import sys
-import logging
-from pathlib import Path
-from typing import Dict, List, Any, Optional
-from datetime import datetime, timedelta
 import json
+import logging
+import sys
 import time
+from datetime import datetime, timedelta
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 # Add project root to path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -147,8 +147,9 @@ class PaperTradingValidationEngine:
 
         try:
             from market_data_aggregator import MarketDataAggregator
-            from shared.communication import CommunicationFramework
+
             from shared.audit_logger import AuditLogger
+            from shared.communication import CommunicationFramework
 
             comm = CommunicationFramework()
             audit = AuditLogger()
@@ -179,8 +180,8 @@ class PaperTradingValidationEngine:
         logger.info("Setting up paper trading environment...")
 
         try:
-            from PaperTradingDivision.paper_account_manager import PaperAccountManager
             from PaperTradingDivision.order_simulator import OrderSimulator
+            from PaperTradingDivision.paper_account_manager import PaperAccountManager
 
             # Initialize account manager
             self.account_manager = PaperAccountManager()
@@ -211,8 +212,9 @@ class PaperTradingValidationEngine:
 
         try:
             from strategy_integration_system import StrategyIntegrationSystem
-            from shared.communication import CommunicationFramework
+
             from shared.audit_logger import AuditLogger
+            from shared.communication import CommunicationFramework
 
             comm = CommunicationFramework()
             audit = AuditLogger()

@@ -6,12 +6,13 @@ Deep Dive Analysis: What's Missing?
 Comprehensive analysis of the ACC system to identify gaps and create an improvement plan.
 """
 
-import os
-import yaml
-import json
 import asyncio
-import sys
+import json
 import logging
+import os
+import sys
+
+import yaml
 
 logger = logging.getLogger(__name__)
 sys.path.insert(0, '.')
@@ -87,9 +88,9 @@ def analyze_missing_components():
     bridge_components_exist = True
     try:
         # Test imports
-        from shared.crypto_bigbrain_bridge import CryptoBigBrainBridge
-        from CryptoIntelligence.crypto_intelligence_engine import CryptoIntelligenceEngine
         from BigBrainIntelligence.research_agent import ResearchAgent
+        from CryptoIntelligence.crypto_intelligence_engine import CryptoIntelligenceEngine
+        from shared.crypto_bigbrain_bridge import CryptoBigBrainBridge
         logger.info(f'   Bridge components: ✅ Available')
 
         # Note: Full async testing would require making this function async

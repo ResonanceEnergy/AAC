@@ -25,7 +25,7 @@ import re
 import sys
 import time
 import xml.etree.ElementTree as ET
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -270,12 +270,19 @@ YT_NS = {
 }
 
 
-def _fetch_youtube_feed(channel_id: str, timeout: int = 15) -> str:
-    """Fetch raw XML from YouTube RSS feed."""
+def _fetch_youtube_feed(channel_id: str, timeout: int = 20) -> str:
+    """Fetch raw XML from YouTube RSS feed with retry."""
     url = f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
     req = Request(url, headers={"User-Agent": "Mozilla/5.0 (AAC Authority Monitor)"})
-    with urlopen(req, timeout=timeout) as resp:
-        return resp.read().decode("utf-8")
+    for attempt in range(2):
+        try:
+            with urlopen(req, timeout=timeout) as resp:
+                return resp.read().decode("utf-8")
+        except URLError as e:
+            if attempt == 0:
+                time.sleep(2)
+                continue
+            raise
 
 
 def _parse_youtube_feed(xml_text: str, authority: Authority,
@@ -374,10 +381,11 @@ def scrape_youtube_authorities(since_days: int = 90) -> List[AuthoritySignal]:
 
 def _fetch_newsapi(query: str, api_key: str, days_back: int = 90,
                    page_size: int = 20) -> List[dict]:
-    """Fetch articles from NewsAPI 'everything' endpoint."""
+    """Fetch articles from NewsAPI 'everything' endpoint with retry."""
     from_date = (datetime.now() - timedelta(days=days_back)).strftime("%Y-%m-%d")
 
     import urllib.parse
+    from http.client import HTTPException
     params = urllib.parse.urlencode({
         "q": query,
         "from": from_date,
@@ -388,13 +396,31 @@ def _fetch_newsapi(query: str, api_key: str, days_back: int = 90,
     url = f"https://newsapi.org/v2/everything?{params}"
     req = Request(url, headers={"User-Agent": "AAC-AuthorityMonitor/1.0"})
 
-    try:
-        with urlopen(req, timeout=15) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-            return data.get("articles", [])
-    except (URLError, json.JSONDecodeError) as e:
-        logger.warning("  NewsAPI query failed [%s]: %s", query[:40], e)
-        return []
+    for attempt in range(2):
+        try:
+            with urlopen(req, timeout=20) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+                if data.get("status") == "error":
+                    code = data.get("code", "")
+                    msg = data.get("message", "")
+                    logger.warning("  NewsAPI error [%s]: %s -- %s", query[:40], code, msg)
+                    return []
+                return data.get("articles", [])
+        except URLError as e:
+            # HTTP 426 = free tier expired, 429 = rate limit -- don't retry
+            err_str = str(e)
+            if "426" in err_str or "429" in err_str:
+                logger.warning("  NewsAPI [%s]: %s (API plan limit)", query[:40], e)
+                return []
+            if attempt == 0:
+                time.sleep(2)
+                continue
+            logger.warning("  NewsAPI query failed [%s]: %s", query[:40], e)
+            return []
+        except (json.JSONDecodeError, HTTPException) as e:
+            logger.warning("  NewsAPI query failed [%s]: %s", query[:40], e)
+            return []
+    return []
 
 
 def scan_newsapi_authorities(days_back: int = 90) -> List[AuthoritySignal]:
@@ -407,10 +433,18 @@ def scan_newsapi_authorities(days_back: int = 90) -> List[AuthoritySignal]:
 
     all_signals = []
     seen_urls = set()
+    api_failed = False  # Track if API is down/expired to stop early
 
     for auth_id, auth in AUTHORITIES.items():
+        if api_failed:
+            break
         for query in auth.newsapi_queries:
             articles = _fetch_newsapi(query, api_key, days_back)
+            if not articles and not api_failed:
+                # Check if API returned nothing for first query — might be plan limit
+                api_failed = True
+            elif articles:
+                api_failed = False  # Reset if we got results
             # Rate-limit: NewsAPI free tier = 100 req/day
             time.sleep(1.0)
 
@@ -575,8 +609,8 @@ def build_consensus(signals: List[AuthoritySignal],
 
     # Agreement: what % of authorities lean the same way
     leans = [p.consensus for p in profiles.values() if p.consensus not in ("NO_DATA", "UNKNOWN")]
-    bull_count = sum(1 for l in leans if "BULLISH" in l)
-    bear_count = sum(1 for l in leans if l == "BEARISH")
+    bull_count = sum(1 for lean in leans if "BULLISH" in lean)
+    bear_count = sum(1 for lean in leans if lean == "BEARISH")
     total_with_data = len(leans)
     agreement = max(bull_count, bear_count) / max(total_with_data, 1)
 

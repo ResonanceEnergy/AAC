@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """Debug PlanktonXD signal generation."""
 import asyncio
+
 from shared.audit_logger import AuditLogger
 from shared.communication_framework import CommunicationFramework
 from strategies.planktonxd_prediction_harvester import create_planktonxd_strategy
+
 
 async def debug():
     comm = CommunicationFramework()

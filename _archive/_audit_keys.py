@@ -6,6 +6,7 @@ from pathlib import Path
 
 sys.path.insert(0, ".")
 from shared.config_loader import load_env_file
+
 load_env_file()
 
 apis = [

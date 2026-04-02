@@ -10,9 +10,9 @@ Prerequisites:
     2. .env has MOOMOO_API_KEY and MOOMOO_API_SECRET (if required)
 """
 import asyncio
-import sys
 import os
 import socket
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
@@ -20,6 +20,7 @@ sys.path.insert(0, str(ROOT))
 os.chdir(ROOT)
 
 from dotenv import load_dotenv
+
 load_dotenv()
 
 

@@ -16,10 +16,10 @@ From BARREN WUFFET Insights 456-510:
   - Iron condors inside the expected move have ~70% win rate but negative skew
 """
 
+import logging
+import math
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
-import math
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -86,12 +86,12 @@ class CrushTradeSetup:
 class ExpectedMoveCalculator:
     """
     Calculate the market's expected move from option prices.
-    
+
     Methods:
       1. ATM Straddle: Expected Move ≈ Straddle Price × 0.85
       2. 1-SD Move: Expected Move ≈ Price × IV × sqrt(DTE/365)
       3. Two-Strike: Average of ±1 strike straddle approximation
-    
+
     The market overprice expected moves ~70% of the time.
     This is the core edge for selling premium around events.
     """
@@ -174,25 +174,25 @@ class ExpectedMoveCalculator:
 class IVCrushEngine:
     """
     Generate and manage IV crush trading strategies.
-    
+
     Core strategies (ranked by risk/reward):
-    
+
     1. Iron Condor inside expected move (DEFINED, ~70% POP)
        - Sell strikes at ±1 expected move
        - Buy wings $5-10 beyond
        - Credit = max profit
        - Max loss = width - credit
-    
+
     2. Short Straddle/Strangle (UNDEFINED, higher premium)
        - Maximum theta capture
        - Requires portfolio margin
        - Best in high IV environments
-    
+
     3. Calendar Spread (DEFINED, volatility play)
        - Sell event-week expiry, buy post-event expiry
        - Profits from IV crush on front leg
        - Risk: if stock moves too far, both legs lose
-    
+
     4. Butterfly at expected pin (DEFINED, high R:R)
        - Bet on stock staying near current price
        - Cheap entry, 10:1+ potential
@@ -345,7 +345,7 @@ class IVCrushEngine:
 class EarningsSeasonScanner:
     """
     Scan for optimal earnings plays across multiple stocks.
-    
+
     From BARREN WUFFET insights:
       - Best earnings sells: IVR > 60%, move_vs_expected < 0.9
       - Avoid: biotech binary events, first-time reporters, low liquidity

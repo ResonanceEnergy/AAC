@@ -6,34 +6,35 @@ Advanced parameter optimization, grid search, and strategy R&D capabilities.
 """
 
 import asyncio
-import logging
+import itertools
 import json
-import numpy as np
-import pandas as pd
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Tuple, Callable
+import logging
+import random
+import sys
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta
 from enum import Enum
 from pathlib import Path
-import sys
-import random
-import itertools
+from typing import Any, Callable, Dict, List, Optional, Tuple
+
+import joblib
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import seaborn as sns
+from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.model_selection import ParameterGrid
 
 # Import trading enums
 from shared.paper_trading import OrderSide, OrderType
-from concurrent.futures import ThreadPoolExecutor
-import matplotlib.pyplot as plt
-import seaborn as sns
-from sklearn.model_selection import ParameterGrid
-from sklearn.metrics import mean_squared_error, r2_score
-import joblib
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from shared.config_loader import get_config, get_project_path
 from shared.audit_logger import get_audit_logger
-from shared.paper_trading import paper_trading_engine, initialize_paper_trading
+from shared.config_loader import get_config, get_project_path
+from shared.paper_trading import initialize_paper_trading, paper_trading_engine
 
 logger = logging.getLogger(__name__)
 

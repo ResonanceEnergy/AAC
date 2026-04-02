@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Debug signature issue."""
 import os
+
 from dotenv import load_dotenv
+
 load_dotenv()
 
 pk = os.getenv('POLYMARKET_PRIVATE_KEY')
@@ -15,6 +17,7 @@ print(f"Sig type: {sig_type}")
 print(f"Chain ID: {chain_id}")
 
 from eth_account import Account
+
 acct = Account.from_key(pk)
 print(f"Derived EOA: {acct.address}")
 if funder:

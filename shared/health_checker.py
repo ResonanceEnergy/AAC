@@ -7,11 +7,12 @@ aggregating status, and reporting system-wide health.
 
 import logging
 import time
-import psutil
-from datetime import datetime
-from typing import Dict, List, Any, Optional, Callable
 from dataclasses import dataclass, field
+from datetime import datetime
 from enum import Enum
+from typing import Any, Callable, Dict, List, Optional
+
+import psutil
 
 logger = logging.getLogger(__name__)
 

@@ -18,7 +18,6 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-
 # ─── Config ──────────────────────────────────────────────────────────────
 
 def test_config_has_fx_fields():
@@ -225,8 +224,8 @@ def test_forex_data_source_init():
 @pytest.mark.asyncio
 async def test_forex_data_source_get_fx_tick():
     """ForexDataSource.get_fx_tick returns a MarketTick."""
-    from shared.forex_data_source import ForexDataSource
     from shared.data_sources import MarketTick
+    from shared.forex_data_source import ForexDataSource
     ds = ForexDataSource()
     tick = await ds.get_fx_tick("USD", "CAD")
     assert tick is not None
@@ -250,8 +249,8 @@ async def test_forex_data_source_get_all_rates():
 
 def test_forex_strategy_init():
     """ForexArbitrageStrategy initializes correctly."""
-    from strategies.forex_arb_strategy import ForexArbitrageStrategy
     from shared.strategy_framework import StrategyConfig
+    from strategies.forex_arb_strategy import ForexArbitrageStrategy
 
     config = StrategyConfig(
         strategy_id="53",
@@ -276,8 +275,8 @@ def test_forex_strategy_init():
 @pytest.mark.asyncio
 async def test_forex_strategy_generate_signals_empty():
     """No signals when no market data loaded."""
-    from strategies.forex_arb_strategy import ForexArbitrageStrategy
     from shared.strategy_framework import StrategyConfig
+    from strategies.forex_arb_strategy import ForexArbitrageStrategy
 
     config = StrategyConfig(
         strategy_id="53",
@@ -301,8 +300,8 @@ async def test_forex_strategy_generate_signals_empty():
 @pytest.mark.asyncio
 async def test_forex_strategy_generate_signals_with_arb():
     """Generates signals when triangular arb opportunities exist."""
-    from strategies.forex_arb_strategy import ForexArbitrageStrategy
     from shared.strategy_framework import StrategyConfig
+    from strategies.forex_arb_strategy import ForexArbitrageStrategy
 
     config = StrategyConfig(
         strategy_id="53",
@@ -340,8 +339,8 @@ async def test_forex_strategy_generate_signals_with_arb():
 @pytest.mark.asyncio
 async def test_forex_strategy_cad_weight_boost():
     """CAD corridor arbs get boosted priority."""
-    from strategies.forex_arb_strategy import ForexArbitrageStrategy
     from shared.strategy_framework import StrategyConfig
+    from strategies.forex_arb_strategy import ForexArbitrageStrategy
 
     config = StrategyConfig(
         strategy_id="53",

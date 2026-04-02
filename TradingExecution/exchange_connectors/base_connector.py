@@ -9,15 +9,15 @@ import asyncio
 import logging
 import time
 from abc import ABC, abstractmethod
-from datetime import datetime
-from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, field
+from datetime import datetime
 from enum import Enum
 from functools import wraps
+from typing import Any, Dict, List, Optional
 
 # Import audit logger
 try:
-    from shared.audit_logger import get_audit_logger, AuditCategory, AuditSeverity
+    from shared.audit_logger import AuditCategory, AuditSeverity, get_audit_logger
     AUDIT_AVAILABLE = True
 except ImportError:
     AUDIT_AVAILABLE = False
@@ -62,12 +62,12 @@ class Ticker:
     last: float
     volume_24h: float
     timestamp: datetime = field(default_factory=datetime.now)
-    
+
     @property
     def spread(self) -> float:
         """Spread."""
         return self.ask - self.bid
-    
+
     @property
     def spread_pct(self) -> float:
         """Spread pct."""
@@ -81,17 +81,17 @@ class OrderBook:
     bids: List[tuple]  # [(price, quantity), ...]
     asks: List[tuple]  # [(price, quantity), ...]
     timestamp: datetime = field(default_factory=datetime.now)
-    
+
     @property
     def best_bid(self) -> Optional[tuple]:
         """Best bid."""
         return self.bids[0] if self.bids else None
-    
+
     @property
     def best_ask(self) -> Optional[tuple]:
         """Best ask."""
         return self.asks[0] if self.asks else None
-    
+
     @property
     def mid_price(self) -> float:
         """Mid price."""
@@ -106,7 +106,7 @@ class Balance:
     asset: str
     free: float
     locked: float
-    
+
     @property
     def total(self) -> float:
         """Total."""
@@ -136,7 +136,7 @@ class ExchangeOrder:
 class BaseExchangeConnector(ABC):
     """
     Abstract base class for exchange connectors.
-    
+
     All exchange-specific implementations must inherit from this
     and implement the abstract methods.
     """
@@ -156,15 +156,15 @@ class BaseExchangeConnector(ABC):
         self.testnet = testnet
         self.rate_limit = rate_limit
         self.enable_audit = enable_audit and AUDIT_AVAILABLE
-        
+
         self.logger = logging.getLogger(self.__class__.__name__)
         self._client = None
         self._connected = False
         self._last_request_time = 0
-        
+
         # Get audit logger if enabled
         self._audit = get_audit_logger() if self.enable_audit else None
-        
+
     @property
     @abstractmethod
     def name(self) -> str:
@@ -193,10 +193,10 @@ class BaseExchangeConnector(ABC):
     async def get_ticker(self, symbol: str) -> Ticker:
         """
         Get current ticker for a symbol.
-        
+
         Args:
             symbol: Trading pair (e.g., 'BTC/USDT')
-            
+
         Returns:
             Ticker object with current market data
         """
@@ -206,11 +206,11 @@ class BaseExchangeConnector(ABC):
     async def get_orderbook(self, symbol: str, limit: int = 20) -> OrderBook:
         """
         Get order book for a symbol.
-        
+
         Args:
             symbol: Trading pair
             limit: Number of levels to fetch
-            
+
         Returns:
             OrderBook object
         """
@@ -220,7 +220,7 @@ class BaseExchangeConnector(ABC):
     async def get_balances(self) -> Dict[str, Balance]:
         """
         Get account balances.
-        
+
         Returns:
             Dict mapping asset name to Balance object
         """
@@ -238,7 +238,7 @@ class BaseExchangeConnector(ABC):
     ) -> ExchangeOrder:
         """
         Create a new order.
-        
+
         Args:
             symbol: Trading pair
             side: 'buy' or 'sell'
@@ -246,7 +246,7 @@ class BaseExchangeConnector(ABC):
             quantity: Amount to trade
             price: Price for limit orders
             client_order_id: Optional custom order ID
-            
+
         Returns:
             ExchangeOrder object
         """
@@ -256,11 +256,11 @@ class BaseExchangeConnector(ABC):
     async def cancel_order(self, order_id: str, symbol: str) -> bool:
         """
         Cancel an existing order.
-        
+
         Args:
             order_id: Exchange order ID
             symbol: Trading pair
-            
+
         Returns:
             True if cancelled successfully
         """
@@ -270,11 +270,11 @@ class BaseExchangeConnector(ABC):
     async def get_order(self, order_id: str, symbol: str) -> ExchangeOrder:
         """
         Get order details.
-        
+
         Args:
             order_id: Exchange order ID
             symbol: Trading pair
-            
+
         Returns:
             ExchangeOrder object
         """
@@ -284,10 +284,10 @@ class BaseExchangeConnector(ABC):
     async def get_open_orders(self, symbol: Optional[str] = None) -> List[ExchangeOrder]:
         """
         Get all open orders.
-        
+
         Args:
             symbol: Optional filter by symbol
-            
+
         Returns:
             List of ExchangeOrder objects
         """
@@ -296,7 +296,7 @@ class BaseExchangeConnector(ABC):
     async def get_trade_fee(self, symbol: str) -> Dict[str, float]:
         """
         Get trading fees for a symbol.
-        
+
         Returns:
             Dict with 'maker' and 'taker' fee rates
         """
@@ -314,10 +314,10 @@ class BaseExchangeConnector(ABC):
     ) -> ExchangeOrder:
         """
         Create a stop-loss order on the exchange.
-        
+
         This places an actual stop-loss or stop-limit order with the exchange,
         not a client-side simulation.
-        
+
         Args:
             symbol: Trading pair (e.g., 'BTC/USDT')
             side: 'sell' for long positions, 'buy' for short positions
@@ -326,10 +326,10 @@ class BaseExchangeConnector(ABC):
             limit_price: Optional limit price (for stop-limit orders).
                         If None, uses a market stop order.
             client_order_id: Optional custom order ID
-            
+
         Returns:
             ExchangeOrder object representing the stop-loss order
-            
+
         Raises:
             NotImplementedError: If exchange doesn't support stop orders
             OrderError: If order creation fails
@@ -351,10 +351,10 @@ class BaseExchangeConnector(ABC):
     ) -> Dict[str, ExchangeOrder]:
         """
         Create an OCO (One-Cancels-Other) order with stop-loss and take-profit.
-        
+
         This places both a stop-loss and a take-profit order, where filling
         one automatically cancels the other.
-        
+
         Args:
             symbol: Trading pair (e.g., 'BTC/USDT')
             side: 'sell' for long positions, 'buy' for short positions
@@ -363,10 +363,10 @@ class BaseExchangeConnector(ABC):
             stop_limit_price: Stop-loss limit price
             take_profit_price: Take-profit limit price
             client_order_id: Optional custom order ID prefix
-            
+
         Returns:
             Dict with 'stop_loss' and 'take_profit' ExchangeOrder objects
-            
+
         Raises:
             NotImplementedError: If exchange doesn't support OCO orders
             OrderError: If order creation fails

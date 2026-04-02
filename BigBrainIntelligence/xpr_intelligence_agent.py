@@ -12,7 +12,7 @@ BigBrain research agent monitoring the XPR Network for:
 
 import logging
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any
+from typing import Any, Dict, List, Optional
 
 from BigBrainIntelligence.agents import BaseResearchAgent, ResearchFinding
 from shared.config_loader import get_config

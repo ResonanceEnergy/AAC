@@ -7,13 +7,13 @@ Enables cross-system intelligence sharing and coordinated opportunity detection.
 """
 
 import asyncio
-import logging
 import json
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any
-from dataclasses import dataclass, field
-from pathlib import Path
+import logging
 import sys
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 # Add project root to path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -34,13 +34,13 @@ class IntelligenceSignal:
     data: Dict[str, Any] = field(default_factory=dict)
     timestamp: datetime = field(default_factory=datetime.now)
     expires_at: Optional[datetime] = None
-    
+
     def is_valid(self) -> bool:
         """Check if signal is still valid (not expired)"""
         if self.expires_at is None:
             return True
         return datetime.now() < self.expires_at
-    
+
     def to_dict(self) -> Dict:
         """To dict."""
         return {
@@ -71,12 +71,12 @@ class ArbitrageOpportunity:
     detected_at: datetime = field(default_factory=datetime.now)
     valid_until: datetime = field(default_factory=lambda: datetime.now() + timedelta(seconds=30))
     metadata: Dict[str, Any] = field(default_factory=dict)
-    
+
     @property
     def is_profitable(self) -> bool:
         """Is profitable."""
         return self.spread_pct > 0.1  # > 0.1% spread
-    
+
     @property
     def is_valid(self) -> bool:
         """Is valid."""
@@ -86,7 +86,7 @@ class ArbitrageOpportunity:
 class CryptoBigBrainIntegration:
     """
     Integration layer between CryptoIntelligence and BigBrain systems.
-    
+
     Responsibilities:
     - Receive signals from both systems
     - Correlate and enrich data
@@ -97,16 +97,16 @@ class CryptoBigBrainIntegration:
     def __init__(self):
         self.config = get_config()
         self.logger = self._setup_logging()
-        
+
         # Signal buffers
         self.crypto_signals: List[IntelligenceSignal] = []
         self.bigbrain_signals: List[IntelligenceSignal] = []
         self.opportunities: List[ArbitrageOpportunity] = []
-        
+
         # State
         self.is_running = False
         self._signal_counter = 0
-        
+
         self.logger.info("CryptoBigBrainIntegration initialized")
 
     def _setup_logging(self) -> logging.Logger:
@@ -158,7 +158,7 @@ class CryptoBigBrainIntegration:
     ) -> IntelligenceSignal:
         """
         Receive a signal from CryptoIntelligence system.
-        
+
         Args:
             signal_type: Type of signal (arbitrage, whale, liquidation, etc.)
             symbol: Trading symbol if applicable
@@ -177,15 +177,15 @@ class CryptoBigBrainIntegration:
             data=data or {},
             expires_at=datetime.now() + timedelta(seconds=ttl_seconds),
         )
-        
+
         self.crypto_signals.append(signal)
         self._cleanup_expired_signals()
-        
+
         self.logger.info(f"Received crypto signal: {signal.signal_type} for {signal.symbol} (conf={signal.confidence:.2f})")
-        
+
         # Check for correlations
         self._check_signal_correlations(signal)
-        
+
         return signal
 
     def receive_bigbrain_signal(
@@ -198,7 +198,7 @@ class CryptoBigBrainIntegration:
     ) -> IntelligenceSignal:
         """
         Receive a signal from BigBrain Intelligence system.
-        
+
         Args:
             signal_type: Type of signal (narrative, sentiment, prediction, etc.)
             confidence: Confidence level 0.0-1.0
@@ -216,15 +216,15 @@ class CryptoBigBrainIntegration:
             data=data or {},
             expires_at=datetime.now() + timedelta(seconds=ttl_seconds),
         )
-        
+
         self.bigbrain_signals.append(signal)
         self._cleanup_expired_signals()
-        
+
         self.logger.info(f"Received BigBrain signal: {signal.signal_type} (conf={signal.confidence:.2f})")
-        
+
         # Check for correlations
         self._check_signal_correlations(signal)
-        
+
         return signal
 
     # ==========================================
@@ -264,31 +264,31 @@ class CryptoBigBrainIntegration:
     ) -> float:
         """
         Calculate correlation score between crypto and BigBrain signals.
-        
+
         Returns value between 0.0 (no correlation) and 1.0 (perfect correlation).
         """
         score = 0.0
-        
+
         # Symbol match
         if crypto_signal.symbol and bb_signal.symbol:
             if crypto_signal.symbol == bb_signal.symbol:
                 score += 0.3
-        
+
         # Time proximity (signals within 5 minutes)
         time_diff = abs((crypto_signal.timestamp - bb_signal.timestamp).total_seconds())
         if time_diff < 300:
             score += 0.2 * (1 - time_diff / 300)
-        
+
         # Urgency alignment
         urgency_map = {'low': 1, 'medium': 2, 'high': 3, 'critical': 4}
         urgency_diff = abs(urgency_map.get(crypto_signal.urgency, 2) - urgency_map.get(bb_signal.urgency, 2))
         if urgency_diff <= 1:
             score += 0.2
-        
+
         # Combined confidence
         avg_confidence = (crypto_signal.confidence + bb_signal.confidence) / 2
         score += 0.3 * avg_confidence
-        
+
         return min(score, 1.0)
 
     def _generate_correlated_opportunity(
@@ -303,12 +303,12 @@ class CryptoBigBrainIntegration:
             (crypto_signal.confidence + bb_signal.confidence) / 2 * (1 + correlation * 0.2),
             0.99
         )
-        
+
         self.logger.info(
             f"Correlated opportunity: {crypto_signal.signal_type}+{bb_signal.signal_type} "
             f"conf={boosted_confidence:.2f}"
         )
-        
+
         # Would trigger trading execution here
         # For now, log to opportunities list
 
@@ -322,24 +322,24 @@ class CryptoBigBrainIntegration:
     ) -> List[ArbitrageOpportunity]:
         """
         Detect arbitrage opportunities across exchanges.
-        
+
         Args:
             prices: Dict of {symbol: {exchange: price}}
                    e.g., {'BTC/USDT': {'binance': 45000, 'coinbase': 45100}}
-        
+
         Returns:
             List of detected arbitrage opportunities
         """
         opportunities = []
-        
+
         for symbol, exchange_prices in prices.items():
             exchanges = list(exchange_prices.keys())
-            
+
             for i, buy_exchange in enumerate(exchanges):
                 for sell_exchange in exchanges[i+1:]:
                     buy_price = exchange_prices[buy_exchange]
                     sell_price = exchange_prices[sell_exchange]
-                    
+
                     # Check both directions
                     for bp, sp, bx, sx in [
                         (buy_price, sell_price, buy_exchange, sell_exchange),
@@ -347,10 +347,10 @@ class CryptoBigBrainIntegration:
                     ]:
                         if sp > bp:
                             spread_pct = ((sp - bp) / bp) * 100
-                            
+
                             # Account for fees (estimated 0.2% round trip)
                             net_spread = spread_pct - 0.2
-                            
+
                             if net_spread > 0.1:  # Minimum 0.1% profit after fees
                                 opp = ArbitrageOpportunity(
                                     opportunity_id=self._generate_opportunity_id(),
@@ -365,13 +365,13 @@ class CryptoBigBrainIntegration:
                                 )
                                 opportunities.append(opp)
                                 self.opportunities.append(opp)
-                                
+
                                 self.logger.info(
                                     f"Arbitrage detected: {symbol} "
                                     f"BUY@{bx}({bp:.2f}) SELL@{sx}({sp:.2f}) "
                                     f"spread={spread_pct:.3f}%"
                                 )
-        
+
         return opportunities
 
     # ==========================================
@@ -381,7 +381,7 @@ class CryptoBigBrainIntegration:
     def get_market_sentiment(self, symbol: str) -> Dict[str, Any]:
         """
         Aggregate market sentiment from all sources for a symbol.
-        
+
         Returns combined sentiment analysis.
         """
         sentiment = {
@@ -392,32 +392,32 @@ class CryptoBigBrainIntegration:
             'overall_sentiment': 'neutral',
             'confidence': 0.0,
         }
-        
+
         # Collect relevant crypto signals
         for signal in self.crypto_signals:
             if signal.symbol == symbol and signal.is_valid():
                 sentiment['crypto_signals'].append(signal.to_dict())
-        
+
         # Collect relevant BigBrain signals
         for signal in self.bigbrain_signals:
             if signal.symbol == symbol and signal.is_valid():
                 sentiment['bigbrain_signals'].append(signal.to_dict())
-        
+
         # Calculate overall sentiment
         all_signals = sentiment['crypto_signals'] + sentiment['bigbrain_signals']
         if all_signals:
             avg_confidence = sum(s['confidence'] for s in all_signals) / len(all_signals)
             sentiment['confidence'] = avg_confidence
-            
+
             # Simple sentiment determination (would be more sophisticated in production)
             bullish_count = sum(1 for s in all_signals if s.get('data', {}).get('direction') == 'bullish')
             bearish_count = sum(1 for s in all_signals if s.get('data', {}).get('direction') == 'bearish')
-            
+
             if bullish_count > bearish_count:
                 sentiment['overall_sentiment'] = 'bullish'
             elif bearish_count > bullish_count:
                 sentiment['overall_sentiment'] = 'bearish'
-        
+
         return sentiment
 
     def get_active_opportunities(self) -> List[Dict]:
@@ -442,7 +442,7 @@ class CryptoBigBrainIntegration:
     def get_integration_status(self) -> Dict[str, Any]:
         """Get current integration status"""
         self._cleanup_expired_signals()
-        
+
         return {
             'timestamp': datetime.now().isoformat(),
             'is_running': self.is_running,
@@ -483,11 +483,13 @@ def get_integration() -> CryptoBigBrainIntegration:
 
 # CLI test
 if __name__ == '__main__':
+    logger = logging.getLogger(__name__)
+
     async def test():
         """Test."""
         integration = get_integration()
         await integration.start()
-        
+
         # Simulate receiving signals
         integration.receive_crypto_signal(
             signal_type='whale_movement',
@@ -496,34 +498,34 @@ if __name__ == '__main__':
             urgency='high',
             data={'amount': 500, 'direction': 'bullish'}
         )
-        
+
         integration.receive_bigbrain_signal(
             signal_type='narrative_shift',
             confidence=0.78,
             urgency='high',
             data={'symbol': 'BTC/USDT', 'narrative': 'institutional_adoption', 'direction': 'bullish'}
         )
-        
+
         # Test arbitrage detection
         prices = {
             'BTC/USDT': {'binance': 45000, 'coinbase': 45150, 'kraken': 44980},
             'ETH/USDT': {'binance': 2800, 'coinbase': 2805, 'kraken': 2798},
         }
         opportunities = integration.detect_cross_exchange_arbitrage(prices)
-        
+
         logger.info("\n=== Integration Status ===")
         status = integration.get_integration_status()
         logger.info(json.dumps(status, indent=2))
-        
+
         logger.info("\n=== Active Opportunities ===")
         opps = integration.get_active_opportunities()
         for opp in opps:
             logger.info(f"  {opp['symbol']}: {opp['buy_exchange']} -> {opp['sell_exchange']} ({opp['spread_pct']:.3f}%)")
-        
+
         logger.info("\n=== BTC/USDT Sentiment ===")
         sentiment = integration.get_market_sentiment('BTC/USDT')
         logger.info(f"  Overall: {sentiment['overall_sentiment']} (conf={sentiment['confidence']:.2f})")
-        
+
         await integration.stop()
-    
+
     asyncio.run(test())

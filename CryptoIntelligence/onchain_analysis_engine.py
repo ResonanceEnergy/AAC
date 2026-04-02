@@ -16,12 +16,12 @@ From BARREN WUFFET Insights (601-640):
   - Coin days destroyed spikes = long-dormant whales moving
 """
 
-from dataclasses import dataclass, field
-from enum import Enum
-from typing import Dict, List, Optional, Tuple
 import logging
 import math
+from dataclasses import dataclass, field
 from datetime import datetime
+from enum import Enum
+from typing import Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -140,10 +140,10 @@ class OnChainDashboard:
 class MVRVAnalyzer:
     """
     Market Value to Realized Value analysis.
-    
+
     MVRV = Market Cap / Realized Cap
     Realized Cap = sum of each UTXO valued at its last-moved price
-    
+
     Key thresholds (BTC historical):
       MVRV > 3.7 → extreme overvalue (sell zone)
       MVRV Z > 7  → blow-off top territory
@@ -224,12 +224,12 @@ class MVRVAnalyzer:
 class SOPRAnalyzer:
     """
     Spent Output Profit Ratio analysis.
-    
+
     SOPR = Realized Value / Value at Creation for spent outputs
       SOPR > 1 → coins moved at a profit
       SOPR = 1 → coins moved at breakeven (key level!)
       SOPR < 1 → coins moved at a loss
-    
+
     Bull market pattern: SOPR bounces off 1.0 (support)
     Bear market pattern: SOPR rejected at 1.0 (resistance)
     """
@@ -289,7 +289,7 @@ class SOPRAnalyzer:
 class NUPLAnalyzer:
     """
     Net Unrealized Profit/Loss analysis.
-    
+
     NUPL = (Market Cap - Realized Cap) / Market Cap
     Ranges:
       < 0       → Capitulation (red)
@@ -339,7 +339,7 @@ class NUPLAnalyzer:
 class ExchangeFlowAnalyzer:
     """
     Monitor exchange inflows/outflows for supply dynamics.
-    
+
     Key patterns:
       - Sustained outflows = accumulation (coins moving to cold storage)
       - Spike inflows = selling pressure incoming
@@ -407,7 +407,7 @@ class ExchangeFlowAnalyzer:
 class SupplyDynamicsAnalyzer:
     """
     Analyze supply distribution and HODLer behavior.
-    
+
     Key concepts:
       - Illiquid supply: coins that haven't moved in 6+ months
       - Supply shock ratio: illiquid / liquid supply
@@ -472,7 +472,7 @@ class SupplyDynamicsAnalyzer:
 class CyclePhaseDetector:
     """
     Determine market cycle phase from composite on-chain signals.
-    
+
     Combines MVRV, SOPR, NUPL, exchange flows, and supply dynamics
     into a unified cycle assessment.
     """
@@ -564,12 +564,12 @@ class CyclePhaseDetector:
 class NVTAnalyzer:
     """
     Network Value to Transactions analysis.
-    
+
     NVT Ratio = Market Cap / Daily Transaction Volume (USD)
     Think of it like crypto's P/E ratio.
-    
+
     NVT Signal = Market Cap / 90-day MA of Transaction Volume
-    
+
     Thresholds:
       NVT Signal > 150 → overvalued (price outpacing usage)
       NVT Signal 65-150 → fair value
@@ -616,7 +616,8 @@ if __name__ == "__main__":
     logger.info(f"\nMVRV Ratio: {mvrv.mvrv_ratio}")
     logger.info(f"  Z-Score: {mvrv.mvrv_z_score}")
     logger.info(f"  Signal: {mvrv.signal.value}")
-    for n in mvrv.notes: print(f"  → {n}")
+    for n in mvrv.notes:
+        print(f"  → {n}")
 
     # SOPR Analysis
     sopr = SOPRAnalyzer.analyze(
@@ -625,7 +626,8 @@ if __name__ == "__main__":
     )
     logger.info(f"\nSOPR: {sopr.adjusted_sopr}")
     logger.info(f"  Signal: {sopr.signal.value}")
-    for n in sopr.notes: print(f"  → {n}")
+    for n in sopr.notes:
+        print(f"  → {n}")
 
     # NUPL
     nupl = NUPLAnalyzer.analyze(market_cap=900e9, realized_cap=400e9)

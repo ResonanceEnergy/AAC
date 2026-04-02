@@ -15,14 +15,15 @@ Key Components:
 
 import asyncio
 import logging
-from typing import Dict, List, Any, Optional
 from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
+
 import numpy as np
 import pandas as pd
-
 from shared.super_agent_framework import SuperAgent
-from shared.communication import CommunicationFramework
+
 from shared.audit_logger import AuditLogger
+from shared.communication import CommunicationFramework
 
 logger = logging.getLogger(__name__)
 
@@ -307,7 +308,8 @@ class TimeSeriesAgent(SuperAgent):
     def _generate_forecast(self, model: Dict[str, Any], steps: int) -> List[float]:
         """Generate forecast using the fitted model."""
         # Use model-type-seeded RNG for deterministic forecasts
-        import hashlib as _hl, time as _t
+        import hashlib as _hl
+        import time as _t
         _seed = int(_hl.md5(f"{model.get('type', 'ARIMA')}:{int(_t.time()) // 300}".encode()).hexdigest()[:8], 16)
         _rng = np.random.RandomState(_seed)
         last_value = 100  # Assume last price
@@ -492,8 +494,8 @@ class StatisticalArbitrageDivision:
 
 async def get_statistical_arbitrage_division() -> StatisticalArbitrageDivision:
     """Factory function to create and initialize Statistical Arbitrage Division."""
-    from shared.communication import CommunicationFramework
     from shared.audit_logger import AuditLogger
+    from shared.communication import CommunicationFramework
 
     communication = CommunicationFramework()
     audit_logger = AuditLogger()

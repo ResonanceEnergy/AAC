@@ -6,15 +6,15 @@ SQLite database schema for transactions, positions, and P&L tracking.
 """
 
 import asyncio
-import sqlite3
 import logging
+import sqlite3
+import sys
 import threading
 from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
 from queue import Queue
-from typing import Optional, Generator, List, Dict, Any
-import sys
+from typing import Any, Dict, Generator, List, Optional
 
 # Add project root to path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -229,11 +229,11 @@ DEFAULT_ACCOUNTS = [
 class ConnectionPool:
     """
     SQLite connection pool for thread-safe database access.
-    
+
     SQLite in Python is not thread-safe by default, so we maintain
     a pool of connections with one per thread.
     """
-    
+
     def __init__(self, db_path, pool_size: int = 5):
         self.db_path = db_path
         self.pool_size = pool_size
@@ -242,7 +242,7 @@ class ConnectionPool:
         self._lock = threading.Lock()
         self._initialized = False
         self.logger = logging.getLogger('ConnectionPool')
-    
+
     def _create_connection(self) -> sqlite3.Connection:
         """Create a new database connection"""
         conn = sqlite3.connect(
@@ -255,7 +255,7 @@ class ConnectionPool:
         conn.execute("PRAGMA journal_mode = WAL")  # Better concurrent access
         conn.execute("PRAGMA busy_timeout = 5000")  # Wait up to 5s if locked
         return conn
-    
+
     def initialize(self):
         """Pre-create connections for the pool"""
         with self._lock:
@@ -265,12 +265,12 @@ class ConnectionPool:
                 self._pool.put(self._create_connection())
             self._initialized = True
             self.logger.info(f"Connection pool initialized with {self.pool_size} connections")
-    
+
     def get_connection(self) -> sqlite3.Connection:
         """Get a connection from the pool with health check"""
         if not self._initialized:
             self.initialize()
-        
+
         # Try to get thread-local connection first
         if hasattr(self._local, 'connection') and self._local.connection:
             conn = self._local.connection
@@ -281,10 +281,10 @@ class ConnectionPool:
                 # Connection is stale, remove it
                 self._local.connection = None
                 self.logger.warning("Thread-local connection was stale, getting new one")
-        
+
         # Get from pool
         conn = self._pool.get(timeout=10)
-        
+
         # Validate connection before returning
         if not self._validate_connection(conn):
             self.logger.warning("Pool connection was stale, creating new one")
@@ -293,10 +293,10 @@ class ConnectionPool:
             except (sqlite3.Error, Exception) as e:
                 self.logger.debug(f"Error closing stale connection: {e}")
             conn = self._create_connection()
-        
+
         self._local.connection = conn
         return conn
-    
+
     def _validate_connection(self, conn: sqlite3.Connection) -> bool:
         """Check if a connection is still healthy"""
         try:
@@ -308,7 +308,7 @@ class ConnectionPool:
         except (sqlite3.Error, sqlite3.ProgrammingError) as e:
             self.logger.debug(f"Connection validation failed: {e}")
             return False
-    
+
     def release_connection(self, conn: sqlite3.Connection):
         """Return a connection to the pool"""
         if hasattr(self._local, 'connection'):
@@ -321,7 +321,7 @@ class ConnectionPool:
                 conn.close()
             except Exception as e:
                 logger.exception("Unexpected error: %s", e)
-    
+
     @contextmanager
     def connection(self) -> Generator[sqlite3.Connection, None, None]:
         """Context manager for getting a pooled connection"""
@@ -330,7 +330,7 @@ class ConnectionPool:
             yield conn
         finally:
             self.release_connection(conn)
-    
+
     def close_all(self):
         """Close all connections in the pool"""
         while not self._pool.empty():
@@ -352,7 +352,7 @@ class AccountingDatabase:
     def __init__(self, db_path: Optional[Path] = None, use_pool: bool = False, pool_size: int = 5):
         if db_path is None:
             db_path = get_project_path('CentralAccounting', 'data', 'accounting.db')
-        
+
         # Handle string paths and special SQLite paths like :memory:
         if isinstance(db_path, str):
             if db_path == ':memory:':
@@ -364,12 +364,12 @@ class AccountingDatabase:
         else:
             self.db_path = db_path
             self.db_path.parent.mkdir(parents=True, exist_ok=True)
-        
+
         self._use_pool = use_pool
         self._pool: Optional[ConnectionPool] = None
         self._connection: Optional[sqlite3.Connection] = None
         self.logger = logging.getLogger('AccountingDB')
-        
+
         if use_pool:
             self._pool = ConnectionPool(self.db_path, pool_size)
 
@@ -377,7 +377,7 @@ class AccountingDatabase:
         """Get database connection (from pool if enabled)"""
         if self._use_pool and self._pool:
             return self._pool.get_connection()
-        
+
         if self._connection is None:
             self._connection = sqlite3.connect(
                 self.db_path,
@@ -388,7 +388,7 @@ class AccountingDatabase:
             self._connection.execute("PRAGMA foreign_keys = ON")
             self._connection.execute("PRAGMA journal_mode = WAL")
         return self._connection
-    
+
     @contextmanager
     def get_connection(self) -> Generator[sqlite3.Connection, None, None]:
         """Context manager for database connections"""
@@ -506,45 +506,45 @@ class AccountingDatabase:
         try:
             conn = self.connect()
             cursor = conn.cursor()
-            
+
             # Check current schema version
             cursor.execute("""
-                SELECT name FROM sqlite_master 
+                SELECT name FROM sqlite_master
                 WHERE type='table' AND name='schema_version'
             """)
-            
+
             if cursor.fetchone() is None:
                 # Fresh database - create schema
                 self.logger.info(f"Creating new database at {self.db_path}")
                 cursor.executescript(SCHEMA_SQL)
-                
+
                 # Record schema version
                 cursor.execute(
                     "INSERT INTO schema_version (version) VALUES (?)",
                     (SCHEMA_VERSION,)
                 )
-                
+
                 # Create default accounts
                 for name, acc_type, exchange, currency in DEFAULT_ACCOUNTS:
                     cursor.execute("""
                         INSERT OR IGNORE INTO accounts (name, account_type, exchange, currency)
                         VALUES (?, ?, ?, ?)
                     """, (name, acc_type, exchange, currency))
-                
+
                 conn.commit()
                 self.logger.info(f"Database initialized with schema version {SCHEMA_VERSION}")
             else:
                 # Check for migrations
                 cursor.execute("SELECT MAX(version) FROM schema_version")
                 current_version = cursor.fetchone()[0] or 0
-                
+
                 if current_version < SCHEMA_VERSION:
                     self._run_migrations(current_version, SCHEMA_VERSION)
                 else:
                     self.logger.info(f"Database already at version {current_version}")
-            
+
             return True
-            
+
         except Exception as e:
             self.logger.error(f"Failed to initialize database: {e}")
             return False
@@ -552,21 +552,21 @@ class AccountingDatabase:
     def _run_migrations(self, from_version: int, to_version: int):
         """Run database migrations"""
         self.logger.info(f"Migrating database from v{from_version} to v{to_version}")
-        
+
         conn = self.connect()
         cursor = conn.cursor()
-        
+
         # Add migration logic here as schema evolves
         # Example:
         # if from_version < 2:
         #     cursor.execute("ALTER TABLE positions ADD COLUMN margin REAL")
-        
+
         cursor.execute(
             "INSERT INTO schema_version (version) VALUES (?)",
             (to_version,)
         )
         conn.commit()
-        
+
         self.logger.info(f"Migration complete")
 
     # ==========================================
@@ -577,12 +577,12 @@ class AccountingDatabase:
         """Get all accounts"""
         conn = self.connect()
         cursor = conn.cursor()
-        
+
         if active_only:
             cursor.execute("SELECT * FROM accounts WHERE is_active = 1")
         else:
             cursor.execute("SELECT * FROM accounts")
-        
+
         return [dict(row) for row in cursor.fetchall()]
 
     def get_account_by_exchange(self, exchange: str):
@@ -610,7 +610,7 @@ class AccountingDatabase:
         """Update or insert balance for an account"""
         conn = self.connect()
         cursor = conn.cursor()
-        
+
         cursor.execute("""
             INSERT INTO balances (account_id, asset, free_balance, locked_balance, last_updated)
             VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
@@ -619,14 +619,14 @@ class AccountingDatabase:
                 locked_balance = excluded.locked_balance,
                 last_updated = CURRENT_TIMESTAMP
         """, (account_id, asset, free_balance, locked_balance))
-        
+
         conn.commit()
 
     def get_balances(self, account_id: Optional[int] = None):
         """Get balances, optionally filtered by account"""
         conn = self.connect()
         cursor = conn.cursor()
-        
+
         if account_id:
             cursor.execute("""
                 SELECT b.*, a.name as account_name, a.exchange
@@ -641,7 +641,7 @@ class AccountingDatabase:
                 JOIN accounts a ON b.account_id = a.account_id
                 WHERE b.total_balance > 0
             """)
-        
+
         return [dict(row) for row in cursor.fetchall()]
 
     # ==========================================
@@ -667,7 +667,7 @@ class AccountingDatabase:
         """Record a transaction"""
         conn = self.connect()
         cursor = conn.cursor()
-        
+
         cursor.execute("""
             INSERT INTO transactions (
                 account_id, transaction_type, side, symbol, asset, quantity,
@@ -678,7 +678,7 @@ class AccountingDatabase:
             account_id, transaction_type, side, symbol, asset, quantity,
             price, total_value, fee, fee_currency, external_id, status, notes
         ))
-        
+
         conn.commit()
         return cursor.lastrowid
 
@@ -691,20 +691,20 @@ class AccountingDatabase:
         """Get recent transactions"""
         conn = self.connect()
         cursor = conn.cursor()
-        
+
         query = "SELECT * FROM transactions WHERE 1=1"
         params = []
-        
+
         if account_id:
             query += " AND account_id = ?"
             params.append(account_id)
         if symbol:
             query += " AND symbol = ?"
             params.append(symbol)
-        
+
         query += " ORDER BY created_at DESC LIMIT ?"
         params.append(limit)
-        
+
         cursor.execute(query, params)
         return [dict(row) for row in cursor.fetchall()]
 
@@ -727,7 +727,7 @@ class AccountingDatabase:
         """Open a new position"""
         conn = self.connect()
         cursor = conn.cursor()
-        
+
         cursor.execute("""
             INSERT INTO positions (
                 account_id, symbol, side, quantity, entry_price,
@@ -737,7 +737,7 @@ class AccountingDatabase:
             account_id, symbol, side, quantity, entry_price,
             entry_price, stop_loss, take_profit, leverage, metadata
         ))
-        
+
         conn.commit()
         return cursor.lastrowid
 
@@ -758,10 +758,10 @@ class AccountingDatabase:
 
         conn = self.connect()
         cursor = conn.cursor()
-        
+
         updates = []
         params = []
-        
+
         if current_price is not None:
             updates.append("current_price = ?")
             params.append(current_price)
@@ -774,7 +774,7 @@ class AccountingDatabase:
         if take_profit is not None:
             updates.append("take_profit = ?")
             params.append(take_profit)
-        
+
         if updates:
             # Verify every column token is on the allowlist
             for fragment in updates:
@@ -799,18 +799,18 @@ class AccountingDatabase:
         """Close a position and record in trade history"""
         conn = self.connect()
         cursor = conn.cursor()
-        
+
         # Get position details
         cursor.execute("SELECT * FROM positions WHERE position_id = ?", (position_id,))
         position = cursor.fetchone()
-        
+
         if not position:
             raise ValueError(f"Position {position_id} not found")
-        
+
         # Calculate hold duration
         opened_at = datetime.fromisoformat(position['opened_at']) if position['opened_at'] else datetime.now()
         hold_duration = int((datetime.now() - opened_at).total_seconds())
-        
+
         # Record in trade history
         cursor.execute("""
             INSERT INTO trade_history (
@@ -822,7 +822,7 @@ class AccountingDatabase:
             position['side'], position['entry_price'], exit_price,
             position['quantity'], realized_pnl, fees, hold_duration, position['opened_at']
         ))
-        
+
         # Update position status
         cursor.execute("""
             UPDATE positions SET
@@ -831,14 +831,14 @@ class AccountingDatabase:
                 closed_at = CURRENT_TIMESTAMP
             WHERE position_id = ?
         """, (realized_pnl, position_id))
-        
+
         conn.commit()
 
     def get_open_positions(self, account_id: Optional[int] = None):
         """Get all open positions"""
         conn = self.connect()
         cursor = conn.cursor()
-        
+
         if account_id:
             cursor.execute("""
                 SELECT p.*, a.name as account_name
@@ -853,7 +853,7 @@ class AccountingDatabase:
                 JOIN accounts a ON p.account_id = a.account_id
                 WHERE p.status = 'open'
             """)
-        
+
         return [dict(row) for row in cursor.fetchall()]
 
     # ==========================================
@@ -877,7 +877,7 @@ class AccountingDatabase:
         """Record daily P&L snapshot"""
         conn = self.connect()
         cursor = conn.cursor()
-        
+
         cursor.execute("""
             INSERT OR REPLACE INTO daily_pnl (
                 date, starting_equity, ending_equity, realized_pnl,
@@ -889,27 +889,27 @@ class AccountingDatabase:
             unrealized_pnl, fees_paid, trades_count, win_count,
             loss_count, largest_win, largest_loss
         ))
-        
+
         conn.commit()
 
     def get_daily_pnl(self, days: int = 30):
         """Get daily P&L for the last N days"""
         conn = self.connect()
         cursor = conn.cursor()
-        
+
         cursor.execute("""
             SELECT * FROM daily_pnl
             ORDER BY date DESC
             LIMIT ?
         """, (days,))
-        
+
         return [dict(row) for row in cursor.fetchall()]
 
     def get_pnl_summary(self):
         """Get overall P&L summary"""
         conn = self.connect()
         cursor = conn.cursor()
-        
+
         cursor.execute("""
             SELECT
                 COUNT(*) as total_days,
@@ -923,7 +923,7 @@ class AccountingDatabase:
                 MIN(largest_loss) as worst_trade
             FROM daily_pnl
         """)
-        
+
         row = cursor.fetchone()
         return dict(row) if row else {}
 
@@ -939,19 +939,19 @@ def init_database():
 # CLI
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
-    
+
     logger.info("Initializing Accounting Database...")
     db = AccountingDatabase()
-    
+
     if db.initialize():
         logger.info(f"Database created at: {db.db_path}")
-        
+
         # Show accounts
         accounts = db.get_accounts()
         logger.info(f"\nAccounts ({len(accounts)}):")
         for acc in accounts:
             logger.info(f"  - {acc['name']} ({acc['account_type']})")
-        
+
         # Test creating a transaction
         if accounts:
             tx_id = db.record_transaction(
@@ -962,7 +962,7 @@ if __name__ == '__main__':
                 notes='Initial paper trading balance'
             )
             logger.info(f"\nCreated test transaction: {tx_id}")
-        
+
         db.close()
         logger.info("\nDatabase initialization complete!")
     else:

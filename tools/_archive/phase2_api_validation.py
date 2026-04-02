@@ -6,19 +6,20 @@ Complete guide for configuring and validating all critical APIs for live trading
 """
 
 import asyncio
+import logging
 import os
 import sys
 from pathlib import Path
-from typing import Dict, List, Any
-import logging
+from typing import Any, Dict, List
 
 logger = logging.getLogger(__name__)
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from shared.config_loader import get_config
 from api_integration_hub import api_integration_hub
+
+from shared.config_loader import get_config
 
 
 class APIIntegrationGuide:

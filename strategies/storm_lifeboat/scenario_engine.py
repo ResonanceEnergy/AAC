@@ -25,11 +25,11 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from strategies.storm_lifeboat.core import (
+    SCENARIO_MAP,
+    SCENARIOS,
     ScenarioDefinition,
     ScenarioState,
     ScenarioStatus,
-    SCENARIOS,
-    SCENARIO_MAP,
 )
 
 logger = logging.getLogger(__name__)
@@ -208,6 +208,19 @@ class ScenarioEngine:
                         self._states[target].probability + actual_boost,
                     )
                     adjustments[f"{code}->{target}"] = actual_boost
+
+        # TurboQuant: record scenario snapshot after contagion
+        try:
+            from strategies.turboquant_integrations import IntegrationHub
+            _tq_hub = IntegrationHub()
+            scenario_dicts = [
+                {"code": c, "probability": s.probability, "status": s.status.value}
+                for c, s in self._states.items()
+            ]
+            _tq_hub.record_scenarios(scenario_dicts)
+            _tq_hub.save_all()
+        except Exception:
+            pass
 
         return adjustments
 

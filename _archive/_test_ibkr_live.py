@@ -13,9 +13,9 @@ Prerequisites:
     3. .env has IBKR_PORT=7497, IBKR_ACCOUNT=DUxxxxxx
 """
 import asyncio
-import sys
 import os
 import socket
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
@@ -23,6 +23,7 @@ sys.path.insert(0, str(ROOT))
 os.chdir(ROOT)
 
 from dotenv import load_dotenv
+
 load_dotenv()
 
 

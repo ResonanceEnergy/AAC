@@ -3,10 +3,11 @@
 AAC 2100 Missing Components Audit
 """
 
-from shared.config_loader import get_config
-import os
 import logging
+import os
 from pathlib import Path
+
+from shared.config_loader import get_config
 
 logger = logging.getLogger(__name__)
 

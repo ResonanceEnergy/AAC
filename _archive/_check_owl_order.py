@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """Check OWL order status."""
-import sys, io
+import io
+import sys
+
 if hasattr(sys.stdout, "buffer") and sys.stdout.encoding.lower() != "utf-8":
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
-from moomoo import OpenSecTradeContext, SecurityFirm, TrdMarket, TrdEnv
+from moomoo import OpenSecTradeContext, SecurityFirm, TrdEnv, TrdMarket
 
 tctx = OpenSecTradeContext(
     host="127.0.0.1", port=11111,

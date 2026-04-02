@@ -30,8 +30,8 @@ from typing import Any, Dict, List, Optional
 
 from strategies.matrix_maximizer.core import (
     Asset,
-    MatrixConfig,
     MandateLevel,
+    MatrixConfig,
     PortfolioForecast,
     SystemMandate,
 )
@@ -439,7 +439,7 @@ class RiskManager:
             worst_position: ticker with highest dollar loss
             survival: True if account stays above $0
         """
-        from strategies.matrix_maximizer.core import Asset, ASSET_VOLATILITIES
+        from strategies.matrix_maximizer.core import ASSET_VOLATILITIES, Asset
         from strategies.matrix_maximizer.greeks import BlackScholesEngine
 
         bs = BlackScholesEngine()

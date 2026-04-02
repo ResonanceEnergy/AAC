@@ -12,28 +12,29 @@ Phase 2 Priority 4 Validation: Tests live trading infrastructure components
 """
 
 import asyncio
-import logging
 import json
+import logging
+import os
+import sys
 import time
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any
 from pathlib import Path
-import sys
-import os
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from shared.config_loader import get_config
-from shared.audit_logger import get_audit_logger, AuditCategory, AuditSeverity
 from trading.live_trading_infrastructure import (
-    LiveTradingInfrastructure,
-    Exchange,
     EmergencyAction,
-    get_live_trading_infrastructure
+    Exchange,
+    LiveTradingInfrastructure,
+    get_live_trading_infrastructure,
 )
+
+from shared.audit_logger import AuditCategory, AuditSeverity, get_audit_logger
+from shared.config_loader import get_config
 
 
 class LiveTradingValidator:

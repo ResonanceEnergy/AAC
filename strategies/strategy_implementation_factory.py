@@ -10,21 +10,27 @@ executable trading logic connected to live market data.
 """
 
 import asyncio
-import logging
 import importlib
 import inspect
+import logging
 import sys
-from typing import Dict, List, Any, Optional, Type
 from datetime import datetime, timedelta
 from pathlib import Path
-import pandas as pd
-import numpy as np
+from typing import Any, Dict, List, Optional, Type
 
-from shared.strategy_framework import BaseArbitrageStrategy, TradingSignal, SignalType, StrategyConfig
-from shared.strategy_loader import StrategyLoader, StrategyCategory, StrategyStatus
-from shared.communication import CommunicationFramework
+import numpy as np
+import pandas as pd
+
 from shared.audit_logger import AuditLogger
+from shared.communication import CommunicationFramework
 from shared.data_sources import DataAggregator
+from shared.strategy_framework import (
+    BaseArbitrageStrategy,
+    SignalType,
+    StrategyConfig,
+    TradingSignal,
+)
+from shared.strategy_loader import StrategyCategory, StrategyLoader, StrategyStatus
 
 # Configure logging with UTF-8 encoding to handle Unicode characters
 logging.basicConfig(
@@ -238,9 +244,9 @@ class StrategyImplementationFactory:
             "Weekly Overnight Seasonality Timing": "weekly_overnight_seasonality",
             "Overnight Drift in Attention Stocks": "overnight_drift_attention_stocks",
         }
-        
+
         return module_mapping.get(strategy_name, self._generate_module_name(strategy_name))
-    
+
     def _generate_module_name(self, strategy_name: str) -> str:
         """Generate module name for strategies without direct mapping"""
         # Convert to snake_case and remove special characters

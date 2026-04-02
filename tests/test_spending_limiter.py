@@ -1,12 +1,14 @@
 """Tests for services/api_spending_limiter.py — budget enforcement."""
 
-import pytest
 from datetime import datetime
+
+import pytest
+
 from services.api_spending_limiter import (
-    SpendingLimiter,
-    SpendEvent,
-    ProviderBudget,
     DEFAULT_RATES,
+    ProviderBudget,
+    SpendEvent,
+    SpendingLimiter,
 )
 
 

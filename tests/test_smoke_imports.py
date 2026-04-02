@@ -8,8 +8,8 @@ the test must crash with a full traceback so you can fix it immediately.
 """
 
 import importlib
-import pytest
 
+import pytest
 
 # ── Tier 1: Core infrastructure (MUST work) ────────────────────────────
 TIER1_MODULES = [

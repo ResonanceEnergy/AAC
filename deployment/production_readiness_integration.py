@@ -6,12 +6,13 @@ Complete integration of paper trading, AI strategy generation, and live trading 
 """
 
 import asyncio
+import json
+import logging
 import sys
 import time
-import logging
 from pathlib import Path
-from typing import Dict, List, Any, Optional
-import json
+from typing import Any, Dict, List, Optional
+
 import numpy as np
 
 logger = logging.getLogger(__name__)
@@ -19,13 +20,22 @@ logger = logging.getLogger(__name__)
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from shared.paper_trading import paper_trading_engine, initialize_paper_trading
 from shared.ai_strategy_generator import ai_strategy_generator, initialize_ai_strategy_generation
-from shared.live_trading_safeguards import live_trading_safeguards, initialize_live_trading_safeguards
-from shared.production_deployment import production_deployment_system, initialize_production_deployment
-from shared.production_monitoring import production_monitoring_system, initialize_production_monitoring
-from shared.compliance_review import compliance_review_system, initialize_compliance_review
 from shared.audit_logger import get_audit_logger
+from shared.compliance_review import compliance_review_system, initialize_compliance_review
+from shared.live_trading_safeguards import (
+    initialize_live_trading_safeguards,
+    live_trading_safeguards,
+)
+from shared.paper_trading import initialize_paper_trading, paper_trading_engine
+from shared.production_deployment import (
+    initialize_production_deployment,
+    production_deployment_system,
+)
+from shared.production_monitoring import (
+    initialize_production_monitoring,
+    production_monitoring_system,
+)
 
 
 class ProductionReadinessSystem:
@@ -74,7 +84,7 @@ class ProductionReadinessSystem:
         if not opportunities:
             logger.info("No arbitrage opportunities found, using simulated data")
             # Create a mock opportunity for demonstration
-            from shared.ai_strategy_generator import ArbitrageOpportunity, StrategyType, RiskLevel
+            from shared.ai_strategy_generator import ArbitrageOpportunity, RiskLevel, StrategyType
             opportunities = [
                 ArbitrageOpportunity(
                     opportunity_id="demo_opp_1",
@@ -99,7 +109,10 @@ class ProductionReadinessSystem:
 
         # Step 1.5: Parameter Optimization (R&D Phase)
         logger.info("\nStep 1.5: Parameter Optimization (R&D)")
-        from shared.strategy_parameter_tester import strategy_parameter_tester, initialize_strategy_parameter_testing
+        from shared.strategy_parameter_tester import (
+            initialize_strategy_parameter_testing,
+            strategy_parameter_tester,
+        )
         await initialize_strategy_parameter_testing()
 
         optimized_strategies = []

@@ -23,7 +23,7 @@ import logging
 import os
 import socket
 import time
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
@@ -342,8 +342,8 @@ def _probe_storm_lifeboat(now: str) -> ComponentStatus:
     """Probe Storm Lifeboat Matrix — importability + last-run data."""
     try:
         from strategies.storm_lifeboat.core import VolRegime  # noqa: F401
-        from strategies.storm_lifeboat.scenario_engine import ScenarioEngine  # noqa: F401
         from strategies.storm_lifeboat.monte_carlo import StormMonteCarloEngine  # noqa: F401
+        from strategies.storm_lifeboat.scenario_engine import ScenarioEngine  # noqa: F401
     except Exception:
         return ComponentStatus(
             name="Storm Lifeboat Matrix",

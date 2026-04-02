@@ -5,8 +5,8 @@ Tests: connect, fetch ticker, fetch balances, fetch order book.
 Does NOT place any orders.
 """
 import asyncio
-import sys
 import os
+import sys
 from pathlib import Path
 
 # Project root
@@ -15,6 +15,7 @@ sys.path.insert(0, str(ROOT))
 os.chdir(ROOT)
 
 from dotenv import load_dotenv
+
 load_dotenv()
 
 

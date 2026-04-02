@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""
+r"""
 AAC Capital Engine — Moomoo Options Deployment (ADJUSTED)
 ==========================================================
 March 24, 2026 — Deploy capital engine positions to Moomoo REAL account.
@@ -18,10 +18,10 @@ Usage:
   .venv\Scripts\python.exe _moomoo_deploy_options.py --live       # LIVE EXECUTION
   .venv\Scripts\python.exe _moomoo_deploy_options.py --price-only # Just get quotes
 """
-import sys
+import argparse
 import io
 import os
-import argparse
+import sys
 from datetime import datetime
 
 if hasattr(sys.stdout, "buffer") and sys.stdout.encoding.lower() != "utf-8":
@@ -31,15 +31,17 @@ sys.path.insert(0, r"c:\dev\AAC_fresh")
 os.chdir(r"c:\dev\AAC_fresh")
 
 from moomoo import (
+    RET_OK,
+    Currency,
     OpenQuoteContext,
     OpenSecTradeContext,
-    TrdEnv,
-    TrdSide,
-    OrderType as MooOrderType,
     SecurityFirm,
+    TrdEnv,
     TrdMarket,
-    Currency,
-    RET_OK,
+    TrdSide,
+)
+from moomoo import (
+    OrderType as MooOrderType,
 )
 
 # ============================================================================

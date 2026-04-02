@@ -7,17 +7,23 @@ Converts strategy configurations into real-time trading algorithms.
 """
 
 import asyncio
-import logging
-from pathlib import Path
-from typing import Dict, List, Any, Optional
-from datetime import datetime
 import csv
-import yaml
+import logging
 import re
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
-from shared.strategy_framework import BaseArbitrageStrategy, StrategyFactory, StrategyConfig, TradingSignal
-from shared.communication import CommunicationFramework
+import yaml
+
 from shared.audit_logger import AuditLogger
+from shared.communication import CommunicationFramework
+from shared.strategy_framework import (
+    BaseArbitrageStrategy,
+    StrategyConfig,
+    StrategyFactory,
+    TradingSignal,
+)
 
 logger = logging.getLogger(__name__)
 

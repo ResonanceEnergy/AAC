@@ -4,10 +4,10 @@ OpenClaw Skills Generator for AAC (DEPRECATED)
 
 ⚠️ DEPRECATED: This module (10 skills, aac-* prefix) has been superseded by
    `openclaw_barren_wuffet_skills.py` (35 skills, bw-* prefix).
-   
+
    Use the new module for all OpenClaw skill operations:
        from integrations.openclaw_barren_wuffet_skills import BARREN_WUFFET_SKILLS
-   
+
    This file is retained for backward compatibility only. It will be
    removed in a future release.
 
@@ -31,12 +31,12 @@ Skills Generated:
 Reference: https://docs.openclaw.ai/tools/skills
 """
 
-import os
 import json
+import logging
+import os
 import warnings
 from pathlib import Path
 from typing import Dict, List, Optional
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -102,7 +102,7 @@ Run a scan by specifying the theater and optional focus:
 /aac-market-intelligence theater=C focus=gas_optimization timeframe=1h
 ```
 
-The scan runs all relevant agents and returns a consolidated `ResearchFinding` 
+The scan runs all relevant agents and returns a consolidated `ResearchFinding`
 report with confidence scores and actionable signals.
 
 ### Output Format
@@ -129,7 +129,7 @@ Results include:
         "instructions": """
 ## AAC Trading Signals
 
-Access AAC's quantum-aggregated trading signals from 49 trading agents 
+Access AAC's quantum-aggregated trading signals from 49 trading agents
 executing across 50 arbitrage strategies.
 
 ### Signal Pipeline
@@ -175,7 +175,7 @@ Each signal includes:
         "instructions": """
 ## AAC Portfolio Dashboard
 
-Generate a rich portfolio dashboard from CentralAccounting with real-time 
+Generate a rich portfolio dashboard from CentralAccounting with real-time
 metrics from across all 6 departments.
 
 ### Dashboard Sections
@@ -534,7 +534,7 @@ Strategy Performance (30 day):
 ```
 
 ### Strategy Source
-All strategies are loaded from `50_arbitrage_strategies.csv` and 
+All strategies are loaded from `50_arbitrage_strategies.csv` and
 managed by the `StrategyImplementationFactory`.
 """,
     },
@@ -563,7 +563,7 @@ def generate_skill_md(skill_def: Dict) -> str:
 def write_all_skills(base_dir: Optional[str] = None) -> List[str]:
     """
     Write all AAC skill SKILL.md files to the OpenClaw workspace.
-    
+
     Returns list of skill directory paths written.
     """
     if base_dir:

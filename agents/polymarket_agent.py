@@ -191,12 +191,26 @@ class PolymarketAgent:
         self._opportunities: List[ArbitrageOpportunity] = []
         self._last_scan: Optional[datetime] = None
 
+    # ─── Async context manager ────────────────────────────────────────────
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        await self.close()
+
     # ─── HTTP session management ─────────────────────────────────────────
 
     async def _get_session(self) -> aiohttp.ClientSession:
         if self._session is None or self._session.closed:
+            # Use ThreadedResolver (system DNS) instead of AsyncResolver (c-ares)
+            # because pycares/aiodns can't reach the local DNS server on some networks
+            resolver = aiohttp.resolver.ThreadedResolver()
+            connector = aiohttp.TCPConnector(resolver=resolver)
             self._session = aiohttp.ClientSession(
-                timeout=aiohttp.ClientTimeout(total=15)
+                timeout=aiohttp.ClientTimeout(total=30),
+                connector=connector,
+                headers={"User-Agent": "AAC-PolymarketAgent/1.0"},
             )
         return self._session
 
@@ -205,12 +219,27 @@ class PolymarketAgent:
         if self._session and not self._session.closed:
             await self._session.close()
 
-    async def _get(self, url: str, params: Optional[Dict] = None) -> Any:
-        """Execute a GET request and return JSON."""
-        session = await self._get_session()
-        async with session.get(url, params=params) as resp:
-            resp.raise_for_status()
-            return await resp.json()
+    async def _get(self, url: str, params: Optional[Dict] = None,
+                   retries: int = 3) -> Any:
+        """Execute a GET request with retry + exponential backoff."""
+        last_error: Optional[Exception] = None
+        for attempt in range(retries):
+            try:
+                session = await self._get_session()
+                async with session.get(url, params=params) as resp:
+                    resp.raise_for_status()
+                    return await resp.json()
+            except (aiohttp.ClientError, asyncio.TimeoutError, OSError) as e:
+                last_error = e
+                wait = 2 ** attempt  # 1s, 2s, 4s
+                logger.warning(
+                    "Polymarket API request failed (attempt %d/%d): %s — retrying in %ds",
+                    attempt + 1, retries, e, wait,
+                )
+                if attempt < retries - 1:
+                    await asyncio.sleep(wait)
+        logger.error("Polymarket API request failed after %d retries: %s", retries, last_error)
+        raise last_error  # type: ignore[misc]
 
     # ─── Gamma API — events & markets ────────────────────────────────────
 
@@ -219,7 +248,7 @@ class PolymarketAgent:
         data = await self._get(f"{GAMMA_API}/events", params={
             "active": "true",
             "closed": "false",
-            "order": "volume_24hr",
+            "order": "volume",
             "ascending": "false",
             "limit": limit,
         })
@@ -237,11 +266,14 @@ class PolymarketAgent:
         return None
 
     async def get_active_markets(self, limit: int = 100,
-                                  offset: int = 0) -> List[PolymarketMarket]:
-        """Fetch active markets from Gamma API."""
+                                  offset: int = 0,
+                                  order: str = "volume") -> List[PolymarketMarket]:
+        """Fetch active markets from Gamma API, sorted by volume by default."""
         data = await self._get(f"{GAMMA_API}/markets", params={
             "active": "true",
             "closed": "false",
+            "order": order,
+            "ascending": "false",
             "limit": limit,
             "offset": offset,
         })
@@ -252,7 +284,9 @@ class PolymarketAgent:
     async def search_markets(self, keyword: str, limit: int = 20) -> List[PolymarketMarket]:
         """Text search for markets containing keyword."""
         data = await self._get(f"{GAMMA_API}/markets", params={
-            "slug": keyword,
+            "_q": keyword,
+            "active": "true",
+            "closed": "false",
             "limit": limit,
         })
         return [PolymarketMarket.from_api(m) for m in (data if isinstance(data, list) else [])]
@@ -457,7 +491,9 @@ class PolymarketAgent:
 
         try:
             from py_clob_client.clob_types import (
-                OrderArgs, OrderType, PartialCreateOrderOptions,
+                OrderArgs,
+                OrderType,
+                PartialCreateOrderOptions,
             )
             from py_clob_client.order_builder.constants import BUY, SELL
 

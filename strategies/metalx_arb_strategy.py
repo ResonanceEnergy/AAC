@@ -15,16 +15,16 @@ Pairs monitored:
 
 import logging
 from datetime import datetime, timedelta
-from typing import Dict, List, Any, Optional
+from typing import Any, Dict, List, Optional
 
+from shared.audit_logger import AuditLogger
+from shared.communication import CommunicationFramework
 from shared.strategy_framework import (
     BaseArbitrageStrategy,
+    SignalType,
     StrategyConfig,
     TradingSignal,
-    SignalType,
 )
-from shared.communication import CommunicationFramework
-from shared.audit_logger import AuditLogger
 
 logger = logging.getLogger(__name__)
 

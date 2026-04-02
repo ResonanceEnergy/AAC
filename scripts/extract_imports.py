@@ -1,4 +1,5 @@
-import sys, re
+import re
+import sys
 from pathlib import Path
 
 file = Path(__file__).resolve().parent.parent / 'imports2.txt'
@@ -29,6 +30,7 @@ if file.exists():
 
 # Exclude standard libs
 import sys as _sys
+
 builtin = set(_sys.builtin_module_names)
 stdlib_extra = {'sys','os','re','json','datetime','math','typing','pathlib','collections','itertools','asyncio','functools','logging','argparse','csv','urllib','http','subprocess','heapq','threading','queue','enum','socket','ssl'}
 modules = sorted(m for m in modules if m not in builtin and m not in stdlib_extra and not m.startswith('_'))

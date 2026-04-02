@@ -13,11 +13,11 @@ Requires:
 
 import logging
 import os
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any
-from dataclasses import dataclass
 import sys
+from dataclasses import dataclass
+from datetime import datetime, timedelta
 from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
@@ -143,7 +143,7 @@ class SantimentClient(APIClient):
     async def get_mvrv_ratio(self, slug: str = 'bitcoin', days: int = 90) -> List[SantimentMetric]:
         """
         Get MVRV (Market Value to Realized Value) ratio.
-        
+
         MVRV > 3.5 → market top signal (overvalued).
         MVRV < 1.0 → market bottom signal (undervalued).
         """
@@ -152,7 +152,7 @@ class SantimentClient(APIClient):
     async def get_nvt_ratio(self, slug: str = 'bitcoin', days: int = 90) -> List[SantimentMetric]:
         """
         Get NVT (Network Value to Transactions) ratio.
-        
+
         High NVT → overvalued relative to on-chain activity.
         Low NVT → undervalued relative to on-chain activity.
         """

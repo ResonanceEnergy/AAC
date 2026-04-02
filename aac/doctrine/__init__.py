@@ -1,37 +1,35 @@
 """AAC Doctrine Package - Doctrine analysis and application engine."""
 
 from .doctrine_engine import (
-    DoctrineEngine,
-    DoctrineApplicationService,
-    Department,
-    ComplianceState,
-    BarrenWuffetState,
-    ActionType,
-    DoctrineViolation,
-    DoctrineComplianceReport,
     DOCTRINE_PACKS,
+    ActionType,
+    BarrenWuffetState,
+    ComplianceState,
+    Department,
+    DoctrineApplicationService,
+    DoctrineComplianceReport,
+    DoctrineEngine,
+    DoctrineViolation,
 )
-
 from .doctrine_integration import (
-    DoctrineOrchestrator,
-    TradingExecutionDoctrineAdapter,
     BigBrainDoctrineAdapter,
     CentralAccountingDoctrineAdapter,
     CryptoIntelligenceDoctrineAdapter,
+    DoctrineOrchestrator,
+    FFDDoctrineAdapter,
     SharedInfraDoctrineAdapter,
     StrategicDoctrineAdapter,
-    FFDDoctrineAdapter,
+    TradingExecutionDoctrineAdapter,
 )
-
 from .strategic_doctrine import (
-    StrategicDoctrineEngine,
-    MarketTerrain,
-    StrategicPosture,
-    PowerLaw,
-    TerrainAssessment,
     ForceAssessment,
+    MarketTerrain,
     PowerAssessment,
+    PowerLaw,
     StrategicDirective,
+    StrategicDoctrineEngine,
+    StrategicPosture,
+    TerrainAssessment,
     get_strategic_doctrine_engine,
 )
 

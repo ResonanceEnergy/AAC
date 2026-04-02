@@ -41,19 +41,19 @@ from datetime import date
 from typing import Dict, List, Optional, Tuple
 
 from strategies.rocket_ship.core import (
-    Asset,
-    AssetTier,
     LIFEBOAT_ALLOC_BTC_GOLD,
     LIFEBOAT_ALLOC_CASH,
     LIFEBOAT_ALLOC_STABLES,
     LIFEBOAT_ALLOC_XRP,
-    ROCKET_ALLOC_BRICS,
     ROCKET_ALLOC_BITCOIN,
+    ROCKET_ALLOC_BRICS,
     ROCKET_ALLOC_DEFI_TOOLS,
     ROCKET_ALLOC_ETHEREUM,
     ROCKET_ALLOC_SOLANA,
     ROCKET_ALLOC_XRP_FLARE,
     STARTING_CAPITAL_USD,
+    Asset,
+    AssetTier,
     SystemPhase,
 )
 

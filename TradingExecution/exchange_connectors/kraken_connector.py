@@ -7,10 +7,11 @@ Implementation of the exchange connector for Kraken.
 
 import asyncio
 import logging
-from datetime import datetime
-from typing import Dict, List, Optional, Any
 import sys
+from datetime import datetime
 from pathlib import Path
+from typing import Any, Dict, List, Optional
+
 logger = logging.getLogger(__name__)
 
 # Add project root to path
@@ -18,19 +19,19 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from shared.config_loader import get_config
-from shared.utils import with_circuit_breaker, CircuitOpenError
+from shared.utils import CircuitOpenError, with_circuit_breaker
 
 from .base_connector import (
-    BaseExchangeConnector,
-    Ticker,
-    OrderBook,
-    Balance,
-    ExchangeOrder,
-    ExchangeError,
-    ConnectionError,
     AuthenticationError,
+    Balance,
+    BaseExchangeConnector,
+    ConnectionError,
+    ExchangeError,
+    ExchangeOrder,
     InsufficientFundsError,
+    OrderBook,
     OrderError,
+    Ticker,
 )
 
 # Try to import ccxt
@@ -45,7 +46,7 @@ except ImportError:
 class KrakenConnector(BaseExchangeConnector):
     """
     Kraken exchange connector using ccxt library.
-    
+
     WARNING: Kraken does not offer a public testnet. All API calls with
     valid credentials will execute on LIVE/PRODUCTION systems.
     Use paper_trading mode in execution engine for testing.
@@ -70,15 +71,15 @@ class KrakenConnector(BaseExchangeConnector):
             testnet=testnet,
             rate_limit=rate_limit,
         )
-        
+
         self.paper_trading = paper_trading
-        
+
         # Load from config if not provided
         if not api_key:
             config = get_config()
             self.api_key = config.kraken.api_key
             self.api_secret = config.kraken.api_secret
-        
+
         # HARD SAFETY: Kraken has NO testnet — block live trading unless explicitly confirmed
         if self.api_key and not paper_trading:
             import os
@@ -96,40 +97,40 @@ class KrakenConnector(BaseExchangeConnector):
         """Connect to Kraken"""
         import time
         start_time = time.time()
-        
+
         if not CCXT_AVAILABLE:
             self.logger.error("ccxt library not installed. Run: pip install ccxt")
             await self._audit_auth("failure", "ccxt library not installed")
             return False
-        
+
         try:
             options = {
                 'apiKey': self.api_key,
                 'secret': self.api_secret,
                 'enableRateLimit': True,
             }
-            
+
             if self.paper_trading:
                 self.logger.info("Connecting to Kraken (PAPER TRADING MODE)")
             else:
                 self.logger.warning("[WARN]️  Connecting to Kraken LIVE PRODUCTION")
-            
+
             self._client = ccxt_async.kraken(options)
-            
+
             # Test connection
             await self._client.load_markets()
-            
+
             self._connected = True
             mode = "paper" if self.paper_trading else "LIVE"
             self.logger.info(f"Connected to Kraken ({mode})")
-            
+
             # Audit successful connection
             duration_ms = (time.time() - start_time) * 1000
             await self._audit_api_call("load_markets", "GET", "success", duration_ms)
             await self._audit_auth("success")
-            
+
             return True
-            
+
         except ccxt.AuthenticationError as e:
             self.logger.error(f"Kraken authentication failed: {e}")
             await self._audit_auth("failure", str(e))
@@ -199,13 +200,13 @@ class KrakenConnector(BaseExchangeConnector):
         if not self._check_credentials():
             self.logger.warning("No API credentials - returning empty balances")
             return {}
-        
+
         await self._rate_limit_wait()
-        
+
         try:
             balance = await self._client.fetch_balance()
             result = {}
-            
+
             for asset, data in balance.get('total', {}).items():
                 if data > 0:
                     result[asset] = Balance(
@@ -213,7 +214,7 @@ class KrakenConnector(BaseExchangeConnector):
                         free=balance.get('free', {}).get(asset, 0),
                         locked=balance.get('used', {}).get(asset, 0),
                     )
-            
+
             return result
         except ccxt.AuthenticationError as e:
             raise AuthenticationError(str(e))
@@ -233,7 +234,7 @@ class KrakenConnector(BaseExchangeConnector):
         """Create a new order on Kraken"""
         if not self._check_credentials():
             raise AuthenticationError("API credentials required for trading")
-        
+
         # Paper trading intercept — return simulated fill
         if self.paper_trading:
             import uuid
@@ -255,14 +256,14 @@ class KrakenConnector(BaseExchangeConnector):
                 fee=0.0,
                 timestamp=datetime.now(),
             )
-        
+
         await self._rate_limit_wait()
-        
+
         try:
             params = {}
             if client_order_id:
                 params['userref'] = client_order_id
-            
+
             order = await self._client.create_order(
                 symbol=symbol,
                 type=order_type,
@@ -271,9 +272,9 @@ class KrakenConnector(BaseExchangeConnector):
                 price=price,
                 params=params,
             )
-            
+
             return self._parse_order(order)
-            
+
         except ccxt.InsufficientFunds as e:
             raise InsufficientFundsError(str(e))
         except ccxt.InvalidOrder as e:
@@ -286,9 +287,9 @@ class KrakenConnector(BaseExchangeConnector):
         """Cancel an order"""
         if not self._check_credentials():
             raise AuthenticationError("API credentials required")
-        
+
         await self._rate_limit_wait()
-        
+
         try:
             await self._client.cancel_order(order_id, symbol)
             return True
@@ -303,9 +304,9 @@ class KrakenConnector(BaseExchangeConnector):
         """Get order details"""
         if not self._check_credentials():
             raise AuthenticationError("API credentials required")
-        
+
         await self._rate_limit_wait()
-        
+
         try:
             order = await self._client.fetch_order(order_id, symbol)
             return self._parse_order(order)
@@ -319,9 +320,9 @@ class KrakenConnector(BaseExchangeConnector):
         """Get all open orders"""
         if not self._check_credentials():
             return []
-        
+
         await self._rate_limit_wait()
-        
+
         try:
             orders = await self._client.fetch_open_orders(symbol)
             return [self._parse_order(o) for o in orders]
@@ -333,9 +334,9 @@ class KrakenConnector(BaseExchangeConnector):
         """Get actual trading fees from exchange"""
         if not self._check_credentials():
             return {'maker': 0.0016, 'taker': 0.0026}
-        
+
         await self._rate_limit_wait()
-        
+
         try:
             fees = await self._client.fetch_trading_fee(symbol)
             return {
@@ -357,7 +358,7 @@ class KrakenConnector(BaseExchangeConnector):
     ) -> ExchangeOrder:
         """
         Create a stop-loss order on Kraken.
-        
+
         Kraken supports stop-loss and stop-loss-limit order types.
         """
         if self.paper_trading:
@@ -372,26 +373,26 @@ class KrakenConnector(BaseExchangeConnector):
                 price=limit_price,
                 status="open",
             )
-        
+
         if not self._check_credentials():
             raise AuthenticationError("API credentials required for stop-loss orders")
-        
+
         await self._rate_limit_wait()
-        
+
         import time
         start_time = time.time()
-        
+
         try:
             params = {
                 'stopPrice': stop_price,
             }
             if client_order_id:
                 params['clientOrderId'] = client_order_id
-            
+
             if limit_price:
                 # Stop-loss-limit order
                 order_type = 'stop-loss-limit'
-                
+
                 order = await self._client.create_order(
                     symbol=symbol,
                     type=order_type,
@@ -403,7 +404,7 @@ class KrakenConnector(BaseExchangeConnector):
             else:
                 # Stop-loss order (market when triggered)
                 order_type = 'stop-loss'
-                
+
                 order = await self._client.create_order(
                     symbol=symbol,
                     type=order_type,
@@ -411,9 +412,9 @@ class KrakenConnector(BaseExchangeConnector):
                     amount=quantity,
                     params=params,
                 )
-            
+
             result = self._parse_order(order)
-            
+
             # Audit successful order
             duration_ms = (time.time() - start_time) * 1000
             await self._audit_api_call("create_stop_loss", "POST", "success", duration_ms)
@@ -421,10 +422,10 @@ class KrakenConnector(BaseExchangeConnector):
                 symbol, side, order_type, quantity, limit_price,
                 result.order_id, "stop_loss_created"
             )
-            
+
             self.logger.info(f"Stop-loss order created: {result.order_id} @ {stop_price}")
             return result
-            
+
         except ccxt.InsufficientFunds as e:
             await self._audit_order(symbol, side, "stop_loss", quantity, limit_price, None, "failed", str(e))
             raise InsufficientFundsError(str(e))
@@ -446,9 +447,9 @@ class KrakenConnector(BaseExchangeConnector):
         """Get trade history from exchange"""
         if not self._check_credentials():
             return []
-        
+
         await self._rate_limit_wait()
-        
+
         try:
             since_ts = int(since.timestamp() * 1000) if since else None
             trades = await self._client.fetch_my_trades(
@@ -456,7 +457,7 @@ class KrakenConnector(BaseExchangeConnector):
                 since=since_ts,
                 limit=limit,
             )
-            
+
             return [
                 {
                     'trade_id': t['id'],
@@ -501,18 +502,18 @@ if __name__ == '__main__':
     async def test():
         """Test."""
         connector = KrakenConnector()
-        
+
         try:
             connected = await connector.connect()
             logger.info(f"Connected: {connected}")
-            
+
             if connected:
                 ticker = await connector.get_ticker('BTC/USD')
                 logger.info(f"BTC/USD Ticker: bid={ticker.bid}, ask={ticker.ask}")
-                
+
         except Exception as e:
             logger.info(f"Error: {e}")
         finally:
             await connector.disconnect()
-    
+
     asyncio.run(test())

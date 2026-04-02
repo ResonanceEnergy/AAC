@@ -7,17 +7,20 @@ Demonstrates the comprehensive market data system integrated with arbitrage stra
 
 import asyncio
 import logging
+import sys
 import time
 from datetime import datetime, timedelta
-from typing import Dict, List, Any
-import sys
 from pathlib import Path
+from typing import Any, Dict, List
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from shared.market_data_integration import market_data_integration, initialize_market_data_integration
 from shared.audit_logger import audit_log
+from shared.market_data_integration import (
+    initialize_market_data_integration,
+    market_data_integration,
+)
 
 
 class MarketDataDemo:

@@ -350,7 +350,7 @@ class MatrixChatbot:
         if match and match.group(1) not in ("SHOW", "THE", "FOR"):
             ticker = match.group(1)
 
-        from strategies.matrix_maximizer.core import DEFAULT_PRICES, ASSET_VOLATILITIES, Asset
+        from strategies.matrix_maximizer.core import ASSET_VOLATILITIES, DEFAULT_PRICES, Asset
         spot = DEFAULT_PRICES.get(Asset(ticker), DEFAULT_PRICES.get(Asset.SPY, 560))
         sigma = ASSET_VOLATILITIES.get(Asset(ticker), 0.25)
 

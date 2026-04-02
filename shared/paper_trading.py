@@ -6,22 +6,22 @@ Simulated trading environment for strategy validation without financial risk.
 """
 
 import asyncio
-import logging
 import json
+import logging
+import random
+import sys
 import uuid
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Callable
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta
 from enum import Enum
 from pathlib import Path
-import sys
-import random
+from typing import Any, Callable, Dict, List, Optional
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from shared.config_loader import get_config, get_project_path
 from shared.audit_logger import get_audit_logger
+from shared.config_loader import get_config, get_project_path
 from shared.market_data_integration import market_data_integration
 
 logger = logging.getLogger(__name__)

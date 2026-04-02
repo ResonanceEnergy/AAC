@@ -6,18 +6,19 @@ Pre-trade and portfolio-level risk management.
 """
 
 import logging
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Tuple
-from pathlib import Path
-from dataclasses import dataclass, field
 import sys
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from pathlib import Path
+from typing import Dict, List, Optional, Tuple
 
 # Add shared module to path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from shared.config_loader import get_config, get_project_path
-from .trading_engine import Order, Position, OrderSide
+
+from .trading_engine import Order, OrderSide, Position
 
 
 @dataclass
@@ -46,7 +47,7 @@ class RiskState:
 class RiskManager:
     """
     Portfolio and order-level risk management.
-    
+
     Responsibilities:
     - Pre-trade risk checks
     - Position sizing
@@ -58,7 +59,7 @@ class RiskManager:
     def __init__(self, limits: Optional[RiskLimits] = None):
         self.config = get_config()
         self.logger = logging.getLogger('RiskManager')
-        
+
         # Initialize limits from config or use provided
         if limits is None:
             self.limits = RiskLimits(
@@ -68,11 +69,11 @@ class RiskManager:
             )
         else:
             self.limits = limits
-        
+
         # State tracking
         self.state = RiskState()
         self.positions: Dict[str, Position] = {}
-        
+
         self.logger.info(f"RiskManager initialized with limits: max_position=${self.limits.max_position_size_usd}, max_daily_loss=${self.limits.max_daily_loss_usd}")
 
     def _reset_daily_state(self):
@@ -87,49 +88,49 @@ class RiskManager:
     def check_order(self, order: Order, current_price: float) -> Tuple[bool, List[str]]:
         """
         Validate order against risk limits.
-        
+
         Args:
             order: Order to validate
             current_price: Current market price for the symbol
-            
+
         Returns:
             Tuple of (approved: bool, violations: List[str])
         """
         self._reset_daily_state()
         violations = []
-        
+
         order_value_usd = order.quantity * (order.price or current_price)
-        
+
         # Check 1: Order size limit
         if order_value_usd > self.limits.max_order_size_usd:
             violations.append(f"Order size ${order_value_usd:.2f} exceeds max ${self.limits.max_order_size_usd:.2f}")
-        
+
         # Check 2: Position size limit
         existing_position_value = self._get_position_value(order.symbol)
         new_total = existing_position_value + order_value_usd if order.side == OrderSide.BUY else existing_position_value
-        
+
         if new_total > self.limits.max_position_size_usd:
             violations.append(f"Total position ${new_total:.2f} would exceed max ${self.limits.max_position_size_usd:.2f}")
-        
+
         # Check 3: Daily loss limit
         if self.state.daily_pnl < -self.limits.max_daily_loss_usd:
             violations.append(f"Daily loss limit reached: ${self.state.daily_pnl:.2f}")
-        
+
         # Check 4: Open positions limit
         if len(self.positions) >= self.limits.max_open_positions and order.side == OrderSide.BUY:
             violations.append(f"Max open positions ({self.limits.max_open_positions}) reached")
-        
+
         # Check 5: Daily trade limit
         if self.state.daily_trades >= self.limits.daily_trade_limit:
             violations.append(f"Daily trade limit ({self.limits.daily_trade_limit}) reached")
-        
+
         # Check 6: Concentration limit
         total_exposure = self._calculate_total_exposure()
         if total_exposure > 0:
             concentration = (existing_position_value + order_value_usd) / total_exposure
             if concentration > self.limits.max_concentration_pct:
                 violations.append(f"Concentration {concentration:.1%} exceeds max {self.limits.max_concentration_pct:.1%}")
-        
+
         # Log violations
         if violations:
             self.state.violations.append({
@@ -139,7 +140,7 @@ class RiskManager:
             })
             for v in violations:
                 self.logger.warning(f"Risk violation: {v}")
-        
+
         return (len(violations) == 0, violations)
 
     def _get_position_value(self, symbol: str) -> float:
@@ -168,7 +169,7 @@ class RiskManager:
         """Record a completed trade and its P&L"""
         self.state.daily_trades += 1
         self.state.daily_pnl += pnl
-        
+
         if self.state.daily_pnl < -self.limits.max_daily_loss_usd:
             self.logger.error(f"DAILY LOSS LIMIT BREACHED: ${self.state.daily_pnl:.2f}")
 
@@ -191,7 +192,7 @@ class RiskManager:
             current_price: Current market price
             signal_strength: Signal confidence (0-1)
             volatility: Expected volatility
-            
+
         Returns:
             Recommended position size in base currency units
         """
@@ -200,10 +201,10 @@ class RiskManager:
             self.limits.max_order_size_usd,
             self.limits.max_position_size_usd - self._get_position_value(symbol),
         )
-        
+
         # Adjust for signal strength
         adjusted_usd = base_usd * signal_strength
-        
+
         # Adjust for volatility (lower size in high vol)
         vol_adjustment = min(1.0, 0.02 / max(volatility, 0.001))
         adjusted_usd *= vol_adjustment
@@ -220,14 +221,16 @@ class RiskManager:
                     f"Strategic doctrine modifier: {strategic_mod:.2f} "
                     f"(posture={directive.overall_posture.value})"
                 )
-        except Exception:
-            pass  # Strategic overlay is advisory
-        
+        except ImportError:
+            self.logger.debug("Strategic doctrine module not available")
+        except Exception as e:
+            self.logger.warning(f"Strategic doctrine overlay failed: {e} — using unmodified position size")
+
         # Convert to units
         position_size = adjusted_usd / current_price
-        
+
         self.logger.debug(f"Position size for {symbol}: {position_size:.6f} units (${adjusted_usd:.2f})")
-        
+
         return position_size
 
     def get_risk_report(self) -> Dict:
@@ -262,6 +265,6 @@ class RiskManager:
                     'warnings': directive.warnings,
                 }
         except Exception as e:
-            logger.exception("Unexpected error: %s", e)
+            self.logger.exception("Unexpected error: %s", e)
 
         return report

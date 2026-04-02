@@ -5,41 +5,53 @@ AAC 2100 Orchestrator - Complete System Reconstruction
 Quantum-enhanced orchestrator with full insight integration.
 Implements: sense → decide → act → reconcile cycle
 """
-from __future__ import annotations  # defer annotation evaluation — fixes forward-reference NameErrors
+from __future__ import (
+    annotations,  # defer annotation evaluation — fixes forward-reference NameErrors
+)
 
 import asyncio
-import logging
-import signal
 import json
+import logging
 import platform
+import signal
+import sys
 import time
+from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Callable
 from enum import Enum
 from pathlib import Path
-from collections import deque
+from typing import Any, Callable, Dict, List, Optional
+
 import numpy as np
-import sys
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
+from BigBrainIntelligence.agents import (
+    BaseResearchAgent,
+    ResearchFinding,
+    get_agents_by_theater,
+    get_all_agents,
+)
+from CentralAccounting.database import AccountingDatabase
+from shared.audit_logger import AuditLogger
+from shared.communication import CommunicationFramework
 from shared.config_loader import get_config, get_project_path
 from shared.data_sources import DataAggregator, MarketTick
-from BigBrainIntelligence.agents import (
-    get_all_agents, get_agents_by_theater, BaseResearchAgent, ResearchFinding
-)
-from TradingExecution.execution_engine import AAC2100ExecutionEngine, OrderSide, Position
 from shared.strategy_execution_engine import StrategyExecutionEngine
-from shared.communication import CommunicationFramework
-from shared.audit_logger import AuditLogger
-from CentralAccounting.database import AccountingDatabase
+from TradingExecution.execution_engine import AAC2100ExecutionEngine, OrderSide, Position
 
 logger = logging.getLogger(__name__)
 
 from shared.symbol_classifier import (
-    CRYPTO_SYMBOLS, EQUITY_SYMBOLS, is_crypto, is_equity,
-    route_exchange, normalize_pair, base_symbol, asset_class,
+    CRYPTO_SYMBOLS,
+    EQUITY_SYMBOLS,
+    asset_class,
+    base_symbol,
+    is_crypto,
+    is_equity,
+    normalize_pair,
+    route_exchange,
 )
 
 # Backward-compat alias used by execute_signals / _auto_execute_loop
@@ -111,14 +123,14 @@ except ImportError:
 
 # Import cache manager (optional)
 try:
-    from shared.cache_manager import get_cache, CacheManager
+    from shared.cache_manager import CacheManager, get_cache
     CACHE_AVAILABLE = True
 except ImportError:
     CACHE_AVAILABLE = False
 
 # Import WebSocket feeds (optional)
 try:
-    from shared.websocket_feeds import PriceFeedManager, CoinbaseWebSocketFeed
+    from shared.websocket_feeds import CoinbaseWebSocketFeed, PriceFeedManager
     WEBSOCKET_AVAILABLE = True
 except ImportError:
     WEBSOCKET_AVAILABLE = False
@@ -139,7 +151,11 @@ except ImportError:
 
 # Import Executive Branch agents
 try:
-    from shared.executive_branch_agents import get_az_supreme, get_ax_helix, initialize_executive_branch
+    from shared.executive_branch_agents import (
+        get_ax_helix,
+        get_az_supreme,
+        initialize_executive_branch,
+    )
     EXECUTIVE_BRANCH_AVAILABLE = True
 except ImportError:
     EXECUTIVE_BRANCH_AVAILABLE = False
@@ -395,11 +411,11 @@ class QuantumSignalAggregator:
         weighted_direction = 0
         total_weight = 0
 
-        for signal in symbol_signals:
-            weight = (self.signal_weights.get(signal.theater, 0.33) *
-                     (1 + signal.quantum_advantage))  # Quantum advantage bonus
-            direction_value = 1 if signal.direction == "long" else (-1 if signal.direction == "short" else 0)
-            weighted_direction += direction_value * signal.score * weight
+        for sig in symbol_signals:
+            weight = (self.signal_weights.get(sig.theater, 0.33) *
+                     (1 + sig.quantum_advantage))  # Quantum advantage bonus
+            direction_value = 1 if sig.direction == "long" else (-1 if sig.direction == "short" else 0)
+            weighted_direction += direction_value * sig.score * weight
             total_weight += weight
 
         if total_weight == 0:
@@ -584,24 +600,24 @@ class AAC2100Orchestrator:
     def _setup_logging(self) -> logging.Logger:
         logger = logging.getLogger("orchestrator")
         logger.setLevel(logging.INFO)
-        
+
         # Console handler
         ch = logging.StreamHandler()
         ch.setFormatter(logging.Formatter(
             '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
         ))
         logger.addHandler(ch)
-        
+
         # File handler
         log_dir = get_project_path("logs")
         log_dir.mkdir(parents=True, exist_ok=True)
-        
+
         fh = logging.FileHandler(log_dir / f"orchestrator_{datetime.now().strftime('%Y%m%d')}.log")
         fh.setFormatter(logging.Formatter(
             '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
         ))
         logger.addHandler(fh)
-        
+
         return logger
 
     async def initialize(self):
@@ -863,51 +879,51 @@ class AAC2100Orchestrator:
         """Graceful shutdown with state persistence"""
         self.state = OrchestratorState.STOPPING
         self.logger.info("Shutting down orchestrator...")
-        
+
         self._shutdown_event.set()
-        
+
         # Save checkpoint before closing positions
         self._save_checkpoint()
         self.logger.info("Checkpoint saved")
-        
+
         # Export final metrics
         self._export_final_metrics()
-        
+
         # Close all positions if configured
         if getattr(self.config.risk, "close_positions_on_shutdown", True):
             for position in self.execution_engine.get_open_positions():
                 self.logger.info(f"Closing position: {position.position_id}")
                 await self.execution_engine.close_position(position.position_id)
-        
+
         # Save state
         self.execution_engine.save_state()
-        
+
         # Stop WebSocket feeds if running
         if self.price_feeds:
             await self.price_feeds.stop()
             self.logger.info("WebSocket feeds stopped")
-        
+
         # Stop strategy execution engine
         if self.strategy_execution_engine:
             await self.strategy_execution_engine.shutdown()
             self.logger.info("Strategy execution engine stopped")
-        
+
         # Stop health server
         if self.health_server:
             await self.health_server.stop()
-        
+
         # Disconnect data sources
         await self.data_aggregator.disconnect_all()
-        
+
         self.state = OrchestratorState.STOPPED
         self.logger.info("Orchestrator shutdown complete")
-    
+
     def _export_final_metrics(self):
         """Export metrics to file before shutdown"""
         try:
             metrics_path = get_project_path('data', 'final_metrics.json')
             metrics_path.parent.mkdir(parents=True, exist_ok=True)
-            
+
             final_metrics = {
                 "timestamp": datetime.now().isoformat(),
                 "session_duration_seconds": (
@@ -930,12 +946,12 @@ class AAC2100Orchestrator:
                     for k, v in self.theaters.items()
                 },
             }
-            
+
             with open(metrics_path, 'w') as f:
                 json.dump(final_metrics, f, indent=2, default=str)
-            
+
             self.logger.info(f"Final metrics exported to {metrics_path}")
-            
+
         except Exception as e:
             self.logger.error(f"Failed to export final metrics: {e}")
 
@@ -976,23 +992,23 @@ class AAC2100Orchestrator:
         """Load state from checkpoint file"""
         if not self._checkpoint_path.exists():
             return
-        
+
         try:
             with open(self._checkpoint_path, 'r') as f:
                 checkpoint = json.load(f)
-            
+
             # Restore metrics counters
             for key in ['scans_completed', 'signals_generated', 'trades_executed', 'total_pnl']:
                 if key in checkpoint.get('metrics', {}):
                     self.metrics[key] = checkpoint['metrics'][key]
-            
+
             # Restore theater counters
             for theater_id, data in checkpoint.get('theaters', {}).items():
                 if theater_id in self.theaters:
                     self.theaters[theater_id].findings_count = data.get('findings_count', 0)
                     self.theaters[theater_id].actions_count = data.get('actions_count', 0)
                     self.theaters[theater_id].errors_count = data.get('errors_count', 0)
-            
+
             self.logger.info(f"Loaded checkpoint from {checkpoint.get('timestamp', 'unknown')}")
         except Exception as e:
             self.logger.error(f"Failed to load checkpoint: {e}")
@@ -1026,19 +1042,19 @@ class AAC2100Orchestrator:
 
         findings = []
         agents = get_agents_by_theater(theater)
-        
+
         for agent in agents:
             try:
                 agent_findings = await agent.scan()
                 findings.extend(agent_findings)
-                
+
                 # Convert findings to signals
                 for finding in agent_findings:
                     signal = self._finding_to_signal(finding)
                     if signal:
                         self.signal_aggregator.add_signal(signal)
                         self.metrics["signals_generated"] += 1
-                
+
             except Exception as e:
                 self.logger.error(f"Agent {agent.agent_id} scan failed: {e}")
                 theater_status.errors_count += 1
@@ -1046,7 +1062,7 @@ class AAC2100Orchestrator:
         theater_status.last_scan = datetime.now()
         theater_status.findings_count += len(findings)
         self.metrics["scans_completed"] += 1
-        
+
         return findings
 
     def _finding_to_signal(self, finding: ResearchFinding) -> Optional[QuantumSignal]:
@@ -1060,9 +1076,9 @@ class AAC2100Orchestrator:
             "api_signal": "long",
             "access_opportunity": "long",
         }
-        
+
         direction = direction_map.get(finding.finding_type, "neutral")
-        
+
         # Extract symbol from finding data
         symbol = finding.data.get("asset") or finding.data.get("symbol") or finding.data.get("narrative")
         if not symbol:
@@ -1096,16 +1112,16 @@ class AAC2100Orchestrator:
             min_score=self.min_signal_score,
             limit=self.max_concurrent_trades,
         )
-        
+
         current_positions = len(self.execution_engine.get_open_positions())
         available_slots = self.max_concurrent_trades - current_positions
-        
+
         for opp in opportunities[:available_slots]:
             if opp["direction"] == "neutral":
                 continue
 
             symbol = opp["symbol"]
-            
+
             # Check if we already have a position
             existing = [p for p in self.execution_engine.get_open_positions() if p.symbol == symbol]
             if existing:
@@ -1115,17 +1131,17 @@ class AAC2100Orchestrator:
             snapshot = await self.data_aggregator.get_market_snapshot([symbol.split("/")[0]])
             if not snapshot:
                 continue
-            
+
             tick = list(snapshot.values())[0] if snapshot else None
             if not tick:
                 continue
 
             # Open position
             side = OrderSide.BUY if opp["direction"] == "long" else OrderSide.SELL
-            
+
             # Get actual account balance
             account_balance = await self.get_account_balance()
-            
+
             # Calculate position size
             position_size = self.execution_engine.risk_manager.calculate_position_size(
                 account_balance=account_balance,
@@ -1137,7 +1153,7 @@ class AAC2100Orchestrator:
                 f"Executing signal: {side.value} {quantity:.6f} {symbol} @ ${tick.price:,.2f} "
                 f"(score: {opp['strength'] * opp['confidence']:.2f})"
             )
-            
+
             position = await self.execution_engine.open_position(
                 symbol=symbol,
                 side=side,
@@ -1145,11 +1161,11 @@ class AAC2100Orchestrator:
                 entry_price=tick.price,
                 exchange=_route_exchange(symbol),
             )
-            
+
             if position:
                 self.metrics["trades_executed"] += 1
                 self.theaters[opp["signals"][0].theater].actions_count += 1
-                
+
                 # Log to database
                 self.db.record_transaction(
                     account_id=1,  # Default account
@@ -1169,17 +1185,17 @@ class AAC2100Orchestrator:
 
         # Get symbols we need prices for
         symbols = list(set(p.symbol.split("/")[0] for p in positions))
-        
+
         # Fetch prices
         snapshot = await self.data_aggregator.get_market_snapshot(symbols)
-        
+
         # Build price map
         prices = {}
         for tick in snapshot.values():
             # Extract base symbol
             base = tick.symbol.split("/")[0]
             prices[f"{base}/USDT"] = tick.price
-        
+
         # Update positions
         await self.execution_engine.update_positions(prices)
 
@@ -1191,14 +1207,14 @@ class AAC2100Orchestrator:
                     # Scan all theaters
                     for theater in ["theater_b", "theater_c", "theater_d"]:
                         await self.run_agent_scan(theater)
-                    
+
                     self.logger.info(
                         f"Scan complete: {self.metrics['signals_generated']} total signals"
                     )
-                    
+
                 except Exception as e:
                     self.logger.error(f"Scan loop error: {e}")
-            
+
             await asyncio.sleep(self.scan_interval)
 
     async def execution_loop(self):
@@ -1207,22 +1223,22 @@ class AAC2100Orchestrator:
             if self.state == OrchestratorState.RUNNING:
                 try:
                     start_time = datetime.now()
-                    
+
                     # Update positions
                     await self.update_positions()
-                    
+
                     # Execute signals
                     await self.execute_signals()
-                    
+
                     # Record end-to-end latency
                     end_time = datetime.now()
                     latency_us = (end_time - start_time).total_seconds() * 1_000_000
                     self.latency_tracker.record_latency("end_to_end_execution", latency_us)
                     self.metrics["end_to_end_latency_us"] = self.latency_tracker.get_p99_9_latency()
-                    
+
                 except Exception as e:
                     self.logger.error(f"Execution loop error: {e}")
-            
+
             await asyncio.sleep(self.execution_interval)
 
     async def metrics_loop(self):
@@ -1230,7 +1246,7 @@ class AAC2100Orchestrator:
         while not self._shutdown_event.is_set():
             if self.state == OrchestratorState.RUNNING:
                 self._log_metrics()
-            
+
             await asyncio.sleep(300)  # Every 5 minutes
 
     def _log_metrics(self):
@@ -1238,11 +1254,11 @@ class AAC2100Orchestrator:
         open_positions = self.execution_engine.get_open_positions()
         unrealized_pnl = self.execution_engine.get_total_unrealized_pnl()
         latency_stats = self.latency_tracker.get_latency_stats()
-        
+
         # Check p99.9 target (<100μs)
         p99_9_us = latency_stats["p99_9_us"]
         latency_status = "✅ TARGET MET" if p99_9_us < 100 else f"[WARN]️  {p99_9_us:.1f}μs"
-        
+
         self.logger.info(
             f"METRICS | Scans: {self.metrics['scans_completed']} | "
             f"Signals: {self.metrics['signals_generated']} | "
@@ -1251,7 +1267,7 @@ class AAC2100Orchestrator:
             f"Unrealized P&L: ${unrealized_pnl:.2f} | "
             f"p99.9 Latency: {latency_status}"
         )
-        
+
         # Log detailed latency breakdown every hour
         if not hasattr(self, '_last_latency_log'):
             self._last_latency_log = datetime.now()
@@ -1263,11 +1279,11 @@ class AAC2100Orchestrator:
     def _log_detailed_latency(self):
         """Log detailed latency statistics for AAC 2100 optimization"""
         latency_stats = self.latency_tracker.get_latency_stats()
-        
+
         self.logger.info("=== AAC 2100 LATENCY ANALYSIS ===")
         self.logger.info(f"Overall p50: {latency_stats['p50_us']:.1f}μs | p95: {latency_stats['p95_us']:.1f}μs | p99: {latency_stats['p99_us']:.1f}μs | p99.9: {latency_stats['p99_9_us']:.1f}μs")
         self.logger.info(f"Target: <100μs p99.9 | Current: {'✅ MET' if latency_stats['p99_9_us'] < 100 else '[WARN]️  NOT MET'}")
-        
+
         for op, stats in latency_stats["operations"].items():
             if stats["count"] > 0:
                 status = "✅" if stats["p99_9_us"] < 50 else "[WARN]️"  # Stricter per-operation targets
@@ -1290,84 +1306,20 @@ class AAC2100Orchestrator:
                 )
                 if total > 0:
                     return total
-            
+
             # Fall back to config default
             default_balance = getattr(self.config.risk, 'default_account_balance', 10000)
             self.logger.debug(f"Using default account balance: ${default_balance}")
             return default_balance
-            
+
         except Exception as e:
             self.logger.warning(f"Failed to get account balance: {e}")
             return getattr(self.config.risk, 'default_account_balance', 10000)
 
-    async def _run_simple(self):
-        """Simple run method (legacy — superseded by run() with quantum/AI)"""
-        await self.initialize()
-        
-        # Setup signal handlers (platform-specific)
-        if platform.system() != 'Windows':
-            # Unix-style signal handlers
-            loop = asyncio.get_event_loop()
-            for sig in (signal.SIGTERM, signal.SIGINT):
-                loop.add_signal_handler(sig, lambda: asyncio.create_task(self.shutdown()))
-        else:
-            # Windows: Use keyboard interrupt handling instead
-            self.logger.info("Windows detected - use Ctrl+C to stop")
-        
-        # Start execution engine background tasks
-        await self.execution_engine.start_background_tasks(
-            reconciliation_interval=300,  # 5 minutes
-            order_poll_interval=30,       # 30 seconds
-        )
-        
-        # Start strategy execution engine
-        if self.strategy_execution_engine:
-            await self.strategy_execution_engine.initialize()
-            self.logger.info("Strategy execution engine started - real arbitrage algorithms active")
-        
-        # Initial position reconciliation on startup
-        self.logger.info("Running initial position reconciliation...")
-        for exchange in ["ndax", "ibkr", "moomoo"]:
-            try:
-                results = await self.execution_engine.reconcile_positions(exchange)
-                if results.get("error"):
-                    self.logger.debug(f"Skipped {exchange} reconciliation: not connected")
-                elif results.get("local_positions") or results.get("exchange_positions"):
-                    self.logger.info(
-                        f"{exchange.capitalize()} reconciliation: {len(results.get('matched', []))} matched"
-                    )
-            except Exception as e:
-                self.logger.debug(f"Reconciliation skipped for {exchange}: {e}")
-        
-        # Build task list
-        tasks = [
-            self.scan_loop(),
-            self.execution_loop(),
-            self.metrics_loop(),
-        ]
-        
-        # Add auto-execution task if enabled
-        if self.auto_execute_signals:
-            self.logger.info(
-                f"Auto-execution ENABLED: min_confidence={self.auto_execute_min_confidence}, "
-                f"confirmation_signals={self.auto_execute_confirmation_signals}"
-            )
-            tasks.append(self._auto_execute_loop())
-        
-        # Run all loops concurrently
-        try:
-            await asyncio.gather(*tasks)
-        except asyncio.CancelledError:
-            pass
-        finally:
-            # Stop execution engine background tasks
-            await self.execution_engine.stop_background_tasks()
-            await self.shutdown()
-    
     async def _auto_execute_loop(self):
         """
         Background loop for automatic signal-to-trade execution.
-        
+
         Only executes trades when:
         1. Signal confidence >= auto_execute_min_confidence
         2. At least auto_execute_confirmation_signals agree
@@ -1378,23 +1330,23 @@ class AAC2100Orchestrator:
             if self.state != OrchestratorState.RUNNING:
                 await asyncio.sleep(5)
                 continue
-            
+
             try:
                 # Get high-confidence opportunities
                 opportunities = self.signal_aggregator.get_top_opportunities(
                     min_score=self.auto_execute_min_confidence,
                     limit=self.max_concurrent_trades * 2,
                 )
-                
+
                 current_positions = len(self.execution_engine.get_open_positions())
                 available_slots = self.max_concurrent_trades - current_positions
-                
+
                 executed_count = 0
                 for opp in opportunities[:available_slots]:
                     # Skip neutral signals
                     if opp["direction"] == "neutral":
                         continue
-                    
+
                     # Check confirmation threshold
                     if opp["signal_count"] < self.auto_execute_confirmation_signals:
                         self.logger.debug(
@@ -1402,7 +1354,7 @@ class AAC2100Orchestrator:
                             f"(need {self.auto_execute_confirmation_signals})"
                         )
                         continue
-                    
+
                     # Check if already have position
                     existing = [
                         p for p in self.execution_engine.get_open_positions()
@@ -1410,37 +1362,37 @@ class AAC2100Orchestrator:
                     ]
                     if existing:
                         continue
-                    
+
                     symbol = opp["symbol"]
-                    
+
                     # Get current price
                     snapshot = await self.data_aggregator.get_market_snapshot(
                         [symbol.split("/")[0]]
                     )
                     if not snapshot:
                         continue
-                    
+
                     tick = list(snapshot.values())[0] if snapshot else None
                     if not tick:
                         continue
-                    
+
                     # Calculate position size with reduced risk for auto-execution
                     side = OrderSide.BUY if opp["direction"] == "long" else OrderSide.SELL
                     account_balance = await self.get_account_balance()
-                    
+
                     # Use half the normal risk per trade for auto-execution
                     position_size = self.execution_engine.risk_manager.calculate_position_size(
                         account_balance=account_balance,
                         risk_per_trade_pct=1.0,  # Half of manual execution
                     )
                     quantity = position_size / tick.price
-                    
+
                     # Log auto-execution
                     self.logger.info(
                         f"AUTO-EXECUTE: {side.value} {quantity:.6f} {symbol} @ ${tick.price:,.2f} | "
                         f"confidence={opp['confidence']:.2f}, signals={opp['signal_count']}"
                     )
-                    
+
                     # Execute the trade
                     position = await self.execution_engine.open_position(
                         symbol=symbol,
@@ -1449,12 +1401,12 @@ class AAC2100Orchestrator:
                         entry_price=tick.price,
                         exchange=_route_exchange(symbol),
                     )
-                    
+
                     if position:
                         executed_count += 1
                         self.metrics["trades_executed"] += 1
                         self.metrics["auto_executed"] += 1
-                        
+
                         # Record in database
                         self.db.record_transaction(
                             account_id=1,
@@ -1465,13 +1417,13 @@ class AAC2100Orchestrator:
                             side=side.value,
                             symbol=symbol,
                         )
-                
+
                 if executed_count > 0:
                     self.logger.info(f"Auto-execution cycle: {executed_count} trades opened")
-                    
+
             except Exception as e:
                 self.logger.error(f"Auto-execution loop error: {e}")
-            
+
             # Check less frequently than manual execution
             await asyncio.sleep(self.execution_interval * 2)
 
@@ -1482,7 +1434,7 @@ class AAC2100Orchestrator:
     ):
         """
         Enable automatic signal-to-trade execution.
-        
+
         Args:
             min_confidence: Minimum signal confidence to execute (0.0-1.0)
             confirmation_signals: Minimum number of agreeing signals required
@@ -1494,7 +1446,7 @@ class AAC2100Orchestrator:
             f"Auto-execution enabled: min_confidence={min_confidence}, "
             f"confirmation_signals={confirmation_signals}"
         )
-    
+
     def disable_auto_execution(self):
         """Disable automatic signal-to-trade execution"""
         self.auto_execute_signals = False
@@ -1534,7 +1486,7 @@ class AAC2100Orchestrator:
                 try:
                     # Quantum-enhanced market scanning
                     opportunities = await self.quantum_arbitrage_engine.scan_for_opportunities()
-                    
+
                     for opp in opportunities:
                         if opp["quantum_advantage"] >= self.quantum_advantage_threshold:
                             # Convert to quantum signal
@@ -1551,14 +1503,14 @@ class AAC2100Orchestrator:
                                 cross_temporal_score=opp.get("temporal_score", 0.0),
                                 metadata=opp,
                             )
-                            
+
                             self.quantum_signal_aggregator.add_signal(signal)
                             self.metrics["quantum_signals"] += 1
                             self.theaters["theater_c"].quantum_signals += 1
-                    
+
                 except Exception as e:
                     self.logger.error(f"Quantum scanning error: {e}")
-            
+
             await asyncio.sleep(self.scan_interval)
 
     async def _ai_prediction_loop(self):
@@ -1568,17 +1520,17 @@ class AAC2100Orchestrator:
                 try:
                     # AI-driven incident prediction
                     predictions = await self.ai_incident_predictor.predict_incidents()
-                    
+
                     for prediction in predictions:
                         if prediction["confidence"] >= 0.8:  # High confidence threshold
                             # Take preventive action
                             await self._execute_preventive_action(prediction)
                             self.metrics["ai_predictions"] += 1
                             self.theaters["theater_c"].ai_predictions += 1
-                    
+
                 except Exception as e:
                     self.logger.error(f"AI prediction error: {e}")
-            
+
             await asyncio.sleep(300)  # Every 5 minutes
 
     async def _intelligence_model_loop(self):
@@ -1594,16 +1546,18 @@ class AAC2100Orchestrator:
         into QuantumArbitrageEngine + AIIncidentPredictor.
         """
         try:
-            import os
+            from config.account_balances import Balances
             from strategies.market_intelligence_model import MarketIntelligenceModel
-            balance = float(os.getenv("ACCOUNT_BALANCE_USD", "920"))
+            balance = Balances.ibkr_total()
             doctrine_mult = 1.0
             try:
                 from integrations.cross_pillar_hub import get_cross_pillar_hub
                 hub = get_cross_pillar_hub()
                 doctrine_mult = hub.get_risk_multiplier()
-            except Exception:
-                pass
+            except ImportError:
+                self.logger.debug("Cross-pillar hub not available — using default risk multiplier")
+            except Exception as e:
+                self.logger.warning("Cross-pillar risk multiplier failed: %s — using default 1.0", e)
             self._intelligence_model = MarketIntelligenceModel(
                 available_capital=balance,
                 doctrine_risk_mult=doctrine_mult,
@@ -1704,7 +1658,7 @@ class AAC2100Orchestrator:
                 try:
                     # Cross-temporal arbitrage scanning
                     temporal_opportunities = await self.cross_temporal_processor.scan_temporal_arbitrage()
-                    
+
                     for opp in temporal_opportunities:
                         # Create cross-temporal signal
                         signal = QuantumSignal(
@@ -1720,14 +1674,14 @@ class AAC2100Orchestrator:
                             cross_temporal_score=opp["temporal_score"],
                             metadata=opp,
                         )
-                        
+
                         self.quantum_signal_aggregator.add_signal(signal)
                         self.metrics["cross_temporal_trades"] += 1
                         self.theaters["theater_d"].cross_temporal_ops += 1
-                    
+
                 except Exception as e:
                     self.logger.error(f"Cross-temporal arbitrage error: {e}")
-            
+
             await asyncio.sleep(self.scan_interval * 2)  # Less frequent
 
     async def _advancement_validation_loop(self):
@@ -1738,15 +1692,15 @@ class AAC2100Orchestrator:
                     # Validate 20-year advancement progress
                     await self.advancement_validator._collect_metrics()
                     await self.advancement_validator._validate_advancement()
-                    
+
                     # Update metrics
                     advancement_status = self.advancement_validator.get_advancement_status()
                     self.metrics["quantum_advantage_ratio"] = advancement_status.get("quantum_advantage", 1.0)
                     self.metrics["ai_accuracy"] = advancement_status.get("ai_accuracy", 0.95)
-                    
+
                 except Exception as e:
                     self.logger.error(f"Advancement validation error: {e}")
-            
+
             await asyncio.sleep(300)  # Every 5 minutes
 
     async def _predictive_maintenance_loop(self):
@@ -1756,25 +1710,25 @@ class AAC2100Orchestrator:
                 try:
                     # Predict system failures
                     failure_predictions = await self.predictive_maintenance.predict_failures()
-                    
+
                     for prediction in failure_predictions:
                         if prediction["probability"] >= 0.7:  # High probability threshold
                             await self._execute_maintenance_action(prediction)
-                    
+
                 except Exception as e:
                     self.logger.error(f"Predictive maintenance error: {e}")
-            
+
             await asyncio.sleep(600)  # Every 10 minutes
 
     async def _execute_preventive_action(self, prediction: Dict):
         """Execute AI-recommended preventive actions"""
         action_type = prediction.get("recommended_action")
-        
+
         if action_type == "throttle_risk":
             # Implement circuit breaker throttling
             await self.quantum_circuit_breaker.throttle_risk()
             self.logger.info(f"AI preventive action: throttled risk based on prediction {prediction['id']}")
-        
+
         elif action_type == "route_failover":
             # Implement venue failover
             await self._execute_failover(prediction)
@@ -1808,7 +1762,7 @@ class AAC2100Orchestrator:
     async def run(self):
         """Main AAC 2100 execution loop with quantum advantage, AI autonomy, and cross-temporal operations"""
         await self.initialize()
-        
+
         # Setup signal handlers (platform-specific)
         if platform.system() != 'Windows':
             # Unix-style signal handlers
@@ -1818,19 +1772,19 @@ class AAC2100Orchestrator:
         else:
             # Windows: Use keyboard interrupt handling instead
             self.logger.info("Windows detected - use Ctrl+C to stop")
-        
+
         # Start AAC 2100 background tasks
         background_tasks = []
-        
+
         if self._enable_quantum:
             background_tasks.append(self._quantum_arbitrage_scanning())
             self.logger.info("Quantum arbitrage scanning: ENABLED")
-        
+
         if self._enable_ai_autonomy:
             background_tasks.append(self._ai_prediction_loop())
             background_tasks.append(self._predictive_maintenance_loop())
             self.logger.info("AI autonomy and predictive maintenance: ENABLED")
-        
+
         if self._enable_cross_temporal:
             background_tasks.append(self._cross_temporal_arbitrage())
             self.logger.info("Cross-temporal arbitrage: ENABLED")
@@ -1849,13 +1803,13 @@ class AAC2100Orchestrator:
 
         # Always run advancement validation
         background_tasks.append(self._advancement_validation_loop())
-        
+
         # Start execution engine background tasks
         await self.execution_engine.start_background_tasks(
             reconciliation_interval=300,  # 5 minutes
             order_poll_interval=30,       # 30 seconds
         )
-        
+
         # Initial position reconciliation on startup
         self.logger.info("Running initial position reconciliation...")
         for exchange in ["ndax", "ibkr", "moomoo"]:
@@ -1869,14 +1823,14 @@ class AAC2100Orchestrator:
                     )
             except Exception as e:
                 self.logger.debug(f"Reconciliation skipped for {exchange}: {e}")
-        
+
         # Add legacy scan and execution loops for compatibility
         background_tasks.extend([
             self.scan_loop(),
             self.execution_loop(),
             self.metrics_loop(),
         ])
-        
+
         # Add auto-execution task if enabled
         if self.auto_execute_signals:
             self.logger.info(
@@ -1884,7 +1838,7 @@ class AAC2100Orchestrator:
                 f"confirmation_signals={self.auto_execute_confirmation_signals}"
             )
             background_tasks.append(self._auto_execute_loop())
-        
+
         # Run all AAC 2100 loops concurrently
         try:
             await asyncio.gather(*background_tasks)

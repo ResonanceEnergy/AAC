@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """Quick Moomoo connectivity + OWL options check."""
-import sys, io
+import io
+import sys
+
 if hasattr(sys.stdout, "buffer") and sys.stdout.encoding.lower() != "utf-8":
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
-from moomoo import (OpenQuoteContext, OpenSecTradeContext,
-                     TrdEnv, SecurityFirm, TrdMarket, Currency)
+from moomoo import Currency, OpenQuoteContext, OpenSecTradeContext, SecurityFirm, TrdEnv, TrdMarket
 
 HOST = "127.0.0.1"
 PORT = 11111

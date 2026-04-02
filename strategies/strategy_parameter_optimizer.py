@@ -5,13 +5,13 @@ Strategy Parameter Optimization Runner
 Command-line interface for running parameter optimization experiments.
 """
 
-import asyncio
 import argparse
+import asyncio
 import json
-import sys
-from pathlib import Path
-from datetime import datetime
 import logging
+import sys
+from datetime import datetime
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -19,9 +19,9 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from shared.strategy_parameter_tester import (
-    strategy_parameter_tester,
+    OptimizationMethod,
     initialize_strategy_parameter_testing,
-    OptimizationMethod
+    strategy_parameter_tester,
 )
 
 

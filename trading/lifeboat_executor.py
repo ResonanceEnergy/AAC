@@ -33,10 +33,10 @@ logger = logging.getLogger(__name__)
 # ── Storm Lifeboat imports ──────────────────────────────────────────────
 try:
     from strategies.storm_lifeboat.capital_engine import (
+        ASSET_TO_ETF,
         SeeSawPhase,
         SeeSawSignal,
         TrackedPosition,
-        ASSET_TO_ETF,
     )
     LIFEBOAT_AVAILABLE = True
 except ImportError:

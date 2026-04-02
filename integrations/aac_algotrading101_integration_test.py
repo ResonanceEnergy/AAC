@@ -7,13 +7,14 @@ backtesting framework. Validates that the enhanced system can properly
 analyze and backtest arbitrage opportunities.
 """
 
-import sys
+import logging
 import os
-import pandas as pd
-import numpy as np
+import sys
 from datetime import datetime, timedelta
 from typing import Dict, List
-import logging
+
+import numpy as np
+import pandas as pd
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +22,9 @@ logger = logging.getLogger(__name__)
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from aac_algotrading101_hub import AACAlgoTrading101Hub, create_arbitrage_strategy
+
 from tools.aac_timestamp_converter import AACTimestampConverter
+
 
 class AACAlgoTrading101IntegrationTest:
     """

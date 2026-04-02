@@ -6,16 +6,18 @@ Budget: $920 — uses pre-priced contracts from 2026-03-18 session.
 """
 
 import asyncio
-import sys
 import os
+import sys
 
 sys.path.insert(0, r"c:\dev\AAC_fresh")
 os.chdir(r"c:\dev\AAC_fresh")
 
 import nest_asyncio
+
 nest_asyncio.apply()
 
 from shared.config_loader import load_env_file
+
 load_env_file()
 
 from TradingExecution.exchange_connectors.ibkr_connector import IBKRConnector

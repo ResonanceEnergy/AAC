@@ -1,7 +1,7 @@
 """Tests for the Unusual Whales snapshot service and FFD integration hooks."""
 
-from pathlib import Path
 import sys
+from pathlib import Path
 
 import pytest
 

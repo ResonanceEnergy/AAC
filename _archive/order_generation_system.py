@@ -16,10 +16,10 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 
 from shared.secrets_manager import (
-    validate_symbol,
-    validate_quantity,
-    validate_price,
     OrderValidator,
+    validate_price,
+    validate_quantity,
+    validate_symbol,
 )
 
 logger = logging.getLogger(__name__)

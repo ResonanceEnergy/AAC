@@ -3,18 +3,20 @@
 BUY 10x OWL Jan 15 2027 $5 PUT @ $0.50 limit on Moomoo.
 Contract: US.OWL270115P5000
 """
-import sys, io
+import io
+import sys
+
 if hasattr(sys.stdout, "buffer") and sys.stdout.encoding.lower() != "utf-8":
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
 from moomoo import (
-    OpenSecTradeContext,
     OpenQuoteContext,
+    OpenSecTradeContext,
+    OrderType,
     SecurityFirm,
+    TrdEnv,
     TrdMarket,
     TrdSide,
-    TrdEnv,
-    OrderType,
 )
 
 CONTRACT = "US.OWL270115P5000"

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import pandas as pd
+
 from ..features import indicators as ind
 from ..features.regimes import compression_flag
 from .filters import daily_trend_bias

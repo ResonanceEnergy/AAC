@@ -310,10 +310,11 @@ class HTTPHealthCheck:
     # ══════════════════════════════════════════════════════════════════════
 
     def test_uw_flow(self) -> EndpointResult:
-        url = "https://api.unusualwhales.com/api/stock/flow?limit=5"
+        url = "https://api.unusualwhales.com/api/option-trades/flow-alerts?limit=5"
         headers = {
             "Authorization": f"Bearer {self._uw}",
-            "User-Agent": "AAC-MatrixMaximizer/1.0",
+            "User-Agent": "AAC/3.6.0 UnusualWhalesClient",
+            "UW-CLIENT-API-ID": "100001",
         }
         return self._test(
             "Unusual Whales Options Flow", url, headers=headers,
@@ -322,10 +323,11 @@ class HTTPHealthCheck:
         )
 
     def test_uw_dark_pool(self) -> EndpointResult:
-        url = "https://api.unusualwhales.com/api/darkpool?limit=5"
+        url = "https://api.unusualwhales.com/api/darkpool/recent?limit=5"
         headers = {
             "Authorization": f"Bearer {self._uw}",
-            "User-Agent": "AAC-MatrixMaximizer/1.0",
+            "User-Agent": "AAC/3.6.0 UnusualWhalesClient",
+            "UW-CLIENT-API-ID": "100001",
         }
         return self._test(
             "Unusual Whales Dark Pool", url, headers=headers,
@@ -334,10 +336,11 @@ class HTTPHealthCheck:
         )
 
     def test_uw_congress(self) -> EndpointResult:
-        url = "https://api.unusualwhales.com/api/congress/trading?limit=5"
+        url = "https://api.unusualwhales.com/api/congress/recent-trades?limit=5"
         headers = {
             "Authorization": f"Bearer {self._uw}",
-            "User-Agent": "AAC-MatrixMaximizer/1.0",
+            "User-Agent": "AAC/3.6.0 UnusualWhalesClient",
+            "UW-CLIENT-API-ID": "100001",
         }
         return self._test(
             "Unusual Whales Congress Trades", url, headers=headers,

@@ -18,14 +18,18 @@ All gaps have been identified and resolved.
 """
 
 import json
+import logging
 import os
-from pathlib import Path
-from typing import Dict, List, Any, Set
 from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Set
 
 # Import our mapping system
-from strategies.strategy_agent_master_mapping import get_strategy_agent_mapper, validate_all_assignments
-import logging
+from strategies.strategy_agent_master_mapping import (
+    get_strategy_agent_mapper,
+    validate_all_assignments,
+)
+
 logger = logging.getLogger(__name__)
 
 class AACAgentConsolidation:

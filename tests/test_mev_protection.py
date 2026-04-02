@@ -1,11 +1,12 @@
 """Tests for CryptoIntelligence/mev_protection_system.py — MEV detection."""
 
 import pytest
+
 from CryptoIntelligence.mev_protection_system import (
+    MEVAlert,
     MEVAttackType,
     ProtectionLevel,
     RiskLevel,
-    MEVAlert,
     SandwichDetection,
     SandwichDetector,
     TransactionProtectionPlan,

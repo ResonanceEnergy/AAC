@@ -10,7 +10,6 @@ from typing import Any, Dict, List, Optional
 
 from integrations.unusual_whales_client import DarkPoolTrade, OptionsFlow, UnusualWhalesClient
 
-
 logger = logging.getLogger("UnusualWhalesService")
 
 

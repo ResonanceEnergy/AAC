@@ -16,30 +16,49 @@ Features:
 """
 
 import asyncio
-import logging
 import json
-import time
-from datetime import datetime
-from typing import Dict, List, Any
-from dataclasses import dataclass, field
-from enum import Enum
-import sys
-from pathlib import Path
+import logging
 import os
 import random
+import sys
+import time
 import uuid
+from dataclasses import dataclass, field
+from datetime import datetime
+from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List
 
 # Add project root
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from shared.config_loader import get_config
 from shared.communication_framework import get_communication_framework
+from shared.config_loader import get_config
 from shared.internal_money_monitor import get_money_monitor
-from shared.global_logistics_integration import get_gln_integration
-from shared.global_talent_integration import get_gta_integration
-from shared.executive_branch_agents import get_az_supreme, get_ax_helix
-from shared.super_agent_framework import get_super_agent_core
+
+# Optional fantasy/aspirational integrations — archived in Phase 1 audit
+try:
+    from shared.global_logistics_integration import get_gln_integration
+except ImportError:
+    get_gln_integration = None  # type: ignore[assignment]
+
+try:
+    from shared.global_talent_integration import get_gta_integration
+except ImportError:
+    get_gta_integration = None  # type: ignore[assignment]
+
+try:
+    from shared.executive_branch_agents import get_ax_helix, get_az_supreme
+except ImportError:
+    get_az_supreme = None  # type: ignore[assignment]
+    get_ax_helix = None  # type: ignore[assignment]
+
+try:
+    from shared.super_agent_framework import get_super_agent_core
+except ImportError:
+    get_super_agent_core = None  # type: ignore[assignment]
+
 from CentralAccounting.financial_analysis_engine import FinancialAnalysisEngine
 from SharedInfrastructure.metrics_collector import get_metrics_collector
 
@@ -55,7 +74,9 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 try:
-    from monitoring.aac_master_monitoring_dashboard import AACMasterMonitoringDashboard as AACMonitoringDashboard
+    from monitoring.aac_master_monitoring_dashboard import (
+        AACMasterMonitoringDashboard as AACMonitoringDashboard,
+    )
 except ImportError:
     AACMonitoringDashboard = None  # type: ignore[misc,assignment]
     logger.warning("AACMonitoringDashboard not available — monitoring degraded")
@@ -1277,7 +1298,10 @@ async def _async_cli():
     try:
         if args.mode == "dashboard":
             if AACMonitoringDashboard is not None:
-                from monitoring.aac_master_monitoring_dashboard import get_master_dashboard, DisplayMode
+                from monitoring.aac_master_monitoring_dashboard import (
+                    DisplayMode,
+                    get_master_dashboard,
+                )
                 dashboard = get_master_dashboard(DisplayMode.TERMINAL)
                 await dashboard.start_monitoring()
             else:

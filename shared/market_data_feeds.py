@@ -12,19 +12,20 @@ CRITICAL GAP RESOLUTION: Market Data Integration
 """
 
 import asyncio
-import logging
-import aiohttp
 import json
-import pandas as pd
-import numpy as np
-from datetime import datetime, timedelta
-from typing import Dict, List, Any, Optional, Tuple, Callable
+import logging
+import random
+import sys
+import time
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta
 from enum import Enum
 from pathlib import Path
-import sys
-import random
-import time
+from typing import Any, Callable, Dict, List, Optional, Tuple
+
+import aiohttp
+import numpy as np
+import pandas as pd
 
 logger = logging.getLogger(__name__)
 

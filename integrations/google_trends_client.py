@@ -13,11 +13,11 @@ Requires:
 
 import logging
 import random
+import sys
 import time
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any
-import sys
 from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))

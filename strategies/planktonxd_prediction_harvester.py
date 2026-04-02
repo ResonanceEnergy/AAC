@@ -35,15 +35,15 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
+from agents.polymarket_agent import PolymarketAgent
+from shared.audit_logger import AuditLogger
+from shared.communication import CommunicationFramework
 from shared.strategy_framework import (
     BaseArbitrageStrategy,
+    SignalType,
     StrategyConfig,
     TradingSignal,
-    SignalType,
 )
-from shared.communication import CommunicationFramework
-from shared.audit_logger import AuditLogger
-from agents.polymarket_agent import PolymarketAgent
 
 logger = logging.getLogger(__name__)
 
@@ -290,10 +290,16 @@ class PlanktonXDPredictionHarvester(BaseArbitrageStrategy):
             ['prediction_market_prices', 'prediction_market_resolution',
              'market_liquidity_update']
         )
+        # Pre-fetch markets on init so scanned_markets is populated
+        try:
+            await self.fetch_polymarket_markets(limit=200)
+        except Exception as e:
+            logger.warning("Initial market fetch failed (will retry on signal gen): %s", e)
         logger.info(
             f"PlanktonXD Harvester initialized — bankroll=${self.bankroll:.2f}, "
             f"targeting {self.MAX_DAILY_BETS} bets/day across "
-            f"{len(MarketCategory)} categories"
+            f"{len(MarketCategory)} categories, "
+            f"{len(self.scanned_markets)} markets loaded"
         )
 
     def _should_generate_signal(self) -> bool:
@@ -713,6 +719,15 @@ class PlanktonXDPredictionHarvester(BaseArbitrageStrategy):
         except Exception as e:
             logger.error(f"[{bet.bet_id}] Execution failed: {e}")
             return None
+        finally:
+            # place_limit_order is sync but agent holds an aiohttp session
+            # that may have been lazily created; schedule cleanup
+            try:
+                import asyncio
+                loop = asyncio.get_running_loop()
+                loop.create_task(agent.close())
+            except RuntimeError:
+                pass  # No event loop — session wasn't created
 
     # ─── Resolution Handling ────────────────────────────────────────────
 
@@ -764,6 +779,16 @@ class PlanktonXDPredictionHarvester(BaseArbitrageStrategy):
     async def _generate_signals(self) -> List[TradingSignal]:
         """Generate AAC trading signals from prediction-market scan."""
         signals = []
+
+        # Refresh markets if stale or empty
+        if not self.scanned_markets or (
+            self.last_scan_time is not None
+            and datetime.now() - self.last_scan_time > self.market_scan_interval
+        ):
+            try:
+                await self.fetch_polymarket_markets(limit=200)
+            except Exception as e:
+                logger.warning("Market refresh failed: %s", e)
 
         markets = list(self.scanned_markets.values())
         opportunities = self.scan_for_opportunities(markets)

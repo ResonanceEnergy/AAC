@@ -20,8 +20,8 @@
 # If you're wondering how this is created, it is generated using
 # `scripts/generate.py` in https://github.com/pypa/get-pip.
 
-import sys
 import logging
+import sys
 
 logger = logging.getLogger(__name__)
 
@@ -37,12 +37,12 @@ if this_python < min_version:
     sys.exit(1)
 
 
+import argparse
+import importlib
 import os.path
 import pkgutil
 import shutil
 import tempfile
-import argparse
-import importlib
 from base64 import b85decode
 
 

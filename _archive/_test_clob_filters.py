@@ -1,5 +1,6 @@
 """Quick test of CLOB API filter params."""
 import asyncio
+
 import aiohttp
 
 CLOB = "https://clob.polymarket.com"

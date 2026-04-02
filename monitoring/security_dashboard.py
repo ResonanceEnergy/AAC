@@ -9,18 +9,16 @@ import asyncio
 import logging
 import sys
 from datetime import datetime, timedelta
-from typing import Dict, List, Any
 from pathlib import Path
+from typing import Any, Dict, List
 
 logger = logging.getLogger(__name__)
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from shared.security_framework import (
-    rbac, api_security, security_monitoring, advanced_encryption
-)
 from shared.audit_logger import get_audit_logger
+from shared.security_framework import advanced_encryption, api_security, rbac, security_monitoring
 
 
 class SecurityDashboard:

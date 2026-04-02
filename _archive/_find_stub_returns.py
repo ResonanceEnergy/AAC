@@ -1,8 +1,8 @@
 """Find methods whose entire body is just a single stub return."""
+import io
 import os
 import re
 import sys
-import io
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
@@ -28,12 +28,12 @@ for root, dirs, files in os.walk('.'):
             lines = open(fp, 'r', encoding='utf-8', errors='replace').readlines()
         except Exception:
             continue
-        
+
         for i, line in enumerate(lines):
             s = line.strip()
             if s not in STUB_RETURNS:
                 continue
-            
+
             # Look backwards for def line
             def_line_idx = None
             for j in range(i - 1, max(i - 6, -1), -1):
@@ -44,19 +44,19 @@ for root, dirs, files in os.walk('.'):
                 # If we hit code that's not comment/docstring/blank, stop
                 if prev and not prev.startswith('#') and not prev.startswith('"""') and not prev.startswith("'''") and prev != '"""' and prev != "'''":
                     break
-            
+
             if def_line_idx is None:
                 continue
-            
+
             m = re.search(r'(?:async )?def\s+(\w+)', lines[def_line_idx])
             if not m:
                 continue
             fname = m.group(1)
-            
+
             # Skip dunders
             if fname.startswith('__') and fname.endswith('__'):
                 continue
-            
+
             # Check if the body between def and this return is ONLY docstrings/comments/blanks + the return
             has_real_code = False
             in_docstring = False
@@ -73,7 +73,7 @@ for root, dirs, files in os.walk('.'):
                     continue
                 has_real_code = True
                 break
-            
+
             if not has_real_code:
                 count += 1
                 results.append(f'{rel}:{def_line_idx + 1}  {fname}  ->  {s}')

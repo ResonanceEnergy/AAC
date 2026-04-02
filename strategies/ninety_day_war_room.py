@@ -11,13 +11,13 @@ scores.
 
 THESIS: Iran war -> US pullback -> Gulf yuan conversion -> gold reprice -> USD collapse
 
-PORTFOLIO ACCOUNTS (as of March 19, 2026):
-  IBKR          $920 USD   (8 put positions ~ $760 in options)
-  NDAX          $4,400 CAD (~$3,080 USD at 0.70)
-  Moomoo        $500 USD
-  WealthSimple  $4,200 CAD TFSA (~$2,940 USD)
-  EQ Bank       $100 CAD   (~$70 USD)
-  INJECTION     $35,000 (incoming)
+PORTFOLIO ACCOUNTS (as of March 29, 2026):
+  IBKR          $30,148 USD  (20 positions, port 7496 LIVE)
+  NDAX          $4,492.04 CAD   (~$3,144 USD @ 0.70)
+  Moomoo        $10,265.15 USD  ($365.15 existing + $9,900 injection Mon Mar 30)
+  WealthSimple  $14,100 CAD  ($4,200 existing + $9,900 injection Mon Mar 30) (~$9,870 USD)
+  EQ Bank       $100 CAD     (~$70 USD)
+  INJECTION     $19,800 total ($9,900 to WealthSimple CAD + $9,900 to Moomoo USD)
 
 Usage:
   python -m strategies.ninety_day_war_room                    # Full dashboard
@@ -35,18 +35,18 @@ Usage:
 
 import io
 import json
+import logging
 import math
 import os
 import sys
-import logging
 
 # Windows cp1252 fix  --  ensure UTF-8 output
 if sys.stdout and hasattr(sys.stdout, "encoding") and sys.stdout.encoding.lower() != "utf-8":
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 if sys.stderr and hasattr(sys.stderr, "encoding") and sys.stderr.encoding.lower() != "utf-8":
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
-from dataclasses import dataclass, field, asdict
-from datetime import datetime, timedelta, date
+from dataclasses import asdict, dataclass, field
+from datetime import date, datetime, timedelta
 from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -125,41 +125,41 @@ ACCOUNTS: Dict[str, Account] = {
         name="Interactive Brokers",
         account_type=AccountType.BROKERAGE,
         currency=Currency.USD,
-        balance=920.0,
-        available_cash=160.0,
-        in_positions=760.0,
+        balance=30148.0,
+        available_cash=1200.0,
+        in_positions=28948.0,
         platform="IBKR TWS",
-        notes="Account U24346218. Port 7496 LIVE. 8 put positions deployed.",
+        notes="Account U24346218. Port 7496 LIVE. 20 positions. $38K LEAPS Mon Mar 30.",
     ),
     "ndax": Account(
         name="NDAX",
         account_type=AccountType.CRYPTO,
         currency=Currency.CAD,
-        balance=4400.0,
-        available_cash=4400.0,
+        balance=4492.04,
+        available_cash=4492.04,
         in_positions=0.0,
         platform="NDAX",
-        notes="LIQUIDATED all crypto Mar 18. Pure CAD cash sitting.",
+        notes="LIQUIDATED all crypto Mar 18. $4,492.04 CAD cash sitting.",
     ),
     "moomoo": Account(
         name="Moomoo (Futu)",
         account_type=AccountType.BROKERAGE,
         currency=Currency.USD,
-        balance=365.15,
-        available_cash=365.15,
+        balance=10265.15,
+        available_cash=10265.15,
         in_positions=0.0,
         platform="OpenD",
-        notes="Tier 1 alongside IBKR. FUTUCA firm. REAL mode. Options approval pending.",
+        notes="$365.15 + $9,900 injection Mar 30. FUTUCA. REAL. LEAPS + long calls.",
     ),
     "wealthsimple": Account(
         name="WealthSimple TFSA",
         account_type=AccountType.TFSA,
         currency=Currency.CAD,
-        balance=4200.0,
-        available_cash=4200.0,
+        balance=14100.0,
+        available_cash=14100.0,
         in_positions=0.0,
         platform="WealthSimple",
-        notes="Tax-free. Limited to Canadian-listed ETFs/stocks + some US ETFs.",
+        notes="$4,200 + $9,900 injection Mar 30. Tax-free. CGL/XEG/HSD deployment.",
     ),
     "eq_bank": Account(
         name="EQ Bank",
@@ -173,7 +173,7 @@ ACCOUNTS: Dict[str, Account] = {
     ),
 }
 
-CASH_INJECTION = 35_000.0  # Incoming capital injection
+CASH_INJECTION = 19_800.0  # $9,900 to WealthSimple CAD + $9,900 to Moomoo USD
 
 # Current IBKR positions (as of Mar 19 2026)
 POSITIONS: List[Position] = [
@@ -931,7 +931,7 @@ def generate_daily_mandate(target_date: date,
             ibkr_actions.append("IWM/KRE PUTS WINNING: Consider rolling to deeper strikes")
     if not ibkr_actions:
         ibkr_actions.append("MONITOR  --  no action triggers met")
-    account_actions["IBKR ($920)"] = ibkr_actions
+    account_actions["IBKR ($30,148 USD)"] = ibkr_actions
 
     # NDAX  --  CAD cash, crypto re-entry or conversion
     ndax_actions = []
@@ -945,7 +945,7 @@ def generate_daily_mandate(target_date: date,
         ndax_actions.append("HOLD as CAD cash. Crypto is risk-off. Wait for opportunity.")
     if not ndax_actions:
         ndax_actions.append("HOLD CAD cash  --  no crypto entry signals")
-    account_actions["NDAX ($4,400 CAD)"] = ndax_actions
+    account_actions["NDAX ($4,492 CAD / ~$3,144 USD)"] = ndax_actions
 
     # Moomoo  --  TIER 1 alongside IBKR, options + equity
     moo_actions = []
@@ -955,7 +955,7 @@ def generate_daily_mandate(target_date: date,
         moo_actions.append("If options approved: deploy $300 in credit/equity puts")
     moo_actions.append("TIER 1: Co-primary with IBKR — route US equity/options here too")
     moo_actions.append("Research US-listed gold miners (GDX, GDXJ) for equity positions")
-    account_actions["Moomoo ($365 — Tier 1)"] = moo_actions
+    account_actions["Moomoo ($10,265.15 USD)"] = moo_actions
 
     # WealthSimple TFSA  --  tax-free, Canadian-listed
     ws_actions = []
@@ -968,10 +968,10 @@ def generate_daily_mandate(target_date: date,
         ws_actions.append("BUY HGD.TO (Horizons Gold Bear) or HSD.TO (S&P Bear)")
     if days_from_today % 14 == 0 and days_from_today > 0:
         ws_actions.append("BI-WEEKLY TFSA REVIEW: Rebalance thesis-aligned positions")
-    account_actions["WealthSimple TFSA ($4,200 CAD)"] = ws_actions
+    account_actions["WealthSimple TFSA ($14,100 CAD / ~$9,870 USD)"] = ws_actions
 
     # EQ Bank  --  buffer
-    account_actions["EQ Bank ($100 CAD)"] = ["HOLD as emergency buffer. Earn interest."]
+    account_actions["EQ Bank ($100 CAD / ~$70 USD)"] = ["HOLD as emergency buffer. Earn interest."]
 
     # Cash injection deployment
     if days_from_today >= 0:
@@ -979,20 +979,24 @@ def generate_daily_mandate(target_date: date,
         pct = min(100, max(0, days_from_today / 30 * 100))
         inject_actions.append(f"Injection deployment: ~{pct:.0f}% of Phase 1 (70% in first 30d)")
         if days_from_today <= 3:
-            inject_actions.append("IMMEDIATE: $5,000 to IBKR for options")
-            inject_actions.append("IMMEDIATE: $3,000 to WealthSimple for CGL.TO/XEG.TO")
-            inject_actions.append("RESERVE: $10,000 as dry powder for Phase 2/3 triggers")
+            inject_actions.append("MON MAR 30: $9,900 CAD to WealthSimple TFSA")
+            inject_actions.append("  -> CGL.TO $5,400 (gold) + XEG.TO $2,700 (energy) + HSD.TO $1,200 (bear)")
+            inject_actions.append("MON MAR 30: $9,900 USD to Moomoo")
+            inject_actions.append("  -> SLV $65C Jan27 LEAPS $5,400 + XLE $65C Jan27 $2,500 + GDX $90C Jul26 $1,500")
+            inject_actions.append("RESERVE: $600 CAD + $500 USD as dry powder")
         elif days_from_today <= 7:
-            inject_actions.append("Deploy $3,000 more to IBKR: oil + gold verticals")
+            inject_actions.append("TUE-FRI: Fill any unfilled Mon orders. Add GDX/GDXJ calls on Moomoo")
+            inject_actions.append("Review P&L on CGL.TO/XEG.TO. Adjust HSD.TO if VIX drops <22")
         elif days_from_today <= 14:
-            inject_actions.append("Evaluate: deploy another $5,000 based on thesis confirmation")
+            inject_actions.append("WEEK 2: Roll winners up, cut losers at 50% loss")
+            inject_actions.append("HSD.TO EXIT if held >2 weeks (leveraged decay)")
         elif days_from_today <= 30:
-            inject_actions.append("Remaining Phase 1: spread across best-performing verticals")
+            inject_actions.append("MONTH 1: Rebalance thesis-aligned. Take 50% profit on 2x winners")
         elif days_from_today <= 60:
-            inject_actions.append("Phase 2 (20%): $7,000 into confirmed thesis vectors only")
+            inject_actions.append("MONTH 2: Evaluate LEAPS. Roll Jun calls to Sep if profitable")
         else:
-            inject_actions.append("Phase 3 (10%): Final $3,500 into highest-conviction plays")
-        account_actions["$35K INJECTION"] = inject_actions
+            inject_actions.append("MONTH 3: Final thesis review. Exit or double down")
+        account_actions["$19,800 INJECTION ($9,900 WS CAD + $9,900 Moo USD)"] = inject_actions
 
     # -- Correlation alerts --
     corr_alerts = []
@@ -1162,8 +1166,8 @@ def project_portfolio_value(day_offset: int, scenario: str = "expected") -> Dict
     # Current portfolio
     existing_options = 760.0   # 8 puts cost basis
     ibkr_cash = 160.0
-    ndax_cad = 4400.0
-    moomoo_usd = 500.0
+    ndax_cad = 4492.04
+    moomoo_usd = 365.15
     ws_cad = 4200.0
     eq_cad = 100.0
 

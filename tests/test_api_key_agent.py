@@ -11,8 +11,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from agents.api_key_agent import APIKeyAgent, APIDefinition, AgentReport, MANAGED_APIS
-
+from agents.api_key_agent import MANAGED_APIS, AgentReport, APIDefinition, APIKeyAgent
 
 # ─── Unit Tests ─────────────────────────────────────────────────
 

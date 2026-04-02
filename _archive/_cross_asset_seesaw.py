@@ -65,6 +65,7 @@ logger = logging.getLogger(__name__)
 
 # Load .env
 from pathlib import Path as _P
+
 _env_path = _P(__file__).resolve().parent / ".env"
 if _env_path.exists():
     for _line in _env_path.read_text(encoding="utf-8").splitlines():

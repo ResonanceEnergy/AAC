@@ -10,17 +10,16 @@ from pathlib import Path
 import pytest
 
 from aac.doctrine.doctrine_engine import (
+    DOCTRINE_PACKS,
     ActionType,
     BarrenWuffetState,
     ComplianceState,
     Department,
-    DOCTRINE_PACKS,
     DoctrineComplianceReport,
     DoctrineEngine,
     DoctrineViolation,
     MetricValue,
 )
-
 
 # ── Enum Sanity ────────────────────────────────────────────────────────────
 

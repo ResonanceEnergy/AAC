@@ -1,5 +1,6 @@
 """Unit tests for CentralAccounting.database — AccountingDatabase with :memory: SQLite."""
 import pytest
+
 from CentralAccounting.database import AccountingDatabase
 
 

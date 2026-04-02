@@ -4,7 +4,6 @@ from pathlib import Path
 
 import pandas as pd
 
-
 # MT5 typically exports: Date, Time, Open, High, Low, Close, Volume
 # Some exports combine Date+Time into a single column.
 

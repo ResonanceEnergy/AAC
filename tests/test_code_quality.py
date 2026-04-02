@@ -2,9 +2,10 @@
 Simple test for code quality improvement system
 """
 
-import os
 import asyncio
+import os
 from pathlib import Path
+
 
 async def test_code_quality():
     print("Testing code quality improvement system...")

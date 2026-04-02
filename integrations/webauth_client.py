@@ -20,11 +20,11 @@ AAC uses WebAuth for:
 
 import asyncio
 import hashlib
-import logging
 import json
-from datetime import datetime
-from typing import Dict, List, Optional, Any
+import logging
 from dataclasses import dataclass, field
+from datetime import datetime
+from typing import Any, Dict, List, Optional
 
 import aiohttp
 

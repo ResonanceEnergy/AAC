@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Pull REAL live prices from IBKR TWS for all 8 put positions."""
-import sys
 import io
+import sys
 import time
 
 if hasattr(sys.stdout, "buffer") and sys.stdout.encoding.lower() != "utf-8":

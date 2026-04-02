@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Re-derive L2 API credentials with signature_type=0 (EOA)."""
 import os
+
 from dotenv import load_dotenv
+
 load_dotenv()
 
 from py_clob_client.client import ClobClient

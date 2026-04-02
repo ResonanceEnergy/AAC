@@ -17,16 +17,15 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from strategies.storm_lifeboat.capital_engine import (
-    CycleReport,
     DEFAULT_WEIGHTS,
+    CycleReport,
     LifeboatCapitalEngine,
     SeeSawPhase,
     SeeSawSignal,
     StopType,
     TrackedPosition,
 )
-from strategies.storm_lifeboat.core import Asset, DEFAULT_PRICES, MoonPhase, VolRegime
-
+from strategies.storm_lifeboat.core import DEFAULT_PRICES, Asset, MoonPhase, VolRegime
 
 # ═══════════════════════════════════════════════════════════════════════════
 # TrackedPosition — stop-loss mechanics

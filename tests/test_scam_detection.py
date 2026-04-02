@@ -1,13 +1,14 @@
 """Tests for CryptoIntelligence/scam_detection.py — scam pattern detection."""
 
 import pytest
+
 from CryptoIntelligence.scam_detection import (
-    ScamDetector,
-    ScamType,
+    PUMP_DUMP_REGEX,
     RiskLevel,
     ScamAlert,
+    ScamDetector,
+    ScamType,
     TokenLegitimacyReport,
-    PUMP_DUMP_REGEX,
 )
 
 

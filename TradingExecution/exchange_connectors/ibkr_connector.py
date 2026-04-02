@@ -17,7 +17,7 @@ Connection:
 
 Configuration via .env:
     IBKR_HOST=127.0.0.1
-    IBKR_PORT=7497
+    IBKR_PORT=7496
     IBKR_CLIENT_ID=1
     IBKR_ACCOUNT=DU1234567
     IBKR_PAPER=true
@@ -25,29 +25,29 @@ Configuration via .env:
 
 import asyncio
 import logging
+import sys
 import time
 from datetime import datetime
-from typing import Dict, List, Optional, Any
-import sys
 from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 # Add project root to path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from shared.config_loader import get_env, get_env_int, get_env_bool
+from shared.config_loader import get_env, get_env_bool, get_env_int
 
 from .base_connector import (
-    BaseExchangeConnector,
-    Ticker,
-    OrderBook,
-    Balance,
-    ExchangeOrder,
-    ExchangeError,
-    ConnectionError,
     AuthenticationError,
+    Balance,
+    BaseExchangeConnector,
+    ConnectionError,
+    ExchangeError,
+    ExchangeOrder,
     InsufficientFundsError,
+    OrderBook,
     OrderError,
+    Ticker,
 )
 
 # ib_insync symbols — defaults for when not installed
@@ -71,10 +71,23 @@ _ib_util: Any = None
 IB_INSYNC_AVAILABLE = False
 try:
     from ib_insync import (
-        IB, Stock, Forex, Contract, Order as IBOrder,
-        LimitOrder, MarketOrder, StopOrder, StopLimitOrder,
-        Option, ComboLeg,
-        Trade, util as _ib_util,
+        IB,
+        ComboLeg,
+        Contract,
+        Forex,
+        LimitOrder,
+        MarketOrder,
+        Option,
+        Stock,
+        StopLimitOrder,
+        StopOrder,
+        Trade,
+    )
+    from ib_insync import (
+        Order as IBOrder,
+    )
+    from ib_insync import (
+        util as _ib_util,
     )
     IB_INSYNC_AVAILABLE = True
 except (ImportError, RuntimeError):
@@ -173,7 +186,7 @@ class IBKRConnector(BaseExchangeConnector):
 
         # Load from env if not provided
         self.host = host or get_env('IBKR_HOST', '127.0.0.1')
-        self.port = port or get_env_int('IBKR_PORT', 7497)
+        self.port = port or get_env_int('IBKR_PORT', 7496)
         self.client_id = client_id or get_env_int('IBKR_CLIENT_ID', 1)
         self.account = account or get_env('IBKR_ACCOUNT', '')
         self.paper = paper
@@ -192,7 +205,7 @@ class IBKRConnector(BaseExchangeConnector):
 
         try:
             self._ib = IB()
-            
+
             # Use async connect to avoid event loop conflicts
             await self._ib.connectAsync(
                 host=self.host,
@@ -589,7 +602,7 @@ class IBKRConnector(BaseExchangeConnector):
     async def get_trade_fee(self, symbol: str) -> Dict[str, float]:
         """
         IBKR fee structure.
-        
+
         Actual fees depend on account type, volume tier, etc.
         These are approximate for IBKR Pro tiered pricing (stocks).
         """
@@ -659,7 +672,7 @@ class IBKRConnector(BaseExchangeConnector):
     async def get_account_summary(self) -> Dict[str, Any]:
         """
         Get a comprehensive account summary.
-        
+
         Returns key account metrics including net liquidation value,
         buying power, cash balances, margin requirements, etc.
         """
@@ -688,22 +701,27 @@ class IBKRConnector(BaseExchangeConnector):
             raise ExchangeError(f"Account summary failed: {e}") from e
 
     async def get_positions(self) -> List[Dict[str, Any]]:
-        """Get all current positions with P&L."""
+        """Get all current positions with P&L via portfolio()."""
         self._ensure_connected()
 
         try:
-            positions = self._conn.positions(self.account)
+            # Use portfolio() instead of positions() — PortfolioItem has
+            # marketValue, marketPrice, unrealizedPNL, realizedPNL
+            items = self._conn.portfolio(self.account)
             result = []
 
-            for pos in positions:
+            for item in items:
                 result.append({
-                    'symbol': pos.contract.symbol,
-                    'sec_type': pos.contract.secType,
-                    'exchange': pos.contract.exchange,
-                    'currency': pos.contract.currency,
-                    'quantity': pos.position,
-                    'avg_cost': pos.avgCost,
-                    'market_value': pos.marketValue or 0.0,
+                    'symbol': item.contract.symbol,
+                    'sec_type': item.contract.secType,
+                    'exchange': item.contract.exchange,
+                    'currency': item.contract.currency,
+                    'quantity': item.position,
+                    'avg_cost': item.averageCost or 0.0,
+                    'market_price': item.marketPrice or 0.0,
+                    'market_value': item.marketValue or 0.0,
+                    'unrealized_pnl': item.unrealizedPNL or 0.0,
+                    'realized_pnl': item.realizedPNL or 0.0,
                 })
 
             return result

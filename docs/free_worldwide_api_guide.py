@@ -6,10 +6,11 @@ Comprehensive guide to free APIs offering worldwide market data.
 These APIs provide global stock markets, forex, crypto, and economic data.
 """
 
-import requests
 import json
-from datetime import datetime
 import logging
+from datetime import datetime
+
+import requests
 
 logger = logging.getLogger(__name__)
 

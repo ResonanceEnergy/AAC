@@ -19,8 +19,8 @@
 
 from __future__ import annotations
 
-import asyncio
 import argparse
+import asyncio
 import json
 import logging
 import os
@@ -41,39 +41,59 @@ sys.path.insert(0, str(PROJECT_ROOT))
 os.chdir(PROJECT_ROOT)
 
 # ── Core imports (always available) ───────────────────────────────────
-from shared.config_loader import get_config, get_project_path
-from shared.data_sources import DataAggregator, MarketTick, CoinGeckoClient
-from shared.audit_logger import AuditLogger
-from shared.communication import CommunicationFramework
-from CentralAccounting.database import AccountingDatabase
 from weekly_tracker import (
-    CompoundTracker, WeekPhase, get_current_phase,
-    WeeklyAllocation, WEEKLY_GROWTH_RATE,
-)
-from TradingExecution.execution_engine import (
-    ExecutionEngine, AAC2100ExecutionEngine, OrderSide, OrderType,
-    OrderStatus, PositionStatus,
+    WEEKLY_GROWTH_RATE,
+    CompoundTracker,
+    WeeklyAllocation,
+    WeekPhase,
+    get_current_phase,
 )
 
-# ── Strategy imports ──────────────────────────────────────────────────
-from strategies.golden_ratio_finance import (
-    FibonacciCalculator, fractal_compression_index,
-    phase_conjugation_score, FibLevel,
-)
-from strategies.macro_crisis_put_strategy import (
-    MacroCrisisPutEngine, CrisisMonitor, CrisisVector, CrisisAssessment,
-    PUT_PLAYBOOK, PutOrderSpec,
-)
-from strategies.zero_dte_gamma_engine import (
-    ZeroDTEStrategy, SessionPhase, RiskMode,
+from agents.master_agent_file import (
+    AACMasterAgentSystem,
+    get_master_agent_system,
 )
 
 # ── Agent imports ─────────────────────────────────────────────────────
 from BigBrainIntelligence.agents import (
-    get_all_agents, get_agents_by_theater, BaseResearchAgent, ResearchFinding,
+    BaseResearchAgent,
+    ResearchFinding,
+    get_agents_by_theater,
+    get_all_agents,
 )
-from agents.master_agent_file import (
-    AACMasterAgentSystem, get_master_agent_system,
+from CentralAccounting.database import AccountingDatabase
+from shared.audit_logger import AuditLogger
+from shared.communication import CommunicationFramework
+from shared.config_loader import get_config, get_project_path
+from shared.data_sources import CoinGeckoClient, DataAggregator, MarketTick
+
+# ── Strategy imports ──────────────────────────────────────────────────
+from strategies.golden_ratio_finance import (
+    FibLevel,
+    FibonacciCalculator,
+    fractal_compression_index,
+    phase_conjugation_score,
+)
+from strategies.macro_crisis_put_strategy import (
+    PUT_PLAYBOOK,
+    CrisisAssessment,
+    CrisisMonitor,
+    CrisisVector,
+    MacroCrisisPutEngine,
+    PutOrderSpec,
+)
+from strategies.zero_dte_gamma_engine import (
+    RiskMode,
+    SessionPhase,
+    ZeroDTEStrategy,
+)
+from TradingExecution.execution_engine import (
+    AAC2100ExecutionEngine,
+    ExecutionEngine,
+    OrderSide,
+    OrderStatus,
+    OrderType,
+    PositionStatus,
 )
 
 # ── Optional imports (graceful degradation) ───────────────────────────

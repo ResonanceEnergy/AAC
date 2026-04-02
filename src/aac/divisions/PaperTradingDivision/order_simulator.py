@@ -8,10 +8,11 @@ Simulates order execution for paper trading validation.
 
 import asyncio
 import random
-from typing import Dict, List, Any, Optional
-from datetime import datetime
-from dataclasses import dataclass
 import time
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Any, Dict, List, Optional
+
 
 @dataclass
 class SimulatedOrder:

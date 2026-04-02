@@ -87,7 +87,7 @@ class TradeJournalEntry:
 class JonnyBravoAgent:
     """
     Jonny Bravo Division Agent — Trading education & methodology.
-    
+
     Manages course delivery, trade journaling, pattern libraries,
     and methodology scoring.
     """
@@ -184,11 +184,11 @@ class JonnyBravoAgent:
 
     def get_lessons_by_level(self, level: CourseLevel) -> List[TradingLesson]:
         """Get all lessons for a specific experience level."""
-        return [l for l in self.lessons.values() if l.level == level]
+        return [lesson for lesson in self.lessons.values() if lesson.level == level]
 
     def get_lessons_by_methodology(self, method: Methodology) -> List[TradingLesson]:
         """Get all lessons using a specific methodology."""
-        return [l for l in self.lessons.values() if l.methodology == method]
+        return [lesson for lesson in self.lessons.values() if lesson.methodology == method]
 
     def log_trade(self, entry: TradeJournalEntry) -> None:
         """Add a trade journal entry for education tracking."""

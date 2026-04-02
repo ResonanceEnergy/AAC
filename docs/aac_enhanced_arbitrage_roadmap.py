@@ -10,9 +10,9 @@ This roadmap shows how to expand beyond the current 5 APIs to 11+ sources
 for comprehensive arbitrage coverage.
 """
 
+import logging
 import os
 from datetime import datetime
-import logging
 
 logger = logging.getLogger(__name__)
 

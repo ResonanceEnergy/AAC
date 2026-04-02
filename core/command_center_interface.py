@@ -6,17 +6,17 @@ Interactive Command Center with Real-Time Dashboard, Avatar Interactions, and Ex
 """
 
 import asyncio
-import logging
-import time
-import threading
-from datetime import datetime, timedelta
-from typing import Dict, List, Any, Optional
-import sys
-from pathlib import Path
 import json
+import logging
 import os
 import platform
 import random
+import sys
+import threading
+import time
+from datetime import datetime, timedelta
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -31,9 +31,15 @@ except ImportError:
 # Add project root
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
-from core.command_center import get_command_center, AACCommandCenter
-from shared.avatar_system import get_avatar_manager
+from core.command_center import AACCommandCenter, get_command_center
+
+try:
+    from shared.avatar_system import get_avatar_manager
+except ImportError:
+    get_avatar_manager = None  # type: ignore[assignment]
+
 from shared.config_loader import get_config
+
 
 class CommandCenterInterface:
     """

@@ -26,14 +26,14 @@ Bridge Types:
 """
 
 import asyncio
-import logging
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Set
-from dataclasses import dataclass, field
-from enum import Enum
 import json
+import logging
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from enum import Enum
+from typing import Any, Dict, List, Optional, Set
 
-from shared.audit_logger import get_audit_logger, AuditCategory, AuditSeverity
+from shared.audit_logger import AuditCategory, AuditSeverity, get_audit_logger
 
 logger = logging.getLogger(__name__)
 

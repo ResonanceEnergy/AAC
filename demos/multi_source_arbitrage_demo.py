@@ -11,14 +11,16 @@ Demonstrates arbitrage opportunities using multiple data sources:
 This synchronous version avoids asyncio DNS issues.
 """
 
-import os
-import requests
 import json
-from datetime import datetime
-from typing import Dict, List, Optional, Any
-from dataclasses import dataclass
-from dotenv import load_dotenv
 import logging
+import os
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+import requests
+from dotenv import load_dotenv
+
 logger = logging.getLogger(__name__)
 
 # Load environment variables

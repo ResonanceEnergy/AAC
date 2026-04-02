@@ -19,8 +19,8 @@ New unified launcher:
     python aac_master_launcher.py --doctrine-only
 """
 
-import asyncio
 import argparse
+import asyncio
 import logging
 import sys
 from datetime import datetime
@@ -31,10 +31,10 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from aac.doctrine import (
-    DoctrineOrchestrator,
+    DOCTRINE_PACKS,
     BarrenWuffetState,
     Department,
-    DOCTRINE_PACKS,
+    DoctrineOrchestrator,
 )
 
 # Configure logging
@@ -125,9 +125,9 @@ async def run_single_check(orchestrator: DoctrineOrchestrator):
     """Run a single compliance check."""
     logger.info("\n🔍 Running Compliance Check...")
     logger.info("─" * 77)
-    
+
     result = await orchestrator.run_compliance_check()
-    
+
     # State indicator
     state_icons = {
         "NORMAL": "🟢",
@@ -136,7 +136,7 @@ async def run_single_check(orchestrator: DoctrineOrchestrator):
         "HALT": "🔴",
     }
     state_icon = state_icons.get(result['barren_wuffet_state'], "⚪")
-    
+
     print(f"""
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                         COMPLIANCE CHECK RESULTS                            │
@@ -156,21 +156,21 @@ async def run_single_check(orchestrator: DoctrineOrchestrator):
 async def run_status(orchestrator: DoctrineOrchestrator):
     """Display current system status."""
     status = orchestrator.get_system_status()
-    
+
     logger.info("\n[MONITOR] SYSTEM STATUS")
     logger.info("─" * 77)
     logger.info(f"  BARREN WUFFET State: {status['barren_wuffet_state']}")
     logger.info(f"  Last Check: {status['last_check'] or 'Never'}")
     logger.info(f"  Monitoring: {'Active' if status['monitoring_active'] else 'Inactive'}")
-    
+
     logger.info("\n📋 DEPARTMENT STATUS")
     logger.info("─" * 77)
-    
+
     for dept_name, info in status['departments'].items():
         packs = info.get('doctrine_packs', [])
         metrics = info.get('total_metrics', 0)
         failures = info.get('total_failure_modes', 0)
-        
+
         logger.info(f"\n  🏢 {dept_name}")
         logger.info(f"     Metrics: {metrics} | Failure Modes: {failures}")
         for pack in packs:
@@ -181,7 +181,7 @@ async def run_monitor(orchestrator: DoctrineOrchestrator):
     """Run continuous monitoring."""
     logger.info("\n🔄 Starting Continuous Monitoring (Ctrl+C to stop)...")
     logger.info("─" * 77)
-    
+
     try:
         await orchestrator.start_monitoring()
     except KeyboardInterrupt:
@@ -203,21 +203,21 @@ async def main():
         help='Operation mode: check (single), monitor (continuous), status (display)'
     )
     args = parser.parse_args()
-    
+
     # Ensure logs directory exists
     (PROJECT_ROOT / 'logs').mkdir(exist_ok=True)
-    
+
     # Print banner
     print_banner()
-    
+
     # Initialize orchestrator
     orchestrator = DoctrineOrchestrator()
     await orchestrator.initialize()
-    
+
     # Print maps
     print_department_map()
     print_barren_wuffet_states()
-    
+
     # Run based on mode
     if args.mode == 'check':
         await run_single_check(orchestrator)
@@ -225,7 +225,7 @@ async def main():
         await run_status(orchestrator)
     elif args.mode == 'monitor':
         await run_monitor(orchestrator)
-    
+
     logger.info("\n" + "═" * 77)
     logger.info("✅ AAC Doctrine System - Integration Complete")
     logger.info("═" * 77 + "\n")

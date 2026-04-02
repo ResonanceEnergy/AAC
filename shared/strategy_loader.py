@@ -5,13 +5,13 @@ Loads and validates arbitrage strategies from CSV configuration.
 Provides automated strategy checking and integration with the execution engine.
 """
 
-import csv
 import asyncio
+import csv
 import logging
-from pathlib import Path
-from typing import List, Dict, Any, Optional
 from dataclasses import dataclass
 from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -97,16 +97,16 @@ class StrategyLoader:
         try:
             strategy_id = int(row['id'])
             name = row['strategy_name'].strip()
-            
+
             # Sanitize Unicode characters for Windows console compatibility
             # Replace common Unicode punctuation with ASCII equivalents
             name = name.replace('–', '-').replace('—', '-').replace('‑', '-')
             name = name.replace(''', "'").replace(''', "'").replace('"', '"').replace('"', '"')
             name = name.replace('…', '...').replace('•', '*')
-            
+
             # Remove any remaining non-ASCII characters
             name = ''.join(c for c in name if ord(c) < 128)
-            
+
             description = row['one_liner'].strip()
             sources = [s.strip() for s in row['sources'].split(';') if s.strip()]
 

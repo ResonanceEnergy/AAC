@@ -32,11 +32,19 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 from shared.financial_infrastructure_integration import (
-    get_financial_integrator, initialize_aac_financial_system
+    get_financial_integrator,
+    initialize_aac_financial_system,
 )
 from shared.internal_money_monitor import get_money_monitor
-from shared.ax_helix_integration import get_ax_helix_api, get_controller_agent
+
+try:
+    from shared.ax_helix_integration import get_ax_helix_api, get_controller_agent
+except ImportError:
+    get_ax_helix_api = None  # type: ignore[assignment]
+    get_controller_agent = None  # type: ignore[assignment]
+
 from shared.config_loader import get_config
+
 try:
     from tests.test_financial_infrastructure import run_financial_infrastructure_tests
 except ImportError:

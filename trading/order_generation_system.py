@@ -13,27 +13,32 @@ CRITICAL GAP RESOLUTION: Order Generation
 """
 
 import asyncio
+import json
 import logging
-import uuid
 import random
-from datetime import datetime, timedelta
-from typing import Dict, List, Any, Optional, Tuple, Callable
+import sys
+import uuid
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta
 from enum import Enum
 from pathlib import Path
-import sys
-import json
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from shared.config_loader import get_config
 from shared.audit_logger import get_audit_logger
-from shared.strategy_enums import StrategySignal, StrategyExecutionMode
-
-from TradingExecution.execution_engine import ExecutionEngine, Order, OrderSide, OrderType, OrderStatus
+from shared.config_loader import get_config
+from shared.strategy_enums import StrategyExecutionMode, StrategySignal
+from TradingExecution.execution_engine import (
+    ExecutionEngine,
+    Order,
+    OrderSide,
+    OrderStatus,
+    OrderType,
+)
 
 
 class OrderValidationResult(Enum):

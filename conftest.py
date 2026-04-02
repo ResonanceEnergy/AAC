@@ -3,8 +3,8 @@ conftest.py — root-level pytest configuration for AAC
 Adds all top-level module paths to sys.path so tests can import
 any package without installing the project.
 """
-import sys
 import os
+import sys
 from pathlib import Path
 
 # Project root is the directory containing this file
@@ -40,6 +40,7 @@ os.environ.setdefault("LIVE_TRADING_ENABLED", "false")
 
 # ── Pytest fixtures ────────────────────────────────────────────────────────────
 import pytest
+
 
 @pytest.fixture(scope="session")
 def project_root() -> Path:
@@ -104,3 +105,16 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "paper: mark test as requiring paper-trading mode")
     config.addinivalue_line("markers", "exchange: mark test as requiring an exchange connection")
     config.addinivalue_line("markers", "cross_pillar: mark test as cross-pillar integration (needs services)")
+    config.addinivalue_line("markers", "api: mark test as making real HTTP calls to external APIs")
+
+
+def pytest_collection_modifyitems(config, items):
+    """Auto-skip tests marked 'api' unless explicitly selected with -m."""
+    # If the user passed an explicit -m filter, respect it
+    markexpr = config.getoption("-m", default="")
+    if "api" in markexpr:
+        return
+    skip_api = pytest.mark.skip(reason="Skipped by default — run with: pytest -m api")
+    for item in items:
+        if "api" in item.keywords:
+            item.add_marker(skip_api)

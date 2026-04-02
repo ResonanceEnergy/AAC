@@ -11,12 +11,13 @@ from pathlib import Path
 import pytest
 
 from shared.market_data_connector import (
-    PolygonConnector,
     FinnhubConnector,
     IEXCloudConnector,
+    IntrinioConnector,
+    PolygonConnector,
     TwelveDataConnector,
-    IntrinioConnector
 )
+
 
 @pytest.mark.api
 @pytest.mark.slow

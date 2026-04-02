@@ -35,22 +35,22 @@ Usage:
     result = mm.run_full_cycle()
 """
 
+from strategies.matrix_maximizer.bridge import PillarBridge
 from strategies.matrix_maximizer.core import (
     Asset,
+    AssetForecast,
+    MandateLevel,
+    MatrixConfig,
+    PortfolioForecast,
     Scenario,
     ScenarioWeights,
-    MatrixConfig,
-    AssetForecast,
-    PortfolioForecast,
-    MandateLevel,
     SystemMandate,
 )
-from strategies.matrix_maximizer.monte_carlo import MonteCarloEngine
 from strategies.matrix_maximizer.greeks import BlackScholesEngine, GreeksResult
-from strategies.matrix_maximizer.scanner import OptionsScanner, PutRecommendation, RollSignal
-from strategies.matrix_maximizer.risk import RiskManager, RiskSnapshot, CircuitBreaker
-from strategies.matrix_maximizer.bridge import PillarBridge
+from strategies.matrix_maximizer.monte_carlo import MonteCarloEngine
+from strategies.matrix_maximizer.risk import CircuitBreaker, RiskManager, RiskSnapshot
 from strategies.matrix_maximizer.runner import MatrixMaximizer
+from strategies.matrix_maximizer.scanner import OptionsScanner, PutRecommendation, RollSignal
 
 # Extended modules — imported safely for optional use
 try:

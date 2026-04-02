@@ -4,12 +4,13 @@ AAC Worldwide Arbitrage Demo
 Demonstrates how Alpha Vantage API enables global arbitrage opportunities
 """
 
+import logging
 import os
 import time
 from typing import Dict, List
 
 from dotenv import load_dotenv
-import logging
+
 logger = logging.getLogger(__name__)
 
 # Load environment variables
@@ -24,14 +25,14 @@ class WorldwideArbitrageDemo:
         self.coingecko_key = os.getenv('COINGECKO_API_KEY')
         self.currencyapi_key = os.getenv('CURRENCYAPI_API_KEY')
         self.twelve_data_key = os.getenv('TWELVE_DATA_API_KEY')
-        
+
         self.alpha_vantage_configured = bool(self.alpha_vantage_key)
         self.coingecko_configured = bool(self.coingecko_key)
         self.currencyapi_configured = bool(self.currencyapi_key)
         self.twelve_data_configured = bool(self.twelve_data_key)
-        
-        self.all_configured = all([self.alpha_vantage_configured, 
-                                  self.coingecko_configured, 
+
+        self.all_configured = all([self.alpha_vantage_configured,
+                                  self.coingecko_configured,
                                   self.currencyapi_configured,
                                   self.twelve_data_configured])
 
@@ -48,28 +49,28 @@ class WorldwideArbitrageDemo:
             logger.info(f"[KEY] Alpha Vantage Key: {self.alpha_vantage_key[:8]}...{self.alpha_vantage_key[-4:]}")
         else:
             logger.info("[ERROR] Alpha Vantage API: Not configured")
-            
+
         if self.coingecko_configured:
             logger.info("[SUCCESS] CoinGecko API: Configured and Ready")
             logger.info(f"[KEY] CoinGecko Key: {self.coingecko_key[:8]}...{self.coingecko_key[-4:]}")
         else:
             logger.info("[ERROR] CoinGecko API: Not configured")
-            
+
         if self.currencyapi_configured:
             logger.info("[SUCCESS] CurrencyAPI: Configured and Ready")
             logger.info(f"[KEY] CurrencyAPI Key: {self.currencyapi_key[:12]}...{self.currencyapi_key[-6:]}")
         else:
             logger.info("[ERROR] CurrencyAPI: Not configured")
-            
+
         if self.twelve_data_configured:
             logger.info("[SUCCESS] Twelve Data API: Configured and Ready")
             logger.info(f"[KEY] Twelve Data Key: {self.twelve_data_key[:8]}...{self.twelve_data_key[-4:]}")
         else:
             logger.info("[ERROR] Twelve Data API: Not configured")
-            
+
         logger.info("[SUCCESS] ECB (European Central Bank) API: Available (Free, No Key Required)")
         logger.info("   [DATA] 200+ datasets with economic and financial indicators")
-            
+
         logger.debug("")
 
         if not self.all_configured:

@@ -6,11 +6,11 @@ Unit tests with ib_insync fully mocked — no TWS/Gateway required.
 """
 
 import sys
-import pytest
-from unittest.mock import MagicMock, AsyncMock, patch, PropertyMock
 from datetime import datetime
 from types import SimpleNamespace
+from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
 
+import pytest
 
 # ── Mock ib_insync before importing connector ──────────────────────────────────
 
@@ -31,15 +31,14 @@ mock_ib_module.util = MagicMock
 
 sys.modules['ib_insync'] = mock_ib_module
 
-from TradingExecution.exchange_connectors.ibkr_connector import (
-    IBKRConnector,
-    _parse_symbol,
-)
 from TradingExecution.exchange_connectors.base_connector import (
     ConnectionError,
     OrderError,
 )
-
+from TradingExecution.exchange_connectors.ibkr_connector import (
+    IBKRConnector,
+    _parse_symbol,
+)
 
 # ── Fixtures ───────────────────────────────────────────────────────────────────
 
@@ -48,10 +47,10 @@ def connector():
     """Create a connector instance with test config."""
     c = IBKRConnector(
         host='127.0.0.1',
-        port=7497,
+        port=7496,
         client_id=1,
         account='DU1234567',
-        paper=True,
+        paper=False,
     )
     return c
 
@@ -133,10 +132,10 @@ class TestConnectorProperties:
 
     def test_default_config(self, connector):
         assert connector.host == '127.0.0.1'
-        assert connector.port == 7497
+        assert connector.port == 7496
         assert connector.client_id == 1
         assert connector.account == 'DU1234567'
-        assert connector.paper is True
+        assert connector.paper is False
 
     def test_not_connected_initially(self, connector):
         assert connector.is_connected is False
@@ -169,7 +168,7 @@ class TestConnect:
     async def test_connect_uses_first_account_when_unspecified(self, mock_ib):
         """When no account specified, use first managed account."""
         mock_ib.managedAccounts.return_value = ['DU9999999', 'DU1111111']
-        c = IBKRConnector(host='127.0.0.1', port=7497, account='')
+        c = IBKRConnector(host='127.0.0.1', port=7496, account='')
 
         with patch('TradingExecution.exchange_connectors.ibkr_connector.IB', return_value=mock_ib):
             await c.connect()

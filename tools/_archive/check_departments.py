@@ -1,8 +1,9 @@
 """CLI tool to inspect department connections and doctrine-pack health."""
 
 import asyncio
-from aac.doctrine.doctrine_integration import get_doctrine_integration
 import logging
+
+from aac.doctrine.doctrine_integration import get_doctrine_integration
 
 logger = logging.getLogger(__name__)
 

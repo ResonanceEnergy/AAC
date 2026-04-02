@@ -11,8 +11,8 @@ import random
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Any, Callable, Dict, List, Optional, Type, TypeVar, Union
 from enum import Enum
+from typing import Any, Callable, Dict, List, Optional, Type, TypeVar, Union
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +39,7 @@ class RetryConfig:
     strategy: RetryStrategy = RetryStrategy.EXPONENTIAL
     jitter: bool = True  # Add randomness to prevent thundering herd
     retryable_exceptions: tuple = (Exception,)
-    
+
     def get_delay(self, attempt: int) -> float:
         """Calculate delay for given attempt number"""
         if self.strategy == RetryStrategy.EXPONENTIAL:
@@ -48,14 +48,14 @@ class RetryConfig:
             delay = self.base_delay * attempt
         else:  # FIXED
             delay = self.base_delay
-        
+
         # Cap at max delay
         delay = min(delay, self.max_delay)
-        
+
         # Add jitter (±25%)
         if self.jitter:
             delay = delay * (0.75 + random.random() * 0.5)
-        
+
         return delay
 
 
@@ -69,7 +69,7 @@ def retry(
 ):
     """
     Decorator for retrying failed function calls.
-    
+
     Usage:
         @retry(max_attempts=3, base_delay=1.0)
         async def fetch_data():
@@ -82,72 +82,72 @@ def retry(
         strategy=strategy,
         retryable_exceptions=retryable_exceptions,
     )
-    
+
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         async def async_wrapper(*args, **kwargs):
             """Async wrapper."""
             last_exception = None
-            
+
             for attempt in range(1, config.max_attempts + 1):
                 try:
                     return await func(*args, **kwargs)
                 except config.retryable_exceptions as e:  # type: ignore
                     last_exception = e
-                    
+
                     if attempt == config.max_attempts:
                         logger.error(
                             f"{func.__name__} failed after {attempt} attempts: {e}"
                         )
                         raise
-                    
+
                     delay = config.get_delay(attempt)
                     logger.warning(
                         f"{func.__name__} failed (attempt {attempt}/{config.max_attempts}), "
                         f"retrying in {delay:.2f}s: {e}"
                     )
-                    
+
                     if on_retry:
                         on_retry(attempt, e)
-                    
+
                     await asyncio.sleep(delay)
-            
+
             raise last_exception
-        
+
         @functools.wraps(func)
         def sync_wrapper(*args, **kwargs):
             """Sync wrapper."""
             last_exception = None
-            
+
             for attempt in range(1, config.max_attempts + 1):
                 try:
                     return func(*args, **kwargs)
                 except config.retryable_exceptions as e:  # type: ignore
                     last_exception = e
-                    
+
                     if attempt == config.max_attempts:
                         logger.error(
                             f"{func.__name__} failed after {attempt} attempts: {e}"
                         )
                         raise
-                    
+
                     delay = config.get_delay(attempt)
                     logger.warning(
                         f"{func.__name__} failed (attempt {attempt}/{config.max_attempts}), "
                         f"retrying in {delay:.2f}s: {e}"
                     )
-                    
+
                     if on_retry:
                         on_retry(attempt, e)
-                    
+
                     time.sleep(delay)
-            
+
             raise last_exception
-        
+
         if asyncio.iscoroutinefunction(func):
             return async_wrapper
         return sync_wrapper
-    
+
     return decorator
 
 
@@ -166,10 +166,10 @@ class CircuitState(Enum):
 class CircuitBreaker:
     """
     Circuit breaker pattern implementation.
-    
+
     Usage:
         breaker = CircuitBreaker(name="binance_api")
-        
+
         async def call_api():
             if not breaker.can_execute():
                 raise CircuitOpenError("Service unavailable")
@@ -185,17 +185,17 @@ class CircuitBreaker:
     failure_threshold: int = 5  # Failures before opening
     success_threshold: int = 2  # Successes before closing
     timeout: float = 30.0  # Seconds before trying again
-    
+
     state: CircuitState = field(default=CircuitState.CLOSED)
     failure_count: int = field(default=0)
     success_count: int = field(default=0)
     last_failure_time: Optional[datetime] = field(default=None)
-    
+
     def can_execute(self) -> bool:
         """Check if circuit allows execution"""
         if self.state == CircuitState.CLOSED:
             return True
-        
+
         if self.state == CircuitState.OPEN:
             # Check if timeout has passed
             if self.last_failure_time:
@@ -206,10 +206,10 @@ class CircuitBreaker:
                     logger.info(f"Circuit {self.name} entering half-open state")
                     return True
             return False
-        
+
         # HALF_OPEN - allow limited requests
         return True
-    
+
     def record_success(self):
         """Record successful call"""
         if self.state == CircuitState.HALF_OPEN:
@@ -221,12 +221,12 @@ class CircuitBreaker:
         elif self.state == CircuitState.CLOSED:
             # Reset failure count on success
             self.failure_count = 0
-    
+
     def record_failure(self):
         """Record failed call"""
         self.failure_count += 1
         self.last_failure_time = datetime.now()
-        
+
         if self.state == CircuitState.HALF_OPEN:
             self.state = CircuitState.OPEN
             logger.warning(f"Circuit {self.name} reopened - service still failing")
@@ -235,7 +235,7 @@ class CircuitBreaker:
             logger.warning(
                 f"Circuit {self.name} opened after {self.failure_count} failures"
             )
-    
+
     def reset(self):
         """Reset circuit to closed state"""
         self.state = CircuitState.CLOSED
@@ -268,7 +268,7 @@ def with_circuit_breaker(
 ):
     """
     Decorator that wraps a function with circuit breaker protection.
-    
+
     Usage:
         @with_circuit_breaker("binance_api")
         async def fetch_data():
@@ -282,7 +282,7 @@ def with_circuit_breaker(
             success_threshold=success_threshold,
             timeout=timeout,
         )
-        
+
         @functools.wraps(func)
         async def async_wrapper(*args, **kwargs):
             """Async wrapper."""
@@ -297,7 +297,7 @@ def with_circuit_breaker(
             except Exception as e:
                 breaker.record_failure()
                 raise
-        
+
         @functools.wraps(func)
         def sync_wrapper(*args, **kwargs):
             """Sync wrapper."""
@@ -312,11 +312,11 @@ def with_circuit_breaker(
             except Exception as e:
                 breaker.record_failure()
                 raise
-        
+
         if asyncio.iscoroutinefunction(func):
             return async_wrapper
         return sync_wrapper
-    
+
     return decorator
 
 
@@ -328,21 +328,21 @@ def with_circuit_breaker(
 class RateLimiter:
     """
     Token bucket rate limiter.
-    
+
     Usage:
         limiter = RateLimiter(rate=10, per=1.0)  # 10 requests per second
-        
+
         async def make_request():
             await limiter.acquire()
             return await api_call()
     """
     rate: int  # Number of tokens
     per: float  # Time period in seconds
-    
+
     tokens: Optional[float] = field(default=None)
     last_update: Optional[float] = field(default=None)
     _lock: Optional[asyncio.Lock] = field(default=None)
-    
+
     def __post_init__(self):
         if self.tokens is None:
             self.tokens = float(self.rate)
@@ -350,7 +350,7 @@ class RateLimiter:
             self.last_update = time.monotonic()
         if self._lock is None:
             self._lock = asyncio.Lock()
-    
+
     async def acquire(self, tokens: int = 1) -> None:
         """Acquire tokens, waiting if necessary"""
         assert self._lock is not None
@@ -361,17 +361,17 @@ class RateLimiter:
                 now = time.monotonic()
                 elapsed = now - self.last_update
                 self.last_update = now
-                
+
                 # Add tokens based on elapsed time
                 self.tokens = min(
                     self.rate,
                     self.tokens + elapsed * (self.rate / self.per)
                 )
-                
+
                 if self.tokens >= tokens:
                     self.tokens -= tokens
                     return
-                
+
                 # Calculate wait time
                 needed = tokens - self.tokens
                 wait_time = needed * (self.per / self.rate)
@@ -397,7 +397,7 @@ def validate_symbol(symbol: str) -> bool:
     """Validate trading symbol format"""
     if not symbol or not isinstance(symbol, str):
         return False
-    
+
     # Check for base/quote format
     if "/" in symbol:
         parts = symbol.split("/")
@@ -405,7 +405,7 @@ def validate_symbol(symbol: str) -> bool:
             return False
         base, quote = parts
         return bool(base and quote and base.isalpha() and quote.isalpha())
-    
+
     # Single asset (e.g., "BTC")
     return symbol.isalpha()
 
@@ -440,7 +440,7 @@ async def gather_with_concurrency(
 ) -> List[Any]:
     """
     Run async tasks with limited concurrency.
-    
+
     Usage:
         results = await gather_with_concurrency(
             [fetch_price(s) for s in symbols],
@@ -448,12 +448,12 @@ async def gather_with_concurrency(
         )
     """
     semaphore = asyncio.Semaphore(max_concurrent)
-    
+
     async def bounded_task(task):
         """Bounded task."""
         async with semaphore:
             return await task
-    
+
     return await asyncio.gather(
         *[bounded_task(t) for t in tasks],
         return_exceptions=return_exceptions
@@ -463,7 +463,7 @@ async def gather_with_concurrency(
 class AsyncTimeout:
     """
     Context manager for async timeouts.
-    
+
     Usage:
         async with AsyncTimeout(5.0):
             await long_running_operation()
@@ -471,10 +471,10 @@ class AsyncTimeout:
     def __init__(self, timeout: float):
         self.timeout = timeout
         self._task: Optional[asyncio.Task] = None
-    
+
     async def __aenter__(self):
         return self
-    
+
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         if self._task is not None and not self._task.done():
             self._task.cancel()
@@ -482,7 +482,7 @@ class AsyncTimeout:
                 await self._task
             except asyncio.CancelledError:
                 pass
-    
+
     @staticmethod
     async def run(coro, timeout: float):
         """Run coroutine with timeout"""
@@ -514,7 +514,7 @@ def calculate_pnl_percentage(
     """Calculate P&L as percentage"""
     if entry_price <= 0:
         return 0.0
-    
+
     if side.lower() == "buy":
         return ((current_price - entry_price) / entry_price) * 100
     else:
@@ -534,25 +534,25 @@ def calculate_position_size(
 ) -> float:
     """
     Calculate position size based on risk management.
-    
+
     Args:
         account_balance: Total account balance
         risk_percentage: Max risk per trade (e.g., 2.0 for 2%)
         entry_price: Entry price
         stop_loss_price: Stop loss price
-    
+
     Returns:
         Position size in base currency
     """
     if entry_price <= 0 or stop_loss_price <= 0:
         return 0.0
-    
+
     risk_amount = account_balance * (risk_percentage / 100)
     price_risk = abs(entry_price - stop_loss_price)
-    
+
     if price_risk <= 0:
         return 0.0
-    
+
     return risk_amount / price_risk
 
 
@@ -568,41 +568,41 @@ def setup_logger(
     """Set up a logger with standard formatting"""
     log = logging.getLogger(name)
     log.setLevel(level)
-    
+
     formatter = logging.Formatter(
         '%(asctime)s | %(levelname)-8s | %(name)-20s | %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S'
     )
-    
+
     # Console handler
     if not log.handlers:
         ch = logging.StreamHandler()
         ch.setFormatter(formatter)
         log.addHandler(ch)
-    
+
     # File handler
     if log_file:
         fh = logging.FileHandler(log_file)
         fh.setFormatter(formatter)
         log.addHandler(fh)
-    
+
     return log
 
 
 class TradeLogger:
     """Specialized logger for trade events"""
-    
+
     def __init__(self, logger: logging.Logger):
         self.logger = logger
-    
-    def log_order(self, order_id: str, symbol: str, side: str, 
+
+    def log_order(self, order_id: str, symbol: str, side: str,
                   quantity: float, price: float, status: str):
         """Log order."""
         self.logger.info(
             f"ORDER | {order_id} | {side.upper()} {quantity:.8f} {symbol} "
             f"@ ${price:,.2f} | Status: {status}"
         )
-    
+
     def log_position_open(self, position_id: str, symbol: str, side: str,
                           quantity: float, entry_price: float):
         """Log position open."""
@@ -610,8 +610,8 @@ class TradeLogger:
             f"POSITION OPEN | {position_id} | {side.upper()} {quantity:.8f} {symbol} "
             f"@ ${entry_price:,.2f}"
         )
-    
-    def log_position_close(self, position_id: str, symbol: str, 
+
+    def log_position_close(self, position_id: str, symbol: str,
                            pnl: float, pnl_pct: float):
         """Log position close."""
         emoji = "🟢" if pnl >= 0 else "🔴"
@@ -619,7 +619,7 @@ class TradeLogger:
             f"POSITION CLOSE | {position_id} | {symbol} | "
             f"{emoji} P&L: ${pnl:,.2f} ({pnl_pct:+.2f}%)"
         )
-    
+
     def log_signal(self, signal_id: str, source: str, symbol: str,
                    direction: str, strength: float):
         """Log signal."""

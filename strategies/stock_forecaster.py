@@ -20,7 +20,7 @@ Industry taxonomy:
 Ranking methodology:
   Each opportunity is scored on 3 dimensions (0-100 each):
     roi_score    — expected payoff vs premium paid if thesis correct
-    risk_score   — survivability (lower = more dangerous)  
+    risk_score   — survivability (lower = more dangerous)
     speed_score  — how fast gains materialise
   composite = roi_score * 0.40 + speed_score * 0.35 + (100 - risk_score) * 0.25
 
@@ -33,13 +33,11 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, date, timedelta
+from datetime import date, datetime, timedelta
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
-from strategies.regime_engine import (
-    RegimeState, Regime, FormulaTag, SignalRiskClass
-)
+from strategies.regime_engine import FormulaTag, Regime, RegimeState, SignalRiskClass
 
 logger = logging.getLogger(__name__)
 

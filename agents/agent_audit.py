@@ -8,10 +8,11 @@ detailing their roles, responsibilities, and value propositions.
 """
 
 import asyncio
+import logging
 import sys
 from pathlib import Path
-from typing import Dict, List, Any
-import logging
+from typing import Any, Dict, List
+
 logger = logging.getLogger(__name__)
 
 # Add project root to path
@@ -19,8 +20,12 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from BigBrainIntelligence.agents import (
-    AGENT_REGISTRY, get_agent, get_all_agents, get_agents_by_theater
+    AGENT_REGISTRY,
+    get_agent,
+    get_agents_by_theater,
+    get_all_agents,
 )
+
 
 async def audit_agents():
     """Comprehensive audit of all research agents"""

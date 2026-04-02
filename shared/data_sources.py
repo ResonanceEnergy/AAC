@@ -10,19 +10,20 @@ import json
 import logging
 import os
 import random
+import sys
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Dict, List, Optional, Callable, Any
 from pathlib import Path
+from typing import Any, Callable, Dict, List, Optional
+
 import aiohttp
-import sys
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from shared.config_loader import get_config, get_project_path
-from shared.utils import retry, RetryStrategy, with_circuit_breaker
+from shared.utils import RetryStrategy, retry, with_circuit_breaker
 
 
 @dataclass
@@ -157,14 +158,18 @@ class CoinGeckoClient(BaseDataSource):
                 async with self.session.get(
                     f"{self.PRO_URL}/ping", timeout=aiohttp.ClientTimeout(total=8)
                 ) as resp:
-                    if resp.status == 403:
+                    if resp.status in (401, 403):
                         self._downgrade_to_free()
                         # Reconnect session without Pro headers
                         await self.session.close()
                         connector = aiohttp.TCPConnector(resolver=aiohttp.resolver.ThreadedResolver())
                         self.session = aiohttp.ClientSession(connector=connector)
             except Exception:
-                pass  # network error on probe — keep trying Pro
+                # DNS / connection error on Pro probe -- fall back to Free
+                self._downgrade_to_free()
+                await self.session.close()
+                connector = aiohttp.TCPConnector(resolver=aiohttp.resolver.ThreadedResolver())
+                self.session = aiohttp.ClientSession(connector=connector)
 
     async def disconnect(self):
         """Disconnect."""
@@ -203,10 +208,10 @@ class CoinGeckoClient(BaseDataSource):
                     await self._notify(tick)
                     await asyncio.sleep(self._rate_limit_delay)
                     return tick
-            elif resp.status == 403 and self._is_pro:
+            elif resp.status in (401, 403) and self._is_pro:
                 # Pro key expired/revoked — downgrade and retry via Free tier
                 self._downgrade_to_free()
-                raise aiohttp.ClientError("CoinGecko Pro 403 — retrying on Free tier")
+                raise aiohttp.ClientError("CoinGecko Pro auth failed — retrying on Free tier")
             elif resp.status == 429:
                 # Rate limited - raise to trigger retry
                 raise aiohttp.ClientError("Rate limited by CoinGecko")
@@ -246,6 +251,9 @@ class CoinGeckoClient(BaseDataSource):
                         )
                         ticks.append(tick)
                         await self._notify(tick)
+            elif resp.status in (401, 403) and self._is_pro:
+                self._downgrade_to_free()
+                raise aiohttp.ClientError("CoinGecko Pro auth failed — retrying on Free tier")
             elif resp.status == 429:
                 raise aiohttp.ClientError("Rate limited by CoinGecko")
 
@@ -421,28 +429,28 @@ class BinanceWebSocket(BaseDataSource):
         """Subscribe to ticker updates for symbols with auto-reconnection"""
         self._subscribed_symbols = symbols
         self._running = True
-        
+
         while self._running:
             try:
                 await self._connect_and_listen(symbols)
             except Exception as e:
                 if not self._running:
                     break
-                    
+
                 self._reconnect_attempts += 1
                 if self._reconnect_attempts > self._max_reconnect_attempts:
                     self.logger.error(
                         f"Max reconnection attempts ({self._max_reconnect_attempts}) reached. Stopping."
                     )
                     break
-                
+
                 # Exponential backoff with jitter
                 delay = min(
                     self._reconnect_delay * (2 ** (self._reconnect_attempts - 1)),
                     self._max_reconnect_delay
                 )
                 delay *= (0.5 + random.random())  # Add jitter
-                
+
                 self.logger.warning(
                     f"WebSocket error: {e}. Reconnecting in {delay:.1f}s "
                     f"(attempt {self._reconnect_attempts}/{self._max_reconnect_attempts})"
@@ -482,7 +490,7 @@ class BinanceWebSocket(BaseDataSource):
                 elif msg.type == aiohttp.WSMsgType.ERROR:
                     self.logger.error(f"WebSocket error: {ws.exception()}")
                     raise Exception(f"WebSocket error: {ws.exception()}")
-                    
+
                 elif msg.type == aiohttp.WSMsgType.CLOSED:
                     self.logger.warning("WebSocket closed by server")
                     raise Exception("WebSocket closed by server")
@@ -590,12 +598,12 @@ class RedditClient(BaseDataSource):
         # Common crypto tickers
         assets = []
         text_upper = text.upper()
-        
+
         common_tickers = ["BTC", "ETH", "SOL", "XRP", "ADA", "DOGE", "AVAX", "DOT", "MATIC", "LINK"]
         for ticker in common_tickers:
             if ticker in text_upper:
                 assets.append(ticker)
-        
+
         return assets
 
 
@@ -611,7 +619,7 @@ class TwitterClient(BaseDataSource):
         # Get bearer token from environment variable directly
         """Connect."""
         self.bearer_token = os.environ.get("TWITTER_BEARER_TOKEN", "")
-        
+
         if self.bearer_token:
             headers = {"Authorization": f"Bearer {self.bearer_token}"}
             self.session = aiohttp.ClientSession(headers=headers)
@@ -679,7 +687,7 @@ class EtherscanClient(BaseDataSource):
             # Known whale addresses to track
             whale_addresses = [
                 "0x28C6c06298d514Db089934071355E5743bf21d60",  # Binance 14
-                "0xDFd5293D8e347dFe59E90eFd55b2956a1343963d",  # Binance 8  
+                "0xDFd5293D8e347dFe59E90eFd55b2956a1343963d",  # Binance 8
                 "0x21a31Ee1afC51d94C2eFcCAa2092aD1028285549",  # Binance 15
                 "0x56Eddb7aa87536c09CCc2793473599fD21A8b17F",  # Coinbase 2
                 "0x503828976D22510aad0201ac7EC88293211D23Da",  # Coinbase 4
@@ -687,7 +695,7 @@ class EtherscanClient(BaseDataSource):
                 "0x66f820a414680b5bcda5eeca5dea238543f42054",  # Jump Trading
                 "0x40ec5B33f54e0E8A33A975908C5BA1c14e5BbbDf",  # Polygon Bridge
             ]
-            
+
             # For each whale address, get recent transactions
             for address in whale_addresses[:3]:  # Limit to avoid rate limits
                 params = {
@@ -724,7 +732,7 @@ class EtherscanClient(BaseDataSource):
                                 )
                                 events.append(event)
                                 await self._notify(event)
-                
+
                 await asyncio.sleep(0.25)  # Rate limiting between addresses
 
         except aiohttp.ClientError:
@@ -916,7 +924,7 @@ class DataAggregator:
 
     def __init__(self):
         self.logger = logging.getLogger("data_aggregator")
-        
+
         # Initialize all data sources
         self.coingecko = CoinGeckoClient()
         self.binance_ws = BinanceWebSocket()
@@ -937,7 +945,7 @@ class DataAggregator:
         self.latest_ticks: Dict[str, MarketTick] = {}
         self.social_mentions: List[SocialMention] = []
         self.blockchain_events: List[BlockchainEvent] = []
-        
+
         # Subscribe to updates
         self.coingecko.subscribe(self._on_tick)
         self.binance_ws.subscribe(self._on_tick)
@@ -1034,7 +1042,7 @@ class DataAggregator:
     async def get_market_snapshot(self, symbols: List[str]) -> Dict[str, MarketTick]:
         """
         Get current market snapshot with graceful degradation.
-        
+
         Routes:
         - Equity/ETF symbols → IBKR connector
         - Crypto symbols → CoinGecko (primary), NDAX CAD (secondary)
@@ -1108,28 +1116,28 @@ class DataAggregator:
         return result
 
     async def get_market_snapshot_with_source(
-        self, 
+        self,
         symbols: List[str],
         prefer_websocket: bool = True
     ) -> Dict[str, MarketTick]:
         """
         Get market snapshot with explicit source preference and fallback chain.
-        
+
         Fallback order:
         1. WebSocket feed (if enabled and connected)
         2. CoinGecko API
         3. Cached data
-        
+
         Args:
             symbols: List of symbol strings (e.g., ["BTC", "ETH"])
             prefer_websocket: Whether to try WebSocket first
-            
+
         Returns:
             Dict mapping symbol to MarketTick
         """
         result: Dict[str, MarketTick] = {}
         missing_symbols = list(symbols)
-        
+
         # Try WebSocket first if preferred
         if prefer_websocket and self.binance_ws.is_connected:
             for symbol in list(missing_symbols):
@@ -1140,7 +1148,7 @@ class DataAggregator:
                     if age < 5:  # WebSocket data should be very fresh
                         result[tick.symbol] = tick
                         missing_symbols.remove(symbol)
-        
+
         # Try CoinGecko for remaining symbols
         if missing_symbols:
             try:
@@ -1149,23 +1157,23 @@ class DataAggregator:
                 missing_symbols = [s for s in missing_symbols if s not in result and f"{s}/USDT" not in result]
             except Exception as e:
                 self.logger.warning(f"CoinGecko fallback failed: {e}")
-        
+
         # Final cache check for any still missing
         if missing_symbols:
             self.logger.warning(f"Missing data for {missing_symbols} after all fallbacks")
-        
+
         return result
 
     async def get_social_pulse(self) -> Dict[str, Any]:
         """Get current social media pulse"""
         mentions = await self.reddit.scan_all_subreddits()
-        
+
         # Aggregate by asset
         asset_buzz: Dict[str, int] = {}
         for mention in mentions:
             for asset in mention.asset_mentions:
                 asset_buzz[asset] = asset_buzz.get(asset, 0) + mention.engagement
-        
+
         return {
             "total_mentions": len(mentions),
             "asset_buzz": asset_buzz,
@@ -1182,30 +1190,30 @@ if __name__ == "__main__":
     async def test():
         """Test."""
         print("=== Data Sources Test ===\n")
-        
+
         aggregator = DataAggregator()
         await aggregator.connect_all()
-        
+
         print("1. Fetching market snapshot...")
         snapshot = await aggregator.get_market_snapshot(["BTC", "ETH", "SOL"])
         for symbol, tick in snapshot.items():
             print(f"   {symbol}: ${tick.price:,.2f} ({tick.change_24h:+.2f}%)")
-        
+
         print("\n2. Fetching trending coins...")
         trending = await aggregator.coingecko.get_trending()
         for i, coin in enumerate(trending[:5], 1):
             name = coin.get("item", {}).get("name", "Unknown")
             print(f"   {i}. {name}")
-        
+
         print("\n3. Fetching gas prices...")
         gas = await aggregator.get_gas_status()
         print(f"   Safe: {gas['safe_low']} | Standard: {gas['standard']} | Fast: {gas['fast']}")
-        
+
         print("\n4. Fetching social pulse (Reddit)...")
         pulse = await aggregator.get_social_pulse()
         print(f"   Total mentions: {pulse['total_mentions']}")
         print(f"   Asset buzz: {pulse['asset_buzz']}")
-        
+
         await aggregator.disconnect_all()
         print("\n=== Test Complete ===")
 

@@ -1,8 +1,8 @@
 """Full import test for all AAC project Python files."""
-import os
-import sys
 import importlib
 import logging
+import os
+import sys
 
 logger = logging.getLogger(__name__)
 
@@ -19,18 +19,18 @@ total = 0
 for dirpath, dirnames, fnames in os.walk(root):
     # Filter out skip directories
     dirnames[:] = [d for d in dirnames if d not in skip_dirs]
-    
+
     for fname in sorted(fnames):
         if not fname.endswith('.py') or fname in skip_files:
             continue
-        
+
         filepath = os.path.join(dirpath, fname)
         relpath = os.path.relpath(filepath, root)
         total += 1
-        
+
         # Convert file path to module path
         modpath = relpath.replace(os.sep, '.').replace('.py', '')
-        
+
         try:
             importlib.import_module(modpath)
             ok.append(relpath)
@@ -58,7 +58,7 @@ if fail:
         else:
             cat = err.split(':')[0]
         categories.setdefault(cat, []).append(path)
-    
+
     logger.info(f"\nFailures by category:")
     for cat, paths in sorted(categories.items(), key=lambda x: -len(x[1])):
         logger.info(f"\n  [{len(paths)}] {cat}")

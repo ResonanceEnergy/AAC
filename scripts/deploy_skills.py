@@ -11,10 +11,10 @@ Usage:
 """
 
 import argparse
+import logging
 import os
 import sys
 from pathlib import Path
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +39,7 @@ def get_default_skills_dir() -> Path:
 
 def deploy(target_dir: Path, dry_run: bool = False) -> int:
     """Deploy all SKILL.md files.
-    
+
     Returns:
         Number of skills deployed.
     """

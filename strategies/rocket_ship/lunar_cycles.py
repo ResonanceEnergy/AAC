@@ -45,10 +45,10 @@ from typing import Dict, List, Optional, Tuple
 from strategies.rocket_ship.core import (
     LIFEBOAT_INCEPTION,
     LIFEBOAT_MOON_END,
-    MoonPhase,
     ROCKET_MOON_END,
     ROCKET_MOON_START,
     SYNODIC_MONTH_DAYS,
+    MoonPhase,
 )
 
 logger = logging.getLogger(__name__)

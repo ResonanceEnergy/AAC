@@ -1,6 +1,7 @@
 """Polymarket API endpoint discovery — find the right search method."""
 import asyncio
 import json
+
 import aiohttp
 
 GAMMA = "https://gamma-api.polymarket.com"

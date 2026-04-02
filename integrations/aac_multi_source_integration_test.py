@@ -12,12 +12,13 @@ This script demonstrates how all AAC data sources work together:
 Run this to see the full AAC arbitrage ecosystem in action.
 """
 
-import pandas as pd
-import numpy as np
-from datetime import datetime, timedelta
-import sys
-import os
 import logging
+import os
+import sys
+from datetime import datetime, timedelta
+
+import numpy as np
+import pandas as pd
 
 logger = logging.getLogger(__name__)
 

@@ -2,15 +2,17 @@
 
 import asyncio
 import time
+
 import pytest
+
 from shared.production_safeguards import (
     CircuitBreaker,
     CircuitBreakerConfig,
     CircuitBreakerOpenException,
     CircuitBreakerState,
-    RateLimiter,
-    RateLimitConfig,
     ExchangeSafeguards,
+    RateLimitConfig,
+    RateLimiter,
 )
 
 

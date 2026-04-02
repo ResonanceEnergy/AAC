@@ -65,7 +65,7 @@ def phase_preflight() -> bool:
 
 def phase_gateways() -> dict[str, bool]:
     """Start IBKR + Moomoo gateways. Returns status dict."""
-    from startup.gateways import start_all_gateways, gateway_summary
+    from startup.gateways import gateway_summary, start_all_gateways
     logger.info("  ═══════════════════════════════════════")
     logger.info("  Phase 2: Trading Gateways")
     logger.info("  ═══════════════════════════════════════")
@@ -147,8 +147,10 @@ def phase_openclaw() -> bool:
     logger.info("  ═══════════════════════════════════════")
     try:
         import asyncio
+
         from integrations.openclaw_gateway_bridge import (
-            OpenClawGatewayBridge, OpenClawCronJob,
+            OpenClawCronJob,
+            OpenClawGatewayBridge,
         )
         gateway_url = os.environ.get("OPENCLAW_GATEWAY_URL", "ws://127.0.0.1:18789")
         bridge = OpenClawGatewayBridge(gateway_url=gateway_url)

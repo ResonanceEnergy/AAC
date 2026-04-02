@@ -14,32 +14,36 @@ Features:
 - Real-world transition planning
 """
 
-import asyncio
 import argparse
-import logging
+import asyncio
 import json
-import pandas as pd
-import numpy as np
-from datetime import datetime, timedelta
-from pathlib import Path
-from typing import Dict, List, Any, Optional, Tuple
-import sys
+import logging
 import random
-import matplotlib.pyplot as plt
-import seaborn as sns
+import sys
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta
 from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import seaborn as sns
 
 logger = logging.getLogger(__name__)
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from shared.config_loader import get_config
 from shared.audit_logger import get_audit_logger
-from shared.paper_trading import paper_trading_engine, initialize_paper_trading
-from shared.strategy_parameter_tester import strategy_parameter_tester, initialize_strategy_parameter_testing
+from shared.config_loader import get_config
+from shared.paper_trading import initialize_paper_trading, paper_trading_engine
 from shared.strategy_loader import get_strategy_loader
+from shared.strategy_parameter_tester import (
+    initialize_strategy_parameter_testing,
+    strategy_parameter_tester,
+)
 
 
 class CurrencyType(Enum):

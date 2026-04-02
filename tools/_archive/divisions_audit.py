@@ -7,9 +7,9 @@ Comprehensive analysis of all divisions within the Accelerated Arbitrage Corp (A
 enterprise, including operational departments and specialized arbitrage divisions.
 """
 
+import logging
 import os
 from pathlib import Path
-import logging
 
 logger = logging.getLogger(__name__)
 

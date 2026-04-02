@@ -8,16 +8,16 @@ Comprehensive testing for the paper trading environment.
 import asyncio
 import time
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import Any, Dict, List
 
+from shared.audit_logger import get_audit_logger
 from shared.paper_trading import (
-    paper_trading_engine,
-    OrderType,
     OrderSide,
     OrderStatus,
-    initialize_paper_trading
+    OrderType,
+    initialize_paper_trading,
+    paper_trading_engine,
 )
-from shared.audit_logger import get_audit_logger
 
 
 async def test_basic_market_orders():

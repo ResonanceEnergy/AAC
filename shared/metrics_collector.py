@@ -6,11 +6,11 @@ and get_metrics_collector() singleton accessor.
 """
 
 import asyncio
-import time
 import logging
-from typing import Dict, Any, Optional, List
+import time
 from dataclasses import dataclass, field
 from datetime import datetime
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 

@@ -6,17 +6,17 @@ Command-line tool to validate and analyze the 50 arbitrage strategies.
 Provides detailed reporting and automated checking capabilities.
 """
 
-import asyncio
 import argparse
-import sys
+import asyncio
 import logging
+import sys
 from pathlib import Path
-from typing import Optional, List, Dict, Any
+from typing import Any, Dict, List, Optional
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from shared.strategy_loader import get_strategy_loader, StrategyCategory, StrategyStatus
+from shared.strategy_loader import StrategyCategory, StrategyStatus, get_strategy_loader
 
 # Configure logging
 logging.basicConfig(
@@ -216,7 +216,7 @@ class StrategyValidator:
         try:
             # Load strategies
             strategies = await self.loader.load_strategies()
-            
+
             # Filter strategies
             if strategy_ids:
                 strategies = [s for s in strategies if str(s.id) in strategy_ids]
@@ -228,21 +228,21 @@ class StrategyValidator:
                 except ValueError:
                     logger.info(f"[CROSS] Invalid category: {category}")
                     return
-            
+
             valid_strategies = [s for s in strategies if s.is_valid]
-            
+
             if not valid_strategies:
                 logger.info("[CROSS] No valid strategies found matching criteria")
                 return
-            
+
             logger.info(f"Simulating {len(valid_strategies)} strategies...")
-            
+
             # Run simulation
             results = await self._run_simulation(valid_strategies, duration)
-            
+
             # Display results
             self._display_simulation_results(results)
-            
+
         except Exception as e:
             logger.info(f"[CROSS] Error during simulation: {e}")
 
@@ -250,7 +250,7 @@ class StrategyValidator:
         """Run the actual simulation"""
         import random
         import time
-        
+
         results = {
             'strategies': {},
             'total_trades': 0,
@@ -258,7 +258,7 @@ class StrategyValidator:
             'duration': duration,
             'start_time': time.time()
         }
-        
+
         # Simulate each strategy
         for strategy in strategies:
             strategy_result = {
@@ -268,33 +268,33 @@ class StrategyValidator:
                 'max_drawdown': 0.0,
                 'category': strategy.category.value
             }
-            
+
             # Simple random simulation (in real implementation, this would use actual market data)
             num_trades = random.randint(5, 20)
             wins = 0
-            
+
             for _ in range(num_trades):
                 # Simulate trade outcome
                 pnl = random.uniform(-100, 200)  # Random P&L between -$100 and $200
                 strategy_result['pnl'] += pnl
                 strategy_result['trades'] += 1
-                
+
                 if pnl > 0:
                     wins += 1
-                
+
                 # Track max drawdown (simplified)
                 if strategy_result['pnl'] < strategy_result['max_drawdown']:
                     strategy_result['max_drawdown'] = strategy_result['pnl']
-            
+
             strategy_result['win_rate'] = (wins / num_trades) * 100 if num_trades > 0 else 0
-            
+
             results['strategies'][strategy.name] = strategy_result
             results['total_trades'] += num_trades
             results['total_pnl'] += strategy_result['pnl']
-        
+
         # Simulate time passing
         await asyncio.sleep(min(duration, 5))  # Cap at 5 seconds for demo
-        
+
         results['end_time'] = time.time()
         return results
 
@@ -305,24 +305,24 @@ class StrategyValidator:
         logger.info(f"Total Trades: {results['total_trades']}")
         logger.info(f"Total P&L: ${results['total_pnl']:.2f}")
         logger.info("")
-        
+
         logger.info("Strategy Performance:")
         logger.info("-" * 80)
         logger.info(f"{'Strategy':<35} {'Trades':<8} {'Win Rate':<10} {'P&L':<12}")
         logger.info("-" * 80)
-        
+
         for strategy_name, data in results['strategies'].items():
             print(f"{strategy_name[:34]:<35} "
                   f"{data['trades']:<8} "
                   f"{data['win_rate']:<10.1f} "
                   f"${data['pnl']:<12.1f}")
-        
+
         logger.info("-" * 80)
         print(f"{'TOTAL':<35} "
               f"{results['total_trades']:<8} "
               f"{'N/A':<10} "
               f"${results['total_pnl']:<12.1f}")
-        
+
         # Category breakdown
         logger.info("\n📂 By Category:")
         categories = {}
@@ -333,7 +333,7 @@ class StrategyValidator:
             categories[cat]['trades'] += data['trades']
             categories[cat]['pnl'] += data['pnl']
             categories[cat]['count'] += 1
-        
+
         for cat, data in categories.items():
             avg_pnl = data['pnl'] / data['count'] if data['count'] > 0 else 0
             print(f"{cat:<15} "

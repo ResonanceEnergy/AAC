@@ -128,7 +128,7 @@ for env_file in dev_root.glob("*/.env"):
     except Exception:
         pass
 
-# Check for Binance/Coinbase/Kraken API keys in other repos  
+# Check for Binance/Coinbase/Kraken API keys in other repos
 print("\n=== EXCHANGE KEYS SEARCH (all c:\\dev) ===")
 for env_file in dev_root.glob("*/.env"):
     try:

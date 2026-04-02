@@ -126,12 +126,12 @@ Reference: https://docs.openclaw.ai/tools/skills
 Telegram: @barrenwuffet069bot
 """
 
-import os
 import json
+import logging
+import os
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional
-from datetime import datetime
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -3081,7 +3081,7 @@ Comprehensive earnings season management via @barrenwuffet069bot.
 
 ### Earnings Workflow
 ```
-Sunday Preview → User Picks → Schedule One-Shots → Pre-Earnings Report → 
+Sunday Preview → User Picks → Schedule One-Shots → Pre-Earnings Report →
 Post-Earnings Auto-Summary → Options Impact Analysis → Strategy Adjustment
 ```
 

@@ -15,12 +15,12 @@ This bridge enables:
 
 import asyncio
 import logging
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
 
-from shared.bridge_orchestrator import BridgeMessage, BridgeMessageType, MessagePriority, Department
-from shared.audit_logger import get_audit_logger, AuditCategory, AuditSeverity
+from shared.audit_logger import AuditCategory, AuditSeverity, get_audit_logger
+from shared.bridge_orchestrator import BridgeMessage, BridgeMessageType, Department, MessagePriority
 
 logger = logging.getLogger(__name__)
 

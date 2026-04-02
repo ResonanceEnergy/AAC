@@ -2,58 +2,36 @@
 """
 Test Twelve Data API for AAC arbitrage system
 """
+from __future__ import annotations
+
+import os
+from unittest.mock import MagicMock, patch
 
 import pytest
-import requests
-import json
+
 
 @pytest.mark.api
 def test_twelve_data_api():
-    """Test Twelve Data API connectivity and data retrieval"""
+    """Test Twelve Data API connectivity — mocked, key from env."""
+    api_key = os.environ.get("TWELVE_DATA_API_KEY", "test-key")
 
-    print("Testing Twelve Data API")
-    print("=" * 40)
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {
+        "meta": {"symbol": "AAPL", "interval": "1min", "currency": "USD"},
+        "values": [
+            {"datetime": "2026-04-01 16:00:00", "close": "220.50", "open": "219.80", "high": "221.00", "low": "219.50", "volume": "1000000"}
+        ],
+    }
 
-    # Test the time series endpoint
-    url = 'https://api.twelvedata.com/time_series?apikey=46f6edf370d94d52b73108a9bc3bce5d&symbol=AAPL&interval=1min'
-
-    try:
+    with patch("requests.get", return_value=mock_response) as mock_get:
+        import requests
+        url = f"https://api.twelvedata.com/time_series?apikey={api_key}&symbol=AAPL&interval=1min"
         response = requests.get(url, timeout=10)
 
-        if response.status_code == 200:
-            data = response.json()
-            print("Twelve Data API: Connected successfully!")
-
-            # Check if we have data
-            if 'values' in data and data['values']:
-                meta = data.get('meta', {})
-                print(f"Symbol: {meta.get('symbol', 'N/A')}")
-                print(f"Latest Price: ${data['values'][0].get('close', 'N/A')}")
-                print(f"Timestamp: {data['values'][0].get('datetime', 'N/A')}")
-                print(f"Data Points: {len(data['values'])}")
-
-                # Show data structure
-                print("\nData Structure:")
-                print(f"Meta keys: {list(meta.keys()) if meta else 'None'}")
-                print(f"First data point keys: {list(data['values'][0].keys()) if data['values'] else 'None'}")
-
-            else:
-                print("API responded but no data returned")
-                print(f"Response keys: {list(data.keys()) if isinstance(data, dict) else 'not dict'}")
-                if 'status' in data:
-                    print(f"Status: {data['status']}")
-                if 'message' in data:
-                    print(f"Message: {data['message']}")
-
-        else:
-            print(f"HTTP Error: {response.status_code}")
-            print(f"Response: {response.text[:200]}")
-
-    except Exception as e:
-        print(f"Connection Error: {e}")
-
-    print("\nTwelve Data provides real-time and historical market data!")
-    print("Great for enhanced global market coverage")
-
-if __name__ == "__main__":
-    test_twelve_data_api()
+        assert response.status_code == 200
+        data = response.json()
+        assert "values" in data
+        assert data["values"][0]["close"] == "220.50"
+        assert data["meta"]["symbol"] == "AAPL"
+        mock_get.assert_called_once()

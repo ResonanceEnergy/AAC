@@ -14,17 +14,17 @@ Features:
 - Code formatting and linting
 """
 
-import asyncio
-import logging
 import ast
-import re
-import os
+import asyncio
 import hashlib
-from typing import Dict, List, Any, Optional, Tuple, Set
-from pathlib import Path
-from collections import defaultdict, Counter
-import inspect
 import importlib.util
+import inspect
+import logging
+import os
+import re
+from collections import Counter, defaultdict
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 from shared.audit_logger import AuditLogger
 from shared.communication import CommunicationFramework
@@ -118,8 +118,8 @@ class CodeQualityAnalyzer:
                         large_files.append({
                             'file': str(file_path),
                             'lines': line_count,
-                            'functions': len([l for l in lines if l.strip().startswith('def ')]),
-                            'classes': len([l for l in lines if l.strip().startswith('class ')])
+                        'functions': len([line for line in lines if line.strip().startswith('def ')]),
+                        'classes': len([line for line in lines if line.strip().startswith('class ')])
                         })
 
             except Exception as e:

@@ -6,35 +6,35 @@ Multi-factor authentication, encryption, RBAC, and API security for production d
 """
 
 import asyncio
-import logging
-import json
+import base64
 import hashlib
 import hmac
+import io
+import json
+import logging
 import secrets
+import sys
 import time
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Callable
+import uuid
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta
 from pathlib import Path
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.asymmetric import rsa, padding
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.backends import default_backend
-from cryptography.fernet import Fernet
+from typing import Any, Callable, Dict, List, Optional
+
 import pyotp
 import qrcode
-import io
-import base64
-import uuid
-import sys
+from cryptography.fernet import Fernet
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import padding, rsa
 
 logger = logging.getLogger(__name__)
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from shared.config_loader import get_config, get_project_path
 from shared.audit_logger import get_audit_logger
+from shared.config_loader import get_config, get_project_path
 
 
 @dataclass

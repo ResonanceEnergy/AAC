@@ -8,15 +8,15 @@ Handles git operations, system health checks, and dashboard management.
 """
 
 import asyncio
+import logging
+import os
 import subprocess
 import sys
-import os
 import time
 import webbrowser
-import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Any, Optional
+from typing import Any, Dict, List, Optional
 
 # Setup logging
 logging.basicConfig(

@@ -9,20 +9,21 @@ branch to active monitoring mode with autonomous decision capabilities.
 """
 
 import asyncio
+import json
+import logging
 import sys
 import time
 from datetime import datetime, timedelta
 from pathlib import Path
-import json
-import logging
 
 # Add project root
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from core.orchestrator import AAC2100Orchestrator
-from core.command_center import get_command_center
 from shared.avatar_system import get_avatar_manager
+
+from core.command_center import get_command_center
+from core.orchestrator import AAC2100Orchestrator
 
 # Configure logging
 logging.basicConfig(

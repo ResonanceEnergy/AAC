@@ -6,8 +6,9 @@ Mock implementation for financial monitoring and account management.
 """
 
 import asyncio
-from typing import Dict, List, Any
 from dataclasses import dataclass
+from typing import Any, Dict, List
+
 
 @dataclass
 class Account:

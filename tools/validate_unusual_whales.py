@@ -9,9 +9,8 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from shared.config_loader import load_env_file
 from integrations.unusual_whales_client import UnusualWhalesClient
-
+from shared.config_loader import load_env_file
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger("validate_unusual_whales")

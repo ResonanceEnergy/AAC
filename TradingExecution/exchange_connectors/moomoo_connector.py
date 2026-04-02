@@ -27,49 +27,53 @@ Configuration via .env:
 
 import asyncio
 import logging
+import sys
 import time
 from datetime import datetime
-from typing import Dict, List, Optional, Any
-import sys
 from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from shared.config_loader import get_env, get_env_int, get_env_bool, load_env_file
+from shared.config_loader import get_env, get_env_bool, get_env_int, load_env_file
 
 # Ensure .env is loaded before any get_env() calls
 load_env_file()
 
 from .base_connector import (
-    BaseExchangeConnector,
-    Ticker,
-    OrderBook,
-    Balance,
-    ExchangeOrder,
-    ExchangeError,
-    ConnectionError,
     AuthenticationError,
+    Balance,
+    BaseExchangeConnector,
+    ConnectionError,
+    ExchangeError,
+    ExchangeOrder,
     InsufficientFundsError,
+    OrderBook,
     OrderError,
+    Ticker,
 )
 
 # Try to import moomoo SDK
 try:
     from moomoo import (
+        RET_ERROR,
+        RET_OK,
+        Currency,
+        Market,
         OpenQuoteContext,
         OpenSecTradeContext,
         OpenUSTradeContext,
-        TrdSide,
-        TrdEnv,
-        OrderType as MooOrderType,
-        OrderStatus as MooOrderStatus,
-        TrdMarket,
-        Market,
         SecurityFirm,
-        Currency,
-        RET_OK,
-        RET_ERROR,
+        TrdEnv,
+        TrdMarket,
+        TrdSide,
+    )
+    from moomoo import (
+        OrderStatus as MooOrderStatus,
+    )
+    from moomoo import (
+        OrderType as MooOrderType,
     )
     MOOMOO_AVAILABLE = True
 except ImportError:

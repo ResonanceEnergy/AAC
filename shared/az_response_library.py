@@ -9,13 +9,14 @@ optimized for both text display and voice synthesis.
 """
 
 import json
-import pyttsx3
-import threading
-from typing import Dict, List, Optional
-from pathlib import Path
-from datetime import datetime
-import random
 import logging
+import random
+import threading
+from datetime import datetime
+from pathlib import Path
+from typing import Dict, List, Optional
+
+import pyttsx3
 
 logger = logging.getLogger(__name__)
 

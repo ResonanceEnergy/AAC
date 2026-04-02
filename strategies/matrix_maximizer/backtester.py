@@ -91,11 +91,14 @@ class MatrixBacktester:
     """
 
     def __init__(self) -> None:
-        from strategies.matrix_maximizer.greeks import BlackScholesEngine
         from strategies.matrix_maximizer.core import (
-            ScenarioWeights, Asset, ASSET_VOLATILITIES,
-            ASSET_OIL_BETAS, DEFAULT_PRICES,
+            ASSET_OIL_BETAS,
+            ASSET_VOLATILITIES,
+            DEFAULT_PRICES,
+            Asset,
+            ScenarioWeights,
         )
+        from strategies.matrix_maximizer.greeks import BlackScholesEngine
         self.bs = BlackScholesEngine()
         self._asset_vols = ASSET_VOLATILITIES
         self._oil_betas = ASSET_OIL_BETAS
@@ -123,7 +126,7 @@ class MatrixBacktester:
             stop_loss_pct: exit if loss exceeds this %
             take_profit_pct: exit if gain exceeds this %
         """
-        from strategies.matrix_maximizer.core import Asset, ASSET_VOLATILITIES
+        from strategies.matrix_maximizer.core import ASSET_VOLATILITIES, Asset
 
         trades: List[BacktestTrade] = []
         equity = initial_capital
@@ -247,6 +250,7 @@ class MatrixBacktester:
         Creates day-by-day snapshots with random walks + optional crisis event.
         """
         import random
+
         from strategies.matrix_maximizer.core import DEFAULT_PRICES
 
         scenarios = []
@@ -362,7 +366,7 @@ class MatrixBacktester:
 
     def _compute_attribution(self, trades: List[BacktestTrade]) -> Dict[str, float]:
         """Attribute P&L to market factors."""
-        from strategies.matrix_maximizer.core import Asset, ASSET_OIL_BETAS
+        from strategies.matrix_maximizer.core import ASSET_OIL_BETAS, Asset
 
         attr: Dict[str, float] = {
             "high_vix_trades": 0.0,

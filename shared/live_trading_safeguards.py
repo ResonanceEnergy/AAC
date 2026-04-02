@@ -7,14 +7,14 @@ Comprehensive risk management and safety controls for live trading.
 
 import ast
 import asyncio
-import logging
 import json
+import logging
 import operator
 import time
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Callable, Tuple
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta
 from enum import Enum
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -130,17 +130,18 @@ def _build_safe_condition(condition_code: str) -> Callable[[Dict[str, Any]], boo
         return bool(_safe_eval_node(tree, metrics))
 
     return _evaluator
-from pathlib import Path
+import os
 import sys
 import threading
+from pathlib import Path
+
 import psutil
-import os
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from shared.config_loader import get_config, get_project_path
 from shared.audit_logger import get_audit_logger
+from shared.config_loader import get_config, get_project_path
 from shared.monitoring import MonitoringService
 
 

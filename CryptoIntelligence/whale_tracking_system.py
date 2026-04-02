@@ -15,12 +15,12 @@ From BARREN WUFFET Insights (601-640, 811-850):
   - Token unlocks (VC/team vesting) create predictable sell pressure
 """
 
-from dataclasses import dataclass, field
-from enum import Enum
-from typing import Dict, List, Optional, Tuple, Set
-import logging
 import hashlib
+import logging
+from dataclasses import dataclass, field
 from datetime import datetime, timedelta
+from enum import Enum
+from typing import Dict, List, Optional, Set, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -144,7 +144,7 @@ class SmartMoneyFlow:
 class WhaleClassifier:
     """
     Classify wallets by type and behavior.
-    
+
     Classification heuristics:
       - Balance size → whale vs fish
       - Known labels → exchange, institution, fund
@@ -305,13 +305,13 @@ class FlowDirectionDetector:
 class AccumulationDetector:
     """
     Detect accumulation or distribution patterns from whale activity.
-    
+
     Accumulation signals:
       - Multiple whales buying over 24-72h
       - Exchange outflows sustained
       - Buy concentration at specific price levels
       - Dormant wallets receiving new deposits
-    
+
     Distribution signals:
       - Multiple whales sending to exchanges
       - Large OTC block sales
@@ -380,7 +380,7 @@ class AccumulationDetector:
 class TokenUnlockTracker:
     """
     Track upcoming token unlocks (vesting schedules).
-    
+
     VC/team token unlocks create predictable sell pressure:
       - Cliff unlocks: sudden large supply increase
       - Linear vesting: gradual but consistent pressure
@@ -474,7 +474,8 @@ if __name__ == "__main__":
     logger.info(f"\nFlow Detection:")
     logger.info(f"  Direction: {direction.value}")
     logger.info(f"  Priority: {priority.value}")
-    for n in notes: print(f"  → {n}")
+    for n in notes:
+        print(f"  \u2192 {n}")
 
     # Token unlock
     unlock = TokenUnlockTracker.assess_unlock_impact(
@@ -489,4 +490,5 @@ if __name__ == "__main__":
     logger.info(f"  Impact: {unlock['impact']}")
     logger.info(f"  Supply %: {unlock['supply_percentage']}%")
     logger.info(f"  Value: ${unlock['value_usd']:,.0f}")
-    for n in unlock["notes"]: print(f"  → {n}")
+    for n in unlock["notes"]:
+        print(f"  → {n}")

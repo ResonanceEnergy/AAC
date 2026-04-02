@@ -5,9 +5,14 @@ Validates the core logic, risk controls, and simulation engine
 for the planktonXD emulation strategy (Strategy #51).
 """
 
-import pytest
+import asyncio
 from datetime import datetime, timedelta
+from unittest.mock import AsyncMock, MagicMock, patch
 
+import aiohttp
+import pytest
+
+from agents.polymarket_agent import PolymarketAgent, PolymarketMarket
 from strategies.planktonxd_prediction_harvester import (
     BetType,
     HarvesterStats,
@@ -16,7 +21,6 @@ from strategies.planktonxd_prediction_harvester import (
     PlanktonXDSimulator,
     PredictionMarket,
 )
-
 
 # ─── Fixtures ─────────────────────────────────────────────────────────────
 
@@ -180,3 +184,113 @@ class TestPlanktonXDSimulator:
         mc = sim.run_monte_carlo(num_paths=100)
         # Should not consistently produce profit with no edge
         assert mc['mean_profit'] < mc['starting_bankroll'] * 5
+
+
+# ─── PolymarketAgent Retry Tests ─────────────────────────────────────────
+
+class TestPolymarketAgentRetry:
+    """Test PolymarketAgent retry + exponential backoff logic."""
+
+    @pytest.mark.asyncio
+    async def test_retry_succeeds_on_second_attempt(self):
+        """Agent should retry and succeed if second attempt works."""
+        agent = PolymarketAgent()
+        call_count = 0
+
+        class FakeCtxManager:
+            def __init__(self, should_fail):
+                self._fail = should_fail
+
+            async def __aenter__(self):
+                if self._fail:
+                    raise aiohttp.ClientError("Connection refused")
+                resp = MagicMock()
+                resp.raise_for_status = MagicMock()
+                resp.json = AsyncMock(return_value=[{"id": "1"}])
+                return resp
+
+            async def __aexit__(self, *args):
+                pass
+
+        def mock_get(url, params=None):
+            nonlocal call_count
+            call_count += 1
+            return FakeCtxManager(should_fail=(call_count == 1))
+
+        try:
+            session = await agent._get_session()
+            session.get = mock_get
+            with patch("asyncio.sleep", new_callable=AsyncMock):
+                result = await agent._get("https://test.example.com/api")
+            assert result == [{"id": "1"}]
+            assert call_count == 2
+        finally:
+            await agent.close()
+
+    @pytest.mark.asyncio
+    async def test_retry_exhausted_raises(self):
+        """Agent should raise after all retries exhausted."""
+        agent = PolymarketAgent()
+
+        class AlwaysFailCtx:
+            async def __aenter__(self):
+                raise aiohttp.ClientError("DNS failure")
+
+            async def __aexit__(self, *args):
+                pass
+
+        def always_fail(url, params=None):
+            return AlwaysFailCtx()
+
+        try:
+            session = await agent._get_session()
+            session.get = always_fail
+            with patch("asyncio.sleep", new_callable=AsyncMock):
+                with pytest.raises(aiohttp.ClientError, match="DNS failure"):
+                    await agent._get("https://test.example.com/api", retries=2)
+        finally:
+            await agent.close()
+
+    @pytest.mark.asyncio
+    async def test_context_manager(self):
+        """Async context manager should close session."""
+        async with PolymarketAgent() as agent:
+            session = await agent._get_session()
+            assert not session.closed
+        assert agent._session is None or agent._session.closed
+
+
+# ─── BlackSwanScanner Circuit-Breaker Tests ───────────────────────────────
+
+class TestBlackSwanScannerCircuitBreaker:
+    """Test that scanner stops early when API is unreachable."""
+
+    @pytest.mark.asyncio
+    async def test_circuit_breaker_skips_keyword_searches(self):
+        """When first page fails, keyword searches should be skipped."""
+        from strategies.polymarket_blackswan_scanner import PolymarketBlackSwanScanner
+
+        scanner = PolymarketBlackSwanScanner()
+        call_count = 0
+
+        async def mock_get_markets(limit=100, offset=0):
+            nonlocal call_count
+            call_count += 1
+            raise aiohttp.ClientError("DNS failure")
+
+        async def mock_search(query, limit=10):
+            nonlocal call_count
+            call_count += 1
+            return []
+
+        scanner.agent.get_active_markets = mock_get_markets
+        scanner.agent.search_markets = mock_search
+
+        try:
+            opps = await scanner.scan(max_pages=3)
+            assert len(opps) == 0
+            # Should only have called get_active_markets once (page 0 failed)
+            # search_markets should NOT have been called
+            assert call_count == 1, f"Expected 1 call (page 0 only), got {call_count}"
+        finally:
+            await scanner.close()

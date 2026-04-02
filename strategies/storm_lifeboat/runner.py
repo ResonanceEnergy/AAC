@@ -393,6 +393,7 @@ def main() -> None:
     # Capital Engine (single cycle or continuous loop)
     if args.capital_engine or args.capital_loop:
         import asyncio as _asyncio
+
         from strategies.storm_lifeboat.capital_engine import LifeboatCapitalEngine
         engine = LifeboatCapitalEngine()
         if args.capital_loop:

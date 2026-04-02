@@ -14,10 +14,9 @@ import urllib.error
 import urllib.request
 from datetime import datetime
 from io import BytesIO
-from unittest.mock import MagicMock, patch, PropertyMock
+from unittest.mock import MagicMock, PropertyMock, patch
 
 import pytest
-
 
 # ═══════════════════════════════════════════════════════════════════════════
 # HELPERS
@@ -512,8 +511,8 @@ class TestRunnerIntelligenceWiring:
     @patch("urllib.request.urlopen")
     def test_init_intelligence_static_method(self, mock_urlopen):
         mock_urlopen.side_effect = urllib.error.URLError("no network")
-        from strategies.matrix_maximizer.runner import MatrixMaximizer
         from strategies.matrix_maximizer.data_feeds import DataFeedManager
+        from strategies.matrix_maximizer.runner import MatrixMaximizer
         feeds = DataFeedManager()
         intel = MatrixMaximizer._init_intelligence(feeds)
         assert intel is not None
@@ -539,8 +538,8 @@ class TestRunnerIntelligenceWiring:
     def test_full_cycle_with_intel_wired(self, mock_urlopen):
         """run_full_cycle should work with intelligence properly wired."""
         mock_urlopen.side_effect = urllib.error.URLError("no network")
-        from strategies.matrix_maximizer.runner import MatrixMaximizer
         from strategies.matrix_maximizer.core import MatrixConfig
+        from strategies.matrix_maximizer.runner import MatrixMaximizer
         mm = MatrixMaximizer(MatrixConfig(account_size=920, n_simulations=100))
         result = mm.run_full_cycle(prices={"oil": 95, "vix": 28})
         assert result["status"] in ("complete", "blocked")
@@ -656,7 +655,7 @@ class TestIntelligenceEnrichFromFeeds:
 
 class TestHTTPHealthExport:
     def test_http_health_importable(self):
-        from strategies.matrix_maximizer.http_health import HTTPHealthCheck, EndpointResult
+        from strategies.matrix_maximizer.http_health import EndpointResult, HTTPHealthCheck
         assert HTTPHealthCheck is not None
         assert EndpointResult is not None
 

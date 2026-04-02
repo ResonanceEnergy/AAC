@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AAC Mission Control</title>
+<style>
+:root {
+    --bg: #0a0a0f;
+    --surface: #12131a;
+    --surface2: #1a1b24;
+    --border: #2a2b3a;
+    --text: #e0e0e8;
+    --dim: #888899;
+    --green: #00ff88;
+    --red: #ff4466;
+    --amber: #ffaa22;
+    --blue: #44aaff;
+    --purple: #aa66ff;
+    --cyan: #00dddd;
+    --gold: #ffd700;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', 'Cascadia Code', monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    padding: 16px;
+}
+h1 { font-size: 22px; font-weight: 700; color: var(--gold); letter-spacing: 2px; }
+h2 { font-size: 15px; font-weight: 600; color: var(--cyan); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--border); padding-bottom: 4px; }
+h3 { font-size: 13px; color: var(--dim); margin-bottom: 4px; }
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid var(--gold); }
+.header-info { font-size: 12px; color: var(--dim); }
+.header-info .live { color: var(--green); font-weight: bold; }
+
+/* Grid layout */
+.grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.grid-full { margin-bottom: 16px; }
+
+.card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    overflow: hidden;
+}
+.card.highlight { border-color: var(--gold); }
+.card.wide { grid-column: span 2; }
+.card.full { grid-column: span 3; }
+
+/* Big numbers */
+.big-num { font-size: 28px; font-weight: 700; color: var(--green); }
+.big-num.warn { color: var(--amber); }
+.big-num.bad { color: var(--red); }
+.label { font-size: 11px; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; }
+
+/* Stat rows */
+.stat-row { display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px solid var(--border); }
+.stat-row:last-child { border-bottom: none; }
+.stat-key { color: var(--dim); }
+.stat-val { font-weight: 500; }
+
+/* Tables */
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+th { text-align: left; color: var(--dim); font-weight: 500; padding: 4px 6px; border-bottom: 1px solid var(--border); text-transform: uppercase; font-size: 10px; letter-spacing: 0.5px; }
+td { padding: 4px 6px; border-bottom: 1px solid rgba(42,43,58,0.5); }
+tr:hover td { background: var(--surface2); }
+
+/* Colors */
+.pos { color: var(--green); }
+.neg { color: var(--red); }
+.neutral { color: var(--dim); }
+.amber { color: var(--amber); }
+
+/* Indicator bars */
+.ind-bar { display: flex; align-items: center; gap: 6px; margin: 2px 0; }
+.ind-name { width: 110px; font-size: 11px; color: var(--dim); }
+.ind-track { flex: 1; height: 8px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
+.ind-fill { height: 100%; border-radius: 4px; transition: width 0.3s; }
+.ind-score { width: 36px; text-align: right; font-size: 11px; font-weight: 600; }
+
+/* Arm allocation bar */
+.arm-row { display: flex; align-items: center; gap: 6px; margin: 3px 0; }
+.arm-name { width: 130px; font-size: 11px; }
+.arm-bar-wrap { flex: 1; position: relative; height: 14px; background: var(--surface2); border-radius: 4px; }
+.arm-bar-target { position: absolute; height: 100%; border-radius: 4px; opacity: 0.3; }
+.arm-bar-actual { position: absolute; height: 100%; border-radius: 4px; }
+.arm-pct { width: 70px; text-align: right; font-size: 11px; }
+
+/* Health dots */
+.health-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.health-item { display: flex; align-items: center; gap: 4px; font-size: 12px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; }
+.dot.ok { background: var(--green); }
+.dot.warn { background: var(--amber); }
+.dot.off { background: var(--red); }
+.dot.cfg { background: var(--blue); }
+
+/* Moon box */
+.moon-box { display: flex; gap: 16px; align-items: center; }
+.moon-emoji { font-size: 32px; }
+.moon-info { flex: 1; }
+
+/* Account summary cards */
+.acct-cards { display: flex; gap: 8px; flex-wrap: wrap; }
+.acct-card { background: var(--surface2); border-radius: 6px; padding: 8px 12px; min-width: 120px; }
+.acct-name { font-size: 11px; color: var(--dim); text-transform: uppercase; }
+.acct-val { font-size: 16px; font-weight: 600; }
+
+/* Status bar */
+.status-bar { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; font-size: 11px; color: var(--dim); border-top: 1px solid var(--border); margin-top: 8px; }
+.pulse { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; margin-right: 4px; }
+@keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+
+/* Error state */
+.error-msg { color: var(--red); font-size: 12px; padding: 8px; background: rgba(255,68,102,0.1); border-radius: 4px; }
+
+/* Scenario expandable rows */
+.scenario-row { cursor: pointer; padding: 6px 8px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; transition: background 0.15s; }
+.scenario-row:hover { background: rgba(255,255,255,0.04); }
+.scenario-row .rank { width:26px; font-weight:bold; color:var(--amber); }
+.scenario-row .name { flex:1; font-weight:600; }
+.scenario-row .metrics { display:flex; gap:16px; font-size:12px; color:var(--dim); }
+.scenario-row .metrics span { min-width:52px; text-align:right; }
+.scenario-detail { display:none; padding:8px 12px 12px 30px; font-size:12px; color:#a0a8b8; background:rgba(0,0,0,0.2); border-bottom:1px solid var(--border); }
+.scenario-detail.open { display:block; }
+.scenario-detail .price-row { display:flex; flex-wrap:wrap; gap:12px; margin-top:6px; }
+.scenario-detail .price-row span { background:rgba(255,255,255,0.05); padding:2px 8px; border-radius:3px; }
+.scenario-detail .drift-row { margin-top:6px; color:var(--cyan); }
+
+/* Backbone modules */
+.bb-mod { display:inline-flex; align-items:center; gap:4px; padding:4px 10px; background:rgba(255,255,255,0.04); border-radius:4px; font-size:12px; }
+.bb-dot { width:8px; height:8px; border-radius:50%; }
+.bb-dot.ok { background:var(--green); }
+.bb-dot.err { background:var(--red); }
+
+/* Polymarket trending table */
+.poly-table { width:100%; border-collapse:collapse; font-size:12px; }
+.poly-table th { text-align:left; color:var(--dim); font-size:10px; padding:2px 4px; border-bottom:1px solid var(--border); }
+.poly-table td { padding:3px 4px; border-bottom:1px solid rgba(255,255,255,0.03); }
+
+/* Responsive */
+@media (max-width: 1200px) { .grid { grid-template-columns: 1fr 1fr; } .card.full { grid-column: span 2; } }
+@media (max-width: 800px) { .grid, .grid-2 { grid-template-columns: 1fr; } .card.wide, .card.full { grid-column: span 1; } }
+</style>
+</head>
+<body>
+<div class="header">
+    <h1>&#9670; AAC MISSION CONTROL</h1>
+    <div class="header-info">
+        <span class="live"><span class="pulse"></span> AUTO-REFRESH 30s</span>
+        <span id="clock"></span>
+    </div>
+</div>
+
+<!-- Row 1: Portfolio Total | Regime & Score | Live Feeds -->
+<div class="grid" id="top-row">
+    <div class="card highlight" id="card-portfolio-total">
+        <h2>Portfolio</h2>
+        <div class="big-num" id="total-usd">$—</div>
+        <div class="label" id="total-positions">— positions</div>
+        <div id="unrealized-pnl" style="margin-top:4px;"></div>
+        <div id="acct-summary" class="acct-cards" style="margin-top:8px;"></div>
+    </div>
+    <div class="card highlight" id="card-regime">
+        <h2>War Room</h2>
+        <div class="big-num" id="composite-score">—</div>
+        <div class="label">Composite Score</div>
+        <div class="stat-row" style="margin-top:8px;"><span class="stat-key">Regime</span><span class="stat-val" id="regime-name">—</span></div>
+        <div class="stat-row"><span class="stat-key">Confidence</span><span class="stat-val" id="confidence">—</span></div>
+        <div class="stat-row"><span class="stat-key">Phase</span><span class="stat-val" id="phase">—</span></div>
+        <div class="stat-row"><span class="stat-key">Mandate</span><span class="stat-val" id="mandate">—</span></div>
+    </div>
+    <div class="card" id="card-feeds">
+        <h2>Live Feeds</h2>
+        <div id="feeds-grid"></div>
+    </div>
+</div>
+
+<!-- Row 2: Indicators | Arms -->
+<div class="grid-2">
+    <div class="card" id="card-indicators">
+        <h2>15 Indicators</h2>
+        <div id="indicators-list"></div>
+    </div>
+    <div class="card" id="card-arms">
+        <h2>5-Arm Allocation</h2>
+        <div id="arms-list"></div>
+    </div>
+</div>
+
+<!-- Row 3: Positions Table (full width) -->
+<div class="grid-full">
+    <div class="card" id="card-positions">
+        <h2>All Positions</h2>
+        <div id="positions-wrapper" style="max-height:400px; overflow-y:auto;">
+            <table>
+                <thead><tr>
+                    <th>Account</th><th>Symbol</th><th>Type</th><th>Strike</th><th>Expiry</th>
+                    <th>Qty</th><th>Avg Cost</th><th>Mkt Price</th><th>Mkt Val</th><th>P&L</th>
+                </tr></thead>
+                <tbody id="positions-body"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Row 3.5: Top 10 Scenarios (full width, expandable) -->
+<div class="grid-full">
+    <div class="card" id="card-scenarios">
+        <h2>&#127919; Top 10 Scenarios <span id="scenario-total" style="font-size:11px; color:var(--dim);"></span></h2>
+        <div id="scenarios-list"></div>
+    </div>
+</div>
+
+<!-- Row 3.6: Polymarket -->
+<div class="grid">
+    <div class="card highlight" id="card-polymarket-bal">
+        <h2>&#127922; Polymarket</h2>
+        <div class="big-num" id="poly-balance">$—</div>
+        <div class="label">Cash Balance</div>
+        <div id="poly-in-positions" style="margin-top:4px; font-size:12px;"></div>
+        <div id="poly-arb-count" style="margin-top:4px; font-size:12px;"></div>
+    </div>
+    <div class="card" id="card-polymarket-trending">
+        <h2>Trending Markets</h2>
+        <div id="poly-trending" style="max-height:200px; overflow-y:auto; font-size:12px;">—</div>
+    </div>
+    <div class="card" id="card-polymarket-arbs">
+        <h2>Arbitrage Opps</h2>
+        <div id="poly-arbs" style="max-height:200px; overflow-y:auto; font-size:12px;">—</div>
+    </div>
+</div>
+
+<!-- Row 4: Moon | Doctrine | Health -->
+<div class="grid">
+    <div class="card" id="card-moon">
+        <h2>13 Moon Doctrine</h2>
+        <div class="moon-box">
+            <span class="moon-emoji">&#127769;</span>
+            <div class="moon-info">
+                <div id="moon-name" style="font-weight:600;">—</div>
+                <div id="moon-mandate" class="label">—</div>
+                <div id="moon-events" style="margin-top:6px; font-size:11px;"></div>
+            </div>
+        </div>
+    </div>
+    <div class="card" id="card-doctrine">
+        <h2>Doctrine Compliance</h2>
+        <div class="big-num" id="doctrine-score">—</div>
+        <div class="label" id="doctrine-state">—</div>
+        <div id="doctrine-detail" style="margin-top:8px;"></div>
+    </div>
+    <div class="card" id="card-health">
+        <h2>System Health</h2>
+        <div class="health-grid" id="health-grid"></div>
+    </div>
+</div>
+
+<!-- Row 5: Divisions | API Feeds -->
+<div class="grid-2">
+    <div class="card" id="card-divisions">
+        <h2>&#9881; Division Activity</h2>
+        <div id="divisions-list"></div>
+    </div>
+    <div class="card" id="card-api-feeds">
+        <h2>&#128225; API Feeds</h2>
+        <div id="api-feeds-list"></div>
+    </div>
+</div>
+
+<!-- Row 6: Unusual Whales (full width) -->
+<div class="grid-full">
+    <div class="card" id="card-uw">
+        <h2>&#128011; Unusual Whales Intelligence</h2>
+        <div class="grid" style="gap:8px;" id="uw-panels">
+            <div>
+                <h3>Flow Summary</h3>
+                <div id="uw-flow-summary" style="font-size:12px;">—</div>
+            </div>
+            <div>
+                <h3>Hottest Chains</h3>
+                <div id="uw-hottest" style="max-height:200px; overflow-y:auto;">—</div>
+            </div>
+            <div>
+                <h3>Congress Trades</h3>
+                <div id="uw-congress" style="max-height:200px; overflow-y:auto;">—</div>
+            </div>
+        </div>
+        <div style="margin-top:8px;">
+            <h3>SPY Dark Pool</h3>
+            <div id="uw-darkpool" style="font-size:12px;">—</div>
+        </div>
+    </div>
+</div>
+
+<!-- Row 7: Autonomous Tasks (full width) -->
+<div class="grid-full">
+    <div class="card" id="card-tasks">
+        <h2>&#9889; Autonomous Tasks</h2>
+        <div id="tasks-list" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
+    </div>
+</div>
+
+<!-- Row 7.5: P&L Summary | Recent Trades -->
+<div class="grid-2">
+    <div class="card" id="card-pnl">
+        <h2>&#128200; P&amp;L Summary</h2>
+        <div id="pnl-summary" style="margin-bottom:8px;"></div>
+        <h3>Daily P&amp;L (14d)</h3>
+        <div id="pnl-daily" style="max-height:200px; overflow-y:auto;"></div>
+    </div>
+    <div class="card" id="card-trade-log">
+        <h2>&#128196; Recent Trades</h2>
+        <div id="trade-log-count" class="label" style="margin-bottom:6px;"></div>
+        <div id="trade-log-list" style="max-height:280px; overflow-y:auto;"></div>
+    </div>
+</div>
+
+<!-- Row 8: Backbone Health (full width) -->
+<div class="grid-full">
+    <div class="card" id="card-backbone">
+        <h2>&#128737; Shared/ Backbone <span id="backbone-counts" style="font-size:11px; color:var(--dim);"></span></h2>
+        <div id="backbone-modules" style="display:flex; flex-wrap:wrap; gap:8px;"></div>
+    </div>
+</div>
+
+<div class="status-bar">
+    <span><span class="pulse" id="heartbeat"></span> <span id="last-updated">Waiting for data…</span></span>
+    <span id="refresh-countdown">Next refresh in 30s</span>
+</div>
+
+<script>
+const REFRESH_MS = 30000;
+let countdown = 30;
+let lastData = null;
+
+function $(id) { return document.getElementById(id); }
+function fmt(n, d=0) { return n != null ? Number(n).toLocaleString('en-US', {minimumFractionDigits:d, maximumFractionDigits:d}) : '—'; }
+function fmtUsd(n) { return n != null ? '$' + fmt(n, 2) : '—'; }
+function pnlClass(n) { return n > 0 ? 'pos' : n < 0 ? 'neg' : 'neutral'; }
+function scoreColor(s) {
+    if (s >= 70) return 'var(--green)';
+    if (s >= 50) return 'var(--amber)';
+    if (s >= 30) return 'var(--red)';
+    return 'var(--red)';
+}
+function regimeColor(r) {
+    const map = {RISK_ON:'var(--green)', RISK_OFF:'var(--red)', STAGFLATION:'var(--amber)',
+        CREDIT_STRESS:'var(--red)', LIQUIDITY_CRUNCH:'var(--red)', VOL_SHOCK_ARMED:'var(--amber)',
+        VOL_SHOCK_ACTIVE:'var(--red)', POLICY_DELAY_TRAP:'var(--amber)', UNCERTAIN:'var(--dim)'};
+    return map[(r||'').toUpperCase()] || 'var(--dim)';
+}
+
+function renderPortfolio(d) {
+    if (!d || d.error) { $('total-usd').textContent = d?.error || 'Error'; return; }
+    $('total-usd').textContent = fmtUsd(d.total_usd);
+    $('total-usd').style.color = 'var(--green)';
+    $('total-positions').textContent = `${d.total_positions} positions across ${d.accounts?.length || 0} accounts`;
+    const pnl = d.total_unrealized_pnl;
+    $('unrealized-pnl').innerHTML = `<span class="${pnlClass(pnl)}">Unrealized P&L: ${pnl >= 0 ? '+' : ''}${fmtUsd(pnl)}</span>`;
+
+    let acctHtml = '';
+    for (const a of (d.accounts || [])) {
+        if (a.value_usd < 1 && a.position_count === 0) continue;
+        acctHtml += `<div class="acct-card"><div class="acct-name">${a.name}</div><div class="acct-val">${fmtUsd(a.value_usd)}</div><div class="label">${a.position_count} pos</div></div>`;
+    }
+    $('acct-summary').innerHTML = acctHtml;
+}
+
+function renderWarRoom(d) {
+    if (!d || d.error) return;
+    const sc = d.composite_score || 0;
+    $('composite-score').textContent = fmt(sc, 1);
+    $('composite-score').style.color = scoreColor(sc);
+    $('regime-name').textContent = d.regime || '—';
+    $('regime-name').style.color = regimeColor(d.regime);
+    $('confidence').textContent = fmt((d.confidence||0)*100, 0) + '%';
+    $('phase').textContent = d.phase || '—';
+    $('mandate').textContent = d.mandate || '—';
+}
+
+function renderIndicators(d) {
+    if (!d || d.error || !d.indicators) return;
+    let html = '';
+    const sorted = [...d.indicators].sort((a,b) => Math.abs(b.contribution) - Math.abs(a.contribution));
+    for (const ind of sorted) {
+        const pct = Math.min(Math.abs(ind.score), 100);
+        const color = ind.score >= 60 ? 'var(--green)' : ind.score >= 40 ? 'var(--amber)' : 'var(--red)';
+        html += `<div class="ind-bar">
+            <span class="ind-name">${ind.name}</span>
+            <div class="ind-track"><div class="ind-fill" style="width:${pct}%;background:${color}"></div></div>
+            <span class="ind-score" style="color:${color}">${fmt(ind.score,0)}</span>
+        </div>`;
+    }
+    $('indicators-list').innerHTML = html;
+}
+
+function renderArms(d) {
+    if (!d || d.error || !d.arms) return;
+    const colors = ['var(--blue)', 'var(--purple)', 'var(--cyan)', 'var(--gold)', 'var(--green)'];
+    let html = '';
+    d.arms.forEach((arm, i) => {
+        const c = colors[i % colors.length];
+        const tPct = Math.min(arm.target_pct, 100);
+        const aPct = Math.min(arm.actual_pct, 100);
+        html += `<div class="arm-row">
+            <span class="arm-name">${arm.name || arm.arm}</span>
+            <div class="arm-bar-wrap">
+                <div class="arm-bar-target" style="width:${tPct}%;background:${c}"></div>
+                <div class="arm-bar-actual" style="width:${aPct}%;background:${c}"></div>
+            </div>
+            <span class="arm-pct">${fmt(arm.actual_pct,1)}% / ${fmt(arm.target_pct,1)}%</span>
+        </div>`;
+    });
+    $('arms-list').innerHTML = html;
+}
+
+function renderFeeds(d) {
+    if (!d || d.error) { $('feeds-grid').innerHTML = `<div class="error-msg">${d?.error||'No feed data'}</div>`; return; }
+    const items = [
+        ['BTC', d.btc, '$'], ['ETH', d.eth, '$'], ['SPY', d.spy, '$'],
+        ['Gold', d.gold, '$'], ['Oil', d.oil, '$'], ['VIX', d.vix, ''],
+        ['P/C', d.put_call, ''], ['FGI', d.fear_greed, ''], ['DXY', d.dxy, ''],
+    ];
+    let html = '<div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px;">';
+    for (const [name, val, prefix] of items) {
+        const display = val != null ? (prefix + fmt(val, name === 'BTC' ? 0 : name === 'P/C' ? 2 : 1)) : '—';
+        html += `<div><div class="label">${name}</div><div style="font-weight:600; font-size:13px;">${display}</div></div>`;
+    }
+    html += '</div>';
+    if (d.errors && d.errors.length) {
+        html += `<div style="margin-top:6px; font-size:10px; color:var(--amber);">${d.errors.length} feed error(s)</div>`;
+    }
+    $('feeds-grid').innerHTML = html;
+}
+
+function renderPositions(portfolio) {
+    if (!portfolio || portfolio.error || !portfolio.accounts) return;
+    let rows = '';
+    for (const acct of portfolio.accounts) {
+        for (const p of (acct.positions || [])) {
+            const pnlCls = pnlClass(p.unrealized_pnl);
+            rows += `<tr>
+                <td>${acct.name}</td>
+                <td style="font-weight:600;">${p.symbol}</td>
+                <td>${p.type}</td>
+                <td>${p.strike || '—'}</td>
+                <td>${p.expiry || '—'}</td>
+                <td>${fmt(p.qty, 0)}</td>
+                <td>${fmtUsd(p.avg_cost)}</td>
+                <td>${fmtUsd(p.market_price)}</td>
+                <td>${fmtUsd(p.market_value)}</td>
+                <td class="${pnlCls}">${p.unrealized_pnl >= 0 ? '+' : ''}${fmtUsd(p.unrealized_pnl)}</td>
+            </tr>`;
+        }
+    }
+    $('positions-body').innerHTML = rows || '<tr><td colspan="10" class="neutral">No positions loaded</td></tr>';
+}
+
+function renderMoon(d) {
+    if (!d || d.error) return;
+    $('moon-name').textContent = `Moon ${d.moon_number}: ${d.name || 'Unknown'}`;
+    $('moon-mandate').textContent = `Mandate: ${d.mandate || 'HOLD'} | Conviction: ${d.conviction || 0}`;
+    let evHtml = '';
+    for (const ev of (d.events || []).slice(0, 5)) {
+        evHtml += `<div style="color:var(--dim);">&#8226; ${ev.name} (${ev.days}d)</div>`;
+    }
+    $('moon-events').innerHTML = evHtml || '<div class="neutral">No upcoming events</div>';
+}
+
+function renderDoctrine(d) {
+    if (!d || d.error) return;
+    $('doctrine-score').textContent = fmt(d.compliance_score, 0) + '%';
+    $('doctrine-score').style.color = d.compliance_score >= 90 ? 'var(--green)' : d.compliance_score >= 70 ? 'var(--amber)' : 'var(--red)';
+    $('doctrine-state').textContent = d.state || 'NORMAL';
+    let detail = `<div class="stat-row"><span class="stat-key">Rules</span><span class="stat-val">${d.total_rules}</span></div>`;
+    detail += `<div class="stat-row"><span class="stat-key">Compliant</span><span class="stat-val pos">${d.compliant}</span></div>`;
+    if (d.warnings) detail += `<div class="stat-row"><span class="stat-key">Warnings</span><span class="stat-val amber">${d.warnings}</span></div>`;
+    if (d.violations) detail += `<div class="stat-row"><span class="stat-key">Violations</span><span class="stat-val neg">${d.violations}</span></div>`;
+    $('doctrine-detail').innerHTML = detail;
+}
+
+function renderHealth(d) {
+    if (!d || d.error) return;
+    let html = '';
+    const statusMap = {connected:'ok', configured:'cfg', available:'ok', offline:'off', unavailable:'off', no_key:'warn'};
+    for (const [name, status] of Object.entries(d.subsystems || {})) {
+        const dotClass = statusMap[status] || 'warn';
+        html += `<div class="health-item"><span class="dot ${dotClass}"></span> ${name}: ${status}</div>`;
+    }
+    $('health-grid').innerHTML = html;
+}
+
+function renderDivisions(d) {
+    if (!d || d.error || !d.divisions) { $('divisions-list').innerHTML = '<div class="error-msg">No data</div>'; return; }
+    let html = '';
+    const statusDot = {ACTIVE:'ok', PARTIAL:'warn', DEGRADED:'warn', UNKNOWN:'off', OFFLINE:'off'};
+    for (const div of d.divisions) {
+        const dot = statusDot[div.status] || 'warn';
+        const comps = (div.components || []).slice(0, 5).join(', ');
+        html += `<div style="margin-bottom:6px;">
+            <div class="health-item"><span class="dot ${dot}"></span> <strong>${div.name}</strong> — ${div.status}</div>
+            <div style="font-size:11px; color:var(--dim); margin-left:12px;">${div.detail || ''}${comps ? ' | ' + comps : ''}</div>
+        </div>`;
+    }
+    $('divisions-list').innerHTML = html;
+}
+
+function renderApiFeeds(d) {
+    if (!d || d.error || !d.feeds) { $('api-feeds-list').innerHTML = '<div class="error-msg">No data</div>'; return; }
+    const statusDot = {active:'ok', configured:'cfg', exchange:'ok', no_key:'off'};
+    let html = `<div style="margin-bottom:4px; font-size:11px; color:var(--dim);">${d.configured_count}/${d.total_count} feeds configured</div>`;
+    for (const f of d.feeds) {
+        const dot = statusDot[f.status] || 'warn';
+        html += `<div class="health-item"><span class="dot ${dot}"></span> ${f.name} <span style="font-size:10px; color:var(--dim); margin-left:4px;">${f.note || ''}</span></div>`;
+    }
+    $('api-feeds-list').innerHTML = html;
+}
+
+function renderUnusualWhales(d) {
+    if (!d || d.error) {
+        $('uw-flow-summary').innerHTML = `<div class="error-msg">${d?.error || 'UW not available'}</div>`;
+        return;
+    }
+
+    // Flow summary
+    if (d.flow_summary && !d.flow_summary_error) {
+        const fs = d.flow_summary;
+        if (typeof fs === 'object') {
+            let html = '';
+            for (const [k, v] of Object.entries(fs)) {
+                html += `<div class="stat-row"><span class="stat-key">${k}</span><span class="stat-val">${typeof v === 'number' ? fmt(v, 2) : v}</span></div>`;
+            }
+            $('uw-flow-summary').innerHTML = html || '—';
+        } else {
+            $('uw-flow-summary').textContent = String(fs);
+        }
+    } else {
+        $('uw-flow-summary').innerHTML = `<span class="amber">${d.flow_summary_error || 'No data'}</span>`;
+    }
+
+    // Hottest chains
+    if (d.hottest_chains && d.hottest_chains.length > 0) {
+        let html = '<table><thead><tr><th>Ticker</th><th>Volume</th><th>OI</th><th>Sentiment</th></tr></thead><tbody>';
+        for (const c of d.hottest_chains) {
+            const sent = c.sentiment || c.option_type || '—';
+            const sentCls = (sent || '').toLowerCase().includes('bull') ? 'pos' : (sent || '').toLowerCase().includes('bear') ? 'neg' : '';
+            html += `<tr><td style="font-weight:600;">${c.ticker || c.symbol || '—'}</td>
+                <td>${fmt(c.volume || c.total_volume, 0)}</td><td>${fmt(c.open_interest, 0)}</td>
+                <td class="${sentCls}">${sent}</td></tr>`;
+        }
+        html += '</tbody></table>';
+        $('uw-hottest').innerHTML = html;
+    } else {
+        $('uw-hottest').innerHTML = `<span class="amber">${d.hottest_chains_error || 'No data'}</span>`;
+    }
+
+    // Congress trades
+    if (d.congress_trades && d.congress_trades.length > 0) {
+        let html = '';
+        for (const t of d.congress_trades) {
+            html += `<div style="margin-bottom:3px; font-size:11px;">
+                <strong>${t.ticker || t.symbol || '—'}</strong>
+                ${t.transaction_type || t.type || ''} ${t.amount || ''}
+                <span class="dim">${t.representative || t.politician || ''} ${t.disclosure_date || t.date || ''}</span>
+            </div>`;
+        }
+        $('uw-congress').innerHTML = html;
+    } else {
+        $('uw-congress').innerHTML = `<span class="amber">${d.congress_trades_error || 'No data'}</span>`;
+    }
+
+    // Dark pool
+    if (d.dark_pool_spy && d.dark_pool_spy.length > 0) {
+        let html = '<table><thead><tr><th>Price</th><th>Size</th><th>Notional</th><th>Exchange</th></tr></thead><tbody>';
+        for (const dp of d.dark_pool_spy) {
+            html += `<tr><td>${fmtUsd(dp.price)}</td><td>${fmt(dp.size, 0)}</td><td>${fmtUsd(dp.notional)}</td><td>${dp.exchange || '—'}</td></tr>`;
+        }
+        html += '</tbody></table>';
+        $('uw-darkpool').innerHTML = html;
+    } else {
+        $('uw-darkpool').innerHTML = `<span class="amber">${d.dark_pool_error || 'No data'}</span>`;
+    }
+}
+
+function renderTasks(d) {
+    if (!d || d.error || !d.tasks) return;
+    let html = '';
+    for (const t of d.tasks) {
+        html += `<div style="background:var(--surface2); border-radius:4px; padding:4px 8px; font-size:11px;">
+            <span style="color:var(--cyan);">${t.name}</span>
+            <span style="color:var(--dim); margin-left:4px;">every ${t.interval}</span>
+        </div>`;
+    }
+    $('tasks-list').innerHTML = html || '<span class="neutral">No tasks</span>';
+}
+
+function renderScenarios(d) {
+    if (!d || d.error) return;
+    const list = d.scenarios || [];
+    $('scenario-total').textContent = `(${list.length} of ${d.total_scenarios || '?'} scenarios — ranked by war-room relevance)`;
+    let html = '';
+    for (let i = 0; i < list.length; i++) {
+        const s = list[i];
+        const relColor = s.relevance >= 30 ? 'var(--red)' : s.relevance >= 20 ? 'var(--amber)' : 'var(--green)';
+        const probColor = s.probability >= 30 ? 'var(--red)' : s.probability >= 15 ? 'var(--amber)' : 'var(--green)';
+        html += `<div class="scenario-row" onclick="toggleScenario(${i})">
+            <span class="rank">#${i+1}</span>
+            <span class="name">${s.name || s.key}</span>
+            <span class="metrics">
+                <span style="color:${relColor}; font-weight:bold;">R:${fmt(s.relevance,1)}%</span>
+                <span style="color:${probColor}">P:${fmt(s.probability,1)}%</span>
+                <span>Sev:${fmt(s.impact_severity,0)}%</span>
+                <span style="color:var(--amber)">EI:${fmt(s.expected_impact,1)}%</span>
+            </span>
+        </div>`;
+        // Detail (hidden by default)
+        const desc = s.description || '—';
+        let scores = `<div style="margin-bottom:6px; color:var(--cyan); font-size:11px;">Position Overlap: ${s.position_overlap||0}% · Arm Alignment: ${s.arm_alignment||0}% · Stress: ${s.stress_score||0}%</div>`;
+        let prices = '';
+        if (s.oil_price != null) prices += `<span>Oil: $${fmt(s.oil_price,0)}</span>`;
+        if (s.gold_price != null) prices += `<span>Gold: $${fmt(s.gold_price,0)}</span>`;
+        if (s.spy_price != null) prices += `<span>SPY: $${fmt(s.spy_price,0)}</span>`;
+        if (s.btc_price != null) prices += `<span>BTC: $${fmt(s.btc_price,0)}</span>`;
+        if (s.vix != null) prices += `<span>VIX: ${fmt(s.vix,0)}</span>`;
+        if (s.hy_spread_bp != null) prices += `<span>HY Spread: ${fmt(s.hy_spread_bp,0)}bp</span>`;
+        let drifts = '';
+        if (s.drift_assets && s.drift_values) {
+            const pairs = [];
+            for (let j = 0; j < s.drift_assets.length; j++) {
+                const asset = s.drift_assets[j];
+                const val = typeof s.drift_values === 'object' && !Array.isArray(s.drift_values) ? s.drift_values[asset] : s.drift_values[j];
+                if (val != null) pairs.push(`${asset}: ${val > 0 ? '+' : ''}${(val*100).toFixed(1)}%`);
+            }
+            drifts = `<div class="drift-row">Drift: ${pairs.join(' · ')}</div>`;
+        }
+        html += `<div class="scenario-detail" id="scenario-detail-${i}">
+            ${scores}
+            <div>${desc}</div>
+            ${prices ? '<div class="price-row">' + prices + '</div>' : ''}
+            ${drifts}
+        </div>`;
+    }
+    $('scenarios-list').innerHTML = html || '<span class="neutral">No scenario data</span>';
+}
+
+function toggleScenario(i) {
+    const el = document.getElementById('scenario-detail-' + i);
+    if (el) el.classList.toggle('open');
+}
+
+function renderPolymarket(d) {
+    if (!d || d.error) {
+        $('poly-balance').textContent = '—';
+        return;
+    }
+    const bal = d.balance || {};
+    $('poly-balance').textContent = fmtUsd(bal.balance);
+    $('poly-in-positions').innerHTML = `In Positions: <strong>${fmtUsd(bal.in_positions)}</strong>`;
+    const arbCt = d.arb_count || 0;
+    $('poly-arb-count').innerHTML = `Arb opportunities: <strong style="color:${arbCt > 0 ? 'var(--green)' : 'var(--dim)'}">${arbCt}</strong>`;
+
+    // Trending markets
+    const mkts = d.trending_markets || [];
+    if (mkts.length) {
+        let t = '<table class="poly-table"><thead><tr><th>Title</th><th>Volume</th><th>24h Vol</th><th>Liquidity</th></tr></thead><tbody>';
+        for (const m of mkts) {
+            t += `<tr><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${m.title || m.question || '—'}</td>
+                <td>${fmtUsd(m.volume)}</td><td>${fmtUsd(m.volume_24hr || m.volume_24h)}</td><td>${fmtUsd(m.liquidity)}</td></tr>`;
+        }
+        t += '</tbody></table>';
+        $('poly-trending').innerHTML = t;
+    } else {
+        $('poly-trending').innerHTML = '<span class="neutral">No trending data</span>';
+    }
+
+    // Arb opportunities
+    const arbs = d.arb_opportunities || [];
+    if (arbs.length) {
+        let a = '';
+        for (const arb of arbs) {
+            a += `<div style="margin-bottom:6px; padding:4px; background:rgba(0,255,136,0.05); border-radius:3px;">
+                <div style="font-weight:600;">${arb.market_question || arb.question || '?'}</div>
+                <div>YES: ${fmt(arb.yes_price,3)} &middot; NO: ${fmt(arb.no_price,3)} &middot; Edge: <strong style="color:var(--green)">${fmt(arb.estimated_edge_pct || arb.edge_pct,1)}%</strong></div>
+            </div>`;
+        }
+        $('poly-arbs').innerHTML = a;
+    } else {
+        $('poly-arbs').innerHTML = '<span class="neutral">No arb opps found</span>';
+    }
+}
+
+function renderBackbone(d) {
+    if (!d || d.error) return;
+    const mods = d.modules || [];
+    $('backbone-counts').textContent = `(${d.loaded_count}/${d.total_checked} loaded \u00B7 ${d.total_files} files \u00B7 ${d.bridge_count} bridges)`;
+    let html = '';
+    for (const m of mods) {
+        const cls = m.status === 'loaded' ? 'ok' : 'err';
+        html += `<div class="bb-mod"><span class="bb-dot ${cls}"></span>${m.name}</div>`;
+    }
+    $('backbone-modules').innerHTML = html || '<span class="neutral">No module data</span>';
+}
+
+function renderPnl(d) {
+    if (!d || d.error) {
+        $('pnl-summary').innerHTML = `<div class="error-msg">${d?.error || 'P&L not available'}</div>`;
+        return;
+    }
+    const s = d.summary || {};
+    let html = '';
+    const pnl = s.total_realized_pnl || 0;
+    html += `<div class="stat-row"><span class="stat-key">Realized P&L</span><span class="stat-val ${pnlClass(pnl)}">${pnl >= 0 ? '+' : ''}${fmtUsd(pnl)}</span></div>`;
+    html += `<div class="stat-row"><span class="stat-key">Avg Daily P&L</span><span class="stat-val ${pnlClass(s.avg_daily_pnl)}">${fmtUsd(s.avg_daily_pnl)}</span></div>`;
+    html += `<div class="stat-row"><span class="stat-key">Trades</span><span class="stat-val">${fmt(s.total_trades,0)}</span></div>`;
+    html += `<div class="stat-row"><span class="stat-key">Win / Loss</span><span class="stat-val"><span class="pos">${fmt(s.total_wins,0)}</span> / <span class="neg">${fmt(s.total_losses,0)}</span></span></div>`;
+    html += `<div class="stat-row"><span class="stat-key">Fees</span><span class="stat-val">${fmtUsd(s.total_fees)}</span></div>`;
+    html += `<div class="stat-row"><span class="stat-key">Best</span><span class="stat-val pos">${fmtUsd(s.best_trade)}</span></div>`;
+    html += `<div class="stat-row"><span class="stat-key">Worst</span><span class="stat-val neg">${fmtUsd(s.worst_trade)}</span></div>`;
+    $('pnl-summary').innerHTML = html;
+
+    const daily = d.daily || [];
+    if (daily.length) {
+        let tbl = '<table><thead><tr><th>Date</th><th>P&L</th><th>Trades</th><th>W/L</th></tr></thead><tbody>';
+        for (const r of daily) {
+            const rpnl = r.realized_pnl || 0;
+            tbl += `<tr><td>${r.date}</td><td class="${pnlClass(rpnl)}">${rpnl >= 0 ? '+' : ''}${fmtUsd(rpnl)}</td><td>${r.trades_count||0}</td><td>${r.win_count||0}/${r.loss_count||0}</td></tr>`;
+        }
+        tbl += '</tbody></table>';
+        $('pnl-daily').innerHTML = tbl;
+    } else {
+        $('pnl-daily').innerHTML = '<span class="neutral">No daily P&L data recorded yet</span>';
+    }
+}
+
+function renderTradeLog(d) {
+    if (!d || d.error) {
+        $('trade-log-list').innerHTML = `<div class="error-msg">${d?.error || 'Trade log not available'}</div>`;
+        return;
+    }
+    $('trade-log-count').textContent = `${d.count} recent trade(s)`;
+    const trades = d.trades || [];
+    if (trades.length) {
+        let tbl = '<table><thead><tr><th>Date</th><th>Symbol</th><th>Side</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead><tbody>';
+        for (const t of trades) {
+            const sideClass = (t.side || '').toLowerCase().includes('buy') ? 'pos' : 'neg';
+            tbl += `<tr><td style="white-space:nowrap;">${(t.date||'').slice(0,16)}</td><td style="font-weight:600;">${t.symbol}</td><td class="${sideClass}">${t.side}</td><td>${fmt(t.quantity,0)}</td><td>${fmtUsd(t.price)}</td><td>${fmtUsd(t.total)}</td></tr>`;
+        }
+        tbl += '</tbody></table>';
+        $('trade-log-list').innerHTML = tbl;
+    } else {
+        $('trade-log-list').innerHTML = '<span class="neutral">No trades recorded yet</span>';
+    }
+}
+
+function renderAll(data) {
+    if (!data) return;
+    lastData = data;
+    renderPortfolio(data.portfolio);
+    renderWarRoom(data.war_room);
+    renderFeeds(data.live_feeds);
+    renderIndicators(data.war_room);
+    renderArms(data.war_room);
+    renderPositions(data.portfolio);
+    renderScenarios(data.scenarios);
+    renderPolymarket(data.polymarket);
+    renderMoon(data.moon);
+    renderDoctrine(data.doctrine);
+    renderHealth(data.health);
+    renderDivisions(data.divisions);
+    renderApiFeeds(data.api_feeds);
+    renderUnusualWhales(data.unusual_whales);
+    renderTasks(data.tasks);
+    renderPnl(data.pnl);
+    renderTradeLog(data.trade_log);
+    renderBackbone(data.backbone);
+    $('last-updated').textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
+}
+
+async function fetchAll() {
+    try {
+        const res = await fetch('/api/all');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        renderAll(data);
+        $('heartbeat').style.background = 'var(--green)';
+    } catch (err) {
+        $('last-updated').textContent = `Error: ${err.message}`;
+        $('heartbeat').style.background = 'var(--red)';
+    }
+    countdown = 30;
+}
+
+// Clock
+setInterval(() => {
+    $('clock').textContent = new Date().toLocaleTimeString();
+    countdown--;
+    if (countdown < 0) countdown = 0;
+    $('refresh-countdown').textContent = `Next refresh in ${countdown}s`;
+}, 1000);
+
+// Initial load + interval
+fetchAll();
+setInterval(fetchAll, REFRESH_MS);
+</script>
+</body>
+</html>

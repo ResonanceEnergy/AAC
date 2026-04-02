@@ -12,20 +12,20 @@ This script will:
 5. Implement production safeguards (rate limiting, circuit breakers)
 """
 
-import os
-import sys
 import json
+import logging
+import os
 import secrets
 import string
+import sys
 from pathlib import Path
-from typing import Dict, Any, Optional
-import logging
+from typing import Any, Dict, Optional
 
 # Add project root to path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from shared.config_loader import get_config, Config
+from shared.config_loader import Config, get_config
 from shared.secrets_manager import SecretsManager
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')

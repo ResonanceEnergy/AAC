@@ -6,13 +6,14 @@ Proceeds in CAD for withdrawal to IBKR.
 """
 
 import asyncio
-import sys
 import os
+import sys
 
 sys.path.insert(0, r"c:\dev\AAC_fresh")
 os.chdir(r"c:\dev\AAC_fresh")
 
 from shared.config_loader import load_env_file
+
 load_env_file()
 from TradingExecution.exchange_connectors.ndax_connector import NDAXConnector
 

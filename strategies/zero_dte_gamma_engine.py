@@ -13,12 +13,12 @@ From BARREN WUFFET Insights:
   - GEX profile shifts intraday as 0DTE gamma dominates
 """
 
+import logging
+import math
 from dataclasses import dataclass, field
+from datetime import datetime, time
 from enum import Enum
 from typing import Dict, List, Optional, Tuple
-import math
-import logging
-from datetime import datetime, time
 
 logger = logging.getLogger(__name__)
 
@@ -236,7 +236,7 @@ class SessionDetector:
 class ZeroDTEEngine:
     """
     Core engine for 0DTE options strategy selection and sizing.
-    
+
     Key principles:
       1. Time is your friend (selling) or enemy (buying) — and it accelerates
       2. Gamma dominates: small moves create outsized P/L
@@ -267,7 +267,7 @@ class ZeroDTEEngine:
     ) -> Optional[ZeroDTESetup]:
         """
         Generate 0DTE iron condor setup.
-        
+
         Best in: morning → midday → afternoon
         Avoid in: opening_range, final_15
         """
@@ -324,11 +324,11 @@ class ZeroDTEEngine:
     ) -> Optional[ZeroDTESetup]:
         """
         Generate gamma scalp setup.
-        
+
         Gamma scalping: buy ATM option, delta-hedge with shares.
         As stock moves → delta changes → hedge locks in profit.
         Repeat until theta eats you alive.
-        
+
         Best in: high vol sessions, opening range, afternoon
         """
         if current_phase in (SessionPhase.MIDDAY, SessionPhase.FINAL_15):
@@ -379,13 +379,13 @@ class ZeroDTEEngine:
 class GammaScalpTracker:
     """
     Track and manage gamma scalping positions.
-    
+
     How gamma scalping works:
       1. Buy ATM straddle (long gamma)
       2. Delta-hedge with shares (sell shares when delta positive, buy when negative)
       3. Each time stock reverts, the hedge locks in a small profit
       4. Repeat until theta decay exceeds scalping profits
-    
+
     The breakeven: gamma_scalps - theta_cost = 0
     If realized vol > implied vol → gamma scalps > theta → PROFIT
     If realized vol < implied vol → gamma scalps < theta → LOSS
@@ -455,7 +455,7 @@ class GammaScalpTracker:
 class OpeningRangeEngine:
     """
     Opening Range Breakout strategy using 0DTE options.
-    
+
     The Opening Range is the first 30 minutes (9:30-10:00).
     Breakouts from the OR tend to follow through, especially:
       - On high-volume days
@@ -546,7 +546,7 @@ class OpeningRangeEngine:
 class MaxPainPredictor:
     """
     Calculate max pain and predict potential pin levels.
-    
+
     Max Pain Theory:
       - Stock price tends to gravitate toward the strike where
         option holders (both call + put) lose the most money

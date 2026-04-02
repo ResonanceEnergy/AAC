@@ -6,16 +6,17 @@ Complete implementation of all Theater research agents.
 """
 
 import asyncio
-import logging
 import json
-import re
+import logging
 import os
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any
-from dataclasses import dataclass, field
-from pathlib import Path
-from abc import ABC, abstractmethod
+import re
 import sys
+from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
 import aiohttp
 
 # Add project root to path
@@ -43,7 +44,7 @@ class ResearchFinding:
     sources: List[str] = field(default_factory=list)
     timestamp: datetime = field(default_factory=datetime.now)
     expires_at: Optional[datetime] = None
-    
+
     def to_dict(self) -> Dict:
         """To dict."""
         return {
@@ -117,10 +118,10 @@ class BaseResearchAgent(ABC):
             sources=sources or [],
             expires_at=datetime.now() + timedelta(hours=ttl_hours),
         )
-        
+
         self.findings.append(finding)
         self.logger.info(f"New finding: {finding.title} (conf={confidence:.2f})")
-        
+
         return finding
 
     @abstractmethod
@@ -132,7 +133,7 @@ class BaseResearchAgent(ABC):
         """Run a scan with timing and error handling"""
         self.logger.info(f"Starting scan for {self.agent_id}")
         start_time = datetime.now()
-        
+
         try:
             findings = await self.scan()
             self.last_scan = datetime.now()
@@ -190,11 +191,11 @@ class NarrativeAnalyzerAgent(BaseResearchAgent):
     async def scan(self) -> List[ResearchFinding]:
         """Scan."""
         findings = []
-        
+
         try:
             # Get trending coins from CoinGecko - real signal for narratives
             trending = await self.coingecko.get_trending()
-            
+
             if trending:
                 for idx, coin_item in enumerate(trending[:7]):  # Top 7 trending
                     coin = coin_item.get('item', {})
@@ -202,11 +203,11 @@ class NarrativeAnalyzerAgent(BaseResearchAgent):
                     symbol = coin.get('symbol', 'UNK')
                     market_cap_rank = coin.get('market_cap_rank', 0)
                     score = coin.get('score', idx)  # Lower is better
-                    
+
                     # Determine urgency based on trending rank
                     urgency = 'critical' if score < 2 else ('high' if score < 5 else 'medium')
                     confidence = max(0.5, 1.0 - (score * 0.1))
-                    
+
                     finding = self.create_finding(
                         finding_type='trending_narrative',
                         title=f"Trending: {name} ({symbol})",
@@ -225,10 +226,10 @@ class NarrativeAnalyzerAgent(BaseResearchAgent):
                         ttl_hours=4,  # Trending changes frequently
                     )
                     findings.append(finding)
-            
+
             # Additional: analyze price movements for narrative detection
             narratives_detected = await self._analyze_narratives()
-            
+
             for narrative in narratives_detected:
                 finding = self.create_finding(
                     finding_type='narrative_shift',
@@ -244,16 +245,16 @@ class NarrativeAnalyzerAgent(BaseResearchAgent):
                     sources=narrative.get('sources', []),
                 )
                 findings.append(finding)
-                
+
         except Exception as e:
             self.logger.error(f"Narrative scan error: {e}")
-        
+
         return findings
 
     async def _analyze_narratives(self) -> List[Dict]:
         """Analyze current narrative landscape using real market data"""
         narratives = []
-        
+
         try:
             # Check specific narrative-related tokens
             narrative_tokens = {
@@ -262,16 +263,16 @@ class NarrativeAnalyzerAgent(BaseResearchAgent):
                 'defi_innovation': ['aave', 'uniswap', 'maker', 'compound-governance-token'],
                 'rwa_tokenization': ['chainlink', 'ondo-finance', 'centrifuge', 'maple'],
             }
-            
+
             for narrative_name, tokens in narrative_tokens.items():
                 prices = await self.coingecko.get_prices_batch(tokens)
-                
+
                 if prices:
                     # Calculate average 24h change
                     changes = [p.change_24h for p in prices if p.change_24h]
                     if changes:
                         avg_change = sum(changes) / len(changes)
-                        
+
                         # Significant narrative movement if avg > 5%
                         if abs(avg_change) > 5:
                             direction = "bullish" if avg_change > 0 else "bearish"
@@ -284,10 +285,10 @@ class NarrativeAnalyzerAgent(BaseResearchAgent):
                                 'assets': [p.symbol for p in prices],
                                 'sources': ['coingecko_price_analysis'],
                             })
-                            
+
         except Exception as e:
             self.logger.error(f"Narrative analysis error: {e}")
-            
+
         return narratives
 
 
@@ -301,7 +302,7 @@ class EngagementPredictorAgent(BaseResearchAgent):
         super().__init__('engagement_predictor', 'theater_b')
         self.platforms = ['twitter', 'reddit', 'discord', 'telegram']
         self._session: Optional[aiohttp.ClientSession] = None
-        
+
         # Subreddits to monitor
         self.crypto_subreddits = [
             'cryptocurrency', 'Bitcoin', 'ethereum', 'CryptoMarkets',
@@ -321,11 +322,11 @@ class EngagementPredictorAgent(BaseResearchAgent):
     async def scan(self) -> List[ResearchFinding]:
         """Scan."""
         findings = []
-        
+
         try:
             # Collect engagement data from Reddit (public JSON API)
             engagement_data = await self._collect_engagement_data()
-            
+
             for asset, data in engagement_data.items():
                 if data.get('spike_detected'):
                     finding = self.create_finding(
@@ -345,46 +346,46 @@ class EngagementPredictorAgent(BaseResearchAgent):
                         ttl_hours=6,
                     )
                     findings.append(finding)
-                    
+
         except Exception as e:
             self.logger.error(f"Engagement scan error: {e}")
-        
+
         return findings
 
     async def _collect_engagement_data(self) -> Dict[str, Dict]:
         """Collect engagement metrics from Reddit"""
         engagement = {}
         session = await self._get_session()
-        
+
         # Track mentions of major assets
         tracked_assets = {
             'BTC': ['bitcoin', 'btc', 'Bitcoin'],
-            'ETH': ['ethereum', 'eth', 'Ethereum'],  
+            'ETH': ['ethereum', 'eth', 'Ethereum'],
             'SOL': ['solana', 'sol', 'Solana'],
             'XRP': ['xrp', 'ripple', 'XRP'],
             'DOGE': ['doge', 'dogecoin', 'DOGE'],
         }
-        
+
         try:
             # Check top posts from cryptocurrency subreddit
             url = "https://www.reddit.com/r/cryptocurrency/hot.json?limit=50"
             headers = {'User-Agent': 'ACC-Research-Agent/1.0'}
-            
+
             async with session.get(url, headers=headers) as resp:
                 if resp.status == 200:
                     data = await resp.json()
                     posts = data.get('data', {}).get('children', [])
-                    
+
                     # Count mentions and engagement
                     asset_mentions: Dict[str, list] = {asset: [] for asset in tracked_assets}
-                    
+
                     for post in posts:
                         post_data = post.get('data', {})
                         title = post_data.get('title', '').lower()
                         selftext = post_data.get('selftext', '').lower()
                         score = post_data.get('score', 0)
                         num_comments = post_data.get('num_comments', 0)
-                        
+
                         for asset, keywords in tracked_assets.items():
                             if any(kw.lower() in title or kw.lower() in selftext for kw in keywords):
                                 asset_mentions[asset].append({
@@ -393,16 +394,16 @@ class EngagementPredictorAgent(BaseResearchAgent):
                                     'comments': num_comments,
                                     'url': f"https://reddit.com{post_data.get('permalink', '')}",
                                 })
-                    
+
                     # Analyze engagement for each asset
                     for asset, mentions in asset_mentions.items():
                         if mentions:
                             total_score = sum(m['score'] for m in mentions)
                             total_comments = sum(m['comments'] for m in mentions)
-                            
+
                             # Spike detection: more than 3 posts with high engagement
                             high_engagement_posts = [m for m in mentions if m['score'] > 100 or m['comments'] > 50]
-                            
+
                             if len(high_engagement_posts) >= 2 or total_score > 500:
                                 engagement[asset] = {
                                     'spike_detected': True,
@@ -414,19 +415,19 @@ class EngagementPredictorAgent(BaseResearchAgent):
                                     'total_score': total_score,
                                     'top_posts': mentions[:3],
                                 }
-                                
+
         except Exception as e:
             self.logger.error(f"Reddit engagement fetch error: {e}")
-            
+
         return engagement
 
     def _analyze_sentiment(self, mentions: List[Dict]) -> str:
         """Simple sentiment analysis based on engagement"""
         if not mentions:
             return 'neutral'
-        
+
         avg_score = sum(m['score'] for m in mentions) / len(mentions)
-        
+
         # High upvotes generally indicate positive sentiment
         if avg_score > 200:
             return 'bullish'
@@ -449,10 +450,10 @@ class ContentOptimizerAgent(BaseResearchAgent):
     async def scan(self) -> List[ResearchFinding]:
         """Scan."""
         findings = []
-        
+
         # Analyze content performance
         content_insights = await self._analyze_content_performance()
-        
+
         for insight in content_insights:
             finding = self.create_finding(
                 finding_type='content_insight',
@@ -463,7 +464,7 @@ class ContentOptimizerAgent(BaseResearchAgent):
                 data=insight['data'],
             )
             findings.append(finding)
-        
+
         return findings
 
     async def _analyze_content_performance(self) -> List[Dict]:
@@ -516,18 +517,18 @@ class LatencyMonitorAgent(BaseResearchAgent):
     async def scan(self) -> List[ResearchFinding]:
         """Scan."""
         findings = []
-        
+
         try:
             # Measure latencies
             latencies = await self._measure_latencies()
-            
+
             for exchange, latency in latencies.items():
                 # Update history
                 if exchange not in self.latency_history:
                     self.latency_history[exchange] = []
                 self.latency_history[exchange].append(latency)
                 self.latency_history[exchange] = self.latency_history[exchange][-50:]
-                
+
                 # Check for anomalies
                 if self._is_latency_anomaly(exchange, latency):
                     finding = self.create_finding(
@@ -545,13 +546,13 @@ class LatencyMonitorAgent(BaseResearchAgent):
                         ttl_hours=2,
                     )
                     findings.append(finding)
-                    
+
             # Check for latency arbitrage opportunities (big difference between exchanges)
             if len(latencies) >= 2:
                 sorted_exchanges = sorted(latencies.items(), key=lambda x: x[1])
                 fastest = sorted_exchanges[0]
                 slowest = sorted_exchanges[-1]
-                
+
                 if slowest[1] > fastest[1] * 3:  # 3x difference
                     finding = self.create_finding(
                         finding_type='latency_arbitrage',
@@ -568,17 +569,17 @@ class LatencyMonitorAgent(BaseResearchAgent):
                         },
                     )
                     findings.append(finding)
-                    
+
         except Exception as e:
             self.logger.error(f"Latency scan error: {e}")
-        
+
         return findings
 
     async def _measure_latencies(self) -> Dict[str, float]:
         """Measure actual exchange API latencies"""
         latencies = {}
         session = await self._get_session()
-        
+
         for exchange, url in self.exchanges.items():
             try:
                 start = asyncio.get_event_loop().time()
@@ -590,7 +591,7 @@ class LatencyMonitorAgent(BaseResearchAgent):
                 latencies[exchange] = 5000  # Timeout = 5000ms
             except Exception as e:
                 self.logger.error(f"Latency measurement failed for {exchange}: {e}")
-                
+
         return latencies
 
     def _is_latency_anomaly(self, exchange: str, latency: float) -> bool:
@@ -621,10 +622,10 @@ class BridgeAnalyzerAgent(BaseResearchAgent):
     async def scan(self) -> List[ResearchFinding]:
         """Scan."""
         findings = []
-        
+
         for bridge in self.bridges:
             analysis = await self._analyze_bridge(bridge)
-            
+
             if analysis.get('arbitrage_opportunity'):
                 finding = self.create_finding(
                     finding_type='bridge_arbitrage',
@@ -640,7 +641,7 @@ class BridgeAnalyzerAgent(BaseResearchAgent):
                     }
                 )
                 findings.append(finding)
-        
+
         return findings
 
     async def _analyze_bridge(self, bridge: Dict) -> Dict:
@@ -680,7 +681,7 @@ class GasOptimizerAgent(BaseResearchAgent):
         self.networks = ['ethereum', 'polygon', 'arbitrum', 'optimism', 'bsc']
         self.gas_history: Dict[str, List[float]] = {}
         self._session: Optional[aiohttp.ClientSession] = None
-        
+
         # Thresholds for "low gas" windows (in gwei)
         self.low_gas_thresholds = {
             'ethereum': 20,  # Below 20 gwei is good
@@ -703,10 +704,10 @@ class GasOptimizerAgent(BaseResearchAgent):
     async def scan(self) -> List[ResearchFinding]:
         """Scan."""
         findings = []
-        
+
         try:
             gas_data = await self._collect_gas_data()
-            
+
             for network, data in gas_data.items():
                 # Update history
                 if network not in self.gas_history:
@@ -714,7 +715,7 @@ class GasOptimizerAgent(BaseResearchAgent):
                 self.gas_history[network].append(data['current'])
                 # Keep last 100 readings
                 self.gas_history[network] = self.gas_history[network][-100:]
-                
+
                 if data.get('low_gas_window'):
                     finding = self.create_finding(
                         finding_type='gas_opportunity',
@@ -734,7 +735,7 @@ class GasOptimizerAgent(BaseResearchAgent):
                         ttl_hours=1,  # Gas changes quickly
                     )
                     findings.append(finding)
-                    
+
                 # Also report gas spikes
                 if data.get('spike_detected'):
                     finding = self.create_finding(
@@ -752,17 +753,17 @@ class GasOptimizerAgent(BaseResearchAgent):
                         ttl_hours=2,
                     )
                     findings.append(finding)
-                    
+
         except Exception as e:
             self.logger.error(f"Gas scan error: {e}")
-        
+
         return findings
 
     async def _collect_gas_data(self) -> Dict[str, Dict]:
         """Collect real gas price data from public APIs"""
         gas_data = {}
         session = await self._get_session()
-        
+
         try:
             # Ethereum gas from Etherscan public API
             etherscan_url = "https://api.etherscan.io/api?module=gastracker&action=gasoracle"
@@ -774,13 +775,13 @@ class GasOptimizerAgent(BaseResearchAgent):
                         current = float(result.get('ProposeGasPrice', 50))
                         fast = float(result.get('FastGasPrice', 60))
                         safe = float(result.get('SafeGasPrice', 40))
-                        
+
                         threshold = self.low_gas_thresholds['ethereum']
-                        
+
                         # Calculate average from history
                         history = self.gas_history.get('ethereum', [current])
                         avg = sum(history) / len(history) if history else current
-                        
+
                         gas_data['ethereum'] = {
                             'current': current,
                             'fast': fast,
@@ -792,10 +793,10 @@ class GasOptimizerAgent(BaseResearchAgent):
                             'spike_detected': current > avg * 1.5,
                             'spike_ratio': current / avg if avg > 0 else 1,
                         }
-                        
+
         except Exception as e:
             self.logger.error(f"Etherscan gas fetch error: {e}")
-        
+
         try:
             # Polygon gas from public RPC
             polygon_url = "https://gasstation.polygon.technology/v2"
@@ -805,11 +806,11 @@ class GasOptimizerAgent(BaseResearchAgent):
                     current = data.get('standard', {}).get('maxFee', 50)
                     fast = data.get('fast', {}).get('maxFee', 60)
                     safe = data.get('safeLow', {}).get('maxFee', 40)
-                    
+
                     threshold = self.low_gas_thresholds['polygon']
                     history = self.gas_history.get('polygon', [current])
                     avg = sum(history) / len(history) if history else current
-                    
+
                     gas_data['polygon'] = {
                         'current': current,
                         'fast': fast,
@@ -821,10 +822,10 @@ class GasOptimizerAgent(BaseResearchAgent):
                         'spike_detected': current > avg * 1.5,
                         'spike_ratio': current / avg if avg > 0 else 1,
                     }
-                    
+
         except Exception as e:
             self.logger.error(f"Polygon gas fetch error: {e}")
-            
+
         return gas_data
 
 
@@ -842,9 +843,9 @@ class LiquidityTrackerAgent(BaseResearchAgent):
     async def scan(self) -> List[ResearchFinding]:
         """Scan."""
         findings = []
-        
+
         liquidity_data = await self._analyze_liquidity()
-        
+
         for symbol, data in liquidity_data.items():
             if data.get('imbalance_detected'):
                 finding = self.create_finding(
@@ -861,7 +862,7 @@ class LiquidityTrackerAgent(BaseResearchAgent):
                     }
                 )
                 findings.append(finding)
-        
+
         return findings
 
     async def _analyze_liquidity(self) -> Dict[str, Dict]:
@@ -928,10 +929,10 @@ class APIScannerAgent(BaseResearchAgent):
     async def scan(self) -> List[ResearchFinding]:
         """Scan."""
         findings = []
-        
+
         try:
             api_signals = await self._scan_apis()
-            
+
             for signal in api_signals:
                 finding = self.create_finding(
                     finding_type='api_signal',
@@ -943,30 +944,30 @@ class APIScannerAgent(BaseResearchAgent):
                     sources=[signal['source']],
                 )
                 findings.append(finding)
-                
+
         except Exception as e:
             self.logger.error(f"API scan error: {e}")
-        
+
         return findings
 
     async def _scan_apis(self) -> List[Dict]:
         """Scan various public APIs for signals"""
         signals = []
         session = await self._get_session()
-        
+
         try:
             # DeFiLlama TVL data for DeFi protocols
             defi_url = "https://api.llama.fi/protocols"
             async with session.get(defi_url) as resp:
                 if resp.status == 200:
                     protocols = await resp.json()
-                    
+
                     # Find protocols with significant TVL changes
                     for protocol in protocols[:100]:  # Top 100 by TVL
                         change_1d = protocol.get('change_1d', 0) or 0
                         change_7d = protocol.get('change_7d', 0) or 0
                         tvl = protocol.get('tvl', 0)
-                        
+
                         # Alert on major TVL changes (>15% daily or >30% weekly)
                         if abs(change_1d) > 15 or abs(change_7d) > 30:
                             direction = "inflow" if change_1d > 0 else "outflow"
@@ -986,10 +987,10 @@ class APIScannerAgent(BaseResearchAgent):
                                 },
                                 'source': 'defillama',
                             })
-                            
+
         except Exception as e:
             self.logger.error(f"DeFiLlama API error: {e}")
-        
+
         try:
             # CoinGecko global data
             global_url = "https://api.coingecko.com/api/v3/global"
@@ -997,11 +998,11 @@ class APIScannerAgent(BaseResearchAgent):
                 if resp.status == 200:
                     data = await resp.json()
                     global_data = data.get('data', {})
-                    
+
                     # Check market cap dominance shifts
                     btc_dominance = global_data.get('market_cap_percentage', {}).get('btc', 0)
                     eth_dominance = global_data.get('market_cap_percentage', {}).get('eth', 0)
-                    
+
                     # Alert if alt season might be starting (BTC dominance falling)
                     if btc_dominance < 45:
                         signals.append({
@@ -1017,7 +1018,7 @@ class APIScannerAgent(BaseResearchAgent):
                             },
                             'source': 'coingecko_global',
                         })
-                        
+
                     # Market volume spike
                     volume_change = global_data.get('market_cap_change_percentage_24h_usd', 0)
                     if abs(volume_change) > 5:
@@ -1034,10 +1035,10 @@ class APIScannerAgent(BaseResearchAgent):
                             },
                             'source': 'coingecko_global',
                         })
-                        
+
         except Exception as e:
             self.logger.error(f"CoinGecko global API error: {e}")
-            
+
         # Add mock signals for testing when APIs are unavailable
         if not signals:
             signals.extend([
@@ -1066,7 +1067,7 @@ class APIScannerAgent(BaseResearchAgent):
                     'source': 'github_monitoring',
                 },
             ])
-            
+
         return signals
 
 
@@ -1082,9 +1083,9 @@ class DataGapFinderAgent(BaseResearchAgent):
     async def scan(self) -> List[ResearchFinding]:
         """Scan."""
         findings = []
-        
+
         gaps = await self._identify_gaps()
-        
+
         for gap in gaps:
             finding = self.create_finding(
                 finding_type='data_gap',
@@ -1095,7 +1096,7 @@ class DataGapFinderAgent(BaseResearchAgent):
                 data=gap,
             )
             findings.append(finding)
-        
+
         return findings
 
     async def _identify_gaps(self) -> List[Dict]:
@@ -1129,9 +1130,9 @@ class AccessArbitrageAgent(BaseResearchAgent):
     async def scan(self) -> List[ResearchFinding]:
         """Scan."""
         findings = []
-        
+
         opportunities = await self._find_access_opportunities()
-        
+
         for opp in opportunities:
             finding = self.create_finding(
                 finding_type='access_opportunity',
@@ -1142,7 +1143,7 @@ class AccessArbitrageAgent(BaseResearchAgent):
                 data=opp,
             )
             findings.append(finding)
-        
+
         return findings
 
     async def _find_access_opportunities(self) -> List[Dict]:
@@ -1178,9 +1179,9 @@ class NetworkMapperAgent(BaseResearchAgent):
     async def scan(self) -> List[ResearchFinding]:
         """Scan."""
         findings = []
-        
+
         network_changes = await self._analyze_network()
-        
+
         for change in network_changes:
             finding = self.create_finding(
                 finding_type='network_change',
@@ -1191,7 +1192,7 @@ class NetworkMapperAgent(BaseResearchAgent):
                 data=change,
             )
             findings.append(finding)
-        
+
         return findings
 
     async def _analyze_network(self) -> List[Dict]:
@@ -1689,7 +1690,7 @@ if __name__ == '__main__':
     async def test():
         """Test."""
         logger.info("=== BigBrain Research Agents ===\n")
-        
+
         logger.info("Available Agents:")
         for agent_id, cls in AGENT_REGISTRY.items():
             if not callable(cls):
@@ -1697,9 +1698,9 @@ if __name__ == '__main__':
                 continue
             agent = cls()
             logger.info(f"  - {agent_id} ({agent.theater})")
-        
+
         logger.info("\n--- Running Test Scans ---\n")
-        
+
         # Test each agent
         for agent_id in ['narrative_analyzer', 'latency_monitor', 'api_scanner']:
             agent = get_agent(agent_id)
@@ -1707,9 +1708,9 @@ if __name__ == '__main__':
                 logger.info(f"Testing {agent_id}...")
                 findings = await agent.run_scan()
                 logger.info(f"  Found: {len(findings)} findings")
-        
+
         logger.info("\n=== Test Complete ===")
-    
+
     asyncio.run(test())
 
 

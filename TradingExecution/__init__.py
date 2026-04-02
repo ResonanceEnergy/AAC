@@ -21,6 +21,6 @@ except ImportError:
 
 __all__ = [
     'TradingEngine',
-    'OrderManager', 
+    'OrderManager',
     'RiskManager',
 ]

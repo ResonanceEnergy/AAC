@@ -7,6 +7,7 @@ Quick test to verify the Finnhub API key is working correctly.
 """
 
 import os
+
 import pytest
 import requests
 from dotenv import load_dotenv

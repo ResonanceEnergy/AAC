@@ -6,18 +6,19 @@ Comprehensive research and development interface for strategy optimization.
 """
 
 import asyncio
-import logging
 import json
-import pandas as pd
-import numpy as np
+import logging
+import sys
 from datetime import datetime, timedelta
 from pathlib import Path
-import sys
+from typing import Any, Dict, List, Optional
+
 import matplotlib.pyplot as plt
-import seaborn as sns
-from typing import Dict, List, Any, Optional
-import plotly.graph_objects as go
+import numpy as np
+import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
+import seaborn as sns
 from plotly.subplots import make_subplots
 
 logger = logging.getLogger(__name__)
@@ -26,9 +27,9 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from shared.strategy_parameter_tester import (
-    strategy_parameter_tester,
+    OptimizationMethod,
     initialize_strategy_parameter_testing,
-    OptimizationMethod
+    strategy_parameter_tester,
 )
 
 

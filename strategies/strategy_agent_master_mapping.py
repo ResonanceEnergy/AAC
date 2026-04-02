@@ -12,9 +12,9 @@ This file serves as the central registry for all strategy-agent assignments.
 """
 
 import json
-from typing import Dict, List, Any, Optional
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 # Strategy data from CSV
 STRATEGIES_DATA = [

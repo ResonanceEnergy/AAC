@@ -14,14 +14,20 @@ Strategy Logic:
 
 import asyncio
 import logging
-import numpy as np
-from typing import List, Dict, Any, Optional
 from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
+
+import numpy as np
 import pandas as pd
 
-from shared.strategy_framework import BaseArbitrageStrategy, TradingSignal, SignalType, StrategyConfig
-from shared.communication import CommunicationFramework
 from shared.audit_logger import AuditLogger
+from shared.communication import CommunicationFramework
+from shared.strategy_framework import (
+    BaseArbitrageStrategy,
+    SignalType,
+    StrategyConfig,
+    TradingSignal,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -584,7 +590,7 @@ class NAVCalculator:
 
         # Simplified holdings data - in production would be from ETF provider APIs
         self.holdings_data = {
-            
+
             'SPY': {
                 'AAPL': 0.12, 'MSFT': 0.11, 'AMZN': 0.06, 'GOOGL': 0.04, 'META': 0.03,
                 'TSLA': 0.02, 'NVDA': 0.04, 'JPM': 0.02, 'JNJ': 0.02, 'V': 0.02

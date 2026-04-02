@@ -9,12 +9,17 @@ import asyncio
 import logging
 from pathlib import Path
 
+
 async def test_market_data():
     """Simple test of market data system"""
     print("Testing market data connector system...")
 
     try:
-        from shared.market_data_connector import MarketDataManager, BinanceConnector, CoinbaseProConnector
+        from shared.market_data_connector import (
+            BinanceConnector,
+            CoinbaseProConnector,
+            MarketDataManager,
+        )
 
         # Create market data manager
         manager = MarketDataManager()

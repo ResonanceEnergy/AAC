@@ -11,13 +11,14 @@ import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Dict, List, Any, Optional, Tuple
 from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
+
 import numpy as np
 import pandas as pd
 
-from shared.communication import CommunicationFramework
 from shared.audit_logger import AuditLogger
+from shared.communication import CommunicationFramework
 
 logger = logging.getLogger(__name__)
 
@@ -329,7 +330,9 @@ class StrategyFactory:
             return TOMFuturesOnlyOverlayStrategy(config, communication, audit_logger)
 
         elif strategy_id == "s50_overnight_drift_in_attention_stocks":
-            from strategies.overnight_drift_attention_stocks import OvernightDriftAttentionStocksStrategy
+            from strategies.overnight_drift_attention_stocks import (
+                OvernightDriftAttentionStocksStrategy,
+            )
             return OvernightDriftAttentionStocksStrategy(config, communication, audit_logger)
 
         elif strategy_id in ("s51_planktonxd_prediction_harvester",

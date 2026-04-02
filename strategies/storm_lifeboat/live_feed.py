@@ -28,7 +28,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple
 
-from strategies.storm_lifeboat.core import Asset, DEFAULT_PRICES, VolRegime
+from strategies.storm_lifeboat.core import DEFAULT_PRICES, Asset, VolRegime
 
 logger = logging.getLogger(__name__)
 
@@ -476,8 +476,8 @@ class LiveFeedEngine:
                     t = await connector.get_ticker(ticker)
                     if t and t.last and t.last > 0:
                         snap.prices[asset] = t.last
-                except Exception:
-                    pass
+                except Exception as e:
+                    snap.errors.append(f"ibkr_price_{asset.value}: {e}")
 
             # Account info
             try:
@@ -486,8 +486,8 @@ class LiveFeedEngine:
                     snap.ibkr_account_value = float(
                         summary.get("NetLiquidation", summary.get("TotalCashValue", 0))
                     )
-            except Exception:
-                pass
+            except Exception as e:
+                snap.errors.append(f"ibkr_account_summary: {e}")
 
             # Positions
             try:
@@ -498,8 +498,8 @@ class LiveFeedEngine:
                          "market_value": getattr(p, "market_value", 0)}
                         for p in positions
                     ]
-            except Exception:
-                pass
+            except Exception as e:
+                snap.errors.append(f"ibkr_positions: {e}")
 
             snap.sources_ok.append("ibkr")
         except Exception as e:
@@ -537,8 +537,8 @@ class LiveFeedEngine:
                         # Only override if no Polygon price yet
                         if snap.prices.get(asset) == DEFAULT_PRICES.get(asset):
                             snap.prices[asset] = t.last
-                except Exception:
-                    pass
+                except Exception as e:
+                    snap.errors.append(f"moomoo_price_{asset.value}: {e}")
 
             snap.sources_ok.append("moomoo")
         except Exception as e:

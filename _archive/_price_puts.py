@@ -5,18 +5,20 @@ Uses the existing IBKRConnector properly.
 """
 
 import asyncio
-import sys
 import os
-from pathlib import Path
+import sys
 from datetime import datetime, timedelta
+from pathlib import Path
 
 sys.path.insert(0, r"c:\dev\AAC_fresh")
 os.chdir(r"c:\dev\AAC_fresh")
 
 import nest_asyncio
+
 nest_asyncio.apply()
 
 from shared.config_loader import load_env_file
+
 load_env_file()
 
 from TradingExecution.exchange_connectors.ibkr_connector import IBKRConnector

@@ -1,7 +1,9 @@
 """Unit tests for TradingExecution.trading_engine — Order and Position dataclasses."""
-import pytest
 from datetime import datetime
-from TradingExecution.trading_engine import Order, Position, OrderSide, OrderType, OrderStatus
+
+import pytest
+
+from TradingExecution.trading_engine import Order, OrderSide, OrderStatus, OrderType, Position
 
 
 class TestOrderSideEnum:
@@ -28,7 +30,7 @@ class TestOrderTypeEnum:
 
 class TestOrderStatusEnum:
     def test_statuses(self):
-        expected = {"pending", "open", "filled", "partially_filled", "cancelled", "rejected", "expired"}
+        expected = {"pending", "submitted", "partial", "filled", "cancelled", "rejected", "expired"}
         actual = {s.value for s in OrderStatus}
         assert actual == expected
 
@@ -94,6 +96,7 @@ class TestPosition:
             side=OrderSide.BUY,
             quantity=0.5,
             entry_price=60000.0,
+            current_price=60000.0,
         )
         assert p.position_id == "POS-001"
         assert p.unrealized_pnl == 0.0
@@ -120,6 +123,5 @@ class TestPosition:
             quantity=100.0,
             entry_price=150.0,
             current_price=160.0,
-            unrealized_pnl=1000.0,
         )
         assert p.unrealized_pnl == 1000.0

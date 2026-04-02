@@ -13,12 +13,12 @@ From BARREN WUFFET Insights 536-570 (Risk Management & Greeks Mastery):
   - Second-order Greeks (vanna, charm) drive P/L in trending markets
 """
 
+import logging
+import math
 from dataclasses import dataclass, field
+from datetime import datetime
 from enum import Enum
 from typing import Dict, List, Optional, Tuple
-import math
-import logging
-from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -139,7 +139,7 @@ class HedgeRecommendation:
 class PortfolioGreeksEngine:
     """
     Aggregate and analyze Greeks across an entire options portfolio.
-    
+
     Key concepts from BARREN WUFFET doctrine:
       - Beta-weight all deltas to SPY for uniform risk measurement
       - Track "dollar delta" not just option delta
@@ -175,7 +175,7 @@ class PortfolioGreeksEngine:
     ) -> PortfolioRiskSnapshot:
         """
         Compute full portfolio risk snapshot.
-        
+
         Args:
             spy_price: SPY price for beta-weighting
             beta_map: {symbol: beta} for beta-weighted delta
@@ -211,6 +211,15 @@ class PortfolioGreeksEngine:
         # Alerts
         snap.alerts = self._generate_alerts(snap)
         snap.risk_level = self._classify_risk(snap)
+
+        # TurboQuant: record portfolio Greeks snapshot
+        try:
+            from strategies.turboquant_integrations import IntegrationHub
+            _tq_hub = IntegrationHub()
+            _tq_hub.record_greeks(snap)
+            _tq_hub.save_all()
+        except Exception as _tq_err:
+            logger.debug("TurboQuant record skipped: %s", _tq_err)
 
         return snap
 
@@ -317,7 +326,7 @@ class PortfolioGreeksEngine:
 class HedgingEngine:
     """
     Generate hedging recommendations to reduce portfolio risk.
-    
+
     Hedging hierarchy (from insights):
       1. Delta: hedge with shares or futures (cheapest, most liquid)
       2. Gamma: reduce near-expiry positions or buy protection
@@ -408,7 +417,7 @@ class HedgingEngine:
 class PositionSizer:
     """
     Options-specific position sizing.
-    
+
     Rules from BARREN WUFFET insights:
       - Risk no more than 1-5% of capital per trade
       - Maximum portfolio notional: 50% of buying power

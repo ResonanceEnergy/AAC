@@ -30,8 +30,8 @@ import logging
 import os
 import threading
 import time
-import urllib.request
 import urllib.error
+import urllib.request
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path

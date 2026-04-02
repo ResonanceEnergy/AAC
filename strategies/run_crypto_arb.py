@@ -20,21 +20,22 @@ Usage:
     .venv/Scripts/python strategies/run_crypto_arb.py --min-edge 25  # Min edge in bps
 """
 
-import asyncio
 import argparse
+import asyncio
 import logging
 import sys
 import time
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from dataclasses import dataclass
 from typing import Dict, List, Optional
 
 # ── Project root ──
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from shared.config_loader import load_env_file, get_env_bool
+from shared.config_loader import get_env_bool, load_env_file
+
 load_env_file()
 
 logger = logging.getLogger("crypto_arb_runner")

@@ -23,24 +23,24 @@ from typing import Any, Dict, List, Optional
 import numpy as np
 
 from strategies.storm_lifeboat.core import (
-    Asset,
-    AssetForecast,
     ASSET_ORDER,
-    build_correlation_matrix,
     CALM_DRIFTS,
     CRISIS_DRIFTS,
     DEFAULT_PRICES,
-    MandateLevel,
     MC_DEFAULT_HORIZON,
     MC_DEFAULT_PATHS,
-    MoonPhase,
-    PortfolioForecast,
     REGIME_VOLATILITIES,
     SCENARIOS,
+    TRADING_DAYS_PER_YEAR,
+    Asset,
+    AssetForecast,
+    MandateLevel,
+    MoonPhase,
+    PortfolioForecast,
     ScenarioDefinition,
     StormConfig,
-    TRADING_DAYS_PER_YEAR,
     VolRegime,
+    build_correlation_matrix,
 )
 
 logger = logging.getLogger(__name__)

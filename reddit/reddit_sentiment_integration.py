@@ -18,14 +18,15 @@ Rate Limit: 20 requests per minute
 """
 
 import asyncio
-import aiohttp
 import json
-import os
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any
-from dataclasses import dataclass
-from dotenv import load_dotenv
 import logging
+import os
+from dataclasses import dataclass
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
+
+import aiohttp
+from dotenv import load_dotenv
 
 logger = logging.getLogger(__name__)
 
@@ -155,6 +156,15 @@ class RedditSentimentAnalyzer:
                 'confidence': min(abs(stock['sentiment_score']) * 2, 0.9),  # Scale confidence
                 'timestamp': datetime.now().isoformat()
             })
+
+        # TurboQuant: record sentiment snapshot
+        try:
+            from strategies.turboquant_integrations import IntegrationHub
+            _tq_hub = IntegrationHub()
+            _tq_hub.record_sentiment(opportunities)
+            _tq_hub.save_all()
+        except Exception:
+            pass
 
         return opportunities
 

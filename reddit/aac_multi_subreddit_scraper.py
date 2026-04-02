@@ -40,22 +40,23 @@ Subreddits monitored:
 - r/DDintoGME, r/gmeoptions
 """
 
-import praw
-import json
 import csv
-import os
-import time
-from datetime import datetime, timedelta
-from typing import List, Dict, Any, Optional
-from dataclasses import dataclass, asdict
-from collections import Counter, defaultdict
-import re
+import json
 import logging
-from apscheduler.schedulers.blocking import BlockingScheduler
-from apscheduler.schedulers.background import BackgroundScheduler
-from textblob import TextBlob
+import os
+import re
+import time
+from collections import Counter, defaultdict
+from dataclasses import asdict, dataclass
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
+
 import pandas as pd
+import praw
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.schedulers.blocking import BlockingScheduler
 from dotenv import load_dotenv
+from textblob import TextBlob
 
 # Load environment variables
 load_dotenv()

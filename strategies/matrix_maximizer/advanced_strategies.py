@@ -54,7 +54,7 @@ class MultiLegStrategy:
 
     @property
     def total_contracts(self) -> int:
-        return sum(l.contracts for l in self.legs)
+        return sum(leg.contracts for leg in self.legs)
 
     @property
     def total_cost(self) -> float:

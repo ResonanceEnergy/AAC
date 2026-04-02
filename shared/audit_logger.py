@@ -8,18 +8,18 @@ Comprehensive audit logging for API calls, security events, and compliance track
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import json
 import logging
-import hashlib
 import os
-from datetime import datetime, timedelta
-from pathlib import Path
-from collections.abc import Generator
-from typing import Dict, List, Optional, Any, Union, cast
-from dataclasses import dataclass, field, asdict
-from enum import Enum
 import sqlite3
+from collections.abc import Generator
 from contextlib import contextmanager
+from dataclasses import asdict, dataclass, field
+from datetime import datetime, timedelta
+from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Union, cast
 
 
 class AuditCategory(str, Enum):
@@ -63,7 +63,7 @@ class AuditEvent:
     ip_address: Optional[str] = None
     exchange: Optional[str] = None
     correlation_id: Optional[str] = None
-    
+
     def to_dict(self) -> Dict:
         """Convert to dictionary for serialization"""
         data = asdict(self)
@@ -71,7 +71,7 @@ class AuditEvent:
         data['category'] = self.category.value
         data['severity'] = self.severity.value if hasattr(self.severity, 'value') else str(self.severity)
         return data
-    
+
     def to_json(self) -> str:
         """Convert to JSON string"""
         return json.dumps(self.to_dict(), indent=2)
@@ -80,7 +80,7 @@ class AuditEvent:
 class AuditLogger:
     """
     Comprehensive audit logging system with multiple backends.
-    
+
     Features:
     - File-based logging with rotation
     - SQLite database storage for queries
@@ -88,14 +88,14 @@ class AuditLogger:
     - Correlation ID tracking
     - Performance metrics
     """
-    
+
     # Fields that should never be logged
     SENSITIVE_FIELDS = {
         'api_key', 'api_secret', 'secret', 'password', 'passphrase',
         'private_key', 'token', 'authorization', 'auth_token',
         'access_token', 'refresh_token', 'session_id', 'secret_key',
     }
-    
+
     def __init__(
         self,
         log_dir: Union[str, Path] = "logs/audit",
@@ -107,23 +107,23 @@ class AuditLogger:
     ):
         self.log_dir = Path(log_dir)
         self.log_dir.mkdir(parents=True, exist_ok=True)
-        
+
         self.db_path = Path(db_path) if db_path else self.log_dir / "audit.db"
         self.enable_file_logging = enable_file_logging
         self.enable_db_logging = enable_db_logging
         self.max_file_size_mb = max_file_size_mb
         self.retention_days = retention_days
-        
+
         self.logger = logging.getLogger("AuditLogger")
         self._event_count = 0
         self._lock = asyncio.Lock()
-        
+
         # Initialize backends
         if enable_db_logging:
             self._init_database()
         if enable_file_logging:
             self._init_file_handler()
-    
+
     async def initialize(self) -> None:
         """Async initialize method for compatibility"""
         # Verify database connectivity
@@ -142,7 +142,7 @@ class AuditLogger:
             except Exception:
                 pass  # Non-critical cleanup
         self.logger.info(f"AuditLogger initialized (retention={self.retention_days}d, db={self.enable_db_logging}, file={self.enable_file_logging})")
-    
+
     def _init_database(self) -> None:
         """Initialize SQLite database for audit storage"""
         with self._get_db_connection() as conn:
@@ -165,7 +165,7 @@ class AuditLogger:
                     created_at TEXT DEFAULT CURRENT_TIMESTAMP
                 )
             """)
-            
+
             # Create indexes for common queries
             conn.execute("CREATE INDEX IF NOT EXISTS idx_timestamp ON audit_events(timestamp)")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_category ON audit_events(category)")
@@ -173,11 +173,11 @@ class AuditLogger:
             conn.execute("CREATE INDEX IF NOT EXISTS idx_correlation ON audit_events(correlation_id)")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_status ON audit_events(status)")
             conn.commit()
-    
+
     def _init_file_handler(self) -> None:
         """Initialize file handler for audit logs"""
         from logging.handlers import RotatingFileHandler
-        
+
         audit_file = self.log_dir / f"audit_{datetime.now().strftime('%Y%m')}.log"
         self._file_handler = RotatingFileHandler(
             audit_file,
@@ -189,14 +189,14 @@ class AuditLogger:
         ))
         self.logger.addHandler(self._file_handler)
         self.logger.setLevel(logging.DEBUG)
-    
+
     def close(self) -> None:
         """Close all resources - important for cleanup on Windows"""
         if hasattr(self, '_file_handler') and self._file_handler:
             self._file_handler.close()
             self.logger.removeHandler(self._file_handler)
             self._file_handler = cast(Any, None)
-    
+
     @contextmanager
     def _get_db_connection(self) -> Generator[sqlite3.Connection, None, None]:
         """Get a database connection with context manager"""
@@ -205,25 +205,25 @@ class AuditLogger:
             yield conn
         finally:
             conn.close()
-    
+
     def _generate_event_id(self) -> str:
         """Generate unique event ID"""
         self._event_count += 1
         timestamp = datetime.now().strftime('%Y%m%d%H%M%S%f')
         return f"AUD-{timestamp}-{self._event_count:06d}"
-    
+
     def _sanitize_data(self, data: Any, depth: int = 0) -> Any:
         """
         Recursively sanitize sensitive data from logs.
-        
+
         Redacts API keys, secrets, and other sensitive fields.
         """
         if depth > 10:  # Prevent infinite recursion
             return "[MAX_DEPTH]"
-        
+
         if data is None:
             return None
-        
+
         if isinstance(data, dict):
             sanitized = {}
             for key, value in data.items():
@@ -237,19 +237,19 @@ class AuditLogger:
                 else:
                     sanitized[key] = self._sanitize_data(value, depth + 1)
             return sanitized
-        
+
         elif isinstance(data, list):
             return [self._sanitize_data(item, depth + 1) for item in data]
-        
+
         elif isinstance(data, str):
             # Check for patterns that look like API keys
             if len(data) > 20 and data.isalnum():
                 return f"[POSSIBLE_KEY-{len(data)}chars]"
             return data
-        
+
         else:
             return data
-    
+
     async def _log_full_event(
         self,
         category: AuditCategory,
@@ -268,7 +268,7 @@ class AuditLogger:
     ) -> AuditEvent:
         """
         Log an audit event.
-        
+
         Args:
             category: Event category (API_CALL, ORDER, etc.)
             action: What action was performed
@@ -283,7 +283,7 @@ class AuditLogger:
             duration_ms: Operation duration in milliseconds
             exchange: Exchange name if applicable
             correlation_id: ID to correlate related events
-        
+
         Returns:
             Created AuditEvent
         """
@@ -305,16 +305,16 @@ class AuditLogger:
                 exchange=exchange,
                 correlation_id=correlation_id,
             )
-            
+
             # Write to backends
             if self.enable_file_logging:
                 self._write_to_file(event)
-            
+
             if self.enable_db_logging:
                 self._write_to_database(event)
-            
+
             return event
-    
+
     def _write_to_file(self, event: AuditEvent) -> None:
         """Write event to log file"""
         log_message = f"{event.category.value} | {event.action} | {event.resource} | {event.status}"
@@ -329,8 +329,8 @@ class AuditLogger:
         # Replace problematic Unicode characters with ASCII equivalents
         replacements = {
             '\u2011': '-', '\u2013': '-', '\u2014': '-', '\u2015': '-',
-            ''': "'", ''': "'", '"': '"', '"': '"',
-            '…': '...', '•': '*', '°': 'deg', '™': '(TM)',
+            '\u2018': "'", '\u2019': "'", '\u201c': '"', '\u201d': '"',
+            '\u2026': '...', '\u2022': '*', '\u00b0': 'deg', '\u2122': '(TM)',
             '®': '(R)', '©': '(C)', '€': 'EUR', '£': 'GBP',
             '¥': 'JPY', '₹': 'INR', '₿': 'BTC', 'Ξ': 'ETH',
             '✓': 'OK', '✗': 'X', '★': '*', '☆': '*',
@@ -342,14 +342,14 @@ class AuditLogger:
         }
         for unicode_char, ascii_char in replacements.items():
             log_message = log_message.replace(unicode_char, ascii_char)
-        
+
         # Replace any remaining Unicode characters with '?'
         log_message = ''.join(c if ord(c) < 128 else '?' for c in log_message)
 
         sev = event.severity.value if hasattr(event.severity, 'value') else str(event.severity)
         level = getattr(logging, sev.upper(), logging.INFO)
         self.logger.log(level, log_message)
-    
+
     def _write_to_database(self, event: AuditEvent) -> None:
         """Write event to SQLite database"""
         try:
@@ -378,9 +378,9 @@ class AuditLogger:
                 conn.commit()
         except Exception as e:
             self.logger.error(f"Failed to write to database: {e}")
-    
+
     # Convenience methods for common event types
-    
+
     async def log_api_call(
         self,
         exchange: str,
@@ -409,7 +409,7 @@ class AuditLogger:
             exchange=exchange,
             correlation_id=correlation_id,
         )
-    
+
     async def log_order(
         self,
         exchange: str,
@@ -444,7 +444,7 @@ class AuditLogger:
             exchange=exchange,
             correlation_id=correlation_id,
         )
-    
+
     async def log_authentication(
         self,
         exchange: str,
@@ -463,7 +463,7 @@ class AuditLogger:
             error_message=error_message,
             exchange=exchange,
         )
-    
+
     async def log_security_event(
         self,
         action: str,
@@ -482,7 +482,7 @@ class AuditLogger:
             user="security_monitor",
             details=details,
         )
-    
+
     async def log_system_event(
         self,
         action: str,
@@ -502,7 +502,7 @@ class AuditLogger:
             user=user,
             details=details,
         )
-    
+
     # Backward compatibility method
     async def log_event(
         self,
@@ -544,9 +544,9 @@ class AuditLogger:
             user=user,
             details=details,
         )
-    
+
     # Query methods
-    
+
     def query_events(
         self,
         category: Optional[AuditCategory] = None,
@@ -558,7 +558,7 @@ class AuditLogger:
     ) -> List[Dict]:
         """
         Query audit events from database.
-        
+
         Args:
             category: Filter by category
             exchange: Filter by exchange
@@ -566,39 +566,39 @@ class AuditLogger:
             start_time: Start of time range
             end_time: End of time range
             limit: Maximum results to return
-        
+
         Returns:
             List of event dictionaries
         """
         if not self.enable_db_logging:
             return []
-        
+
         query = "SELECT * FROM audit_events WHERE 1=1"
         params: List[Any] = []
-        
+
         if category:
             query += " AND category = ?"
             params.append(category.value)
-        
+
         if exchange:
             query += " AND exchange = ?"
             params.append(exchange)
-        
+
         if status:
             query += " AND status = ?"
             params.append(status)
-        
+
         if start_time:
             query += " AND timestamp >= ?"
             params.append(start_time.isoformat())
-        
+
         if end_time:
             query += " AND timestamp <= ?"
             params.append(end_time.isoformat())
-        
+
         query += " ORDER BY timestamp DESC LIMIT ?"
         params.append(limit)
-        
+
         try:
             with self._get_db_connection() as conn:
                 conn.row_factory = sqlite3.Row
@@ -607,7 +607,7 @@ class AuditLogger:
         except Exception as e:
             self.logger.error(f"Query failed: {e}")
             return []
-    
+
     def get_statistics(
         self,
         start_time: Optional[datetime] = None,
@@ -616,18 +616,18 @@ class AuditLogger:
         """Get audit statistics for a time period"""
         if not self.enable_db_logging:
             return {}
-        
+
         time_filter = ""
         params = []
-        
+
         if start_time:
             time_filter += " AND timestamp >= ?"
             params.append(start_time.isoformat())
-        
+
         if end_time:
             time_filter += " AND timestamp <= ?"
             params.append(end_time.isoformat())
-        
+
         try:
             with self._get_db_connection() as conn:
                 # Build WHERE clause with parameterized placeholders
@@ -638,7 +638,7 @@ class AuditLogger:
                     "SELECT COUNT(*) FROM audit_events " + where_clause,
                     params
                 ).fetchone()[0]
-                
+
                 # By category
                 by_category = {}
                 cursor = conn.execute(
@@ -647,7 +647,7 @@ class AuditLogger:
                 )
                 for row in cursor:
                     by_category[row[0]] = row[1]
-                
+
                 # By status
                 by_status = {}
                 cursor = conn.execute(
@@ -656,7 +656,7 @@ class AuditLogger:
                 )
                 for row in cursor:
                     by_status[row[0]] = row[1]
-                
+
                 # By exchange
                 by_exchange = {}
                 cursor = conn.execute(
@@ -666,14 +666,14 @@ class AuditLogger:
                 )
                 for row in cursor:
                     by_exchange[row[0]] = row[1]
-                
+
                 # Average duration
                 avg_duration = conn.execute(
                     "SELECT AVG(duration_ms) FROM audit_events WHERE duration_ms IS NOT NULL"
                     + time_filter,
                     params
                 ).fetchone()[0]
-                
+
                 return {
                     "total_events": total,
                     "by_category": by_category,
@@ -724,8 +724,8 @@ def audit_log(
     Writes a structured audit record without requiring an async context.
     This is the preferred shorthand for simple fire-and-forget audit events.
     """
-    import logging
     import json
+    import logging
     record = {
         "event": event,
         "severity": severity,

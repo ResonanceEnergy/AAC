@@ -5,11 +5,11 @@ Centralized configuration management using environment variables.
 Loads from .env file and provides typed access to all config values.
 """
 
-import os
 import logging
-from pathlib import Path
-from typing import Optional, Dict, Any, Union
+import os
 from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any, Dict, Optional, Union
 
 # Try to load python-dotenv, fall back gracefully if not installed
 try:
@@ -55,14 +55,14 @@ def _get_secret_manager_value(key: str) -> str:
 def find_project_root() -> Path:
     """Find the project root directory by looking for .env or .env.example"""
     current = Path(__file__).resolve().parent
-    
+
     for _ in range(5):  # Max 5 levels up
         if (current / '.env').exists() or (current / '.env.example').exists():
             return current
         if (current / 'parallel_orchestrator.py').exists():  # Known root file
             return current
         current = current.parent
-    
+
     # Fallback to parent of shared/
     return Path(__file__).resolve().parent.parent
 
@@ -74,12 +74,12 @@ def load_env_file(env_path: Optional[Path] = None) -> bool:
     """Load environment variables from .env file"""
     if env_path is None:
         env_path = PROJECT_ROOT / '.env'
-    
+
     if not env_path.exists():
         logger.warning(f".env file not found at {env_path}. Using system environment variables only.")
         logger.info("Copy .env.example to .env and configure your values.")
         return False
-    
+
     if DOTENV_AVAILABLE:
         load_dotenv(env_path)
         logger.info(f"Loaded environment from {env_path}")
@@ -152,7 +152,7 @@ class ExchangeConfig:
     passphrase: str = field(default='', repr=False)  # For Coinbase
     testnet: bool = True
     enabled: bool = False
-    
+
     def is_configured(self) -> bool:
         """Is configured."""
         return bool(self.api_key and self.api_secret)
@@ -162,10 +162,10 @@ class ExchangeConfig:
 class IBKRConfig:
     """Configuration for Interactive Brokers (socket-based, no API keys)"""
     host: str = '127.0.0.1'
-    port: int = 7497
+    port: int = 7496
     client_id: int = 1
     account: str = ''
-    paper: bool = True
+    paper: bool = False
     enabled: bool = False
 
     def is_configured(self) -> bool:
@@ -194,12 +194,12 @@ class DatabaseConfig:
     """Database configuration"""
     url: str = ''
     redis_url: str = ''
-    
+
     @property
     def is_sqlite(self) -> bool:
         """Is sqlite."""
         return self.url.startswith('sqlite')
-    
+
     @property
     def is_postgres(self) -> bool:
         """Is postgres."""
@@ -219,15 +219,15 @@ class NotificationConfig:
     smtp_user: str = ''
     smtp_password: str = field(default='', repr=False)
     email_to: str = ''
-    
+
     def telegram_enabled(self) -> bool:
         """Telegram enabled."""
         return bool(self.telegram_token and self.telegram_chat_id)
-    
+
     def slack_enabled(self) -> bool:
         """Slack enabled."""
         return bool(self.slack_webhook)
-    
+
     def email_enabled(self) -> bool:
         """Email enabled."""
         return bool(self.smtp_host and self.smtp_user and self.email_to)
@@ -247,7 +247,7 @@ class RiskConfig:
     max_daily_trades: int = 100  # Circuit-breaker on runaway strategies
 
 
-@dataclass 
+@dataclass
 class Config:
     """Main configuration container"""
 
@@ -271,7 +271,7 @@ class Config:
     debug: bool = False
     log_level: str = 'INFO'
     project_root: Path = field(default_factory=lambda: PROJECT_ROOT)
-    
+
     # Exchanges
     binance: ExchangeConfig = field(default_factory=ExchangeConfig)
     coinbase: ExchangeConfig = field(default_factory=ExchangeConfig)
@@ -280,26 +280,26 @@ class Config:
     moomoo: MoomooConfig = field(default_factory=MoomooConfig)
     ndax: ExchangeConfig = field(default_factory=ExchangeConfig)
     metalx: ExchangeConfig = field(default_factory=ExchangeConfig)
-    
+
     # IBKR-specific
     ibkr_host: str = '127.0.0.1'
-    ibkr_port: int = 7497
+    ibkr_port: int = 7496
     ibkr_client_id: int = 1
     ibkr_account: str = ''
-    
+
     # NDAX-specific
     ndax_user_id: str = ''
     ndax_account_id: str = ''
-    
+
     # Moomoo-specific
     moomoo_paper: bool = False
-    
+
     # MT5 / Noxi Rise
     mt5_path: str = ''
     mt5_login: int = 0
     mt5_password: str = field(default='', repr=False)
     mt5_server: str = 'NoxiRise-Live'
-    
+
     # Metal X / Metallicus
     metalx_account_name: str = ''
     metalx_private_key: str = field(default='', repr=False)
@@ -311,7 +311,7 @@ class Config:
     metalpay_api_secret: str = field(default='', repr=False)
     webauth_app_id: str = 'aac_trading'
     webauth_callback_url: str = ''
-    
+
     # Foreign Exchange (Knightsbridge FX)
     fx_api_key: str = field(default='', repr=False)
     fx_spread_bps: float = 50.0
@@ -322,7 +322,7 @@ class Config:
     eth_rpc_url: str = ''
     polygon_rpc_url: str = ''
     arbitrum_rpc_url: str = ''
-    
+
     # Services
     # DEV-ONLY defaults — overridden by from_env() in production
     bigbrain_url: str = 'http://localhost:8001/api/v1'
@@ -331,16 +331,16 @@ class Config:
     accounting_url: str = 'http://localhost:8003/api/v1'
     ncc_endpoint: str = 'http://localhost:8000/api/v1'
     ncc_token: str = field(default='', repr=False)
-    
+
     # Database
     database: DatabaseConfig = field(default_factory=DatabaseConfig)
-    
+
     # Notifications
     notifications: NotificationConfig = field(default_factory=NotificationConfig)
-    
+
     # Risk
     risk: RiskConfig = field(default_factory=RiskConfig)
-    
+
     # External APIs
     coingecko_key: str = field(default='', repr=False)
     coinmarketcap_key: str = field(default='', repr=False)
@@ -367,13 +367,13 @@ class Config:
     etherscan_key: str = field(default='', repr=False)
     tradestie_key: str = field(default='', repr=False)
     wallstreetodds_key: str = field(default='', repr=False)
-    
+
     # AI/LLM APIs
     openai_key: str = field(default='', repr=False)
     anthropic_key: str = field(default='', repr=False)
     google_ai_key: str = field(default='', repr=False)
     xai_key: str = field(default='', repr=False)
-    
+
     # Polymarket (prediction markets)
     polymarket_private_key: str = field(default='', repr=False)
     polymarket_funder: str = ''
@@ -382,12 +382,12 @@ class Config:
     polymarket_api_secret: str = field(default='', repr=False)
     polymarket_api_passphrase: str = field(default='', repr=False)
     polymarket_signature_type: int = 2  # 0=EOA, 1=POLY_PROXY, 2=GNOSIS_SAFE
-    
+
     # Dashboard
     # DEV-ONLY defaults — overridden by from_env() in production
     dashboard_url: str = 'http://localhost:3000'
     dashboard_secret: str = field(default='', repr=False)
-    
+
     # OpenClaw / ClawHub
     openclaw_skills_dir: str = ''
     openclaw_gateway_url: str = 'ws://127.0.0.1:18789'
@@ -395,18 +395,18 @@ class Config:
     openclaw_daily_spend_limit: float = 10.0
     clawhub_api_key: str = field(default='', repr=False)
     aac_api_key: str = field(default='', repr=False)
-    
+
     @classmethod
     def from_env(cls) -> 'Config':
         """Load configuration from environment variables"""
         load_env_file()
-        
+
         config = cls(
             # Environment
             environment=get_env('ENVIRONMENT', 'development'),
             debug=get_env_bool('DEBUG', False),
             log_level=get_env('LOG_LEVEL', 'INFO'),
-            
+
             # Binance
             binance=ExchangeConfig(
                 api_key=get_env('BINANCE_API_KEY'),
@@ -414,7 +414,7 @@ class Config:
                 testnet=get_env_bool('BINANCE_TESTNET', True),
                 enabled=bool(get_env('BINANCE_API_KEY')),
             ),
-            
+
             # Coinbase
             coinbase=ExchangeConfig(
                 api_key=get_env('COINBASE_API_KEY'),
@@ -422,24 +422,24 @@ class Config:
                 passphrase=get_env('COINBASE_PASSPHRASE'),
                 enabled=bool(get_env('COINBASE_API_KEY')),
             ),
-            
+
             # Kraken
             kraken=ExchangeConfig(
                 api_key=get_env('KRAKEN_API_KEY'),
                 api_secret=get_env('KRAKEN_API_SECRET'),
                 enabled=bool(get_env('KRAKEN_API_KEY')),
             ),
-            
+
             # Interactive Brokers
             ibkr=IBKRConfig(
                 host=get_env('IBKR_HOST', '127.0.0.1'),
-                port=get_env_int('IBKR_PORT', 7497),
+                port=get_env_int('IBKR_PORT', 7496),
                 client_id=get_env_int('IBKR_CLIENT_ID', 1),
                 account=get_env('IBKR_ACCOUNT', ''),
                 paper=get_env_bool('IBKR_PAPER', True),
                 enabled=bool(get_env('IBKR_ACCOUNT')),
             ),
-            
+
             # Moomoo/Futu
             moomoo=MoomooConfig(
                 host=get_env('MOOMOO_HOST', '127.0.0.1'),
@@ -450,7 +450,7 @@ class Config:
                 trade_password=get_env('MOOMOO_TRADE_PASSWORD'),
                 enabled=get_env_bool('MOOMOO_ENABLED', True),
             ),
-            
+
             # NDAX (Canadian crypto exchange)
             ndax=ExchangeConfig(
                 api_key=get_env('NDAX_API_KEY'),
@@ -460,9 +460,9 @@ class Config:
             ),
             ndax_user_id=get_env('NDAX_USER_ID'),
             ndax_account_id=get_env('NDAX_ACCOUNT_ID'),
-            
+
             moomoo_paper=get_env_bool('MOOMOO_PAPER', False),
-            
+
             # Metal X
             metalx=ExchangeConfig(
                 api_key=get_env('METALX_ACCOUNT_NAME'),
@@ -479,7 +479,7 @@ class Config:
             metalpay_api_secret=get_env('METALPAY_API_SECRET'),
             webauth_app_id=get_env('WEBAUTH_APP_ID', 'aac_trading'),
             webauth_callback_url=get_env('WEBAUTH_CALLBACK_URL'),
-            
+
             # Foreign Exchange (Knightsbridge FX)
             fx_api_key=get_env('FX_API_KEY'),
             fx_spread_bps=get_env_float('FX_SPREAD_BPS', 50.0),
@@ -490,13 +490,13 @@ class Config:
             mt5_login=get_env_int('MT5_LOGIN', 0),
             mt5_password=get_env('MT5_PASSWORD'),
             mt5_server=get_env('MT5_SERVER', 'NoxiRise-Live'),
-            
+
             # Web3
             eth_private_key=get_env('ETH_PRIVATE_KEY'),
             eth_rpc_url=get_env('ETH_RPC_URL', ''),
             polygon_rpc_url=get_env('POLYGON_RPC_URL', 'https://polygon-rpc.com'),
             arbitrum_rpc_url=get_env('ARBITRUM_RPC_URL', 'https://arb1.arbitrum.io/rpc'),
-            
+
             # Services
             bigbrain_url=get_env('BIGBRAIN_API_URL', 'http://localhost:8001/api/v1'),
             bigbrain_token=get_env('BIGBRAIN_AUTH_TOKEN'),
@@ -504,13 +504,13 @@ class Config:
             accounting_url=get_env('ACCOUNTING_API_URL', 'http://localhost:8003/api/v1'),
             ncc_endpoint=get_env('NCC_COORDINATOR_ENDPOINT', 'http://localhost:8000/api/v1'),
             ncc_token=get_env('NCC_AUTH_TOKEN'),
-            
+
             # Database
             database=DatabaseConfig(
                 url=get_env('DATABASE_URL', f'sqlite:///{PROJECT_ROOT}/CentralAccounting/data/accounting.db'),
                 redis_url=get_env('REDIS_URL', 'redis://localhost:6379/0'),
             ),
-            
+
             # Notifications
             notifications=NotificationConfig(
                 telegram_token=get_env('TELEGRAM_BOT_TOKEN'),
@@ -524,7 +524,7 @@ class Config:
                 smtp_password=get_env('SMTP_PASSWORD'),
                 email_to=get_env('ALERT_EMAIL_TO'),
             ),
-            
+
             # Risk
             risk=RiskConfig(
                 max_position_size_usd=get_env_float('MAX_POSITION_SIZE_USD', 10000.0),
@@ -536,7 +536,7 @@ class Config:
                 strategy_max_allocation_pct=get_env_float('STRATEGY_MAX_ALLOCATION_PCT', 25.0),
                 max_daily_trades=get_env_int('MAX_DAILY_TRADES', 100),
             ),
-            
+
             # External APIs
             coingecko_key=get_env('COINGECKO_API_KEY'),
             coinmarketcap_key=get_env('COINMARKETCAP_API_KEY'),
@@ -563,13 +563,13 @@ class Config:
             etherscan_key=get_env('ETHERSCAN_API_KEY'),
             tradestie_key=get_env('TRADESTIE_API_KEY'),
             wallstreetodds_key=get_env('WALLSTREETODDS_API_KEY'),
-            
+
             # AI/LLM APIs
             openai_key=get_env('OPENAI_API_KEY'),
             anthropic_key=get_env('ANTHROPIC_API_KEY'),
             google_ai_key=get_env('GOOGLE_AI_API_KEY'),
             xai_key=get_env('XAI_API_KEY'),
-            
+
             # Polymarket
             polymarket_private_key=get_env('POLYMARKET_PRIVATE_KEY'),
             polymarket_funder=get_env('POLYMARKET_FUNDER_ADDRESS'),
@@ -578,11 +578,11 @@ class Config:
             polymarket_api_secret=get_env('POLYMARKET_API_SECRET'),
             polymarket_api_passphrase=get_env('POLYMARKET_API_PASSPHRASE'),
             polymarket_signature_type=int(get_env('POLYMARKET_SIGNATURE_TYPE', '2')),
-            
+
             # Dashboard
             dashboard_url=get_env('DASHBOARD_URL', 'http://localhost:3000'),
             dashboard_secret=get_env('DASHBOARD_SECRET_KEY'),
-            
+
             # OpenClaw / ClawHub
             openclaw_skills_dir=get_env('OPENCLAW_SKILLS_DIR'),
             openclaw_gateway_url=get_env('OPENCLAW_GATEWAY_URL', 'ws://127.0.0.1:18789'),
@@ -601,7 +601,7 @@ class Config:
             config.risk.max_daily_loss_usd = 1000.0
 
         return config
-    
+
     def get_enabled_exchanges(self) -> Dict[str, Union[ExchangeConfig, IBKRConfig, MoomooConfig]]:
         """Return dict of exchanges that have API keys configured"""
         exchanges: Dict[str, Union[ExchangeConfig, IBKRConfig, MoomooConfig]] = {}
@@ -618,15 +618,15 @@ class Config:
         if self.metalx.is_configured():
             exchanges['metalx'] = self.metalx
         return exchanges
-    
+
     def validate(self) -> Dict[str, Any]:
         """Validate configuration and return status report"""
         issues = []
         warnings = []
-        
+
         enabled = self.get_enabled_exchanges()
         paper = self.risk.paper_trading or self.risk.dry_run
-        
+
         # Critical: no exchanges AND not paper trading = system does nothing
         if not enabled and not paper:
             issues.append(
@@ -635,15 +635,15 @@ class Config:
             )
         elif not enabled:
             warnings.append("No exchange API keys configured - running in paper/dry-run mode only")
-        
+
         # Check database
         if not self.database.url:
             issues.append("DATABASE_URL not configured")
-        
+
         # Check if dry run
         if self.risk.dry_run:
             warnings.append("DRY_RUN=true - no real trades will execute")
-        
+
         # Live trading safety guard
         if not paper and not self.risk.dry_run:
             if self.risk.live_trading_confirmation != 'YES_I_UNDERSTAND':
@@ -651,13 +651,13 @@ class Config:
                     "Live trading requires LIVE_TRADING_CONFIRMATION=YES_I_UNDERSTAND in .env. "
                     "This confirms you accept the risk of real money trading."
                 )
-        
+
         # Check notifications
-        if not (self.notifications.telegram_enabled() or 
-                self.notifications.slack_enabled() or 
+        if not (self.notifications.telegram_enabled() or
+                self.notifications.slack_enabled() or
                 self.notifications.email_enabled()):
             warnings.append("No notification channels configured")
-        
+
         # Check market data sources
         has_market_data = any([
             self.coingecko_key,
@@ -669,7 +669,7 @@ class Config:
                 "No market data API keys configured (COINGECKO_API_KEY, ALPHAVANTAGE_API_KEY, FINNHUB_API_KEY). "
                 "Market data feeds will be limited"
             )
-        
+
         return {
             'valid': len(issues) == 0,
             'issues': issues,
@@ -690,11 +690,11 @@ class ConfigValidationError(Exception):
 class ConfigSchema:
     """
     Schema-based configuration validation.
-    
+
     Validates configuration values against defined schemas with type checking,
     range validation, and required field enforcement.
     """
-    
+
     # Schema definitions for each config section
     SCHEMAS: Dict[str, Dict[str, Any]] = {
         "environment": {
@@ -748,24 +748,24 @@ class ConfigSchema:
             "required": False,
         },
     }
-    
+
     @classmethod
     def validate(cls, config: 'Config', strict: bool = False) -> Dict[str, Any]:
         """
         Validate configuration against schema.
-        
+
         Args:
             config: Configuration object to validate
             strict: If True, raise ConfigValidationError on any error
-            
+
         Returns:
             Dict with validation results
         """
         import re
-        
+
         errors = []
         warnings = []
-        
+
         def get_nested_value(obj, path: str):
             """Get nested attribute by dotted path"""
             parts = path.split(".")
@@ -776,18 +776,18 @@ class ConfigSchema:
                 else:
                     return None
             return current
-        
+
         for field_path, schema in cls.SCHEMAS.items():
             value = get_nested_value(config, field_path)
-            
+
             # Check required
             if schema.get("required") and value in (None, ""):
                 errors.append(f"{field_path}: Required field is missing")
                 continue
-            
+
             if value is None or value == "":
                 continue  # Skip optional empty fields
-            
+
             # Check type
             expected_type: Any = schema.get("type")
             if expected_type:
@@ -802,14 +802,14 @@ class ConfigSchema:
                         f"{field_path}: Expected {expected_type.__name__}, got {type(value).__name__}"
                     )
                     continue
-            
+
             # Check allowed values
             allowed: Any = schema.get("allowed")
             if allowed is not None and value not in allowed:
                 errors.append(
                     f"{field_path}: Value '{value}' not in allowed values: {allowed}"
                 )
-            
+
             # Check numeric range
             if isinstance(value, (int, float)):
                 min_val: Any = schema.get("min")
@@ -818,7 +818,7 @@ class ConfigSchema:
                     errors.append(f"{field_path}: Value {value} below minimum {min_val}")
                 if max_val is not None and value > max_val:
                     errors.append(f"{field_path}: Value {value} above maximum {max_val}")
-            
+
             # Check pattern
             pattern: Any = schema.get("pattern")
             if pattern is not None and isinstance(value, str) and value:
@@ -826,18 +826,18 @@ class ConfigSchema:
                     warnings.append(
                         f"{field_path}: Value doesn't match expected pattern {schema['pattern']}"
                     )
-        
+
         # Additional cross-field validations
         if config.risk.dry_run and config.environment == "production":
             warnings.append(
                 "dry_run=True in production environment - no actual trades will execute"
             )
-        
+
         if config.risk.paper_trading and not config.risk.dry_run:
             warnings.append(
                 "paper_trading=True but dry_run=False - this is unusual"
             )
-        
+
         if config.environment == "production":
             # Production-specific validations
             if not any([
@@ -848,55 +848,55 @@ class ConfigSchema:
                 errors.append(
                     "Production environment requires at least one notification channel"
                 )
-            
+
             if config.risk.max_position_size_usd > 50000:
                 warnings.append(
                     f"High max_position_size_usd={config.risk.max_position_size_usd} in production"
                 )
-        
+
         result = {
             "valid": len(errors) == 0,
             "errors": errors,
             "warnings": warnings,
             "fields_validated": len(cls.SCHEMAS),
         }
-        
+
         if strict and errors:
             raise ConfigValidationError(errors)
-        
+
         return result
-    
+
     @classmethod
     def validate_yaml_file(cls, yaml_path: Path) -> Dict[str, Any]:
         """
         Validate a YAML configuration file before loading.
-        
+
         Args:
             yaml_path: Path to YAML file
-            
+
         Returns:
             Dict with validation results
         """
         import yaml  # type: ignore[import-untyped]
-        
+
         if not yaml_path.exists():
             return {
                 "valid": False,
                 "errors": [f"Config file not found: {yaml_path}"],
                 "warnings": [],
             }
-        
+
         try:
             with open(yaml_path, 'r') as f:
                 data = yaml.safe_load(f)
-            
+
             if not isinstance(data, dict):
                 return {
                     "valid": False,
                     "errors": ["YAML root must be a dictionary"],
                     "warnings": [],
                 }
-            
+
             # Check for unknown top-level keys
             known_keys = {
                 "environment", "debug", "log_level", "binance", "coinbase", "kraken",
@@ -904,14 +904,14 @@ class ConfigSchema:
             }
             unknown = set(data.keys()) - known_keys
             warnings = [f"Unknown config key: {k}" for k in unknown]
-            
+
             return {
                 "valid": True,
                 "errors": [],
                 "warnings": warnings,
                 "keys_found": list(data.keys()),
             }
-            
+
         except yaml.YAMLError as e:
             return {
                 "valid": False,
@@ -923,38 +923,38 @@ class ConfigSchema:
 def validate_config(config: Optional['Config'] = None, strict: bool = False) -> Dict[str, Any]:
     """
     Validate configuration with schema.
-    
+
     Args:
         config: Config object to validate (uses global if None)
         strict: If True, raise exception on errors
-        
+
     Returns:
         Validation results dict
     """
     if config is None:
         config = get_config()
-    
+
     return ConfigSchema.validate(config, strict=strict)
 
 
 def validate_startup_requirements(config: Optional['Config'] = None) -> bool:
     """
     Run startup validation and log results.
-    
+
     Returns True if config is valid for operation, False if fatal issues found.
     Logs warnings for non-fatal issues.
     """
     if config is None:
         config = get_config()
-    
+
     result = config.validate()
-    
+
     for warning in result.get('warnings', []):
         logger.warning(f"[CONFIG] {warning}")
-    
+
     for issue in result.get('issues', []):
         logger.error(f"[CONFIG] {issue}")
-    
+
     if result['valid']:
         exchanges = result.get('exchanges_configured', [])
         logger.info(
@@ -968,7 +968,7 @@ def validate_startup_requirements(config: Optional['Config'] = None) -> bool:
             f"[CONFIG] Startup validation FAILED with {len(result['issues'])} issue(s). "
             f"Fix .env configuration before launching."
         )
-    
+
     return result['valid']
 
 
@@ -1000,10 +1000,10 @@ def get_project_path(*parts: str) -> Path:
 if __name__ == '__main__':
     # Test configuration loading
     logging.basicConfig(level=logging.INFO)
-    
+
     config = get_config()
     validation = config.validate()
-    
+
     print("\n=== ACC Configuration Status ===")
     print(f"Environment: {config.environment}")
     print(f"Debug: {config.debug}")
@@ -1011,12 +1011,12 @@ if __name__ == '__main__':
     print(f"\nExchanges Configured: {validation['exchanges_configured'] or 'None'}")
     print(f"Dry Run: {validation['dry_run']}")
     print(f"\nValidation: {'PASSED' if validation['valid'] else 'FAILED'}")
-    
+
     if validation['issues']:
         print("\nIssues:")
         for issue in validation['issues']:
             print(f"  [CROSS] {issue}")
-    
+
     if validation['warnings']:
         print("\nWarnings:")
         for warning in validation['warnings']:

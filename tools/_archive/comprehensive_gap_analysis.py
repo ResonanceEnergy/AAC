@@ -8,9 +8,9 @@ UPDATED: February 8, 2026 - Dynamic compliance checking and real-time status
 """
 
 import asyncio
+import logging
 import sys
 from pathlib import Path
-import logging
 
 logger = logging.getLogger(__name__)
 

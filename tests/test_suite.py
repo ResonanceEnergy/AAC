@@ -5,12 +5,12 @@ ACC Test Suite
 Comprehensive tests for all components.
 """
 
-import pytest
 import asyncio
 from datetime import datetime, timedelta
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
 
 # ============================================
 # CONFIG LOADER TESTS
@@ -142,13 +142,13 @@ class TestResearchAgents:
 
     def test_get_agents_by_theater(self):
         from BigBrainIntelligence.agents import get_agents_by_theater
-        
+
         theater_b = get_agents_by_theater("theater_b")
         assert len(theater_b) == 3
-        
+
         theater_c = get_agents_by_theater("theater_c")
         assert len(theater_c) == 4
-        
+
         theater_d = get_agents_by_theater("theater_d")
         assert len(theater_d) == 4
 
@@ -185,9 +185,12 @@ class TestExchangeConnectors:
 
     def test_base_connector_dataclasses(self):
         from TradingExecution.exchange_connectors.base_connector import (
-            Ticker, OrderBook, Balance, ExchangeOrder
+            Balance,
+            ExchangeOrder,
+            OrderBook,
+            Ticker,
         )
-        
+
         ticker = Ticker(
             symbol="BTC/USDT",
             bid=45000.0,
@@ -196,7 +199,7 @@ class TestExchangeConnectors:
             volume_24h=1000.0,
         )
         assert ticker.spread == 10.0
-        
+
         balance = Balance(
             asset="USDT",
             free=8000.0,
@@ -232,9 +235,7 @@ class TestExecutionEngine:
     """Tests for TradingExecution/execution_engine.py"""
 
     def test_order_dataclass(self):
-        from TradingExecution.execution_engine import (
-            Order, OrderSide, OrderType, OrderStatus
-        )
+        from TradingExecution.execution_engine import Order, OrderSide, OrderStatus, OrderType
         order = Order(
             order_id="ORD_001",
             symbol="BTC/USDT",
@@ -247,8 +248,8 @@ class TestExecutionEngine:
         assert data["side"] == "buy"
 
     def test_position_pnl_calculation(self):
-        from TradingExecution.execution_engine import Position, OrderSide
-        
+        from TradingExecution.execution_engine import OrderSide, Position
+
         # Long position
         long_pos = Position(
             position_id="POS_001",
@@ -259,7 +260,7 @@ class TestExecutionEngine:
             current_price=46000.0,
         )
         assert long_pos.unrealized_pnl == 1000.0
-        
+
         # Short position
         short_pos = Position(
             position_id="POS_002",
@@ -272,8 +273,8 @@ class TestExecutionEngine:
         assert short_pos.unrealized_pnl == 1000.0
 
     def test_position_stop_loss(self):
-        from TradingExecution.execution_engine import Position, OrderSide
-        
+        from TradingExecution.execution_engine import OrderSide, Position
+
         pos = Position(
             position_id="POS_001",
             symbol="BTC/USDT",
@@ -283,7 +284,7 @@ class TestExecutionEngine:
             current_price=45000.0,
             stop_loss=43000.0,
         )
-        
+
         assert not pos.should_stop_loss()
         pos.current_price = 42000.0
         assert pos.should_stop_loss()
@@ -291,11 +292,11 @@ class TestExecutionEngine:
     def test_risk_manager_limits(self):
         from TradingExecution.execution_engine import RiskManager
         rm = RiskManager()
-        
+
         # Should allow small position
         can_open, reason = rm.can_open_position(500, 0)
         assert can_open
-        
+
         # Should block when max positions reached
         can_open, reason = rm.can_open_position(500, 10)
         assert not can_open
@@ -305,21 +306,21 @@ class TestExecutionEngine:
     @patch("random.uniform", return_value=1.0)  # 1 bps slippage
     async def test_execution_engine_paper_trading(self, _mock_uniform, _mock_rng):
         from TradingExecution.execution_engine import ExecutionEngine, OrderSide
-        
+
         engine = ExecutionEngine()
         # Explicitly set paper trading for this test
         engine.paper_trading = True
         # Must disable dry_run for paper trading to actually fill orders
         engine.dry_run = False
         assert engine.paper_trading  # Should be True for this test
-        
+
         position = await engine.open_position(
             symbol="BTC/USDT",
             side=OrderSide.BUY,
             quantity=0.01,
             entry_price=45000.0,
         )
-        
+
         assert position is not None
         assert position.symbol == "BTC/USDT"
 
@@ -341,7 +342,7 @@ class TestAccountingDatabase:
         from CentralAccounting.database import AccountingDatabase
         db = AccountingDatabase(":memory:")
         db.initialize()
-        
+
         accounts = db.get_accounts()
         assert isinstance(accounts, list)
         # Default accounts are created on initialize
@@ -351,11 +352,11 @@ class TestAccountingDatabase:
         from CentralAccounting.database import AccountingDatabase
         db = AccountingDatabase(":memory:")
         db.initialize()
-        
+
         accounts = db.get_accounts()
         assert len(accounts) > 0
         account_id = accounts[0]['account_id']  # Column name is account_id, not id
-        
+
         tx_id = db.record_transaction(
             account_id=account_id,
             transaction_type="deposit",
@@ -390,7 +391,7 @@ class TestOrchestrator:
 
     def test_signal_expiry(self):
         from orchestrator import Signal
-        
+
         # Non-expired signal
         signal = Signal(
             signal_id="SIG_001",
@@ -406,7 +407,7 @@ class TestOrchestrator:
             expires_at=datetime.now() + timedelta(hours=1),
         )
         assert not signal.is_expired()
-        
+
         # Expired signal
         expired_signal = Signal(
             signal_id="SIG_002",
@@ -424,10 +425,10 @@ class TestOrchestrator:
         assert expired_signal.is_expired()
 
     def test_signal_aggregator(self):
-        from orchestrator import SignalAggregator, Signal
-        
+        from orchestrator import Signal, SignalAggregator
+
         aggregator = SignalAggregator()
-        
+
         # Add signals
         aggregator.add_signal(Signal(
             signal_id="1",
@@ -441,7 +442,7 @@ class TestOrchestrator:
             quantum_advantage=0.7,
             cross_temporal_score=0.6,
         ))
-        
+
         aggregator.add_signal(Signal(
             signal_id="2",
             source_agent="agent_b",
@@ -454,7 +455,7 @@ class TestOrchestrator:
             quantum_advantage=0.6,
             cross_temporal_score=0.5,
         ))
-        
+
         consensus = aggregator.get_consensus("BTC/USDT")
         assert consensus["signal_count"] == 2
         assert consensus["direction"] == "long"
@@ -477,7 +478,7 @@ class TestSecretsAndValidation:
         from shared.secrets_manager import validate_symbol
         result = validate_symbol("")
         assert not result.valid
-        
+
         result = validate_symbol("A" * 50)
         assert not result.valid
 
@@ -491,7 +492,7 @@ class TestSecretsAndValidation:
         from shared.secrets_manager import validate_quantity
         result = validate_quantity(-10)
         assert not result.valid
-        
+
         result = validate_quantity(float('inf'))
         assert not result.valid
 
@@ -499,7 +500,7 @@ class TestSecretsAndValidation:
         from shared.secrets_manager import validate_price
         result = validate_price(45000.0)
         assert result.valid
-        
+
         result = validate_price(None, allow_none=True)
         assert result.valid
 
@@ -507,14 +508,14 @@ class TestSecretsAndValidation:
         from shared.secrets_manager import validate_price
         result = validate_price(-100)
         assert not result.valid
-        
+
         result = validate_price(None, allow_none=False)
         assert not result.valid
 
     def test_order_validator(self):
         from shared.secrets_manager import OrderValidator
         validator = OrderValidator()
-        
+
         result = validator.validate_order(
             symbol="BTC/USDT",
             side="buy",
@@ -528,7 +529,7 @@ class TestSecretsAndValidation:
     def test_order_validator_invalid(self):
         from shared.secrets_manager import OrderValidator
         validator = OrderValidator()
-        
+
         result = validator.validate_order(
             symbol="",
             side="invalid_side",
@@ -551,38 +552,38 @@ class TestCircuitBreaker:
     def test_circuit_breaker_closed(self):
         from shared.utils import CircuitBreaker, CircuitState
         breaker = CircuitBreaker(name="test", failure_threshold=3)
-        
+
         assert breaker.state == CircuitState.CLOSED
         assert breaker.can_execute()
 
     def test_circuit_breaker_opens_on_failures(self):
         from shared.utils import CircuitBreaker, CircuitState
         breaker = CircuitBreaker(name="test", failure_threshold=3)
-        
+
         # Record failures
         for _ in range(3):
             breaker.record_failure()
-        
+
         assert breaker.state == CircuitState.OPEN
         assert not breaker.can_execute()
 
     def test_circuit_breaker_recovers(self):
         from shared.utils import CircuitBreaker, CircuitState
         breaker = CircuitBreaker(name="test", failure_threshold=2, success_threshold=1, timeout=0.01)
-        
+
         # Open the circuit
         breaker.record_failure()
         breaker.record_failure()
         assert breaker.state == CircuitState.OPEN
-        
+
         # Wait for timeout
         import time
         time.sleep(0.02)
-        
+
         # Should be half-open
         assert breaker.can_execute()
         assert breaker.state == CircuitState.HALF_OPEN
-        
+
         # Success should close it
         breaker.record_success()
         assert breaker.state == CircuitState.CLOSED
@@ -599,23 +600,24 @@ class TestRateLimiter:
     async def test_rate_limiter_allows_burst(self):
         from shared.utils import RateLimiter
         limiter = RateLimiter(rate=10, per=1.0)
-        
+
         # Should allow burst up to rate limit
         for _ in range(10):
             await limiter.acquire()
 
     @pytest.mark.asyncio
     async def test_rate_limiter_throttles(self):
-        from shared.utils import RateLimiter
         import time
-        
+
+        from shared.utils import RateLimiter
+
         limiter = RateLimiter(rate=5, per=1.0)
-        
+
         start = time.time()
         for _ in range(6):
             await limiter.acquire()
         elapsed = time.time() - start
-        
+
         # Should have been throttled
         assert elapsed >= 0.1  # At least some delay
 
@@ -631,7 +633,7 @@ class TestMonitoring:
         from shared.monitoring import MetricsCollector
         collector = MetricsCollector()
         metrics = collector.collect()
-        
+
         assert metrics.cpu_percent >= 0
         assert metrics.memory_percent >= 0
         assert metrics.disk_percent >= 0
@@ -640,10 +642,10 @@ class TestMonitoring:
     async def test_health_checker(self):
         from shared.monitoring import HealthChecker, HealthStatus
         checker = HealthChecker()
-        
+
         results = await checker.run_all_checks()
         assert len(results) > 0
-        
+
         # System resources check should return a valid status
         system_check = results.get('system_resources')
         assert system_check is not None
@@ -653,7 +655,7 @@ class TestMonitoring:
     async def test_alert_manager(self):
         from shared.monitoring import AlertManager
         manager = AlertManager(enable_telegram=False, enable_slack=False)
-        
+
         alert = await manager.create_alert(
             severity='info',
             category='test',
@@ -661,7 +663,7 @@ class TestMonitoring:
             message='This is a test',
             send_notification=False,
         )
-        
+
         assert alert.alert_id is not None
         assert alert.severity == 'info'
         assert len(manager.alerts) == 1
@@ -676,10 +678,11 @@ class TestAuditLogger:
 
     @pytest.mark.asyncio
     async def test_audit_logger_init(self):
-        from shared.audit_logger import AuditLogger
-        import tempfile
         import os
-        
+        import tempfile
+
+        from shared.audit_logger import AuditLogger
+
         with tempfile.TemporaryDirectory() as tmpdir:
             logger = AuditLogger(
                 log_dir=tmpdir,
@@ -692,12 +695,13 @@ class TestAuditLogger:
 
     @pytest.mark.asyncio
     async def test_audit_log_event(self):
-        from shared.audit_logger import AuditLogger, AuditCategory, AuditSeverity
         import tempfile
-        
+
+        from shared.audit_logger import AuditCategory, AuditLogger, AuditSeverity
+
         with tempfile.TemporaryDirectory() as tmpdir:
             logger = AuditLogger(log_dir=tmpdir)
-            
+
             event = await logger.log_event(
                 category=AuditCategory.API_CALL,
                 action="test_action",
@@ -705,7 +709,7 @@ class TestAuditLogger:
                 status="success",
                 details={"key": "value"},
             )
-            
+
             assert event.event_id.startswith("AUD-")
             assert event.category == AuditCategory.API_CALL
             assert event.status == "success"
@@ -713,12 +717,13 @@ class TestAuditLogger:
 
     @pytest.mark.asyncio
     async def test_audit_log_api_call(self):
-        from shared.audit_logger import AuditLogger
         import tempfile
-        
+
+        from shared.audit_logger import AuditLogger
+
         with tempfile.TemporaryDirectory() as tmpdir:
             logger = AuditLogger(log_dir=tmpdir)
-            
+
             event = await logger.log_api_call(
                 exchange="binance",
                 endpoint="/api/v3/ticker",
@@ -726,19 +731,20 @@ class TestAuditLogger:
                 status="success",
                 duration_ms=123.45,
             )
-            
+
             assert event.exchange == "binance"
             assert event.duration_ms == 123.45
             logger.close()
 
     @pytest.mark.asyncio
     async def test_audit_log_order(self):
-        from shared.audit_logger import AuditLogger
         import tempfile
-        
+
+        from shared.audit_logger import AuditLogger
+
         with tempfile.TemporaryDirectory() as tmpdir:
             logger = AuditLogger(log_dir=tmpdir)
-            
+
             event = await logger.log_order(
                 exchange="coinbase",
                 symbol="BTC/USDT",
@@ -749,19 +755,20 @@ class TestAuditLogger:
                 order_id="ORD123",
                 status="created",
             )
-            
+
             assert event.details["symbol"] == "BTC/USDT"
             assert event.details["quantity"] == 0.5
             logger.close()
 
     @pytest.mark.asyncio
     async def test_audit_sanitize_sensitive_data(self):
-        from shared.audit_logger import AuditLogger
         import tempfile
-        
+
+        from shared.audit_logger import AuditLogger
+
         with tempfile.TemporaryDirectory() as tmpdir:
             logger = AuditLogger(log_dir=tmpdir)
-            
+
             # Test sanitization
             data = {
                 "api_key": "secret123456789",
@@ -769,9 +776,9 @@ class TestAuditLogger:
                 "symbol": "BTC/USDT",
                 "password": "mypassword",
             }
-            
+
             sanitized = logger._sanitize_data(data)
-            
+
             assert "[REDACTED" in sanitized["api_key"]
             assert "[REDACTED" in sanitized["api_secret"]
             assert "[REDACTED" in sanitized["password"]
@@ -780,21 +787,22 @@ class TestAuditLogger:
 
     @pytest.mark.asyncio
     async def test_audit_query_events(self):
-        from shared.audit_logger import AuditLogger, AuditCategory
         import tempfile
-        
+
+        from shared.audit_logger import AuditCategory, AuditLogger
+
         with tempfile.TemporaryDirectory() as tmpdir:
             logger = AuditLogger(log_dir=tmpdir)
-            
+
             # Log some events
             await logger.log_api_call("binance", "/ticker", "GET", "success")
             await logger.log_api_call("coinbase", "/ticker", "GET", "success")
             await logger.log_api_call("binance", "/order", "POST", "failure")
-            
+
             # Query by exchange
             binance_events = logger.query_events(exchange="binance")
             assert len(binance_events) == 2
-            
+
             # Query by status
             failures = logger.query_events(status="failure")
             assert len(failures) == 1
@@ -811,14 +819,15 @@ class TestIntegration:
     @pytest.mark.asyncio
     async def test_agent_to_signal_flow(self):
         """Test that agents produce findings that convert to signals"""
-        from BigBrainIntelligence.agents import get_agent
         from orchestrator import AAC2100Orchestrator
-        
+
+        from BigBrainIntelligence.agents import get_agent
+
         orchestrator = AAC2100Orchestrator()
         agent = get_agent("narrative_analyzer")
-        
+
         findings = await agent.run_scan()
-        
+
         # Findings should be convertible to signals
         for finding in findings:
             signal = orchestrator._finding_to_signal(finding)
@@ -831,12 +840,12 @@ class TestIntegration:
     async def test_paper_trade_flow(self, _mock_uniform):
         """Test complete paper trading flow with slippage simulation"""
         from TradingExecution.execution_engine import ExecutionEngine, OrderSide
-        
+
         engine = ExecutionEngine()
         # Must disable dry_run and enable paper trading to simulate fills
         engine.dry_run = False
         engine.paper_trading = True
-        
+
         # Open position (entry price will have slippage applied in paper trading)
         requested_price = 2500.0
         position = await engine.open_position(
@@ -846,24 +855,24 @@ class TestIntegration:
             entry_price=requested_price,
         )
         assert position is not None
-        
+
         # Entry price should include slippage for BUY = higher price.
         assert position.entry_price >= requested_price, "Entry price should have positive slippage for BUY"
         assert position.entry_price <= requested_price * 1.0050, "Entry price slippage should be within 5 bps"
-        
+
         # Update price
         await engine.update_positions({"ETH/USDT": 2600.0})
         assert position.current_price == 2600.0
-        
+
         # P&L calculation: (2600 - entry_price) * 0.5
         # With slippage, P&L will be slightly less than 50.0
         expected_unrealized_pnl = (2600.0 - position.entry_price) * 0.5
         assert abs(position.unrealized_pnl - expected_unrealized_pnl) < 0.01
-        
+
         # Close position - will also have slippage on exit
         closed = await engine.close_position(position.position_id)
         assert closed
-        
+
         # Realized P&L will include both entry slippage (worse entry) and exit slippage (worse exit for SELL)
         # With mocked slippage on both sides, P&L is close to theoretical max
         assert position.realized_pnl > 0, "Should still be profitable after 100 point move"
@@ -876,15 +885,16 @@ class TestIntegration:
     @patch("random.uniform", return_value=1.0)  # 1 bps slippage
     async def test_full_trading_flow_with_risk(self, _mock_uniform):
         """Test complete flow: Signal -> Risk Check -> Order -> Position"""
-        from TradingExecution.execution_engine import ExecutionEngine, OrderSide, Order, OrderType
-        from TradingExecution.risk_manager import RiskManager
         from orchestrator import Signal
-        
+
+        from TradingExecution.execution_engine import ExecutionEngine, Order, OrderSide, OrderType
+        from TradingExecution.risk_manager import RiskManager
+
         engine = ExecutionEngine()
         engine.dry_run = False
         engine.paper_trading = True
         risk_manager = RiskManager()
-        
+
         # Create a signal
         signal = Signal(
             signal_id="TEST001",
@@ -901,7 +911,7 @@ class TestIntegration:
             stop_loss=44000.0,
             take_profit=47000.0,
         )
-        
+
         # Create order from signal
         order = Order(
             order_id="ORD001",
@@ -912,10 +922,10 @@ class TestIntegration:
             quantity=0.01,
             price=signal.entry_price,
         )
-        
+
         # Check risk
         can_trade, violations = risk_manager.check_order(order, signal.entry_price)
-        
+
         if can_trade:
             # Open position
             position = await engine.open_position(
@@ -926,7 +936,7 @@ class TestIntegration:
             )
             assert position is not None
             assert position.symbol == "BTC/USDT"
-            
+
             # Cleanup
             await engine.close_position(position.position_id)
 
@@ -934,13 +944,13 @@ class TestIntegration:
     async def test_startup_validator(self):
         """Test startup validation runs without errors"""
         from shared.startup_validator import StartupValidator
-        
+
         validator = StartupValidator()
         validation = await validator.validate_all()
-        
+
         # Should have results
         assert len(validation.results) > 0
-        
+
         # At minimum, should check for trading mode
         trading_check = next(
             (r for r in validation.results if "Trading Mode" in r.check_name),
@@ -954,15 +964,15 @@ class TestIntegration:
     async def test_cache_manager(self):
         """Test cache manager operations"""
         from shared.cache_manager import CacheManager
-        
+
         cache = CacheManager(use_redis=False)  # Force local cache
         await cache.initialize()
-        
+
         # Test basic operations
         await cache.set("test_key", {"value": 123}, ttl_seconds=60)
         result = await cache.get("test_key")
         assert result["value"] == 123
-        
+
         # Test ticker caching
         await cache.cache_ticker("binance", "BTC/USDT", {"bid": 45000, "ask": 45001})
         ticker = await cache.get_ticker("binance", "BTC/USDT")
@@ -971,8 +981,8 @@ class TestIntegration:
     @pytest.mark.asyncio
     async def test_websocket_feed_dataclasses(self):
         """Test WebSocket feed data structures"""
-        from shared.websocket_feeds import PriceTick, OrderBookUpdate, ReconnectionPolicy
-        
+        from shared.websocket_feeds import OrderBookUpdate, PriceTick, ReconnectionPolicy
+
         # Test PriceTick
         tick = PriceTick(
             symbol="BTC/USDT",
@@ -984,7 +994,7 @@ class TestIntegration:
         )
         assert tick.mid == 45005.0
         assert tick.spread == 10.0
-        
+
         # Test OrderBookUpdate
         update = OrderBookUpdate(
             symbol="BTC/USDT",
@@ -994,15 +1004,15 @@ class TestIntegration:
         )
         assert len(update.bids) == 2
         assert len(update.asks) == 2
-        
+
         # Test ReconnectionPolicy
         policy = ReconnectionPolicy(initial_delay=1.0, max_attempts=3)
         delay1 = policy.next_delay()
         assert delay1 is not None and delay1 >= 0.9  # ~1 second with jitter
-        
+
         delay2 = policy.next_delay()
         assert delay2 is not None and delay2 > delay1  # Exponential backoff
-        
+
         policy.reset()
         assert policy.attempts == 0
 
@@ -1010,7 +1020,7 @@ class TestIntegration:
     async def test_kraken_websocket_feed_class(self):
         """Test Kraken WebSocket feed class exists and has correct properties"""
         from shared.websocket_feeds import KrakenWebSocketFeed
-        
+
         feed = KrakenWebSocketFeed()
         assert feed.exchange == "kraken"
         assert feed.websocket_url == "wss://ws.kraken.com"
@@ -1020,8 +1030,8 @@ class TestIntegration:
     @pytest.mark.asyncio
     async def test_orderbook_depth_analysis(self):
         """Test order book depth analysis metrics"""
-        from shared.websocket_feeds import OrderBookUpdate, OrderBookDepth
-        
+        from shared.websocket_feeds import OrderBookDepth, OrderBookUpdate
+
         # Create a sample order book with significant bid imbalance
         book = OrderBookUpdate(
             symbol="BTC/USDT",
@@ -1029,22 +1039,22 @@ class TestIntegration:
             bids=[(45000, 50.0), (44999, 40.0), (44998, 30.0), (44997, 25.0), (44996, 20.0)],
             asks=[(45001, 8.0), (45002, 6.0), (45003, 5.0), (45004, 4.0), (45005, 3.0)],
         )
-        
+
         depth = OrderBookDepth.from_orderbook(book)
-        
+
         # Test depth calculations
         assert depth.bid_depth_5 == 165.0  # Sum of bid quantities
         assert depth.ask_depth_5 == 26.0   # Sum of ask quantities
-        
+
         # Test imbalance (bid heavy since 165 >> 26)
         # Imbalance = (165 - 26) / (165 + 26) = 139/191 ≈ 0.73
         assert depth.imbalance_5 > 0.2  # Well above 0.2 threshold
         assert depth.is_bid_heavy
-        
+
         # Test spread
         expected_spread_bps = ((45001 - 45000) / 45000) * 10000
         assert abs(depth.spread_bps - expected_spread_bps) < 0.1
-        
+
         # Test liquidity score
         assert 0 <= depth.liquidity_score <= 1
 
@@ -1052,7 +1062,7 @@ class TestIntegration:
     async def test_position_reconciliation(self):
         """Test position reconciliation method exists"""
         from TradingExecution.execution_engine import ExecutionEngine
-        
+
         engine = ExecutionEngine()
         assert hasattr(engine, 'reconcile_positions')
         # Don't actually call it since we can't connect to exchange in tests
@@ -1060,13 +1070,10 @@ class TestIntegration:
     @pytest.mark.asyncio
     async def test_connector_trade_history(self):
         """Test connectors have get_trade_history method"""
-        from TradingExecution.exchange_connectors import BinanceConnector
         from TradingExecution.exchange_connectors.coinbase_connector import CoinbaseConnector
         from TradingExecution.exchange_connectors.kraken_connector import KrakenConnector
-        
+
         # Verify all connectors have the method
-        if BinanceConnector is not None:
-            assert hasattr(BinanceConnector, 'get_trade_history')
         assert hasattr(CoinbaseConnector, 'get_trade_history')
         assert hasattr(KrakenConnector, 'get_trade_history')
 

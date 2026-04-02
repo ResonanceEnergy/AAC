@@ -6,12 +6,15 @@ Tests all 10 department bridge pairs for complete cross-department communication
 
 import asyncio
 import os
-import pytest
+import sys
 from datetime import datetime
 from pathlib import Path
 
-from shared.bridge_orchestrator import BridgeOrchestrator
+import pytest
+
 from shared.audit_logger import AuditLogger
+from shared.bridge_orchestrator import BridgeOrchestrator
+
 
 @pytest.mark.api
 @pytest.mark.integration

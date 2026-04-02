@@ -5,9 +5,10 @@ Tests for Models A, B, C, D in the AAC Bake-Off Operating Standard
 """
 
 import asyncio
-from pathlib import Path
-import numpy as np
 import logging
+from pathlib import Path
+
+import numpy as np
 
 from TradingExecution.execution_engine import ExecutionEngine
 
@@ -105,19 +106,20 @@ async def test_integration_with_execution():
 
     # Enable logging
     logging.basicConfig(level=logging.INFO, format='%(levelname)s - %(name)s - %(message)s')
-    
+
     engine = ExecutionEngine()
-    
+
     # Override the execution mode for testing
     engine.paper_trading = True
     engine.dry_run = False
-    
+
     print(f"Engine dry_run: {engine.dry_run}")
     print(f"Engine paper_trading: {engine.paper_trading}")
 
     # Create a test order
-    from TradingExecution.execution_engine import Order, OrderSide, OrderType, OrderStatus
     from datetime import datetime
+
+    from TradingExecution.execution_engine import Order, OrderSide, OrderStatus, OrderType
 
     order = Order(
         order_id="TEST_PARTIAL_FILL_001",
@@ -130,7 +132,7 @@ async def test_integration_with_execution():
         created_at=datetime.now(),
         exchange="binance"
     )
-    
+
     # Add market price metadata for paper trading
     order.metadata['market_price'] = 45000.0
 

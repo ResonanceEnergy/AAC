@@ -9,11 +9,11 @@ Calendar, Diagonal, Collar, Covered Call, Wheel, PMCC, Jade Lizard,
 Broken Wing Butterfly, Christmas Tree, Ratio Spreads, Box Spread, etc.
 """
 
+import logging
+import math
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Dict, List, Optional, Tuple
-import math
-import logging
 
 logger = logging.getLogger(__name__)
 

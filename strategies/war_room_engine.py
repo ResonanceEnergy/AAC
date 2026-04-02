@@ -30,11 +30,12 @@ from __future__ import annotations
 import argparse
 import io
 import json
+import logging
 import math
 import os
 import sys
-from dataclasses import dataclass, field, asdict
-from datetime import datetime, date
+from dataclasses import asdict, dataclass, field
+from datetime import date, datetime
 from enum import Enum
 from pathlib import Path
 from typing import Any, Optional
@@ -71,49 +72,49 @@ ASSETS = [
     "xlf", "xlre", "eth", "xrp", "btc",
 ]
 
-# LIVE prices -- March 19, 2026 7:20 PM MDT
+# LIVE prices -- March 29, 2026 (Yahoo Finance close Mar 27 + crypto Mar 29)
 SPOT_PRICES = {
-    "oil": 95.0,        # WTI crude ($93.96-$96.60 range)
-    "gold": 4861.0,     # COMEX gold -- new ATH territory
-    "silver": 78.0,     # COMEX silver -- parabolic
-    "gdx": 95.0,        # Gold miners ETF (est. 2-3x gold leverage)
-    "spy": 665.0,       # S&P 500 -- holding but risk-off tone
-    "qqq": 450.0,       # Nasdaq -- tech under pressure
-    "xlf": 35.0,        # Financials -- credit stress visible
-    "xlre": 22.0,       # CRE -- crushed (-42% from pre-crisis)
-    "eth": 3800.0,      # Ethereum -- surprisingly strong
-    "xrp": 2.50,        # XRP -- holding
-    "btc": 68000.0,     # Bitcoin -- declining, broke $70K
+    "oil": 100.0,       # WTI crude -- spiking on Iran ground troops talk ($92-$101 range)
+    "gold": 4524.0,     # COMEX gold -- pulled back from $4861 ATH
+    "silver": 65.0,     # COMEX silver -- corrected with gold (SLV $63.44)
+    "gdx": 86.0,        # Gold miners ETF -- down 10% from highs
+    "spy": 634.0,       # S&P 500 -- 4 straight weekly declines, -5% from highs
+    "qqq": 563.0,       # Nasdaq -- tech correction, -8.3% YTD, 52wk 402-637
+    "xlf": 48.0,        # Financials -- -12.26% YTD, credit stress building
+    "xlre": 40.0,       # Real estate -- flat YTD, 52wk 35.76-44.07
+    "eth": 1993.0,      # Ethereum -- CRASHED -48% from 3800, 52wk low 1387
+    "xrp": 1.32,        # XRP -- CRASHED -47% from 2.50
+    "btc": 66353.0,     # Bitcoin -- holding relative to alts, 52wk 60K-126K
 }
 
-# Forward-looking annualized drifts (crisis ~50% realized as of Mar 19)
+# Forward-looking annualized drifts (updated Mar 29 -- post crash/correction)
 CRISIS_DRIFTS = {
-    "oil": 0.60,       # +60% forward (Hormuz escalation still live)
-    "gold": 0.40,      # +40% forward (parabolic but momentum intact)
-    "silver": 0.40,    # +40% forward (industrial + safe haven)
-    "gdx": 0.55,       # +55% forward (gold miners leverage)
-    "spy": -0.40,      # -40% forward (crash NOT yet started -- big risk)
-    "qqq": -0.45,      # -45% forward (tech selloff imminent)
-    "xlf": -0.40,      # -40% forward (credit stress deepening)
-    "xlre": -0.20,     # -20% forward (most downside done, -42% already)
-    "eth": -0.55,      # -55% forward (DeFi contagion not yet realized)
-    "xrp": -0.45,      # -45% forward (crypto contagion)
-    "btc": -0.50,      # -50% forward (risk-off intensifying)
+    "oil": 0.65,       # +65% forward (Iran ground troops talk, oil at $100+)
+    "gold": 0.25,      # +25% forward (pulled back from ATH, still bullish)
+    "silver": 0.25,    # +25% forward (corrected -17%, slower momentum)
+    "gdx": 0.35,       # +35% forward (miners corrected -10%, leverage to gold)
+    "spy": -0.25,      # -25% forward (already down 5%, 4 straight weekly drops)
+    "qqq": -0.20,      # -20% forward (already in correction, -8.3% YTD)
+    "xlf": -0.25,      # -25% forward (already -12.26% YTD, stress building)
+    "xlre": -0.10,     # -10% forward (flat YTD, limited further downside)
+    "eth": -0.25,      # -25% forward (already crashed 48%, near 52wk low)
+    "xrp": -0.20,      # -20% forward (already crashed 47%, limited further)
+    "btc": -0.15,      # -15% forward (holding well at $66K, resilient)
 }
 
-# Annualized volatilities (VIX at 25, elevated regime)
+# Annualized volatilities (VIX at 31, fear elevated, Iran escalation)
 CRISIS_VOLS = {
-    "oil": 0.90,       # geopolitical risk premium
-    "gold": 0.72,      # parabolic moves = higher vol
-    "silver": 0.82,    # industrial + speculative
-    "gdx": 1.02,       # leveraged to gold vol
-    "spy": 0.48,       # VIX at 25 = ~48% annualized
-    "qqq": 0.52,       # tech vol elevated
-    "xlf": 0.58,       # credit stress vol
-    "xlre": 0.50,      # CRE vol declining (bottoming)
-    "eth": 1.20,       # crypto vol elevated
-    "xrp": 1.28,       # altcoin vol extreme
-    "btc": 1.12,       # bitcoin vol elevated
+    "oil": 1.05,       # extreme -- Iran ground troops, $92-$101 intraday swings
+    "gold": 0.68,      # slightly lower after pullback from ATH
+    "silver": 0.78,    # corrected, slightly lower vol
+    "gdx": 0.95,       # miners volatile but less extreme
+    "spy": 0.58,       # VIX at 31 = ~58% annualized
+    "qqq": 0.62,       # tech vol elevated, Nasdaq in correction
+    "xlf": 0.55,       # financial stress vol
+    "xlre": 0.45,      # RE vol moderate, flat YTD
+    "eth": 1.30,       # crypto vol extreme after 48% crash
+    "xrp": 1.35,       # altcoin vol extreme after 47% crash
+    "btc": 1.05,       # BTC vol elevated but lower than alts
 }
 
 # Correlation matrix (11x11) -- from geopolitical analysis
@@ -483,17 +484,17 @@ def run_monte_carlo(
     var_95 = portfolio_value - float(pf_sorted[var_idx])
     cvar_95 = portfolio_value - float(np.mean(pf_sorted[:var_idx]))
 
-    # Scenario probabilities (thresholds calibrated Mar 19 evening)
+    # Scenario probabilities (thresholds calibrated Mar 29 2026)
     prob_oil_120 = float(np.mean(S_T[:, ASSETS.index("oil")] > 120))
-    prob_gold_3500 = float(np.mean(S_T[:, ASSETS.index("gold")] > 5500))
-    prob_spy_500 = float(np.mean(S_T[:, ASSETS.index("spy")] < 600))
-    prob_btc_60k = float(np.mean(S_T[:, ASSETS.index("btc")] < 55000))
+    prob_gold_5500 = float(np.mean(S_T[:, ASSETS.index("gold")] > 5500))
+    prob_spy_560 = float(np.mean(S_T[:, ASSETS.index("spy")] < 560))
+    prob_btc_50k = float(np.mean(S_T[:, ASSETS.index("btc")] < 50000))
     prob_pf_150k = float(np.mean(portfolio_values > 150_000))
     prob_pf_1m = float(np.mean(portfolio_values > 1_000_000))
 
     runtime = (time.perf_counter() - t0) * 1000
 
-    return MCResult(
+    _mc_result = MCResult(
         n_paths=n_paths,
         horizon_days=horizon_days,
         asset_means=asset_means,
@@ -509,13 +510,24 @@ def run_monte_carlo(
         var_95=round(var_95, 2),
         cvar_95=round(cvar_95, 2),
         prob_oil_above_120=round(prob_oil_120, 4),
-        prob_gold_above_3500=round(prob_gold_3500, 4),
-        prob_spy_below_500=round(prob_spy_500, 4),
-        prob_btc_below_60k=round(prob_btc_60k, 4),
+        prob_gold_above_3500=round(prob_gold_5500, 4),
+        prob_spy_below_500=round(prob_spy_560, 4),
+        prob_btc_below_60k=round(prob_btc_50k, 4),
         prob_portfolio_above_150k=round(prob_pf_150k, 4),
         prob_portfolio_above_1m=round(prob_pf_1m, 4),
         runtime_ms=round(runtime, 1),
     )
+
+    # TurboQuant: record MC simulation fingerprint
+    try:
+        from strategies.turboquant_integrations import IntegrationHub
+        _tq_hub = IntegrationHub()
+        _tq_hub.record_monte_carlo(_mc_result)
+        _tq_hub.save_all()
+    except Exception as _tq_err:
+        logging.getLogger(__name__).debug("TurboQuant record skipped: %s", _tq_err)
+
+    return _mc_result
 
 
 # ============================================================================
@@ -626,20 +638,20 @@ def _build_milestones() -> list[Milestone]:
         "accumulation"))
 
     # -- GOLD MILESTONES (5) --
-    ms.append(Milestone(17, "Gold Breaks $3200", MilestoneCategory.GOLD,
-        "Gold crosses $3,200/oz", 3200, "gold_price", ">",
-        "Add 8% to GDX. Silver follows. Increase miners.", 0.70, [18, 2],
+    ms.append(Milestone(17, "Gold Breaks $4800", MilestoneCategory.GOLD,
+        "Gold crosses $4,800/oz", 4800, "gold_price", ">",
+        "Add 8% to GDX. Silver follows. Increase miners.", 0.55, [18, 2],
         "accumulation"))
-    ms.append(Milestone(18, "Gold $3500 ATH", MilestoneCategory.GOLD,
-        "Gold crosses $3,500/oz (all-time high territory)", 3500, "gold_price", ">",
-        "Take 20% gold profit. Rotate to silver. GDX at full size.", 0.50, [19],
+    ms.append(Milestone(18, "Gold $5000 ATH", MilestoneCategory.GOLD,
+        "Gold crosses $5,000/oz (new ATH territory)", 5000, "gold_price", ">",
+        "Take 20% gold profit. Rotate to silver. GDX at full size.", 0.40, [19],
         "accumulation"))
-    ms.append(Milestone(19, "Gold $4000 Blowoff", MilestoneCategory.GOLD,
-        "Gold crosses $4,000/oz", 4000, "gold_price", ">",
-        "Sell 40% gold. Silver still running. Physical considered.", 0.25, [20],
+    ms.append(Milestone(19, "Gold $5500 Blowoff", MilestoneCategory.GOLD,
+        "Gold crosses $5,500/oz", 5500, "gold_price", ">",
+        "Sell 40% gold. Silver still running. Physical considered.", 0.20, [20],
         "growth"))
-    ms.append(Milestone(20, "Gold Reversal Below $2800", MilestoneCategory.GOLD,
-        "Gold drops below $2,800 (risk-on)", 2800, "gold_price", "<",
+    ms.append(Milestone(20, "Gold Reversal Below $4000", MilestoneCategory.GOLD,
+        "Gold drops below $4,000 (risk-on)", 4000, "gold_price", "<",
         "Reduce gold to 5%. Miners to zero. Check if crisis fading.", 0.30, [35],
         "accumulation"))
     ms.append(Milestone(21, "Silver Outperforms Gold 2:1", MilestoneCategory.GOLD,
@@ -670,9 +682,9 @@ def _build_milestones() -> list[Milestone]:
         "accumulation"))
 
     # -- CRYPTO MILESTONES (5) --
-    ms.append(Milestone(27, "BTC Breaks Below $70K", MilestoneCategory.CRYPTO,
-        "BTC price drops below $70,000", 70_000, "btc_price", "<",
-        "Add BITO puts. Crypto contagion starting. Watch stablecoins.", 0.55, [28],
+    ms.append(Milestone(27, "BTC Breaks Below $60K", MilestoneCategory.CRYPTO,
+        "BTC price drops below $60,000", 60_000, "btc_price", "<",
+        "Add BITO puts. Crypto contagion accelerating. Watch stablecoins.", 0.45, [28],
         "accumulation"))
     ms.append(Milestone(28, "BTC Below $50K", MilestoneCategory.CRYPTO,
         "BTC price drops below $50,000 (crypto winter)", 50_000, "btc_price", "<",
@@ -724,7 +736,7 @@ def _build_milestones() -> list[Milestone]:
         "accumulation"))
     ms.append(Milestone(39, "BRICS Gold Settlement", MilestoneCategory.GEOPOLITICAL,
         "BRICS announces gold-backed settlement mechanism", 1, "brics_gold", ">",
-        "Gold to $4000+. USD weakness. Max gold/silver/GDX.", 0.20, [19],
+        "Gold to $5500+. USD weakness. Max gold/silver/GDX.", 0.20, [19],
         "growth"))
     ms.append(Milestone(40, "US-Iran Diplomatic Breakthrough", MilestoneCategory.GEOPOLITICAL,
         "Diplomatic resolution to Iran tensions", 1, "iran_diplomacy", ">",
@@ -748,8 +760,8 @@ def _build_milestones() -> list[Milestone]:
         "QQQ drops below 400 (tech crash)", 400, "qqq_price", "<",
         "Close QQQ puts. Add TQQQ for recovery bounce. Watch earnings.", 0.20, [43],
         "accumulation"))
-    ms.append(Milestone(45, "XLF Below 35", MilestoneCategory.EQUITY,
-        "XLF drops below 35 (financial stress)", 35, "xlf_price", "<",
+    ms.append(Milestone(45, "XLF Below 42", MilestoneCategory.EQUITY,
+        "XLF drops below 42 (financial stress)", 42, "xlf_price", "<",
         "Banking stress confirmed. Max BDC puts. Regional bank cascade.", 0.30, [22, 24],
         "accumulation"))
 
@@ -830,19 +842,29 @@ def get_spiderweb_chains(milestone_id: int) -> list[list[Milestone]]:
 
 @dataclass
 class IndicatorState:
-    """Current reading of the 12-indicator model -- LIVE March 19 evening."""
-    oil_price: float = 95.0
-    gold_price: float = 4861.0
-    vix: float = 25.0
-    hy_spread_bp: float = 550.0
-    bdc_nav_discount: float = 15.0
-    bdc_nonaccrual_pct: float = 3.5
-    defi_tvl_change_pct: float = -20.0
-    stablecoin_depeg_pct: float = 0.1
-    btc_price: float = 68000.0
+    """Current reading of the 15-indicator model -- LIVE March 29 2026.
+
+    12 financial indicators + 3 sentiment indicators.
+    X/Twitter sentiment carries heavy bias (0.12 weight) as leading
+    indicator for regime shifts -- social narrative precedes price action.
+    """
+    # -- 12 financial indicators --
+    oil_price: float = 100.0
+    gold_price: float = 4524.0
+    vix: float = 31.0
+    hy_spread_bp: float = 600.0
+    bdc_nav_discount: float = 16.0
+    bdc_nonaccrual_pct: float = 4.0
+    defi_tvl_change_pct: float = -35.0
+    stablecoin_depeg_pct: float = 0.2
+    btc_price: float = 66353.0
     fed_funds_rate: float = 4.5
     dxy: float = 103.0
-    spy_price: float = 665.0
+    spy_price: float = 634.0
+    # -- 3 sentiment indicators (NEW) --
+    x_sentiment: float = 0.5       # 0=extreme fear, 1=extreme greed (from Twitter/X)
+    news_severity: float = 0.0     # 0=benign, 1=black-swan (from BlackSwanNewsScanner)
+    fear_greed_index: float = 50.0  # 0-100 from alternative.me
 
 
 def compute_composite_score(ind: IndicatorState) -> dict[str, Any]:
@@ -862,15 +884,15 @@ def compute_composite_score(ind: IndicatorState) -> dict[str, Any]:
     else:
         scores["oil"] = max(0, ind.oil_price - 70)
 
-    # 2. Gold price (higher = more flight to safety)
-    if ind.gold_price > 3500:
+    # 2. Gold price (higher = more flight to safety) -- recalibrated Mar 29
+    if ind.gold_price > 5000:
         scores["gold"] = 100
-    elif ind.gold_price > 3200:
-        scores["gold"] = 70 + (ind.gold_price - 3200) * 0.1
-    elif ind.gold_price > 3000:
-        scores["gold"] = 40 + (ind.gold_price - 3000) * 0.15
+    elif ind.gold_price > 4800:
+        scores["gold"] = 70 + (ind.gold_price - 4800) * 0.15
+    elif ind.gold_price > 4500:
+        scores["gold"] = 40 + (ind.gold_price - 4500) * 0.1
     else:
-        scores["gold"] = max(0, (ind.gold_price - 2500) * 0.08)
+        scores["gold"] = max(0, (ind.gold_price - 4000) * 0.08)
 
     # 3. VIX (higher = more fear)
     if ind.vix > 40:
@@ -968,12 +990,52 @@ def compute_composite_score(ind: IndicatorState) -> dict[str, Any]:
     else:
         scores["spy"] = 0
 
-    # Weighted composite
+    # 13. X/Twitter sentiment (HEAVY BIAS -- leading indicator)
+    # Lower sentiment = more crisis. x_sentiment 0-1 where 0=fear, 1=greed.
+    # Inverted: low sentiment -> high crisis score.
+    x_fear = 1.0 - ind.x_sentiment  # 0=greed, 1=fear
+    if x_fear > 0.8:
+        scores["x_sentiment"] = 100
+    elif x_fear > 0.6:
+        scores["x_sentiment"] = 60 + (x_fear - 0.6) * 200
+    elif x_fear > 0.4:
+        scores["x_sentiment"] = 20 + (x_fear - 0.4) * 200
+    else:
+        scores["x_sentiment"] = max(0, x_fear * 50)
+
+    # 14. News severity (from BlackSwanNewsScanner)
+    # Higher severity = more crisis.
+    if ind.news_severity > 0.8:
+        scores["news"] = 100
+    elif ind.news_severity > 0.5:
+        scores["news"] = 50 + (ind.news_severity - 0.5) * 166.67
+    elif ind.news_severity > 0.2:
+        scores["news"] = (ind.news_severity - 0.2) * 166.67
+    else:
+        scores["news"] = 0
+
+    # 15. Fear & Greed Index (inverted: low FGI = more crisis)
+    fgi_inv = 100 - ind.fear_greed_index
+    if fgi_inv > 80:
+        scores["fear_greed"] = 100
+    elif fgi_inv > 50:
+        scores["fear_greed"] = 40 + (fgi_inv - 50) * 2
+    else:
+        scores["fear_greed"] = max(0, fgi_inv * 0.8)
+
+    # Weighted composite -- 15 indicators
+    # X sentiment takes HEAVY BIAS at 0.12 (was 0 -- now highest single sentiment weight)
+    # News + Fear&Greed add 0.04 + 0.04.
+    # Financial indicators reduced proportionally to make room (sum still = 1.00).
     weights = {
-        "oil": 0.15, "gold": 0.10, "vix": 0.12, "hy_spread": 0.10,
-        "bdc_nav": 0.08, "bdc_nonaccrual": 0.07, "defi_tvl": 0.06,
-        "stablecoin": 0.05, "btc": 0.07, "fed_rate": 0.06,
-        "dxy": 0.06, "spy": 0.08,
+        "oil": 0.12, "gold": 0.08, "vix": 0.10, "hy_spread": 0.08,
+        "bdc_nav": 0.07, "bdc_nonaccrual": 0.05, "defi_tvl": 0.04,
+        "stablecoin": 0.04, "btc": 0.05, "fed_rate": 0.05,
+        "dxy": 0.05, "spy": 0.07,
+        # -- SENTIMENT (0.20 total, X dominant) --
+        "x_sentiment": 0.12,   # HEAVY BIAS -- social narrative leads price
+        "news": 0.04,          # black-swan news scanner
+        "fear_greed": 0.04,    # alternative.me crypto fear & greed
     }
 
     composite = sum(scores[k] * weights[k] for k in scores)
@@ -1053,7 +1115,7 @@ def get_arm_allocations(phase: str) -> list[ArmAllocation]:
                 "HY spread >400bp, NAV discount >10%", "HY spread <300bp"),
             ArmAllocation(ArmType.CRYPTO_METALS, "Crypto & Metals", 0.20, 0.30,
                 ["GLD calls", "SLV calls", "BITO puts", "GDX calls"],
-                "Gold >$3000, BTC <$80K", "Gold <$2800, BTC >$90K"),
+                "Gold >$4500, BTC <$70K", "Gold <$4000, BTC >$90K"),
             ArmAllocation(ArmType.DEFI_YIELD, "DeFi Yield Farm", 0.15, 0.25,
                 ["AAVE puts", "UNI puts", "DeFi shorts"],
                 "DeFi TVL drop >15%, yield compression", "DeFi TVL recovery"),
@@ -1090,8 +1152,9 @@ def get_arm_allocations(phase: str) -> list[ArmAllocation]:
         ]
 
 
-# Current positions -- VERIFIED from IBKR TWS port 7497, March 20 2026
+# Current positions -- VERIFIED from IBKR TWS port 7496 LIVE, March 20 2026
 # All avgCost and mktVal pulled live via ib_insync portfolio()
+# NOTE: option mktVal stale (9+ days old as of Mar 29) -- re-pull from IBKR for live P&L
 CURRENT_POSITIONS = [
     # === 9 REAL POSITIONS from IBKR account U24346218 ===
     Position(ArmType.BDC_NONACCRUAL, "ARCC", "put", 1, 0.25, 0.26,
@@ -1112,39 +1175,176 @@ CURRENT_POSITIONS = [
              strike=77.0, expiry="2026-06-18", account="IBKR"),
     Position(ArmType.IRAN_OIL, "XLF", "put", 1, 0.75, 0.69,
              strike=46.0, expiry="2026-05-01", account="IBKR"),
+    # === 4 REAL POSITIONS from Moomoo FUTUCA -- live scan Mar 29 2026 ===
+    Position(ArmType.IRAN_OIL, "XLE", "call", 1, 3.00, 5.37,
+             strike=60.0, expiry="2026-06-18", account="Moomoo"),
+    Position(ArmType.CRYPTO_METALS, "SLV", "call", 1, 5.50, 10.12,
+             strike=67.5, expiry="2026-09-18", account="Moomoo"),
+    Position(ArmType.CRYPTO_METALS, "SLV", "call", 1, 4.00, 6.10,
+             strike=70.0, expiry="2026-06-18", account="Moomoo"),
+    Position(ArmType.BDC_NONACCRUAL, "OWL", "put", 10, 0.30, 0.45,
+             strike=5.0, expiry="2027-01-15", account="Moomoo"),
+    # === 7 REAL POSITIONS from WealthSimple TFSA -- screenshots Mar 29 2026 ===
+    # Total TFSA value: $18,637.76 CAD (+$2,323.30 / +14.24% on day)
+    # Contributions this year: $13,229.49 CAD
+    Position(ArmType.BDC_NONACCRUAL, "ARCC", "put", 10, 0.13, 0.125,
+             strike=16.0, expiry="2026-04-17", account="WealthSimple"),
+    Position(ArmType.CRYPTO_METALS, "GLD", "call", 1, 19.40, 24.33,
+             strike=515.0, expiry="2027-03-19", account="WealthSimple"),
+    Position(ArmType.TRADFI_ROTATE, "JNK", "put", 5, 0.57, 0.775,
+             strike=94.0, expiry="2026-04-17", account="WealthSimple"),
+    Position(ArmType.TRADFI_ROTATE, "KRE", "put", 1, 1.05, 1.23,
+             strike=60.0, expiry="2026-04-17", account="WealthSimple"),
+    Position(ArmType.BDC_NONACCRUAL, "OBDC", "put", 65, 0.15, 0.175,
+             strike=10.0, expiry="2026-04-17", account="WealthSimple"),
+    Position(ArmType.BDC_NONACCRUAL, "OWL", "put", 5, 0.75, 0.725,
+             strike=8.0, expiry="2026-06-18", account="WealthSimple"),
+    Position(ArmType.IRAN_OIL, "XLE", "call", 26, 0.37, 0.97,
+             strike=85.0, expiry="2027-01-15", account="WealthSimple"),
 ]
 
-# Account balances -- VERIFIED sources noted, unverified marked
-ACCOUNTS = {
-    # IBKR: live from TWS port 7497, Mar 20 2026
-    "IBKR": {"balance_usd": 185.56, "type": "paper_trading",
-             "note": "TWS port 7497, option_mkt_val=$464.34, uPnL=-$71.14"},
-    # NDAX: last confirmed Mar 18 liquidation, no live API pull (NDAX_LOGIN not set)
-    "NDAX": {"balance_cad": 4492.04, "type": "crypto_liquidated",
-             "note": "unverified — last known from Mar 18 sell"},
-    # Moomoo: Tier 1 alongside IBKR — REAL mode, FUTUCA
-    "Moomoo": {"balance_usd": 365.15, "type": "brokerage_live",
-               "note": "Tier 1 — FUTUCA firm, REAL mode, trade PIN set"},
-    # WealthSimple: no API — manual check only
-    "WealthSimple": {"balance_cad": 0.0, "type": "tfsa",
-                     "note": "unverified — no API integration"},
-    # EQ Bank: no API — manual check only
-    "EQ_Bank": {"balance_cad": 0.0, "type": "savings",
-                "note": "unverified — no API integration"},
-}
+
+def _infer_arm_type(symbol: str) -> ArmType:
+    """Map a symbol into the closest existing War Room arm."""
+    if symbol in {"XLE", "USO", "XOP", "XLF", "SPY", "QQQ"}:
+        return ArmType.IRAN_OIL
+    if symbol in {"ARCC", "PFF", "MAIN", "BKLN", "HYG", "OWL", "OBDC", "KRE", "JNK", "LQD", "EMB"}:
+        return ArmType.BDC_NONACCRUAL if symbol in {"ARCC", "PFF", "MAIN", "BKLN", "OWL", "OBDC"} else ArmType.TRADFI_ROTATE
+    if symbol in {"SLV", "GLD", "GDX", "BITO", "BTC", "ETH", "XRP"}:
+        return ArmType.CRYPTO_METALS
+    return ArmType.TRADFI_ROTATE
+
+
+def _normalize_account_name(name: str) -> str:
+    mapping = {
+        "ibkr": "IBKR",
+        "moomoo": "Moomoo",
+        "wealthsimple": "WealthSimple",
+        "eq_bank": "EQ Bank",
+        "eqbank": "EQ Bank",
+        "ndax": "NDAX",
+        "polymarket": "Polymarket",
+    }
+    return mapping.get(name.lower(), name)
+
+
+def _parse_option_code(raw_symbol: str) -> tuple[str, str, float]:
+    """Parse OCC-like broker option codes when explicit fields are absent."""
+    token = raw_symbol.split(".")[-1]
+    if len(token) >= 15 and token[-15:-9].isdigit() and token[-9] in {"C", "P"} and token[-8:].isdigit():
+        symbol = token[:-15]
+        expiry = f"20{token[-15:-13]}-{token[-13:-11]}-{token[-11:-9]}"
+        strike = int(token[-8:]) / 1000.0
+        return symbol, expiry, strike
+    return token, "", 0.0
+
+
+def _load_live_positions() -> list[Position]:
+    """Overlay live-scanned positions from the balance store when available."""
+    try:
+        from config.account_balances import Balances
+
+        accounts = Balances.all_accounts()
+    except Exception:
+        return CURRENT_POSITIONS
+
+    static_by_account: dict[str, list[Position]] = {}
+    for pos in CURRENT_POSITIONS:
+        static_by_account.setdefault(pos.account, []).append(pos)
+
+    merged: list[Position] = []
+    seen_accounts: set[str] = set()
+    for key, acct in accounts.items():
+        account_name = _normalize_account_name(key)
+        live_positions = acct.get("positions") or []
+        if not live_positions:
+            continue
+
+        seen_accounts.add(account_name)
+        for pos in live_positions:
+            raw_symbol = str(pos.get("symbol", ""))
+            parsed_symbol, parsed_expiry, parsed_strike = _parse_option_code(raw_symbol)
+            symbol = parsed_symbol
+            sec_type = str(pos.get("secType", "")).upper()
+            right = str(pos.get("right", "")).upper()
+            if not right and len(raw_symbol.split(".")[-1]) >= 9:
+                token = raw_symbol.split(".")[-1]
+                if token[-9] in {"C", "P"}:
+                    right = token[-9]
+            position_type = "call" if right == "C" else "put" if right == "P" else sec_type.lower() or "position"
+
+            qty = float(pos.get("qty", 0) or 0)
+            market_price = float(pos.get("marketPrice", 0) or 0)
+            market_value = float(pos.get("market_val", pos.get("marketValue", 0)) or 0)
+            current_price = market_price
+            if current_price <= 0 and qty:
+                if position_type in {"call", "put"}:
+                    current_price = market_value / abs(qty) / 100.0
+                else:
+                    current_price = market_value / abs(qty)
+
+            entry_price = float(pos.get("cost_price", pos.get("avgCost", 0)) or 0)
+            if sec_type == "OPT" and entry_price > 20:
+                entry_price = entry_price / 100.0
+
+            merged.append(
+                Position(
+                    _infer_arm_type(symbol),
+                    symbol,
+                    position_type,
+                    int(qty),
+                    float(entry_price),
+                    float(current_price),
+                    strike=float(pos.get("strike", 0) or parsed_strike),
+                    expiry=(str(pos.get("expiry", "") or "")[:10] or parsed_expiry),
+                    account=account_name,
+                )
+            )
+
+    for account_name, positions in static_by_account.items():
+        if account_name not in seen_accounts:
+            merged.extend(positions)
+
+    return merged or CURRENT_POSITIONS
+
+
+CURRENT_POSITIONS = _load_live_positions()
+
+# Account balances — read from central config (data/account_balances.json)
+# Update via:  python -m config.account_balances set <key> --balance <val>
+def _load_accounts() -> dict:
+    """Load accounts from central config, converting to war_room_engine format."""
+    try:
+        from config.account_balances import Balances
+        accts = Balances.all_accounts()
+        result = {}
+        for key, a in accts.items():
+            entry = {"type": a.get("platform", "unknown"), "note": a.get("note", "")}
+            if a.get("currency") == "CAD":
+                entry["balance_cad"] = float(a.get("total_assets", 0) or a.get("balance", 0))
+            else:
+                entry["balance_usd"] = float(a.get("total_assets", 0) or a.get("balance", 0))
+            result[_normalize_account_name(key)] = entry
+        return result
+    except Exception:
+        return {}
+
+
+ACCOUNTS = _load_accounts()
 
 
 def get_portfolio_value_usd() -> float:
-    """Calculate total portfolio value in USD."""
+    """Calculate total portfolio value in USD.
+
+    NOTE: ACCOUNTS already includes position values in total_assets,
+    so we do NOT add CURRENT_POSITIONS.market_value again.
+    """
     total = 0.0
     for name, acct in ACCOUNTS.items():
         if "balance_usd" in acct:
             total += acct["balance_usd"]
         elif "balance_cad" in acct:
             total += acct["balance_cad"] * CAD_TO_USD
-    # Add position values
-    for pos in CURRENT_POSITIONS:
-        total += pos.market_value
     return round(total, 2)
 
 
@@ -1161,21 +1361,33 @@ def get_current_phase() -> str:
 # PART 7: SCENARIO ENGINE
 # ============================================================================
 
-SCENARIOS = {
-    "hormuz_closure": {
-        "name": "Hormuz Strait Closure",
-        "description": "Full naval blockade of Strait of Hormuz by Iran",
+# ── Hand-tuned MC overrides (preserved from v1) ──────────────────────────
+_HAND_TUNED: dict[str, dict] = {
+    "hormuz": {
         "oil_price": 155.0, "gold_price": 5800.0, "vix": 42.0,
         "spy_price": 580.0, "btc_price": 52000.0, "hy_spread_bp": 700.0,
-        "probability": 0.15,
         "drift_override": {"oil": 1.80, "gold": 1.20, "spy": -0.55, "btc": -0.80},
     },
+    "defi_cascade": {
+        "oil_price": 92.0, "gold_price": 5000.0, "vix": 35.0,
+        "spy_price": 600.0, "btc_price": 38000.0, "hy_spread_bp": 600.0,
+        "drift_override": {"btc": -1.20, "eth": -1.50, "xrp": -1.30},
+    },
+    "supercycle": {
+        "oil_price": 105.0, "gold_price": 7000.0, "vix": 28.0,
+        "spy_price": 620.0, "btc_price": 60000.0, "hy_spread_bp": 500.0,
+        "drift_override": {"gold": 2.00, "silver": 1.80, "gdx": 2.50},
+    },
+}
+
+# ── Extra scenarios not in storm_lifeboat (kept for backward compat) ──────
+_EXTRA_SCENARIOS: dict[str, dict] = {
     "iran_deescalation": {
         "name": "Iran De-Escalation",
         "description": "Diplomatic resolution, sanctions eased",
-        "oil_price": 78.0, "gold_price": 3800.0, "vix": 16.0,
+        "oil_price": 78.0, "gold_price": 4200.0, "vix": 16.0,
         "spy_price": 700.0, "btc_price": 95000.0, "hy_spread_bp": 300.0,
-        "probability": 0.15,
+        "probability": 0.25, "impact_severity": 0.40,
         "drift_override": {"oil": -0.30, "gold": -0.25, "spy": 0.25, "btc": 0.50},
     },
     "credit_cascade": {
@@ -1183,23 +1395,15 @@ SCENARIOS = {
         "description": "BDC non-accruals spike, PE fund redemptions, HY spread blowout",
         "oil_price": 100.0, "gold_price": 5200.0, "vix": 38.0,
         "spy_price": 550.0, "btc_price": 55000.0, "hy_spread_bp": 800.0,
-        "probability": 0.20,
+        "probability": 0.12, "impact_severity": 0.75,
         "drift_override": {"xlf": -0.65, "xlre": -0.50, "spy": -0.45},
-    },
-    "defi_collapse": {
-        "name": "DeFi Systemic Collapse",
-        "description": "Major stablecoin depegs, DeFi TVL -50%, liquidation cascade",
-        "oil_price": 92.0, "gold_price": 5000.0, "vix": 35.0,
-        "spy_price": 600.0, "btc_price": 38000.0, "hy_spread_bp": 600.0,
-        "probability": 0.10,
-        "drift_override": {"btc": -1.20, "eth": -1.50, "xrp": -1.30},
     },
     "soft_landing": {
         "name": "Soft Landing (Base Case)",
         "description": "Gradual normalization, mild recession, oil stable",
-        "oil_price": 85.0, "gold_price": 4000.0, "vix": 17.0,
+        "oil_price": 85.0, "gold_price": 4300.0, "vix": 17.0,
         "spy_price": 680.0, "btc_price": 85000.0, "hy_spread_bp": 350.0,
-        "probability": 0.20,
+        "probability": 0.40, "impact_severity": 0.20,
         "drift_override": {"oil": -0.10, "gold": -0.15, "spy": 0.12},
     },
     "black_swan": {
@@ -1207,19 +1411,97 @@ SCENARIOS = {
         "description": "Hormuz + credit cascade + DeFi collapse simultaneously",
         "oil_price": 200.0, "gold_price": 6500.0, "vix": 60.0,
         "spy_price": 420.0, "btc_price": 28000.0, "hy_spread_bp": 1000.0,
-        "probability": 0.05,
+        "probability": 0.01, "impact_severity": 0.99,
         "drift_override": {"oil": 2.50, "gold": 2.00, "spy": -0.75, "btc": -1.50,
                            "xlf": -0.85, "xlre": -0.60, "eth": -1.80},
     },
-    "gold_supercycle": {
-        "name": "Gold Supercycle",
-        "description": "BRICS gold settlement + central bank buying + USD weakness",
-        "oil_price": 105.0, "gold_price": 7000.0, "vix": 28.0,
-        "spy_price": 620.0, "btc_price": 60000.0, "hy_spread_bp": 500.0,
-        "probability": 0.10,
-        "drift_override": {"gold": 2.00, "silver": 1.80, "gdx": 2.50},
-    },
 }
+
+# Map storm_lifeboat Asset enum -> war_room_engine MC keys (11 tracked assets)
+_ASSET_TO_MC: dict[str, str] = {
+    "OIL": "oil", "GOLD": "gold", "SILVER": "silver", "GDX": "gdx",
+    "SPY": "spy", "QQQ": "qqq", "XLF": "xlf", "XLRE": "xlre",
+    "ETH": "eth", "XRP": "xrp", "BTC": "btc",
+}
+
+
+def _build_all_scenarios() -> dict[str, dict]:
+    """Build MC-compatible SCENARIOS dict from all 43 storm_lifeboat definitions.
+
+    For each ScenarioDefinition: derive price overrides from beneficiary/victim
+    assets + impact_severity + oil_sensitivity, and drift overrides from the
+    same fields.  Hand-tuned values from v1 are merged on top where they exist.
+    """
+    from strategies.storm_lifeboat.core import (
+        SCENARIOS as SL_SCENARIOS,
+    )
+
+    mc_keys = set(_ASSET_TO_MC.values())
+    out: dict[str, dict] = {}
+
+    for sc in SL_SCENARIOS:
+        sev = sc.impact_severity
+        key = sc.code.lower()
+
+        # --- Price overrides -------------------------------------------------
+        oil_base, gold_base = SPOT_PRICES["oil"], SPOT_PRICES["gold"]
+        spy_base, btc_base = SPOT_PRICES["spy"], SPOT_PRICES["btc"]
+
+        oil_price = oil_base * (1.0 + sc.oil_sensitivity * sev * 0.50)
+
+        def _mult(asset_name: str, up_scale: float, down_scale: float) -> float:
+            ben = any(a.value == asset_name for a in sc.beneficiary_assets)
+            vic = any(a.value == asset_name for a in sc.victim_assets)
+            if ben:
+                return 1.0 + sev * up_scale
+            if vic:
+                return 1.0 - sev * down_scale
+            return 1.0
+
+        gold_price = gold_base * _mult("GOLD", 0.30, 0.15)
+        spy_price = spy_base * _mult("SPY", 0.15, 0.20)
+        btc_price = btc_base * _mult("BTC", 0.25, 0.30)
+
+        vix = 15.0 + sev * 45.0
+        hy_spread_bp = 300.0 + sev * 700.0
+
+        # --- Drift overrides --------------------------------------------------
+        drift_override: dict[str, float] = {}
+        for a in sc.beneficiary_assets:
+            mk = _ASSET_TO_MC.get(a.value)
+            if mk and mk in mc_keys:
+                drift_override[mk] = round(sev * 1.5, 2)
+        for a in sc.victim_assets:
+            mk = _ASSET_TO_MC.get(a.value)
+            if mk and mk in mc_keys:
+                drift_override[mk] = round(-sev * 1.0, 2)
+
+        entry: dict[str, Any] = {
+            "name": sc.name,
+            "description": sc.description,
+            "oil_price": round(oil_price, 2),
+            "gold_price": round(gold_price, 2),
+            "spy_price": round(spy_price, 2),
+            "btc_price": round(btc_price, 2),
+            "vix": round(vix, 1),
+            "hy_spread_bp": round(hy_spread_bp, 1),
+            "probability": sc.probability,
+            "impact_severity": sev,
+            "drift_override": drift_override,
+        }
+
+        # Merge hand-tuned overrides (price targets & drifts) if they exist
+        if key in _HAND_TUNED:
+            entry.update(_HAND_TUNED[key])
+
+        out[key] = entry
+
+    # Add extra scenarios not in storm_lifeboat
+    out.update(_EXTRA_SCENARIOS)
+    return out
+
+
+SCENARIOS = _build_all_scenarios()
 
 
 def run_scenario_mc(scenario_name: str, n_paths: int = 50_000) -> MCResult:
@@ -1272,11 +1554,25 @@ class DailyMandate:
 def generate_mandate(
     indicators: Optional[IndicatorState] = None,
     run_mc: bool = True,
+    live: bool = True,
 ) -> DailyMandate:
-    """Generate the twice-daily trading mandate."""
+    """Generate the twice-daily trading mandate.
+
+    Args:
+        live: If True, fetch live data from CoinGecko, Unusual Whales,
+              MetaMask, and NDAX before scoring.
+    """
     now = datetime.now()
     session = "morning" if now.hour < 14 else "evening"
     ind = indicators or IndicatorState()
+
+    # -- Inject live market data from all connected feeds --
+    if live and indicators is None:
+        try:
+            from strategies.war_room_live_feeds import update_all_live_data_sync
+            ind = update_all_live_data_sync(ind)
+        except Exception as exc:
+            print(f"  [!] Live feed injection failed (using defaults): {exc}")
 
     # Composite score
     comp = compute_composite_score(ind)
@@ -1344,6 +1640,17 @@ def generate_mandate(
         alerts.append("BTC <$60K: Crypto winter. Max BITO puts. Watch stablecoins.")
     if pf_val < STARTING_CAPITAL_CAD * CAD_TO_USD * 0.75:
         alerts.append("DRAWDOWN >25%: Cut all positions 50%. Review thesis.")
+    # -- Sentiment alerts (NEW) --
+    if ind.x_sentiment < 0.25:
+        alerts.append("X SENTIMENT EXTREME FEAR (<0.25): Social panic -- thesis acceleration. Deploy reserves.")
+    elif ind.x_sentiment < 0.40:
+        alerts.append("X SENTIMENT BEARISH (<0.40): Narrative shifting negative. Monitor for entry.")
+    elif ind.x_sentiment > 0.85:
+        alerts.append("X SENTIMENT EXTREME GREED (>0.85): Complacency warning. Tighten stops.")
+    if ind.news_severity > 0.7:
+        alerts.append(f"NEWS SEVERITY {ind.news_severity:.0%}: Black-swan headlines detected. Check scanner.")
+    if ind.fear_greed_index < 20:
+        alerts.append(f"FEAR & GREED {ind.fear_greed_index:.0f}: Extreme fear. Counter-trend opportunity window.")
 
     # Checklist
     checklist = []
@@ -2007,7 +2314,20 @@ def main() -> None:
             print(render_greeks())
 
     elif args.mandate:
-        mandate = generate_mandate(run_mc=True)
+        print("Fetching live market data from CoinGecko, Unusual Whales, MetaMask, NDAX...")
+        mandate = generate_mandate(run_mc=True, live=True)
+        # Show live feed summary if available
+        try:
+            from strategies.war_room_live_feeds import get_last_feed_result
+            feed = get_last_feed_result()
+            if feed:
+                print(f"Live Feed: {feed.summary()}")
+                if feed.errors:
+                    for err in feed.errors:
+                        print(f"  [!] {err}")
+                print("")
+        except ImportError:
+            pass
         if args.json:
             print(json.dumps(asdict(mandate), indent=2, default=str))
         else:
@@ -2044,6 +2364,13 @@ def main() -> None:
     elif args.indicators:
         if args.json:
             ind = IndicatorState()
+            try:
+                from strategies.war_room_live_feeds import update_all_live_data_sync
+                ind = update_all_live_data_sync(ind)
+            except ImportError:
+                pass  # Live feeds module not available in this context
+            except Exception as e:
+                logging.getLogger(__name__).warning("Live data refresh failed: %s", e)
             comp = compute_composite_score(ind)
             print(json.dumps(comp, indent=2))
         else:
@@ -2105,3 +2432,177 @@ class WarRoomEngine:
 
     def render(self) -> str:
         return render_dashboard()
+
+
+# ============================================================================
+# PART 13: LIVE SENTIMENT ENGINE — X/Twitter + News + Fear&Greed
+# ============================================================================
+# X sentiment carries HEAVY BIAS (0.12 weight) — social narrative precedes
+# price action. News and Fear & Greed add 0.04 each (0.20 total sentiment).
+#
+# Auto-update: call update_sentiment_live() to refresh all 3 feeds and
+# patch IndicatorState before computing composite score.
+# ============================================================================
+
+# -- X/Twitter sentiment keywords --
+_X_CRISIS_KEYWORDS = [
+    "crash", "collapse", "war", "escalation", "default", "liquidity crisis",
+    "bank run", "contagion", "margin call", "black swan", "circuit breaker",
+    "panic", "selloff", "capitulation", "Iran", "Hormuz", "nuclear",
+    "tariff", "sanctions", "recession", "stagflation", "hyperinflation",
+    "debt ceiling", "shutdown", "downgrade", "systemic risk", "credit crunch",
+]
+_X_GREED_KEYWORDS = [
+    "all time high", "ATH", "moon", "breakout", "rally", "bull run",
+    "soft landing", "goldilocks", "rate cut", "stimulus", "dovish",
+    "risk on", "BTFD", "buy the dip", "green", "euphoria", "FOMO",
+]
+_X_SEARCH_QUERIES = [
+    "$SPY OR $QQQ OR $VIX OR stock market -is:retweet",
+    "$GLD OR $SLV OR gold OR silver OR safe haven -is:retweet",
+    "$XLE OR oil OR Hormuz OR OPEC OR energy crisis -is:retweet",
+    "$JNK OR $HYG OR credit spread OR high yield OR default -is:retweet",
+    "recession OR stagflation OR tariff OR trade war -is:retweet",
+]
+
+
+def _score_tweet_sentiment(text: str) -> float:
+    """Score a single tweet: -1 (extreme fear) to +1 (extreme greed).
+
+    Uses keyword matching with engagement weighting.
+    No external NLP dependency — fast, deterministic, thesis-aligned.
+    """
+    text_lower = text.lower()
+    fear_hits = sum(1 for kw in _X_CRISIS_KEYWORDS if kw in text_lower)
+    greed_hits = sum(1 for kw in _X_GREED_KEYWORDS if kw in text_lower)
+    total = fear_hits + greed_hits
+    if total == 0:
+        return 0.0
+    # net sentiment: -1 (all fear) to +1 (all greed)
+    return (greed_hits - fear_hits) / total
+
+
+async def fetch_x_sentiment(bearer_token: Optional[str] = None) -> float:
+    """Fetch live X/Twitter sentiment. Returns 0-1 (0=fear, 1=greed).
+
+    Queries 5 thesis-aligned searches, scores each tweet, averages.
+    Heavy bias: this is the LEADING sentiment indicator.
+    """
+    import aiohttp
+    token = bearer_token or os.getenv("TWITTER_BEARER_TOKEN", "")
+    if not token:
+        return 0.5  # neutral default if no token
+
+    headers = {"Authorization": f"Bearer {token}"}
+    all_scores: list[float] = []
+    base_url = "https://api.twitter.com/2/tweets/search/recent"
+
+    try:
+        from aiohttp.resolver import ThreadedResolver
+        connector = aiohttp.TCPConnector(resolver=ThreadedResolver())
+        async with aiohttp.ClientSession(connector=connector) as session:
+            for query in _X_SEARCH_QUERIES:
+                params = {
+                    "query": query,
+                    "max_results": 20,
+                    "tweet.fields": "created_at,public_metrics,text",
+                }
+                try:
+                    async with session.get(base_url, headers=headers,
+                                           params=params, timeout=aiohttp.ClientTimeout(total=8)) as resp:
+                        if resp.status == 200:
+                            data = await resp.json()
+                            for tweet in data.get("data", []):
+                                text = tweet.get("text", "")
+                                score = _score_tweet_sentiment(text)
+                                # Weight by engagement (retweets + likes)
+                                metrics = tweet.get("public_metrics", {})
+                                engagement = (metrics.get("retweet_count", 0) +
+                                              metrics.get("like_count", 0) + 1)
+                                weight = math.log2(engagement + 1)
+                                all_scores.extend([score] * max(1, int(weight)))
+                        elif resp.status == 429:
+                            pass  # rate limited, use what we have
+                except (aiohttp.ClientError, TimeoutError):
+                    continue
+    except Exception:
+        return 0.5  # fallback on any network error
+
+    if not all_scores:
+        return 0.5
+    # Convert -1..+1 range to 0..1
+    avg = sum(all_scores) / len(all_scores)
+    return round(max(0.0, min(1.0, (avg + 1.0) / 2.0)), 3)
+
+
+async def fetch_news_severity() -> float:
+    """Fetch news severity from BlackSwanNewsScanner. Returns 0-1.
+
+    0 = no thesis-aligned news, 1 = maximum black-swan signal.
+    Uses quick scan (NewsAPI only) for speed.
+    """
+    try:
+        from strategies.blackswan_news_scanner import BlackSwanNewsScanner
+        scanner = BlackSwanNewsScanner()
+        result = await scanner.scan(quick=True)
+        return round(result.average_severity, 3)
+    except Exception:
+        return 0.0
+
+
+async def fetch_fear_greed_index() -> float:
+    """Fetch Fear & Greed Index from alternative.me. Returns 0-100."""
+    import aiohttp
+    try:
+        from aiohttp.resolver import ThreadedResolver
+        connector = aiohttp.TCPConnector(resolver=ThreadedResolver())
+        async with aiohttp.ClientSession(connector=connector) as session:
+            async with session.get(
+                "https://api.alternative.me/fng/?limit=1",
+                timeout=aiohttp.ClientTimeout(total=5),
+            ) as resp:
+                if resp.status == 200:
+                    data = await resp.json()
+                    return float(data["data"][0]["value"])
+    except Exception as e:
+        logging.getLogger(__name__).warning("Fear & Greed Index fetch failed: %s — defaulting to 50.0", e)
+    return 50.0
+
+
+async def update_sentiment_live(indicators: Optional[IndicatorState] = None) -> IndicatorState:
+    """Fetch ALL sentiment feeds and update IndicatorState.
+
+    This is the auto-update entry point. Call before compute_composite_score()
+    to get live sentiment data injected into the 15-indicator model.
+
+    X sentiment has HEAVY BIAS (0.12 weight) — highest single sentiment input.
+    """
+    import asyncio
+    ind = indicators or IndicatorState()
+
+    # Fetch all 3 sentiment feeds in parallel
+    x_task = asyncio.create_task(fetch_x_sentiment())
+    news_task = asyncio.create_task(fetch_news_severity())
+    fgi_task = asyncio.create_task(fetch_fear_greed_index())
+
+    ind.x_sentiment = await x_task
+    ind.news_severity = await news_task
+    ind.fear_greed_index = await fgi_task
+
+    return ind
+
+
+def update_sentiment_sync(indicators: Optional[IndicatorState] = None) -> IndicatorState:
+    """Synchronous wrapper for update_sentiment_live().
+
+    Call from CLI or non-async code to refresh sentiment before mandate.
+    """
+    import asyncio
+    try:
+        loop = asyncio.get_running_loop()
+        # Already in async context — schedule coroutine
+        import concurrent.futures
+        with concurrent.futures.ThreadPoolExecutor() as pool:
+            return loop.run_in_executor(pool, lambda: asyncio.run(update_sentiment_live(indicators)))
+    except RuntimeError:
+        return asyncio.run(update_sentiment_live(indicators))

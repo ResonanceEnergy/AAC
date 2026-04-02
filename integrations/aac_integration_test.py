@@ -12,22 +12,22 @@ import asyncio
 import logging
 import sys
 import time
-from pathlib import Path
-from datetime import datetime, timedelta
 import unittest
-from typing import Dict, List, Any
+from datetime import datetime, timedelta
+from pathlib import Path
+from typing import Any, Dict, List
 
 # Add project root to path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from shared.communication import CommunicationFramework
+from integrations.market_data_aggregator import MarketDataAggregator, get_market_data_aggregator
 from shared.audit_logger import AuditLogger
+from shared.communication import CommunicationFramework
 from shared.data_sources import DataAggregator
 from shared.strategy_framework import StrategyConfig
-from integrations.market_data_aggregator import MarketDataAggregator, get_market_data_aggregator
-from strategies.strategy_integration_system import get_strategy_integration_system
 from strategies.strategy_implementation_factory import get_strategy_factory
+from strategies.strategy_integration_system import get_strategy_integration_system
 
 # Configure test logging
 logging.basicConfig(

@@ -8,22 +8,23 @@ Connects trading agents to live market data, security systems, and audit logging
 """
 
 import asyncio
-import logging
 import json
-from datetime import datetime
-from typing import Dict, List, Optional, Any
-from pathlib import Path
+import logging
 import sys
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 # Add project root to path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from agent_based_trading import AgentContestOrchestrator, TradingAgent, InnovationAgent
-from shared.audit_logger import AuditLogger, AuditCategory, AuditSeverity
+from agent_based_trading import AgentContestOrchestrator, InnovationAgent, TradingAgent
+
+from shared.audit_logger import AuditCategory, AuditLogger, AuditSeverity
 from shared.communication import CommunicationFramework
-from shared.data_sources import DataAggregator
 from shared.config_loader import get_config
+from shared.data_sources import DataAggregator
 
 # Import AAC system components (with fallbacks for missing modules)
 try:

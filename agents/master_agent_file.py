@@ -20,29 +20,35 @@ Usage:
 
 import asyncio
 import logging
-from typing import Dict, List, Any, Optional, Union
 from datetime import datetime
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Union
 
 # Add project root to path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 import sys
+
 sys.path.insert(0, str(PROJECT_ROOT))
 
 # Core agent imports
 from BigBrainIntelligence.agents import (
-    ResearchAgentManager,
-    get_research_agent_manager,
     AGENT_REGISTRY,
+    ResearchAgentManager,
     get_agent,
-    get_all_agents as get_all_research_agents
+    get_research_agent_manager,
 )
+from BigBrainIntelligence.agents import get_all_agents as get_all_research_agents
 
-from shared.department_super_agents import (
-    DEPARTMENT_SUPER_AGENTS,
-    initialize_all_department_super_agents,
-    get_department_super_agent
-)
+try:
+    from shared.department_super_agents import (
+        DEPARTMENT_SUPER_AGENTS,
+        get_department_super_agent,
+        initialize_all_department_super_agents,
+    )
+except ImportError:
+    DEPARTMENT_SUPER_AGENTS = {}  # type: ignore[assignment]
+    initialize_all_department_super_agents = None  # type: ignore[assignment]
+    get_department_super_agent = None  # type: ignore[assignment]
 
 # Optional agent integrations
 try:

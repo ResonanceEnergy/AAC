@@ -1,7 +1,9 @@
 """Unit tests for core.sub_agent_spawner — parallel task management."""
 import asyncio
+
 import pytest
-from core.sub_agent_spawner import SubAgentSpawner, BatchResult, AgentStatus
+
+from core.sub_agent_spawner import AgentStatus, BatchResult, SubAgentSpawner
 
 
 async def _success_task(value="ok"):

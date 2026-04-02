@@ -1,7 +1,8 @@
 """Quick test: run one full OODA cycle."""
 import asyncio
-import sys
 import os
+import sys
+
 # Force UTF-8 on Windows console
 if sys.platform == 'win32':
     os.environ.setdefault('PYTHONIOENCODING', 'utf-8')
@@ -10,6 +11,7 @@ if sys.platform == 'win32':
     except Exception:
         pass
 from full_activation import FullActivationEngine
+
 
 async def main():
     engine = FullActivationEngine()

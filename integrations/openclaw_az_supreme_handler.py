@@ -20,20 +20,20 @@ Pattern reference: openclaw-usecase-16-multi-channel-customer-service.md
 import asyncio
 import logging
 import re
-from datetime import datetime
-from typing import Dict, List, Optional, Any
-from dataclasses import dataclass, field
-from pathlib import Path
 import sys
+from dataclasses import dataclass, field
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from integrations.openclaw_gateway_bridge import (
+    MessageIntent,
+    OpenClawChannel,
     OpenClawGatewayBridge,
     OpenClawMessage,
-    OpenClawChannel,
-    MessageIntent,
     get_openclaw_bridge,
 )
 

@@ -32,8 +32,8 @@ from typing import Any, Dict, List, Optional
 
 from strategies.matrix_maximizer.core import (
     Asset,
-    MatrixConfig,
     MandateLevel,
+    MatrixConfig,
     RollAction,
     SystemMandate,
 )
@@ -415,6 +415,19 @@ class OptionsScanner:
 
         logger.info("Scanner found %d put recommendations across %d tickers",
                      len(all_recs), len(self.config.scan_tickers))
+
+        # TurboQuant: record scan cycle for precedent matching
+        try:
+            from strategies.turboquant_integrations import IntegrationHub
+            _tq_hub = IntegrationHub()
+            _tq_hub.record_options_scan(
+                [r.__dict__ if hasattr(r, '__dict__') else r for r in all_recs],
+                regime=str(mandate) if mandate else "scan",
+            )
+            _tq_hub.save_all()
+        except Exception as _tq_err:
+            logger.debug("TurboQuant record skipped: %s", _tq_err)
+
         return all_recs
 
     # ═══════════════════════════════════════════════════════════════════

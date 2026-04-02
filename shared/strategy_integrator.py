@@ -8,13 +8,13 @@ Converts strategy signals into executable orders.
 
 import asyncio
 import logging
-from typing import Dict, List, Any, Optional
 from datetime import datetime
+from typing import Any, Dict, List, Optional
 
-from shared.strategy_framework import TradingSignal, SignalType
-from shared.communication import CommunicationFramework
 from shared.audit_logger import AuditLogger
+from shared.communication import CommunicationFramework
 from shared.strategy_execution_engine import StrategyExecutionEngine
+from shared.strategy_framework import SignalType, TradingSignal
 
 logger = logging.getLogger(__name__)
 

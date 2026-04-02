@@ -17,19 +17,19 @@ from datetime import datetime
 from typing import Dict, List, Optional
 
 from TradingExecution.exchange_connectors.base_connector import (
+    AuthenticationError,
+    Balance,
     BaseExchangeConnector,
     ExchangeError,
-    AuthenticationError,
+    ExchangeOrder,
+    OrderBook,
     OrderError,
     RateLimitError,
     Ticker,
-    OrderBook,
-    Balance,
-    ExchangeOrder,
 )
 
 try:
-    from shared.utils import with_circuit_breaker, CircuitOpenError
+    from shared.utils import CircuitOpenError, with_circuit_breaker
     CIRCUIT_BREAKER_AVAILABLE = True
 except ImportError:
     CIRCUIT_BREAKER_AVAILABLE = False

@@ -1,9 +1,15 @@
 #!/usr/bin/env python3
 """Validate keys and write results to val_out.txt."""
-import os, sys, json, urllib.request, urllib.error
+import json
+import os
+import sys
+import urllib.error
+import urllib.request
 from pathlib import Path
+
 sys.path.insert(0, str(Path(__file__).parent))
 from shared.config_loader import load_env_file
+
 load_env_file()
 
 out = []

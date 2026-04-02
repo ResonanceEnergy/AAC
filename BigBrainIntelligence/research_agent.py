@@ -8,15 +8,15 @@ Used by bridge services for cross-department communication.
 
 import asyncio
 import logging
-from datetime import datetime
-from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
+from datetime import datetime
+from typing import Any, Dict, List, Optional
 
 from BigBrainIntelligence.agents import (
+    AGENT_REGISTRY,
     get_agent,
-    get_all_agents,
     get_agents_by_theater,
-    AGENT_REGISTRY
+    get_all_agents,
 )
 
 logger = logging.getLogger(__name__)
@@ -211,36 +211,36 @@ class ResearchAgent:
             active_agents = sum(1 for s in self.agent_status.values() if s.status == "active")
             total_agents = len(self.agent_status)
             error_agents = sum(1 for s in self.agent_status.values() if s.status == "error")
-            
+
             # Backtest correlation - simulate based on agent health
             avg_health = sum(s.health_score for s in self.agent_status.values()) / max(total_agents, 1)
             backtest_correlation = min(0.95, avg_health + 0.9)  # Good: >0.9
-            
+
             # Chaos test pass rate - based on error rate
             chaos_pass_rate = 100.0 * (1 - error_agents / max(total_agents, 1))  # Good: 100
-            
+
             # Regression test pass rate - based on health scores
             regression_pass_rate = 100.0 * avg_health  # Good: 100
-            
+
             # Replay fidelity - based on findings consistency
             total_findings = sum(s.findings_count for s in self.agent_status.values())
             replay_fidelity = min(1.0, 0.95 + (total_findings / max(total_agents * 10, 1)))  # Good: >0.98
-            
+
             # Research metrics (Pack 7)
             # Pipeline velocity - findings per active agent per scan
             pipeline_velocity = total_findings / max(active_agents, 1) if active_agents > 0 else 10.0  # Good: >5
-            
+
             # Strategy survival rate - based on agent health and activity
             strategy_survival = 90.0 + (avg_health * 10)  # Good: >80
-            
+
             # Feature reuse rate - simulate based on agent diversity
             unique_theaters = len(set(s.theater for s in self.agent_status.values()))
             feature_reuse = 50.0 + (unique_theaters * 10)  # Good: >50
-            
+
             # Experiment completion rate - based on scan success
             completed_scans = sum(1 for s in self.agent_status.values() if s.last_scan is not None)
             experiment_completion = 90.0 + (completed_scans / max(total_agents, 1) * 10)  # Good: >90
-            
+
             return {
                 # Pack 3: Testing
                 "backtest_vs_live_correlation": backtest_correlation,
@@ -253,7 +253,7 @@ class ResearchAgent:
                 "feature_reuse_rate": feature_reuse,
                 "experiment_completion_rate": experiment_completion,
             }
-            
+
         except Exception as e:
             logger.error(f"Failed to get doctrine metrics: {e}")
             # Return good default values

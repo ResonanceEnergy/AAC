@@ -15,21 +15,22 @@ Features:
 """
 
 import asyncio
+import json
 import logging
+import os
+import shutil
 import subprocess
 import sys
-import os
-import json
 import time
-from typing import Dict, List, Any, Optional, Tuple
 from datetime import datetime, timedelta
 from pathlib import Path
-import shutil
+from typing import Any, Dict, List, Optional, Tuple
+
 import psutil
 import requests
 
-from shared.communication import CommunicationFramework
 from shared.audit_logger import AuditLogger
+from shared.communication import CommunicationFramework
 from shared.data_sources import DataAggregator
 
 logger = logging.getLogger(__name__)
@@ -738,8 +739,8 @@ async def run_production_deployment():
     logger.info("=" * 50)
 
     # Initialize components (mock)
-    from shared.communication import CommunicationFramework
     from shared.audit_logger import AuditLogger
+    from shared.communication import CommunicationFramework
     from shared.data_sources import DataAggregator
 
     deployment_manager = ProductionDeploymentManager(

@@ -48,8 +48,8 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from strategies.rocket_ship.core import (
-    IndicatorStatus,
     INDICATORS_REQUIRED_FOR_IGNITION,
+    IndicatorStatus,
     TriggerStatus,
 )
 

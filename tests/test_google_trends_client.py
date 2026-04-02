@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Tests for Google Trends rate-limit handling."""
 
-from pathlib import Path
 import sys
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent

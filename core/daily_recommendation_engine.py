@@ -396,17 +396,22 @@ class UnusualWhalesIntelligence:
             return []
         signals = []
         try:
-            trades = await client.get_darkpool_trades(limit=limit)
+            trades = await client.get_dark_pool(limit=limit)
             # Look for large prints (> $1M notional)
             big_prints: Dict[str, List[Dict]] = defaultdict(list)
             for trade in trades:
-                ticker = trade.get("ticker", trade.get("symbol", ""))
-                notional = float(trade.get("notional_value", trade.get("premium", 0)) or 0)
+                if isinstance(trade, dict):
+                    ticker = trade.get("ticker", trade.get("symbol", ""))
+                    notional = float(trade.get("premium", trade.get("notional_value", 0)) or 0)
+                else:
+                    # DarkPoolTrade dataclass from client
+                    ticker = trade.ticker
+                    notional = trade.notional
                 if ticker and notional > 1_000_000:
-                    big_prints[ticker].append(trade)
+                    big_prints[ticker].append({"ticker": ticker, "notional": notional})
 
             for ticker, prints in big_prints.items():
-                total_notional = sum(float(p.get("notional_value", p.get("premium", 0)) or 0) for p in prints)
+                total_notional = sum(p["notional"] for p in prints)
                 signals.append(Signal(
                     "UW_DarkPool", ticker, SignalDirection.HOLD,
                     0.5,
@@ -428,7 +433,7 @@ class UnusualWhalesIntelligence:
             ticker_activity: Dict[str, Dict[str, int]] = defaultdict(lambda: {"buy": 0, "sell": 0})
             for trade in trades:
                 ticker = trade.get("ticker", trade.get("asset", ""))
-                tx_type = trade.get("transaction_type", trade.get("type", "")).lower()
+                tx_type = trade.get("txn_type", trade.get("transaction_type", trade.get("type", ""))).lower()
                 if not ticker:
                     continue
                 if "purchase" in tx_type or "buy" in tx_type:

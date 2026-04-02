@@ -6,7 +6,7 @@ into a unified financial infrastructure.
 """
 import logging
 from datetime import datetime
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -28,8 +28,8 @@ class FinancialIntegrator:
     async def initialize(self) -> bool:
         """Initialize all financial subsystems."""
         try:
-            from shared.internal_money_monitor import get_money_monitor
             from shared.ax_helix_integration import get_ax_helix_api
+            from shared.internal_money_monitor import get_money_monitor
 
             self.money_monitor = get_money_monitor()
             self.ax_helix = get_ax_helix_api()

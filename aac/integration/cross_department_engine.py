@@ -19,6 +19,7 @@ from datetime import datetime, timedelta
 from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Set
+
 import yaml
 
 # Configure logging
@@ -48,7 +49,7 @@ class DepartmentMetric:
     timestamp: datetime
     unit: str = ""
     is_healthy: bool = True
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """To dict."""
         return {
@@ -70,7 +71,7 @@ class CrossDepartmentEvent:
     payload: Dict[str, Any]
     priority: int = 1  # 1=highest
     timestamp: datetime = field(default_factory=datetime.now)
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """To dict."""
         return {
@@ -89,28 +90,28 @@ class CrossDepartmentEvent:
 
 class DepartmentAdapter:
     """Base class for department integration adapters."""
-    
+
     def __init__(self, department: Department):
         self.department = department
         self.is_connected = False
         self._event_handlers: Dict[str, List[Callable]] = {}
-        
+
     async def connect(self) -> bool:
         """Connect to department systems."""
         raise NotImplementedError
-        
+
     async def disconnect(self) -> None:
         """Disconnect from department systems."""
         raise NotImplementedError
-        
+
     async def get_metrics(self) -> List[DepartmentMetric]:
         """Get current metrics from department."""
         raise NotImplementedError
-        
+
     async def send_event(self, event: CrossDepartmentEvent) -> bool:
         """Send an event to this department."""
         raise NotImplementedError
-        
+
     def register_handler(self, event_type: str, handler: Callable) -> None:
         """Register an event handler."""
         if event_type not in self._event_handlers:
@@ -135,13 +136,13 @@ class DepartmentAdapter:
 
 class TradingExecutionAdapter(DepartmentAdapter):
     """Adapter for TradingExecution department."""
-    
+
     def __init__(self):
         super().__init__(Department.TRADING_EXECUTION)
         self.active_orders: Dict[str, Any] = {}
         self.positions: Dict[str, float] = {}
         self.frozen_strategies: set = set()
-        
+
     async def connect(self) -> bool:
         """Connect to trading systems."""
         try:
@@ -152,12 +153,12 @@ class TradingExecutionAdapter(DepartmentAdapter):
         except Exception as e:
             logger.error(f"TradingExecution connection failed: {e}")
             return False
-            
+
     async def disconnect(self) -> None:
         """Disconnect from trading systems."""
         self.is_connected = False
         logger.info("TradingExecution: Disconnected")
-        
+
     async def get_metrics(self) -> List[DepartmentMetric]:
         """Get execution metrics."""
         now = datetime.now()
@@ -195,7 +196,7 @@ class TradingExecutionAdapter(DepartmentAdapter):
                 is_healthy=True
             ),
         ]
-        
+
     async def send_event(self, event: CrossDepartmentEvent) -> bool:
         """Handle incoming events."""
         handlers = self._event_handlers.get(event.event_type, [])
@@ -205,7 +206,7 @@ class TradingExecutionAdapter(DepartmentAdapter):
             except Exception as e:
                 logger.error(f"TradingExecution handler error: {e}")
         return True
-        
+
     # TradingExecution specific methods
     async def submit_order(self, order: Dict[str, Any]) -> str:
         """Submit an order for execution."""
@@ -213,11 +214,11 @@ class TradingExecutionAdapter(DepartmentAdapter):
         self.active_orders[order_id] = order
         logger.info(f"Order submitted: {order_id}")
         return order_id
-        
+
     async def get_position(self, symbol: str) -> float:
         """Get current position for symbol."""
         return self.positions.get(symbol, 0.0)
-        
+
     async def freeze_strategy(self, strategy_id: str) -> bool:
         """Freeze a strategy (A_FREEZE_STRATEGY action)."""
         if strategy_id in self.frozen_strategies:
@@ -235,13 +236,13 @@ class TradingExecutionAdapter(DepartmentAdapter):
 
 class BigBrainIntelligenceAdapter(DepartmentAdapter):
     """Adapter for BigBrainIntelligence department."""
-    
+
     def __init__(self):
         super().__init__(Department.BIGBRAIN_INTELLIGENCE)
         self.active_signals: Dict[str, Any] = {}
         self.research_queue: List[str] = []
         self.quarantined_sources: set = set()
-        
+
     async def connect(self) -> bool:
         """Connect to research systems."""
         try:
@@ -251,12 +252,12 @@ class BigBrainIntelligenceAdapter(DepartmentAdapter):
         except Exception as e:
             logger.error(f"BigBrainIntelligence connection failed: {e}")
             return False
-            
+
     async def disconnect(self) -> None:
         """Disconnect."""
         self.is_connected = False
         logger.info("BigBrainIntelligence: Disconnected")
-        
+
     async def get_metrics(self) -> List[DepartmentMetric]:
         """Get research/signal metrics."""
         now = datetime.now()
@@ -294,7 +295,7 @@ class BigBrainIntelligenceAdapter(DepartmentAdapter):
                 is_healthy=True
             ),
         ]
-        
+
     async def send_event(self, event: CrossDepartmentEvent) -> bool:
         """Send event."""
         handlers = self._event_handlers.get(event.event_type, [])
@@ -304,12 +305,12 @@ class BigBrainIntelligenceAdapter(DepartmentAdapter):
             except Exception as e:
                 logger.error(f"BigBrainIntelligence handler error: {e}")
         return True
-        
+
     # BigBrain specific methods
     async def get_signal(self, strategy_id: str) -> Optional[Dict[str, Any]]:
         """Get latest signal for a strategy."""
         return self.active_signals.get(strategy_id)
-        
+
     async def quarantine_source(self, source_id: str) -> bool:
         """Quarantine a data source (A_QUARANTINE_SOURCE action)."""
         if source_id in self.quarantined_sources:
@@ -327,7 +328,7 @@ class BigBrainIntelligenceAdapter(DepartmentAdapter):
         await self.send_event(event)
         logger.warning(f"QUARANTINED data source: {source_id}")
         return True
-        
+
     async def trigger_backtest(self, strategy_id: str, params: Dict[str, Any]) -> str:
         """Trigger a backtest job."""
         job_id = f"BT-{datetime.now().strftime('%Y%m%d%H%M%S')}"
@@ -337,12 +338,12 @@ class BigBrainIntelligenceAdapter(DepartmentAdapter):
 
 class CentralAccountingAdapter(DepartmentAdapter):
     """Adapter for CentralAccounting department."""
-    
+
     def __init__(self):
         super().__init__(Department.CENTRAL_ACCOUNTING)
         self.positions: Dict[str, float] = {}
         self.pnl_cache: Dict[str, float] = {}
-        
+
     async def connect(self) -> bool:
         """Connect."""
         try:
@@ -352,12 +353,12 @@ class CentralAccountingAdapter(DepartmentAdapter):
         except Exception as e:
             logger.error(f"CentralAccounting connection failed: {e}")
             return False
-            
+
     async def disconnect(self) -> None:
         """Disconnect."""
         self.is_connected = False
         logger.info("CentralAccounting: Disconnected")
-        
+
     async def get_metrics(self) -> List[DepartmentMetric]:
         """Get accounting/risk metrics."""
         now = datetime.now()
@@ -403,7 +404,7 @@ class CentralAccountingAdapter(DepartmentAdapter):
                 is_healthy=True
             ),
         ]
-        
+
     async def send_event(self, event: CrossDepartmentEvent) -> bool:
         """Send event."""
         handlers = self._event_handlers.get(event.event_type, [])
@@ -413,12 +414,12 @@ class CentralAccountingAdapter(DepartmentAdapter):
             except Exception as e:
                 logger.error(f"CentralAccounting handler error: {e}")
         return True
-        
+
     # CentralAccounting specific methods
     async def get_reconciled_pnl(self, strategy_id: str) -> float:
         """Get reconciled P&L for a strategy."""
         return self.pnl_cache.get(strategy_id, 0.0)
-        
+
     async def get_risk_budget_remaining(self) -> float:
         """Get remaining risk budget based on current positions."""
         total_exposure = sum(abs(v) for v in self.positions.values())
@@ -426,7 +427,7 @@ class CentralAccountingAdapter(DepartmentAdapter):
         used_fraction = min(total_exposure / max_budget, 1.0) if max_budget > 0 else 0.0
         remaining = 1.0 - used_fraction
         return round(remaining, 4)
-        
+
     async def force_reconciliation(self, strategy_id: str) -> bool:
         """Force immediate reconciliation (A_FORCE_RECON action)."""
         recon_record: dict[str, Any] = {
@@ -448,11 +449,11 @@ class CentralAccountingAdapter(DepartmentAdapter):
 
 class CryptoIntelligenceAdapter(DepartmentAdapter):
     """Adapter for CryptoIntelligence department."""
-    
+
     def __init__(self):
         super().__init__(Department.CRYPTO_INTELLIGENCE)
         self.venue_health: Dict[str, float] = {}
-        
+
     async def connect(self) -> bool:
         """Connect."""
         try:
@@ -462,12 +463,12 @@ class CryptoIntelligenceAdapter(DepartmentAdapter):
         except Exception as e:
             logger.error(f"CryptoIntelligence connection failed: {e}")
             return False
-            
+
     async def disconnect(self) -> None:
         """Disconnect."""
         self.is_connected = False
         logger.info("CryptoIntelligence: Disconnected")
-        
+
     async def get_metrics(self) -> List[DepartmentMetric]:
         """Get venue health metrics."""
         now = datetime.now()
@@ -505,7 +506,7 @@ class CryptoIntelligenceAdapter(DepartmentAdapter):
                 is_healthy=True
             ),
         ]
-        
+
     async def send_event(self, event: CrossDepartmentEvent) -> bool:
         """Send event."""
         handlers = self._event_handlers.get(event.event_type, [])
@@ -515,12 +516,12 @@ class CryptoIntelligenceAdapter(DepartmentAdapter):
             except Exception as e:
                 logger.error(f"CryptoIntelligence handler error: {e}")
         return True
-        
+
     # CryptoIntelligence specific methods
     async def get_venue_health(self, venue_id: str) -> float:
         """Get health score for a venue."""
         return self.venue_health.get(venue_id, 0.85)
-        
+
     async def route_failover(self, from_venue: str, to_venue: str) -> bool:
         """Execute venue failover (A_ROUTE_FAILOVER action)."""
         # Update venue health to reflect failover
@@ -551,24 +552,24 @@ class CryptoIntelligenceAdapter(DepartmentAdapter):
 class CrossDepartmentIntegrationEngine:
     """
     Central engine for cross-department communication and coordination.
-    
+
     Responsibilities:
     - Connect to all department adapters
     - Route events between departments
     - Aggregate metrics for unified view
     - Coordinate BARREN WUFFET safety actions
     """
-    
+
     def __init__(self, config_path: Optional[Path] = None):
         self.config_path = config_path
         self.adapters: Dict[Department, DepartmentAdapter] = {}
         self.event_queue: asyncio.Queue = asyncio.Queue()
         self.is_running = False
         self._metric_cache: Dict[str, DepartmentMetric] = {}
-        
+
         # Initialize adapters
         self._init_adapters()
-        
+
     def _init_adapters(self) -> None:
         """Initialize all department adapters."""
         self.adapters = {
@@ -577,33 +578,33 @@ class CrossDepartmentIntegrationEngine:
             Department.CENTRAL_ACCOUNTING: CentralAccountingAdapter(),
             Department.CRYPTO_INTELLIGENCE: CryptoIntelligenceAdapter(),
         }
-        
+
     async def start(self) -> bool:
         """Start the integration engine and connect to all departments."""
         logger.info("Starting Cross-Department Integration Engine...")
-        
+
         # Connect to all departments
         connect_results = await asyncio.gather(*[
             adapter.connect() for adapter in self.adapters.values()
         ])
-        
+
         if not all(connect_results):
             logger.error("Failed to connect to all departments")
             return False
-            
+
         self.is_running = True
-        
+
         # Start event processing loop (tracked for clean shutdown)
         self._event_task = asyncio.create_task(self._process_events())
         self._event_task.add_done_callback(self._task_done_cb)
-        
+
         # Start metric collection loop (tracked for clean shutdown)
         self._metrics_task = asyncio.create_task(self._collect_metrics())
         self._metrics_task.add_done_callback(self._task_done_cb)
-        
+
         logger.info("Integration Engine started successfully")
         return True
-        
+
     @staticmethod
     def _task_done_cb(task: asyncio.Task) -> None:
         """Log exceptions from background tasks."""
@@ -616,19 +617,19 @@ class CrossDepartmentIntegrationEngine:
     async def stop(self) -> None:
         """Stop the integration engine."""
         self.is_running = False
-        
+
         # Cancel background tasks
         for task in (getattr(self, '_event_task', None), getattr(self, '_metrics_task', None)):
             if task and not task.done():
                 task.cancel()
-        
+
         # Disconnect from all departments
         await asyncio.gather(*[
             adapter.disconnect() for adapter in self.adapters.values()
         ])
-        
+
         logger.info("Integration Engine stopped")
-        
+
     async def _process_events(self) -> None:
         """Process cross-department events."""
         while self.is_running:
@@ -643,16 +644,16 @@ class CrossDepartmentIntegrationEngine:
                 continue
             except Exception as e:
                 logger.error(f"Event processing error: {e}")
-                
+
     async def _route_event(self, event: CrossDepartmentEvent) -> None:
         """Route an event to target departments."""
         logger.info(f"Routing event: {event.event_type} from {event.source_department.value}")
-        
+
         for target_dept in event.target_departments:
             if target_dept in self.adapters:
                 adapter = self.adapters[target_dept]
                 await adapter.send_event(event)
-                
+
     async def _collect_metrics(self) -> None:
         """Periodically collect metrics from all departments."""
         while self.is_running:
@@ -661,41 +662,41 @@ class CrossDepartmentIntegrationEngine:
                 all_metrics = await asyncio.gather(*[
                     adapter.get_metrics() for adapter in self.adapters.values()
                 ])
-                
+
                 # Flatten and cache metrics
                 for dept_metrics in all_metrics:
                     for metric in dept_metrics:
                         key = f"{metric.department.value}.{metric.name}"
                         self._metric_cache[key] = metric
-                        
+
                 await asyncio.sleep(5)  # Collect every 5 seconds
-                
+
             except Exception as e:
                 logger.error(f"Metric collection error: {e}")
                 await asyncio.sleep(5)
-                
+
     async def publish_event(self, event: CrossDepartmentEvent) -> None:
         """Publish an event to be routed to target departments."""
         await self.event_queue.put(event)
-        
+
     def get_all_metrics(self) -> Dict[str, DepartmentMetric]:
         """Get all cached metrics."""
         return self._metric_cache.copy()
-        
+
     def get_department_metrics(self, department: Department) -> List[DepartmentMetric]:
         """Get metrics for a specific department."""
         return [
             m for m in self._metric_cache.values()
             if m.department == department
         ]
-        
+
     async def get_unified_health_status(self) -> Dict[str, Any]:
         """Get unified health status across all departments."""
         metrics = self.get_all_metrics()
-        
+
         # Check critical thresholds
         alerts = []
-        
+
         # Check risk metrics
         max_dd = metrics.get("CentralAccounting.max_drawdown_pct")
         if max_dd and max_dd.value > 10:
@@ -705,7 +706,7 @@ class CrossDepartmentIntegrationEngine:
                 "value": max_dd.value,
                 "action": "A_ENTER_SAFE_MODE"
             })
-            
+
         daily_loss = metrics.get("CentralAccounting.daily_loss_pct")
         if daily_loss and daily_loss.value > 2:
             alerts.append({
@@ -714,7 +715,7 @@ class CrossDepartmentIntegrationEngine:
                 "value": daily_loss.value,
                 "action": "A_STOP_EXECUTION"
             })
-            
+
         # Check execution metrics
         fill_rate = metrics.get("TradingExecution.fill_rate")
         if fill_rate and fill_rate.value < 0.9:
@@ -724,7 +725,7 @@ class CrossDepartmentIntegrationEngine:
                 "value": fill_rate.value,
                 "action": "A_THROTTLE_RISK"
             })
-            
+
         # Check venue health
         venue_health = metrics.get("CryptoIntelligence.venue_health_score")
         if venue_health and venue_health.value < 0.7:
@@ -734,7 +735,7 @@ class CrossDepartmentIntegrationEngine:
                 "value": venue_health.value,
                 "action": "A_ROUTE_FAILOVER"
             })
-            
+
         # Determine overall health
         if any(a["severity"] == "critical" for a in alerts):
             overall_health = "CRITICAL"
@@ -742,7 +743,7 @@ class CrossDepartmentIntegrationEngine:
             overall_health = "WARNING"
         else:
             overall_health = "HEALTHY"
-            
+
         return {
             "overall_health": overall_health,
             "timestamp": datetime.now().isoformat(),
@@ -751,17 +752,17 @@ class CrossDepartmentIntegrationEngine:
             "metric_count": len(metrics),
             "alerts": alerts
         }
-        
+
     # ═══════════════════════════════════════════════════════════════════════
     # BARREN WUFFET SAFETY ACTIONS
     # ═══════════════════════════════════════════════════════════════════════
-    
+
     async def execute_safety_action(self, action: str, params: Optional[Dict[str, Any]] = None) -> bool:
         """Execute an BARREN WUFFET safety action."""
         params = params or {}
-        
+
         logger.warning(f"EXECUTING SAFETY ACTION: {action}")
-        
+
         if action == "A_THROTTLE_RISK":
             # Reduce order size and concurrency across TradingExecution
             event = CrossDepartmentEvent(
@@ -773,7 +774,7 @@ class CrossDepartmentIntegrationEngine:
             )
             await self.publish_event(event)
             return True
-            
+
         elif action == "A_QUARANTINE_SOURCE":
             # Quarantine bad data source via BigBrain
             source_id = params.get("source_id")
@@ -781,7 +782,7 @@ class CrossDepartmentIntegrationEngine:
                 adapter = self.adapters[Department.BIGBRAIN_INTELLIGENCE]
                 return await adapter.quarantine_source(source_id)
             return False
-            
+
         elif action == "A_ROUTE_FAILOVER":
             # Failover to backup venue via CryptoIntelligence
             from_venue = params.get("from_venue")
@@ -790,7 +791,7 @@ class CrossDepartmentIntegrationEngine:
                 adapter = self.adapters[Department.CRYPTO_INTELLIGENCE]
                 return await adapter.route_failover(from_venue, to_venue)
             return False
-            
+
         elif action == "A_STOP_EXECUTION":
             # Stop all execution immediately
             event = CrossDepartmentEvent(
@@ -802,7 +803,7 @@ class CrossDepartmentIntegrationEngine:
             )
             await self.publish_event(event)
             return True
-            
+
         elif action == "A_FREEZE_STRATEGY":
             # Freeze specific strategy
             strategy_id = params.get("strategy_id")
@@ -810,23 +811,23 @@ class CrossDepartmentIntegrationEngine:
                 adapter = self.adapters[Department.TRADING_EXECUTION]
                 return await adapter.freeze_strategy(strategy_id)
             return False
-            
+
         elif action == "A_FORCE_RECON":
             # Force reconciliation
             strategy_id = params.get("strategy_id", "ALL")
             adapter = self.adapters[Department.CENTRAL_ACCOUNTING]
             return await adapter.force_reconciliation(strategy_id)
-            
+
         elif action == "A_CREATE_INCIDENT":
             # Create incident (would integrate with incident management)
             logger.critical(f"INCIDENT CREATED: {params}")
             return True
-            
+
         elif action == "A_PAGE_ONCALL":
             # Page on-call (would integrate with PagerDuty/similar)
             logger.critical(f"PAGING ON-CALL: {params}")
             return True
-            
+
         else:
             logger.error(f"Unknown safety action: {action}")
             return False
@@ -840,14 +841,14 @@ class BakeoffIntegration:
     """
     Integrates the Bake-Off Engine with cross-department systems.
     """
-    
+
     def __init__(self, integration_engine: CrossDepartmentIntegrationEngine):
         self.integration_engine = integration_engine
-        
+
     async def get_strategy_metrics_for_bakeoff(self, strategy_id: str) -> Dict[str, float]:
         """
         Collect metrics for bake-off composite scoring from all departments.
-        
+
         Returns metrics needed for P-R-E-D-O-F scoring:
         - P: Performance (from CentralAccounting)
         - R: Risk (from CentralAccounting)
@@ -857,14 +858,14 @@ class BakeoffIntegration:
         - F: Fragility (from all departments)
         """
         all_metrics = self.integration_engine.get_all_metrics()
-        
+
         return {
             # Performance metrics
             "reconciled_net_return": all_metrics.get("CentralAccounting.reconciled_net_return", DepartmentMetric(
                 name="reconciled_net_return", department=Department.CENTRAL_ACCOUNTING, value=0, timestamp=datetime.now()
             )).value,
             "sharpe_ratio": 1.2,  # Would calculate from returns
-            
+
             # Risk metrics
             "max_drawdown_pct": all_metrics.get("CentralAccounting.max_drawdown_pct", DepartmentMetric(
                 name="max_drawdown_pct", department=Department.CENTRAL_ACCOUNTING, value=0, timestamp=datetime.now()
@@ -872,7 +873,7 @@ class BakeoffIntegration:
             "daily_loss_pct": all_metrics.get("CentralAccounting.daily_loss_pct", DepartmentMetric(
                 name="daily_loss_pct", department=Department.CENTRAL_ACCOUNTING, value=0, timestamp=datetime.now()
             )).value,
-            
+
             # Execution metrics
             "fill_rate": all_metrics.get("TradingExecution.fill_rate", DepartmentMetric(
                 name="fill_rate", department=Department.TRADING_EXECUTION, value=0.95, timestamp=datetime.now()
@@ -880,7 +881,7 @@ class BakeoffIntegration:
             "slippage_bps_p95": all_metrics.get("TradingExecution.slippage_bps_p95", DepartmentMetric(
                 name="slippage_bps_p95", department=Department.TRADING_EXECUTION, value=10, timestamp=datetime.now()
             )).value,
-            
+
             # Data metrics
             "data_freshness_p95": all_metrics.get("BigBrainIntelligence.data_freshness_p95", DepartmentMetric(
                 name="data_freshness_p95", department=Department.BIGBRAIN_INTELLIGENCE, value=2, timestamp=datetime.now()
@@ -888,26 +889,26 @@ class BakeoffIntegration:
             "source_reliability": all_metrics.get("BigBrainIntelligence.source_reliability", DepartmentMetric(
                 name="source_reliability", department=Department.BIGBRAIN_INTELLIGENCE, value=0.98, timestamp=datetime.now()
             )).value,
-            
+
             # Ops metrics
             "recon_backlog_minutes": all_metrics.get("CentralAccounting.recon_backlog_minutes", DepartmentMetric(
                 name="recon_backlog_minutes", department=Department.CENTRAL_ACCOUNTING, value=2, timestamp=datetime.now()
             )).value,
-            
+
             # Fragility metrics
             "venue_health_score": all_metrics.get("CryptoIntelligence.venue_health_score", DepartmentMetric(
                 name="venue_health_score", department=Department.CRYPTO_INTELLIGENCE, value=0.9, timestamp=datetime.now()
             )).value,
         }
-        
+
     async def check_gate_requirements(self, strategy_id: str, gate: str) -> Dict[str, Any]:
         """
         Check if a strategy meets requirements for a bake-off gate.
-        
+
         Aggregates checks across all relevant departments.
         """
         metrics = await self.get_strategy_metrics_for_bakeoff(strategy_id)
-        
+
         gate_checks = {
             "SPEC": {
                 "hypothesis_documented": True,  # Would check BigBrain
@@ -935,10 +936,10 @@ class BakeoffIntegration:
                 "attribution_done": True,  # Would check CentralAccounting
             },
         }
-        
+
         checks = gate_checks.get(gate, {})
         passed = all(checks.values())
-        
+
         return {
             "gate": gate,
             "strategy_id": strategy_id,
@@ -954,14 +955,14 @@ class BakeoffIntegration:
 
 async def main():
     """Demo the cross-department integration engine."""
-    
+
     # Create and start integration engine
     engine = CrossDepartmentIntegrationEngine()
     await engine.start()
-    
+
     # Wait for initial metrics collection
     await asyncio.sleep(2)
-    
+
     # Get unified health status
     health = await engine.get_unified_health_status()
     logger.info("\n=== UNIFIED HEALTH STATUS ===")
@@ -969,21 +970,21 @@ async def main():
     logger.info(f"Departments: {health['departments_connected']}/{health['total_departments']}")
     logger.info(f"Metrics: {health['metric_count']}")
     logger.info(f"Alerts: {len(health['alerts'])}")
-    
+
     # Get all metrics
     metrics = engine.get_all_metrics()
     logger.info("\n=== ALL METRICS ===")
     for key, metric in metrics.items():
         logger.info(f"  {key}: {metric.value} {metric.unit}")
-    
+
     # Test bake-off integration
     bakeoff = BakeoffIntegration(engine)
-    
+
     logger.info("\n=== BAKE-OFF METRICS ===")
     bakeoff_metrics = await bakeoff.get_strategy_metrics_for_bakeoff("s01_etf_nav")
     for key, value in bakeoff_metrics.items():
         logger.info(f"  {key}: {value}")
-    
+
     logger.info("\n=== GATE CHECK ===")
     gate_result = await bakeoff.check_gate_requirements("s01_etf_nav", "PAPER")
     logger.info(f"Gate: {gate_result['gate']}")
@@ -991,11 +992,11 @@ async def main():
     for check, result in gate_result['checks'].items():
         status = "[OK]" if result else "✗"
         logger.info(f"  {status} {check}")
-    
+
     # Test safety action
     logger.info("\n=== SAFETY ACTION TEST ===")
     await engine.execute_safety_action("A_THROTTLE_RISK")
-    
+
     # Stop engine
     await engine.stop()
 

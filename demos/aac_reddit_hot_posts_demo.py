@@ -5,13 +5,15 @@ This demo shows how to integrate the user's provided PRAW code pattern
 into the AAC arbitrage system for WallStreetBets sentiment analysis.
 """
 
-import praw
-from typing import List, Dict, Any
+import logging
+import os
 from dataclasses import dataclass
 from datetime import datetime
-import os
+from typing import Any, Dict, List
+
+import praw
 from dotenv import load_dotenv
-import logging
+
 logger = logging.getLogger(__name__)
 
 # Load environment variables

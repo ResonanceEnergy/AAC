@@ -3,9 +3,11 @@
 Test World Bank API for AAC arbitrage system
 """
 
+import json
+
 import pytest
 import requests
-import json
+
 
 @pytest.mark.api
 def test_world_bank_api():

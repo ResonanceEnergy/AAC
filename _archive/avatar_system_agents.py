@@ -7,27 +7,29 @@ Two avatars: AZ SUPREME (Strategic Advisor) and AX HELIX (Operations Commander)
 """
 
 import asyncio
-import logging
 import json
-import time
-import threading
-from datetime import datetime, timedelta
-from typing import Dict, List, Any, Optional, Tuple
-from dataclasses import dataclass, field
-from enum import Enum
-import numpy as np
-import sys
-from pathlib import Path
+import logging
 import os
 import random
 import re
+import sys
+import threading
+import time
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
+import numpy as np
 
 # Add project root
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from shared.communication_framework import get_communication_framework
 from shared.super_agent_framework import get_super_agent_core
+
+from shared.communication_framework import get_communication_framework
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

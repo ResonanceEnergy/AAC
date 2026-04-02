@@ -7,10 +7,11 @@ Implementation of the exchange connector for Binance.
 
 import asyncio
 import logging
-from datetime import datetime
-from typing import Dict, List, Optional, Any
 import sys
+from datetime import datetime
 from pathlib import Path
+from typing import Any, Dict, List, Optional
+
 logger = logging.getLogger(__name__)
 
 # Add project root to path
@@ -18,19 +19,19 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from shared.config_loader import get_config
-from shared.utils import with_circuit_breaker, CircuitOpenError
+from shared.utils import CircuitOpenError, with_circuit_breaker
 
 from .base_connector import (
-    BaseExchangeConnector,
-    Ticker,
-    OrderBook,
-    Balance,
-    ExchangeOrder,
-    ExchangeError,
-    ConnectionError,
     AuthenticationError,
+    Balance,
+    BaseExchangeConnector,
+    ConnectionError,
+    ExchangeError,
+    ExchangeOrder,
     InsufficientFundsError,
+    OrderBook,
     OrderError,
+    Ticker,
 )
 
 # Try to import ccxt
@@ -45,7 +46,7 @@ except ImportError:
 class BinanceConnector(BaseExchangeConnector):
     """
     Binance exchange connector using ccxt library.
-    
+
     Supports both mainnet and testnet.
     """
 
@@ -67,7 +68,7 @@ class BinanceConnector(BaseExchangeConnector):
             testnet=testnet,
             rate_limit=rate_limit,
         )
-        
+
         # Load from config if not provided
         if not api_key:
             config = get_config()
@@ -79,12 +80,12 @@ class BinanceConnector(BaseExchangeConnector):
         """Connect to Binance"""
         import time
         start_time = time.time()
-        
+
         if not CCXT_AVAILABLE:
             self.logger.error("ccxt library not installed. Run: pip install ccxt")
             await self._audit_auth("failure", "ccxt library not installed")
             return False
-        
+
         try:
             options = {
                 'apiKey': self.api_key,
@@ -94,7 +95,7 @@ class BinanceConnector(BaseExchangeConnector):
                     'defaultType': 'spot',
                 }
             }
-            
+
             if self.testnet:
                 # Proper testnet configuration for Binance
                 # sandboxMode doesn't work - need to set URLs directly
@@ -111,26 +112,26 @@ class BinanceConnector(BaseExchangeConnector):
                 self.logger.info("Connecting to Binance TESTNET (testnet.binance.vision)")
             else:
                 self.logger.info("Connecting to Binance MAINNET")
-            
+
             self._client = ccxt_async.binance(options)
-            
+
             # For testnet, manually set sandbox mode after creation
             if self.testnet:
                 self._client.set_sandbox_mode(True)
-            
+
             # Test connection
             await self._client.load_markets()
-            
+
             self._connected = True
             self.logger.info(f"Connected to Binance ({'testnet' if self.testnet else 'mainnet'})")
-            
+
             # Audit successful connection
             duration_ms = (time.time() - start_time) * 1000
             await self._audit_api_call("load_markets", "GET", "success", duration_ms)
             await self._audit_auth("success")
-            
+
             return True
-            
+
         except ccxt.AuthenticationError as e:
             self.logger.error(f"Binance authentication failed: {e}")
             await self._audit_auth("failure", str(e))
@@ -152,7 +153,7 @@ class BinanceConnector(BaseExchangeConnector):
     async def get_ticker(self, symbol: str) -> Ticker:
         """Get ticker for symbol"""
         await self._rate_limit_wait()
-        
+
         return await self._get_ticker_with_breaker(symbol)
 
     @with_circuit_breaker("binance_ticker", failure_threshold=5, timeout=30.0)
@@ -177,7 +178,7 @@ class BinanceConnector(BaseExchangeConnector):
     async def get_orderbook(self, symbol: str, limit: int = 20) -> OrderBook:
         """Get order book for symbol"""
         await self._rate_limit_wait()
-        
+
         return await self._get_orderbook_with_breaker(symbol, limit)
 
     @with_circuit_breaker("binance_orderbook", failure_threshold=5, timeout=30.0)
@@ -202,13 +203,13 @@ class BinanceConnector(BaseExchangeConnector):
         if not self._check_credentials():
             self.logger.warning("No API credentials - returning empty balances")
             return {}
-        
+
         await self._rate_limit_wait()
-        
+
         try:
             balance = await self._client.fetch_balance()
             result = {}
-            
+
             for asset, data in balance.get('total', {}).items():
                 if data > 0:
                     result[asset] = Balance(
@@ -216,7 +217,7 @@ class BinanceConnector(BaseExchangeConnector):
                         free=balance.get('free', {}).get(asset, 0),
                         locked=balance.get('used', {}).get(asset, 0),
                     )
-            
+
             return result
         except ccxt.AuthenticationError as e:
             raise AuthenticationError(str(e))
@@ -236,9 +237,9 @@ class BinanceConnector(BaseExchangeConnector):
         """Create a new order on Binance"""
         if not self._check_credentials():
             raise AuthenticationError("API credentials required for trading")
-        
+
         await self._rate_limit_wait()
-        
+
         return await self._create_order_with_breaker(
             symbol, side, order_type, quantity, price, client_order_id
         )
@@ -256,12 +257,12 @@ class BinanceConnector(BaseExchangeConnector):
         """Create order with circuit breaker protection"""
         import time
         start_time = time.time()
-        
+
         try:
             params = {}
             if client_order_id:
                 params['newClientOrderId'] = client_order_id
-            
+
             order = await self._client.create_order(
                 symbol=symbol,
                 type=order_type,
@@ -270,16 +271,16 @@ class BinanceConnector(BaseExchangeConnector):
                 price=price,
                 params=params,
             )
-            
+
             result = self._parse_order(order)
-            
+
             # Audit successful order
             duration_ms = (time.time() - start_time) * 1000
             await self._audit_api_call("create_order", "POST", "success", duration_ms)
             await self._audit_order(symbol, side, order_type, quantity, price, result.order_id, "created")
-            
+
             return result
-            
+
         except CircuitOpenError:
             raise
         except ccxt.InsufficientFunds as e:
@@ -298,9 +299,9 @@ class BinanceConnector(BaseExchangeConnector):
         """Cancel an order"""
         if not self._check_credentials():
             raise AuthenticationError("API credentials required")
-        
+
         await self._rate_limit_wait()
-        
+
         try:
             await self._client.cancel_order(order_id, symbol)
             return True
@@ -315,9 +316,9 @@ class BinanceConnector(BaseExchangeConnector):
         """Get order details"""
         if not self._check_credentials():
             raise AuthenticationError("API credentials required")
-        
+
         await self._rate_limit_wait()
-        
+
         try:
             order = await self._client.fetch_order(order_id, symbol)
             return self._parse_order(order)
@@ -331,9 +332,9 @@ class BinanceConnector(BaseExchangeConnector):
         """Get all open orders"""
         if not self._check_credentials():
             return []
-        
+
         await self._rate_limit_wait()
-        
+
         try:
             orders = await self._client.fetch_open_orders(symbol)
             return [self._parse_order(o) for o in orders]
@@ -346,9 +347,9 @@ class BinanceConnector(BaseExchangeConnector):
         if not self._check_credentials():
             # Return defaults if no credentials
             return {'maker': 0.001, 'taker': 0.001}
-        
+
         await self._rate_limit_wait()
-        
+
         try:
             # Fetch actual trading fees from Binance
             fees = await self._client.fetch_trading_fee(symbol)
@@ -371,29 +372,29 @@ class BinanceConnector(BaseExchangeConnector):
     ) -> ExchangeOrder:
         """
         Create a stop-loss order on Binance.
-        
+
         Uses STOP_LOSS_LIMIT for limit orders or STOP_LOSS for market stops.
         """
         if not self._check_credentials():
             raise AuthenticationError("API credentials required for stop-loss orders")
-        
+
         await self._rate_limit_wait()
-        
+
         import time
         start_time = time.time()
-        
+
         try:
             params = {
                 'stopPrice': stop_price,
             }
             if client_order_id:
                 params['newClientOrderId'] = client_order_id
-            
+
             if limit_price:
                 # Stop-limit order
                 order_type = 'STOP_LOSS_LIMIT'
                 params['timeInForce'] = 'GTC'
-                
+
                 order = await self._client.create_order(
                     symbol=symbol,
                     type=order_type,
@@ -405,7 +406,7 @@ class BinanceConnector(BaseExchangeConnector):
             else:
                 # Stop-market order (uses stop_price as trigger)
                 order_type = 'STOP_LOSS'
-                
+
                 order = await self._client.create_order(
                     symbol=symbol,
                     type=order_type,
@@ -413,20 +414,20 @@ class BinanceConnector(BaseExchangeConnector):
                     amount=quantity,
                     params=params,
                 )
-            
+
             result = self._parse_order(order)
-            
+
             # Audit successful order
             duration_ms = (time.time() - start_time) * 1000
             await self._audit_api_call("create_stop_loss", "POST", "success", duration_ms)
             await self._audit_order(
-                symbol, side, order_type, quantity, limit_price, 
+                symbol, side, order_type, quantity, limit_price,
                 result.order_id, "stop_loss_created"
             )
-            
+
             self.logger.info(f"Stop-loss order created: {result.order_id} @ {stop_price}")
             return result
-            
+
         except ccxt.InsufficientFunds as e:
             await self._audit_order(symbol, side, "stop_loss", quantity, limit_price, None, "failed", str(e))
             raise InsufficientFundsError(str(e))
@@ -451,18 +452,18 @@ class BinanceConnector(BaseExchangeConnector):
     ) -> Dict[str, ExchangeOrder]:
         """
         Create an OCO (One-Cancels-Other) order on Binance.
-        
+
         This creates both a stop-loss and take-profit order, where filling
         one automatically cancels the other.
         """
         if not self._check_credentials():
             raise AuthenticationError("API credentials required for OCO orders")
-        
+
         await self._rate_limit_wait()
-        
+
         import time
         start_time = time.time()
-        
+
         try:
             params = {
                 'stopPrice': stop_price,
@@ -471,7 +472,7 @@ class BinanceConnector(BaseExchangeConnector):
             }
             if client_order_id:
                 params['listClientOrderId'] = client_order_id
-            
+
             # Binance OCO: create_order with type='oco'
             # The 'price' is the take-profit limit price
             order_result = await self._client.create_order(
@@ -482,10 +483,10 @@ class BinanceConnector(BaseExchangeConnector):
                 price=take_profit_price,
                 params=params,
             )
-            
+
             # Parse OCO response - contains multiple orders
             orders = order_result.get('orders', [])
-            
+
             result = {}
             for order in orders:
                 parsed = self._parse_order(order)
@@ -493,7 +494,7 @@ class BinanceConnector(BaseExchangeConnector):
                     result['stop_loss'] = parsed
                 elif order.get('type') == 'LIMIT_MAKER':
                     result['take_profit'] = parsed
-            
+
             # Audit successful OCO
             duration_ms = (time.time() - start_time) * 1000
             await self._audit_api_call("create_oco", "POST", "success", duration_ms)
@@ -501,12 +502,12 @@ class BinanceConnector(BaseExchangeConnector):
                 symbol, side, "oco", quantity, take_profit_price,
                 order_result.get('orderListId', ''), "oco_created"
             )
-            
+
             self.logger.info(
                 f"OCO order created: stop_loss @ {stop_price}, take_profit @ {take_profit_price}"
             )
             return result
-            
+
         except ccxt.InsufficientFunds as e:
             await self._audit_order(symbol, side, "oco", quantity, take_profit_price, None, "failed", str(e))
             raise InsufficientFundsError(str(e))
@@ -526,20 +527,20 @@ class BinanceConnector(BaseExchangeConnector):
     ) -> List[Dict]:
         """
         Get trade history from exchange.
-        
+
         Args:
             symbol: Optional trading pair filter
             since: Optional start time
             limit: Max number of trades to return
-        
+
         Returns:
             List of trade dictionaries
         """
         if not self._check_credentials():
             return []
-        
+
         await self._rate_limit_wait()
-        
+
         try:
             since_ts = int(since.timestamp() * 1000) if since else None
             trades = await self._client.fetch_my_trades(
@@ -547,7 +548,7 @@ class BinanceConnector(BaseExchangeConnector):
                 since=since_ts,
                 limit=limit,
             )
-            
+
             return [
                 {
                     'trade_id': t['id'],
@@ -592,24 +593,24 @@ if __name__ == '__main__':
     async def test():
         """Test."""
         connector = BinanceConnector(testnet=True)
-        
+
         try:
             # Connect (will work without credentials for public data)
             connected = await connector.connect()
             logger.info(f"Connected: {connected}")
-            
+
             if connected:
                 # Get ticker
                 ticker = await connector.get_ticker('BTC/USDT')
                 logger.info(f"BTC/USDT Ticker: bid={ticker.bid}, ask={ticker.ask}, spread={ticker.spread_pct:.4f}%")
-                
+
                 # Get orderbook
                 book = await connector.get_orderbook('BTC/USDT', 5)
                 logger.info(f"Orderbook: {len(book.bids)} bids, {len(book.asks)} asks, mid={book.mid_price}")
-                
+
         except Exception as e:
             logger.info(f"Error: {e}")
         finally:
             await connector.disconnect()
-    
+
     asyncio.run(test())

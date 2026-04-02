@@ -441,13 +441,30 @@ class DataFeedManager:
         return trades
 
     # ═══════════════════════════════════════════════════════════════════════
-    # UNUSUAL WHALES — Flow & Dark Pool
+    # UNUSUAL WHALES — Flow & Dark Pool  (delegates to core async client)
     # ═══════════════════════════════════════════════════════════════════════
+
+    def _run_async(self, coro):
+        """Run an async coroutine synchronously."""
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            loop = None
+        if loop and loop.is_running():
+            import concurrent.futures
+            with concurrent.futures.ThreadPoolExecutor() as pool:
+                return pool.submit(asyncio.run, coro).result(timeout=30)
+        return asyncio.run(coro)
+
+    def _get_uw_client(self):
+        """Lazy-import the canonical UW client."""
+        from integrations.unusual_whales_client import UnusualWhalesClient
+        return UnusualWhalesClient(self._uw_key)
 
     def get_unusual_flow(self, ticker: Optional[str] = None,
                          min_premium: float = 100_000,
                          limit: int = 50) -> List[FlowAlert]:
-        """Fetch unusual options flow from Unusual Whales API."""
+        """Fetch unusual options flow from Unusual Whales API (via core client)."""
         if not self._uw_key:
             return []
 
@@ -455,89 +472,82 @@ class DataFeedManager:
         if cached is not None:
             return cached
 
-        url = "https://api.unusualwhales.com/api/stock/flow"
-        if ticker:
-            url += f"?ticker={ticker}&limit={limit}"
-        else:
-            url += f"?limit={limit}"
+        async def _fetch():
+            async with self._get_uw_client() as client:
+                return await client.get_flow(ticker=ticker, min_premium=min_premium, limit=limit)
 
-        headers = {
-            "Authorization": f"Bearer {self._uw_key}",
-            "User-Agent": "AAC-MatrixMaximizer/1.0",
-        }
-        data = self._http_get(url, headers=headers)
-        alerts: List[FlowAlert] = []
-        if data and "data" in data:
-            for f in data["data"]:
-                premium = float(f.get("premium", 0))
-                if premium < min_premium:
-                    continue
-                alerts.append(FlowAlert(
-                    ticker=f.get("ticker", ""),
-                    strike=float(f.get("strike", 0)),
-                    expiry=f.get("expiry", ""),
-                    option_type=f.get("put_call", "").lower(),
-                    sentiment=f.get("sentiment", "neutral").lower(),
-                    premium=premium,
-                    volume=int(f.get("volume", 0)),
-                    open_interest=int(f.get("open_interest", 0)),
-                ))
+        try:
+            results = self._run_async(_fetch())
+            alerts = [
+                FlowAlert(
+                    ticker=r.ticker,
+                    strike=r.strike,
+                    expiry=r.expiry,
+                    option_type=r.option_type,
+                    sentiment=r.sentiment,
+                    premium=r.premium,
+                    volume=r.volume,
+                    open_interest=r.open_interest,
+                )
+                for r in results
+            ]
+        except Exception as exc:
+            logger.warning("Unusual Whales flow error: %s", exc)
+            alerts = []
 
         self._set_cache(f"flow_{ticker or 'all'}", alerts)
         return alerts
 
     def get_dark_pool(self, ticker: Optional[str] = None,
                       limit: int = 50) -> List[DarkPoolTrade]:
-        """Fetch dark pool prints from Unusual Whales."""
+        """Fetch dark pool prints from Unusual Whales (via core client)."""
         if not self._uw_key:
             return []
 
-        url = "https://api.unusualwhales.com/api/darkpool"
-        if ticker:
-            url += f"?ticker={ticker}&limit={limit}"
-        else:
-            url += f"?limit={limit}"
+        async def _fetch():
+            async with self._get_uw_client() as client:
+                return await client.get_dark_pool(ticker=ticker, limit=limit)
 
-        headers = {
-            "Authorization": f"Bearer {self._uw_key}",
-            "User-Agent": "AAC-MatrixMaximizer/1.0",
-        }
-        data = self._http_get(url, headers=headers)
-        trades: List[DarkPoolTrade] = []
-        if data and "data" in data:
-            for d in data["data"]:
-                trades.append(DarkPoolTrade(
-                    ticker=d.get("ticker", ""),
-                    price=float(d.get("price", 0)),
-                    size=int(d.get("size", 0)),
-                    notional=float(d.get("notional", 0)),
-                    timestamp=d.get("tracking_timestamp", ""),
-                ))
-        return trades
+        try:
+            results = self._run_async(_fetch())
+            return [
+                DarkPoolTrade(
+                    ticker=r.ticker,
+                    price=r.price,
+                    size=r.size,
+                    notional=r.notional,
+                    timestamp=str(r.timestamp),
+                )
+                for r in results
+            ]
+        except Exception as exc:
+            logger.warning("Dark pool error: %s", exc)
+            return []
 
     def get_congress_trades(self, limit: int = 50) -> List[Dict[str, Any]]:
-        """Fetch congressional trading activity from Unusual Whales."""
+        """Fetch congressional trading activity (via core client)."""
         if not self._uw_key:
             return []
 
-        url = f"https://api.unusualwhales.com/api/congress/trading?limit={limit}"
-        headers = {
-            "Authorization": f"Bearer {self._uw_key}",
-            "User-Agent": "AAC-MatrixMaximizer/1.0",
-        }
-        data = self._http_get(url, headers=headers)
-        if data and "data" in data:
+        async def _fetch():
+            async with self._get_uw_client() as client:
+                return await client.get_congress_trades(limit=limit)
+
+        try:
+            trades = self._run_async(_fetch())
             return [
                 {
-                    "politician": t.get("politician", ""),
+                    "politician": t.get("name", t.get("reporter", "")),
                     "ticker": t.get("ticker", ""),
-                    "type": t.get("type", ""),
-                    "amount": t.get("amount", ""),
-                    "date": t.get("transaction_date", ""),
+                    "type": t.get("txn_type", t.get("type", "")),
+                    "amount": t.get("amounts", t.get("amount", "")),
+                    "date": t.get("transaction_date", t.get("date", "")),
                 }
-                for t in data["data"][:limit]
+                for t in trades
             ]
-        return []
+        except Exception as exc:
+            logger.warning("Congress trades error: %s", exc)
+            return []
 
     # ═══════════════════════════════════════════════════════════════════════
     # AGGREGATED PRICE + OVERRIDE RESOLUTION

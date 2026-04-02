@@ -42,8 +42,8 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from strategies.storm_lifeboat.core import (
-    Asset,
     DEFAULT_PRICES,
+    Asset,
     MoonPhase,
     ScenarioStatus,
     VolRegime,

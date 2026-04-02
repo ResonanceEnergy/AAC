@@ -1,27 +1,46 @@
 # Current State
 
-Date: 2026-03-16
+Date: 2026-04-10
 Repo: AAC
 Branch: `main`
 Workspace: `c:\dev\AAC_fresh`
-Python: `.venv\Scripts\python.exe`
+Python: 3.12 via `.venv\Scripts\python.exe`
+Version: 3.6.0 (pyproject.toml)
 
-Operational summary:
-- Core targeted Pylance/error cleanup completed in IBKR connector, monitoring dashboard, continuous monitoring, and crypto venue health paths.
-- Real implementation gaps were rescanned locally after subagent rate limiting.
-- Fixable gaps found in this pass were resolved.
-- Remaining scanner hits are mostly intentional abstract base-class patterns, test-template placeholders, or explicit simulation code.
+## Operational Summary
 
-Current technical position:
-- Direct local scanning is the preferred workflow when remote agent rate limits appear.
-- `.context/` is the canonical repo-local context system for future sessions.
-- Workspace extension recommendations live in `.vscode/extensions.json`.
-- Unusual Whales is now exposed as a first-class integration with env support, package export, validator script, and runbook.
-- Doctrine pack registration is now centralized in `aac/doctrine/pack_registry.py`; Packs 9-10 and 11 are first-class in the live registry, though future work is still needed if external YAML-backed pack config is desired.
-- External doctrine config now exists at `config/doctrine_packs.yaml`, generated from the live registry by `tools/export_doctrine_packs.py`.
-- Unusual Whales now has a cached operational snapshot service in `integrations/unusual_whales_service.py` and is wired into both FFD and the master monitoring dashboard with graceful no-key behavior.
+AAC is in **LIVE TRADING** mode with real money positions on IBKR.
 
-Immediate next-entry files:
-- `../07_gaps/gap-scan-2026-03-16.md`
-- `../08_runbooks/developer-workflow.md`
-- `../09_tests/test-commands.md`
+### What's Running
+- IBKR: 8 live put positions ($910 invested) — ARCC, PFF, LQD, EMB, MAIN, JNK, KRE, IWM
+- Moomoo: Real mode, FUTUCA, $365.15 USD — options approval pending
+- WealthSimple TFSA: Roll-down plan created (C$614 budget, Apr→Jul)
+- Matrix Monitor: 4 display modes, 20+ panels
+- Doctrine Engine: 12 packs, 4-state machine
+- 7 strategies wired to unified integrator (War Room, Storm Lifeboat, Matrix Maximizer, Exploitation Matrix, Polymarket BlackSwan, BlackSwan Authority, PolyMC)
+
+### What's Broken
+- Unusual Whales: Key works but field parsing broken (API schema changed — strike/premium/$0)
+- CoinGecko: Pro key expired → auto-downgrades to free tier (10 req/min)
+- Polygon: Free tier can't do options snapshots (403)
+- X/Twitter: HTTP 402 (needs paid tier)
+
+### Context System (NEW as of 2026-04-10)
+- `.github/copilot-instructions.md` — AUTO-READ by Copilot, master guardrails
+- `AGENTS.md` (root) — behavioral rules for AI agents
+- `.context/STATUS.md` — living status dashboard (single source of truth)
+- `.context/` 10-folder system — durable project context
+- Root directory has 170+ items — cleanup to `_scratch/` planned
+
+### Architecture Rework v3.3
+- Phase 1: Wire 7 strategies — DONE
+- Phase 2: Fix MI gap — DONE
+- Phase 3-7: Strategy Advisor, Doctrine rework, NCL relay, Monitor display, Connector alignment — PLANNED
+
+## Entry Points
+- **Start here:** `.github/copilot-instructions.md` → then this file → then `../STATUS.md`
+- **What's broken:** `../STATUS.md`
+- **Active work:** `../04_workstreams/active-workstreams.md`
+- **Gap analysis:** `../07_gaps/gap-scan-2026-03-16.md`
+- **Developer workflow:** `../08_runbooks/developer-workflow.md`
+- **Test commands:** `../09_tests/test-commands.md`

@@ -15,19 +15,19 @@ This shows how the 50 defined strategies can be converted to real trading algori
 import asyncio
 import logging
 import sys
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent))
 
+from shared.audit_logger import AuditLogger
+from shared.communication import CommunicationFramework
 from shared.market_data_connector import (
+    MarketData,
     initialize_market_data_system,
     market_data_manager,
-    MarketData
 )
-from shared.communication import CommunicationFramework
-from shared.audit_logger import AuditLogger
 from shared.strategy_execution_engine import get_strategy_execution_engine
 from shared.strategy_integrator import get_strategy_integrator
 

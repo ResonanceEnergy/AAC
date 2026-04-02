@@ -7,13 +7,13 @@ Simple launcher script for the AAC Multi-Subreddit Continuous Scraper.
 Provides easy start/stop functionality and basic monitoring.
 """
 
+import logging
 import os
-import sys
-import time
 import signal
 import subprocess
+import sys
+import time
 from datetime import datetime
-import logging
 
 # Configure logging
 logging.basicConfig(
@@ -33,8 +33,8 @@ class RedditScraperLauncher:
     def check_dependencies(self):
         """Check if required dependencies are installed"""
         try:
-            import praw
             import apscheduler
+            import praw
             import textblob
             logger.info("✅ All dependencies are installed")
             return True

@@ -11,11 +11,11 @@ Usage:
 """
 
 import importlib
+import logging
 import os
 import platform
 import sys
 from pathlib import Path
-import logging
 
 logger = logging.getLogger(__name__)
 

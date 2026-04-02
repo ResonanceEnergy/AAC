@@ -17,12 +17,12 @@ From BARREN WUFFET Insights (686-720):
   - Time-weighted average pricing (TWAP) reduces manipulation
 """
 
+import hashlib
+import logging
 from dataclasses import dataclass, field
+from datetime import datetime
 from enum import Enum
 from typing import Dict, List, Optional, Tuple
-import logging
-import hashlib
-from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -135,14 +135,14 @@ class MEVDashboard:
 class SandwichDetector:
     """
     Detect sandwich attacks in DEX transactions.
-    
+
     A sandwich attack works:
       1. Bot sees victim's pending swap in mempool
       2. Bot frontrun: buy the token (pushes price up)
       3. Victim's swap executes at worse price
       4. Bot backrun: sell the token at higher price
       5. Bot profits from price impact
-    
+
     Detection heuristics:
       - Same token pair, 3 txs in tight block sequence
       - Frontrun+backrun from same address (or linked addresses)
@@ -159,7 +159,7 @@ class SandwichDetector:
     ) -> Optional[SandwichDetection]:
         """
         Analyze transactions in a block for sandwich patterns.
-        
+
         Each tx in txs_in_block should have:
           - hash, from_addr, to_addr, token_in, token_out,
           - amount_in, amount_out, gas_price, tx_index
@@ -233,7 +233,7 @@ class SandwichDetector:
 class TransactionProtectionEngine:
     """
     Analyze pending transactions and generate protection plans.
-    
+
     Protection strategies ranked by effectiveness:
       1. Private RPC (Flashbots Protect) — removes from public mempool
       2. Low slippage tolerance (0.3-0.5%) — limits extraction
@@ -367,12 +367,12 @@ class TransactionProtectionEngine:
 class FlashbotsGuide:
     """
     Reference guide for Flashbots integration patterns.
-    
+
     Flashbots Protect: Private transaction submission
       - Transactions go directly to block builders, skipping public mempool
       - Free to use — just change RPC endpoint
       - Supports MEV-Share for kickback redistribution
-    
+
     Integration methods:
       1. RPC endpoint: https://rpc.flashbots.net (simple)
       2. eth_sendPrivateTransaction API call
@@ -445,7 +445,7 @@ w3 = Web3(Web3.HTTPProvider('{cls.FLASHBOTS_RPC}'))
 class MEVAwareDEXRouter:
     """
     Smart order routing that accounts for MEV exposure.
-    
+
     Principles:
       - Split large orders across pools to reduce impact
       - Route through pools with deepest liquidity

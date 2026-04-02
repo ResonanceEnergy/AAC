@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, date
+from datetime import date, datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -848,7 +848,7 @@ _RAW_CORRELATIONS: Dict[Tuple[Asset, Asset], float] = {
 }
 
 
-def build_correlation_matrix() -> "np.ndarray":
+def build_correlation_matrix() -> Any:
     """Build symmetric 18x18 correlation matrix from pairwise dict."""
     import numpy as np
     n = len(ASSET_ORDER)

@@ -21,15 +21,15 @@ Usage:
     python aac_master_launcher.py --service-only     # Monitoring service only
 """
 
-import asyncio
 import argparse
+import asyncio
 import logging
 import signal
 import sys
+from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Any, Optional
-from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional
 
 # Add project root to path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -196,7 +196,7 @@ class AACMasterLauncher:
     async def _launch_executive_agents(self):
         """Launch AZ SUPREME and AX HELIX executive oversight agents"""
         try:
-            from shared.executive_branch_agents import get_az_supreme, get_ax_helix
+            from shared.executive_branch_agents import get_ax_helix, get_az_supreme
             az_supreme = await get_az_supreme()
             ax_helix = await get_ax_helix()
             self.status.agents_active += 2
@@ -265,7 +265,7 @@ class AACMasterLauncher:
             self.monitoring_system = monitoring_service
 
             # Start master monitoring dashboard
-            from monitoring.aac_master_monitoring_dashboard import get_master_dashboard, DisplayMode
+            from monitoring.aac_master_monitoring_dashboard import DisplayMode, get_master_dashboard
             dashboard = get_master_dashboard(DisplayMode.TERMINAL)
             asyncio.create_task(dashboard.start_monitoring())
             self.monitoring_dashboard = dashboard
@@ -356,10 +356,12 @@ class AACMasterLauncher:
     async def _launch_openclaw(self):
         """Connect to OpenClaw Gateway for multi-channel messaging."""
         try:
-            from integrations.openclaw_gateway_bridge import (
-                OpenClawGatewayBridge, OpenClawCronJob,
-            )
             import os as _os
+
+            from integrations.openclaw_gateway_bridge import (
+                OpenClawCronJob,
+                OpenClawGatewayBridge,
+            )
             gateway_url = _os.getenv("OPENCLAW_GATEWAY_URL", "ws://127.0.0.1:18789")
             self._openclaw = OpenClawGatewayBridge(gateway_url=gateway_url)
             connected = await self._openclaw.connect()
@@ -494,8 +496,12 @@ class AACMasterLauncher:
         logger.info(f"Display Mode: {display_mode}")
 
         try:
-            from monitoring.aac_master_monitoring_dashboard import get_master_dashboard, DisplayMode, run_streamlit_dashboard
-            
+            from monitoring.aac_master_monitoring_dashboard import (
+                DisplayMode,
+                get_master_dashboard,
+                run_streamlit_dashboard,
+            )
+
             # Map string to DisplayMode enum
             mode_map = {
                 'terminal': DisplayMode.TERMINAL,
@@ -504,17 +510,17 @@ class AACMasterLauncher:
                 'api': DisplayMode.API
             }
             dashboard_mode = mode_map.get(display_mode, DisplayMode.TERMINAL)
-            
+
             if dashboard_mode == DisplayMode.WEB:
                 # For web mode, run Streamlit directly
                 import subprocess
                 import sys
+                import threading
                 import time
                 import webbrowser
-                import threading
-                
+
                 logger.info("Starting Streamlit dashboard on http://localhost:8080")
-                
+
                 # Function to open browser after a short delay
                 def open_browser():
                     """Open browser."""
@@ -525,11 +531,11 @@ class AACMasterLauncher:
                     except Exception as e:
                         logger.warning(f"Could not open browser automatically: {e}")
                         logger.info("Please manually open: http://localhost:8080")
-                
+
                 # Start browser opener in background thread
                 browser_thread = threading.Thread(target=open_browser, daemon=True)
                 browser_thread.start()
-                
+
                 # Run Streamlit server (blocking call)
                 subprocess.run([sys.executable, "-m", "streamlit", "run", "monitoring/aac_master_monitoring_dashboard.py", "--server.port", "8080", "--server.headless", "true"])
             else:

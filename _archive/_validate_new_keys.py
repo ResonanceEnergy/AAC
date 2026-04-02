@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 """Validate newly added API keys."""
+import json
 import os
 import sys
-import urllib.request
 import urllib.error
-import json
+import urllib.request
 from pathlib import Path
 
 sys.path.insert(0, ".")
 from shared.config_loader import load_env_file
+
 load_env_file()
 
 results = []

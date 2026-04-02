@@ -12,8 +12,8 @@ Integrates with the existing DoctrineEngine as a department adapter
 following the same pattern as CryptoIntelligenceDoctrineAdapter.
 """
 
-import logging
 import asyncio
+import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
@@ -22,7 +22,6 @@ from typing import Any, Dict, List, Optional
 logger = logging.getLogger("FFDEngine")
 
 from integrations.unusual_whales_service import get_unusual_whales_snapshot_service
-
 
 # ═══════════════════════════════════════════════════════════════════════════
 # FFD ENUMS

@@ -1,6 +1,7 @@
 """Unit tests for strategies.strategy_implementation_factory — StrategyImplementationFactory."""
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
 
 
 class TestStrategyImplementationFactory:

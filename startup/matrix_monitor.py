@@ -33,7 +33,8 @@ def launch_terminal(port: int = 8501) -> int:
     logger.info("  Starting Matrix Monitor — terminal mode ...")
     try:
         from monitoring.aac_master_monitoring_dashboard import (
-            get_master_dashboard, DisplayMode,
+            DisplayMode,
+            get_master_dashboard,
         )
         dashboard = get_master_dashboard(DisplayMode.TERMINAL)
         asyncio.run(dashboard.start_monitoring())
@@ -71,7 +72,8 @@ def launch_dash(port: int = 8502) -> int:
     logger.info(f"  Starting Matrix Monitor — Dash on port {port} ...")
     try:
         from monitoring.aac_master_monitoring_dashboard import (
-            get_master_dashboard, DisplayMode,
+            DisplayMode,
+            get_master_dashboard,
         )
         dashboard = get_master_dashboard(DisplayMode.DASH)
         if hasattr(dashboard, "initialize"):

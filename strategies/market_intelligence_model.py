@@ -39,7 +39,7 @@ import json
 import logging
 import math
 import os
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timedelta, timezone
 from enum import Enum
 from pathlib import Path
@@ -344,8 +344,8 @@ class EventIngestor:
             for alert in alerts:
                 ticker = alert.get("ticker", "").upper()
                 sector = ticker_to_sector(ticker)
-                opt_type = alert.get("option_type", "").lower()  # 'call' or 'put'
-                total_val = float(alert.get("total_value", 0) or 0)
+                opt_type = alert.get("type", alert.get("option_type", "")).lower()  # 'call' or 'put'
+                total_val = float(alert.get("total_premium", alert.get("total_value", 0)) or 0)
                 bearish_bearish = opt_type == "put"
                 # Ignore tiny prints
                 if total_val < 100_000:
@@ -380,11 +380,18 @@ class EventIngestor:
         except Exception:
             return events
         for p in prints:
-            ticker = p.get("ticker", "").upper()
+            if isinstance(p, dict):
+                ticker = p.get("ticker", "").upper()
+                size = float(p.get("size", 0) or 0)
+                price = float(p.get("price", 0) or 0)
+                notional = float(p.get("premium", 0) or 0) or (size * price)
+            else:
+                # DarkPoolTrade dataclass from client
+                ticker = p.ticker.upper() if p.ticker else ""
+                size = float(p.size)
+                price = float(p.price)
+                notional = float(p.notional) if p.notional else (size * price)
             sector = ticker_to_sector(ticker)
-            size = float(p.get("size", 0) or 0)
-            price = float(p.get("price", 0) or 0)
-            notional = size * price
             if notional < 500_000:
                 continue
             # Dark pool = institutional; assume bearish lean in current regime
@@ -418,7 +425,7 @@ class EventIngestor:
         try:
             from integrations.unusual_whales_client import UnusualWhalesClient
             async with UnusualWhalesClient(self._uw_key) as client:
-                headlines = await client.get_news_headlines(limit=limit)
+                headlines = await client.get_news_headlines(ticker="SPY", limit=limit)
         except Exception:
             return events
         for h in headlines:
@@ -729,8 +736,9 @@ class EventIngestor:
         HIGH_IMPACT = ["fomc", "fed", "cpi", "nfp", "nonfarm", "gdp", "pce",
                         "inflation", "jobs", "unemployment", "rate decision"]
         try:
-            from integrations.finnhub_client import FinnhubClient
             from datetime import date, timedelta
+
+            from integrations.finnhub_client import FinnhubClient
             client = FinnhubClient()
             today = date.today()
             events_raw = await client.get_economic_calendar(
@@ -1919,7 +1927,7 @@ class PositionAdvisor:
     ) -> List[PositionRecommendation]:
         """Generate top-N position recommendations with full entry/exit params."""
         try:
-            from strategies.stock_forecaster import StockForecaster, Horizon
+            from strategies.stock_forecaster import Horizon, StockForecaster
             forecaster = StockForecaster()
             forecast = forecaster.forecast(regime_state, Horizon.SHORT, top_n=top_n)
             opportunities = forecast.opportunities
@@ -2408,7 +2416,7 @@ class MarketIntelligenceModel:
         """
         logger.info("[WEEKLY] Starting macro thesis + deep NCL sync")
         try:
-            from strategies.stock_forecaster import StockForecaster, Horizon
+            from strategies.stock_forecaster import Horizon, StockForecaster
             if self._current_regime:
                 fc = StockForecaster()
                 medium_plan = fc.forecast(self._current_regime, Horizon.MEDIUM, top_n=5)
@@ -2438,8 +2446,8 @@ class MarketIntelligenceModel:
             try:
                 regime_val = self._current_regime.primary_regime.value
                 regime_conf = float(self._current_regime.regime_confidence)
-            except Exception:
-                pass
+            except (AttributeError, TypeError, ValueError) as e:
+                self._log.warning("Failed to read regime state: %s", e)
 
         # Collect latest crypto-specific event signals for NCL context
         crypto_signals: List[Dict[str, Any]] = []
@@ -2561,7 +2569,7 @@ class MarketIntelligenceModel:
     async def _refresh_regime(self) -> None:
         """Build a MacroSnapshot from env vars and re-run RegimeEngine."""
         try:
-            from strategies.regime_engine import RegimeEngine, MacroSnapshot
+            from strategies.regime_engine import MacroSnapshot, RegimeEngine
 
             def _f(key: str, default: Optional[float] = None) -> Optional[float]:
                 val = os.environ.get(key)

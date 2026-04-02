@@ -29,17 +29,17 @@ from typing import Any, Dict, List, Optional
 import numpy as np
 
 from strategies.matrix_maximizer.core import (
-    Asset,
-    AssetForecast,
     ASSET_OIL_BETAS,
     ASSET_VOLATILITIES,
     CORRELATION_MATRIX,
     DEFAULT_PRICES,
-    MatrixConfig,
+    SCENARIO_DRIFTS,
+    Asset,
+    AssetForecast,
     MandateLevel,
+    MatrixConfig,
     PortfolioForecast,
     Scenario,
-    SCENARIO_DRIFTS,
     ScenarioWeights,
     SystemMandate,
 )

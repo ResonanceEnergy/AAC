@@ -24,8 +24,8 @@ import logging
 import os
 import threading
 import time
-from datetime import datetime, timedelta
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 from zoneinfo import ZoneInfo
 
@@ -312,8 +312,8 @@ class PreMarketScanner:
         """Run the Options Intelligence pipeline with current crisis assessment."""
         try:
             from strategies.macro_crisis_put_strategy import (
-                CrisisMonitor,
                 CrisisAssessment,
+                CrisisMonitor,
             )
 
             # Get current crisis assessment

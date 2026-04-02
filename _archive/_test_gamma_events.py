@@ -1,5 +1,6 @@
 """Test Gamma events endpoint — looks like the best source of live markets."""
 import asyncio
+
 import aiohttp
 
 GAMMA = "https://gamma-api.polymarket.com"

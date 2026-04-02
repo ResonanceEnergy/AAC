@@ -4,10 +4,10 @@ Free Worldwide API Quick Setup for AAC
 Helps you configure the best free worldwide APIs for arbitrage trading.
 """
 
+import logging
 import os
 import sys
 from pathlib import Path
-import logging
 
 logger = logging.getLogger(__name__)
 

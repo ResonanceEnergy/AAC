@@ -34,25 +34,26 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
+from CentralAccounting.database import AccountingDatabase
+from integrations.cross_pillar_hub import get_cross_pillar_hub
+
 # ── Imports from our working modules ──────────────────────────────────
 from shared.config_loader import get_config, get_project_path
-from shared.data_sources import DataAggregator, MarketTick, CoinGeckoClient
+from shared.data_sources import CoinGeckoClient, DataAggregator, MarketTick
 from strategies.golden_ratio_finance import (
+    FibLevel,
     FibonacciCalculator,
+    HarmonicPattern,
     fractal_compression_index,
     phase_conjugation_score,
-    FibLevel,
-    HarmonicPattern,
 )
 from TradingExecution.execution_engine import (
     ExecutionEngine,
     OrderSide,
-    OrderType,
     OrderStatus,
+    OrderType,
     PositionStatus,
 )
-from CentralAccounting.database import AccountingDatabase
-from integrations.cross_pillar_hub import get_cross_pillar_hub
 
 # ── Logging ───────────────────────────────────────────────────────────
 logging.basicConfig(
@@ -199,8 +200,8 @@ class FibSignalGenerator:
             "confidence": round(confidence, 3),
             "reason": " | ".join(reasons),
             "fib_levels": [
-                {"ratio": l.ratio, "price": l.price, "label": l.label}
-                for l in fib_result.retracements
+                {"ratio": lvl.ratio, "price": lvl.price, "label": lvl.label}
+                for lvl in fib_result.retracements
             ],
             "compression": round(compression, 2),
             "nearest_support": nearest_support,
@@ -228,8 +229,8 @@ class FibSignalGenerator:
         self, price: float, levels: List[FibLevel]
     ) -> Tuple[float, float]:
         """Find nearest support (below) and resistance (above)."""
-        below = [l.price for l in levels if l.price <= price]
-        above = [l.price for l in levels if l.price > price]
+        below = [lvl.price for lvl in levels if lvl.price <= price]
+        above = [lvl.price for lvl in levels if lvl.price > price]
 
         nearest_support = max(below) if below else levels[0].price
         nearest_resistance = min(above) if above else levels[-1].price
@@ -631,7 +632,7 @@ async def run_pipeline():
 # ════════════════════════════════════════════════════════════════════════
 
 def run_matrix_maximizer(
-    account: float = 920.0,
+    account: float = 0,  # 0 = auto-load from central config
     oil: float | None = None,
     vix: float | None = None,
 ) -> dict:
@@ -645,8 +646,12 @@ def run_matrix_maximizer(
     Returns:
         Full cycle result dict
     """
-    from strategies.matrix_maximizer.runner import MatrixMaximizer
     from strategies.matrix_maximizer.core import MatrixConfig
+    from strategies.matrix_maximizer.runner import MatrixMaximizer
+
+    if account <= 0:
+        from config.account_balances import Balances
+        account = Balances.ibkr_total()
 
     config = MatrixConfig(account_size=account)
     mm = MatrixMaximizer(config)

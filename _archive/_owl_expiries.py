@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Check ALL available OWL option expiration dates on Moomoo."""
-import sys, io
+import io
+import sys
+
 if hasattr(sys.stdout, "buffer") and sys.stdout.encoding.lower() != "utf-8":
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 

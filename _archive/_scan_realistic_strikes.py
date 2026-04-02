@@ -3,11 +3,13 @@
 Scan realistic option pricing for capital engine thesis on Moomoo.
 Adjusted strikes to match current market + $900 budget.
 """
-import sys, io
+import io
+import sys
+
 if hasattr(sys.stdout, "buffer") and sys.stdout.encoding.lower() != "utf-8":
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
-from moomoo import OpenQuoteContext, RET_OK
+from moomoo import RET_OK, OpenQuoteContext
 
 qctx = OpenQuoteContext(host="127.0.0.1", port=11111)
 

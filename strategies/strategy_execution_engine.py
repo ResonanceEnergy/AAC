@@ -15,16 +15,17 @@ CRITICAL GAP RESOLUTION: Strategy Execution Logic
 import asyncio
 import json
 import logging
-import numpy as np
-import pandas as pd
-from datetime import datetime, timedelta
-from typing import Dict, List, Any, Optional, Tuple, Callable
-from dataclasses import dataclass, field
-from enum import Enum
-from pathlib import Path
-import sys
 import math
 import random
+import sys
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from enum import Enum
+from pathlib import Path
+from typing import Any, Callable, Dict, List, Optional, Tuple
+
+import numpy as np
+import pandas as pd
 
 logger = logging.getLogger(__name__)
 
@@ -77,11 +78,11 @@ except ImportError:
             self._logger.info(f"Fallback engine: paper order submitted ({getattr(order, 'symbol', '?')})")
             return True
 
-from shared.config_loader import get_config
 from shared.audit_logger import get_audit_logger
-from shared.strategy_loader import get_strategy_loader, StrategyConfig, StrategyCategory
+from shared.config_loader import get_config
 from shared.market_data_feeds import get_market_data_feed
-from shared.strategy_enums import StrategySignal, StrategyExecutionMode
+from shared.strategy_enums import StrategyExecutionMode, StrategySignal
+from shared.strategy_loader import StrategyCategory, StrategyConfig, get_strategy_loader
 
 # Lazy imports to break circular dependency: strategies/ <-> trading/
 # get_order_generator, ValidatedOrder, OrderValidationResult imported inside methods
@@ -642,7 +643,9 @@ class StrategyExecutionEngine:
         """Turn of month arbitrage algorithm"""
         try:
             symbols = ["SPY", "QQQ"]
-            symbol = random.choice(symbols)
+            seed = int(datetime.now().timestamp()) // 300
+            rng = random.Random(seed + hash('tom'))
+            symbol = rng.choice(symbols)
 
             current_date = datetime.now().date()
             days_from_month_end = (current_date.replace(day=1) - timedelta(days=1)).day - current_date.day
@@ -758,6 +761,18 @@ class StrategyExecutionEngine:
     async def _generic_event_arbitrage_algorithm(self) -> Optional[StrategyTradeSignal]:
         """Generic event-driven arbitrage algorithm"""
         return await self._earnings_arbitrage_algorithm()
+
+    async def _index_reconstitution_arbitrage_algorithm(self) -> Optional[StrategyTradeSignal]:
+        """Index reconstitution arbitrage algorithm"""
+        return await self._closing_auction_arbitrage_algorithm()
+
+    async def _index_inclusion_arbitrage_algorithm(self) -> Optional[StrategyTradeSignal]:
+        """Index inclusion arbitrage algorithm"""
+        return await self._closing_auction_arbitrage_algorithm()
+
+    async def _volatility_dispersion_arbitrage_algorithm(self) -> Optional[StrategyTradeSignal]:
+        """Volatility dispersion arbitrage algorithm"""
+        return await self._variance_risk_premium_arbitrage_algorithm()
 
     async def _generic_seasonal_arbitrage_algorithm(self) -> Optional[StrategyTradeSignal]:
         """Generic seasonal arbitrage algorithm"""

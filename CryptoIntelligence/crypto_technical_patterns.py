@@ -18,12 +18,12 @@ From BARREN WUFFET Insights (721-810):
   - Crypto market hours matter: Asian session vs US session behavior differs
 """
 
-from dataclasses import dataclass, field
-from enum import Enum
-from typing import Dict, List, Optional, Tuple
 import logging
 import math
+from dataclasses import dataclass, field
 from datetime import datetime
+from enum import Enum
+from typing import Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -148,13 +148,13 @@ class CryptoTASignal:
 class FundingRateAnalyzer:
     """
     Analyze perpetual futures funding rates.
-    
+
     Funding Rate Mechanics:
       - Perpetual futures have no expiry, so funding keeps price near spot
       - Positive funding: longs pay shorts (bullish consensus)
       - Negative funding: shorts pay longs (bearish consensus)
       - Rates settle every 8 hours (Binance) or 1 hour (some DEXs)
-    
+
     Trading signals:
       - Extreme positive funding → contrarian sell (too many longs)
       - Extreme negative funding → contrarian buy (too many shorts)
@@ -238,7 +238,7 @@ class FundingRateAnalyzer:
 class OpenInterestAnalyzer:
     """
     Track open interest dynamics and divergences.
-    
+
     Key patterns:
       - Rising OI + rising price = new money entering longs (bullish confirmation)
       - Rising OI + falling price = new shorts opening (bearish)
@@ -308,14 +308,14 @@ class OpenInterestAnalyzer:
 class LiquidationCascadeDetector:
     """
     Detect and analyze liquidation cascades.
-    
+
     Liquidation cascade mechanics:
       1. Price moves toward cluster of leveraged positions
       2. Positions get liquidated → forced market sells
       3. Forced selling pushes price further → more liquidations
       4. Cascade continues until liquidity absorbs the flow
       5. Often creates V-shaped reversal (liquidation wick)
-    
+
     Key levels to watch:
       - Binance liquidation heatmap levels
       - Aggregate OI * leverage * position size at each level
@@ -382,12 +382,12 @@ class LiquidationCascadeDetector:
 class DominanceRotationAnalyzer:
     """
     Track BTC dominance and sector rotation patterns.
-    
+
     Crypto rotation cycle (typical):
       BTC pumps → ETH catches up → Large cap alts run →
       Mid caps explode → Micro cap mania → Everything crashes →
       Capital returns to BTC → Repeat
-    
+
     BTC Dominance levels:
       >65% = BTC season, not alt season yet
       55-65% = Transition zone
@@ -475,10 +475,10 @@ class DominanceRotationAnalyzer:
 class CryptoPatternDetector:
     """
     Crypto-specific patterns that differ from traditional markets.
-    
+
     Unique patterns:
       - CME gap fills (78% fill rate within 1 week)
-      - Weekend gap fills 
+      - Weekend gap fills
       - Hash ribbon buy signal (100% historical accuracy for BTC)
       - VPVR gap fills (85%+ fill rate in crypto)
       - Liquidation wicks / V-reversals
@@ -589,7 +589,8 @@ if __name__ == "__main__":
     logger.info(f"  Regime: {fr.regime.value}")
     logger.info(f"  Signal: {fr.signal}")
     logger.info(f"  Carry Trade: {fr.carry_trade_viable}")
-    for n in fr.notes: print(f"  → {n}")
+    for n in fr.notes:
+        print(f"  → {n}")
 
     # Open Interest
     oi = OpenInterestAnalyzer.analyze(
@@ -605,7 +606,8 @@ if __name__ == "__main__":
     logger.info(f"  OI: ${oi.total_oi_usd/1e9:.1f}B | 24h: {oi.oi_change_24h_pct:+.1f}%")
     logger.info(f"  L/S Ratio: {oi.long_short_ratio}")
     logger.info(f"  Divergence: {oi.divergence_type}")
-    for n in oi.notes: print(f"  → {n}")
+    for n in oi.notes:
+        print(f"  → {n}")
 
     # Liquidation Cascade
     liq = LiquidationCascadeDetector.analyze_event(
@@ -623,7 +625,8 @@ if __name__ == "__main__":
     logger.info(f"  Volume: ${liq.total_volume_usd/1e6:.0f}M")
     logger.info(f"  Cascade: {liq.is_cascade}")
     logger.info(f"  Recovery Prob: {liq.recovery_probability}%")
-    for n in liq.notes: print(f"  → {n}")
+    for n in liq.notes:
+        print(f"  → {n}")
 
     # Dominance
     dom = DominanceRotationAnalyzer.analyze(
@@ -636,4 +639,5 @@ if __name__ == "__main__":
     logger.info(f"  Phase: {dom.phase.value}")
     logger.info(f"  Alt Season Index: {dom.alt_season_index}/100")
     logger.info(f"  Rotation: {dom.rotation_targets}")
-    for n in dom.notes: print(f"  → {n}")
+    for n in dom.notes:
+        print(f"  → {n}")
