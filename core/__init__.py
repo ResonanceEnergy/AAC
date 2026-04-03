@@ -25,18 +25,6 @@ except ImportError:
     AAC2100Orchestrator = None  # type: ignore[assignment,misc]
     OrchestratorState = None  # type: ignore[assignment,misc]
 
-# ── Command Center (heavy — depends on shared infra) ───────────────────
-try:
-    from .command_center import (
-        AACCommandCenter,
-        AvatarPersonality,
-        CommandCenterMode,
-    )
-except ImportError:
-    AACCommandCenter = None  # type: ignore[assignment,misc]
-    AvatarPersonality = None  # type: ignore[assignment,misc]
-    CommandCenterMode = None  # type: ignore[assignment,misc]
-
 # ── Other core modules ─────────────────────────────────────────────────
 try:
     from .aac_automation_engine import AACAutomationEngine
@@ -48,26 +36,9 @@ try:
 except ImportError:
     AACMasterLauncher = None  # type: ignore[assignment,misc]
 
-try:
-    from .acc_advanced_state import ACC_AdvancedState, GlobalStateManager
-except ImportError:
-    ACC_AdvancedState = None  # type: ignore[assignment,misc]
-    GlobalStateManager = None  # type: ignore[assignment,misc]
-
-try:
-    from .command_center_interface import CommandCenterInterface
-except ImportError:
-    CommandCenterInterface = None  # type: ignore[assignment,misc]
-
 __all__ = [
     "AAC2100Orchestrator",
     "OrchestratorState",
-    "AACCommandCenter",
-    "AvatarPersonality",
-    "CommandCenterMode",
     "AACAutomationEngine",
     "AACMasterLauncher",
-    "ACC_AdvancedState",
-    "GlobalStateManager",
-    "CommandCenterInterface",
 ]
