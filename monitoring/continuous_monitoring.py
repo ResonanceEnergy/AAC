@@ -450,6 +450,9 @@ class ContinuousMonitoringService:
         # Check Storm Lifeboat scenario alerts
         await self._check_storm_lifeboat_alerts()
 
+        # Check position alerts (DTE, stale data, cash, P&L)
+        await self._check_position_alerts()
+
         # Clean up resolved alerts
         await self._cleanup_resolved_alerts()
 
@@ -554,6 +557,20 @@ class ContinuousMonitoringService:
                     )
         except Exception as e:
             self.logger.debug("Storm Lifeboat alert check: %s", e)
+
+    async def _check_position_alerts(self):
+        """Check position DTE, data freshness, cash, and P&L alerts."""
+        try:
+            from monitoring.position_alerts import run_all_checks
+            alerts = run_all_checks()
+            for alert in alerts:
+                await self._create_alert(
+                    alert["alert_id"],
+                    alert["severity"],
+                    alert["message"],
+                )
+        except Exception as e:
+            self.logger.debug("Position alert check: %s", e)
 
     async def _create_alert(self, alert_id: str, severity: str, message: str):
         """Create a new alert"""

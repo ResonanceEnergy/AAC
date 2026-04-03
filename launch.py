@@ -137,6 +137,7 @@ MODE_DESCRIPTIONS = {
     "integrate": "Run Unified Component Integrator -- wire all 550+ components",
     "war-room": "Start War Room Streamlit (kills stale instances, opens War Room + 13 Moon tabs)",
     "mission-control": "Unified Mission Control dashboard — single pane of glass (port 8069)",
+
 }
 
 
@@ -564,6 +565,7 @@ def _mode_mission_control(port: int = 8069, open_browser: bool = True) -> int:
     return 0
 
 
+
 # ── Dispatch ────────────────────────────────────────────────────────────────
 
 MODE_DISPATCH = {
@@ -628,7 +630,6 @@ def main() -> int:
         action="store_true",
         help="Do not auto-open browser tabs when starting war-room mode",
     )
-
     args, extra = parser.parse_known_args()
 
     _banner()

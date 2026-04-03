@@ -1,7 +1,7 @@
 # AAC Living Status Dashboard
 
-> **Last updated:** 2026-06-07
-> **Updated by:** Full codebase audit execution (Phases 0-7)
+> **Last updated:** 2026-04-02
+> **Updated by:** Monitoring overhaul + quality fixes + live dashboard smoke test
 > **Update this file** after every significant change. This is the single source of truth for what works.
 
 ---
@@ -10,27 +10,26 @@
 
 | Component | Status | Notes |
 |---|---|---|
-| **IBKR Connector** | LIVE | Port 7496, account U24346218, 8 live put positions |
-| **Moomoo Connector** | LIVE | OpenD, FUTUCA, real mode, $365.15 USD |
+| **IBKR Connector** | LIVE | Port 7496, account U24346218. KRE/IWM expired Apr 4. 7 active positions. |
+| **Moomoo Connector** | LIVE | OpenD, FUTUCA, real mode, $365.15 USD. Options approval still pending. |
 | **yfinance** | WORKING | Free, primary options chain source |
 | **CoinGecko** | DEGRADED | Pro key expired → free tier (10 req/min). Prices work. |
-| **Unusual Whales** | WORKING | Key valid, connection works. Field parsing FIXED (2026-03-31). Headers, URLs, field mappings updated. |
+| **Unusual Whales** | WORKING | Key valid, connection works. Field parsing FIXED (2026-03-31). |
 | **FRED** | WORKING | VIX fallback, macro data |
 | **Finnhub** | WORKING | Quotes, news |
 | **NewsAPI** | WORKING | Headlines |
-| **Doctrine Engine** | WORKING | 12 packs, 4-state machine |
-| **Matrix Monitor** | WORKING | 4 display modes, 20+ panels |
-| **War Room Engine** | WORKING | Wired to integrator |
+| **Doctrine Engine** | WORKING | 11 packs, 4-state machine |
+| **Matrix Monitor** | WORKING | Parallel collection (5s timeout/collector), degradation panel, ASCII banner. Confirmed live 2026-04-02: 24/30 collectors OK, 6 timeout (expected — IBKR/NCC/NCL offline). |
+| **War Room Engine** | WORKING | Wired to integrator. Regime: STAGFLATION (70%), Vol Shock 40/100. |
 | **Paper Trading** | WORKING | `launch.py paper` |
 | **Web Dashboard** | WORKING | `launch.py dashboard` |
 | **CI Pipeline** | WORKING | `.github/workflows/ci.yml` |
-| **Pytest Suite** | WORKING | 1671 passed, 23 skipped, 0 failures (after 7-phase audit) |
+| **Pytest Suite** | WORKING | **1684 passed**, 23 skipped, 0 failures (2026-04-02) |
 
 ## What's Broken
 
 | Component | Problem | Priority | Notes |
 |---|---|---|---|
-| ~~UW Field Parsing~~ | ~~FIXED 2026-03-31~~ | DONE | Headers, URLs, version, field mappings all updated. 31 tests passing. |
 | **CoinGecko Pro** | Key expired, returns 403 | LOW | Auto-downgrades to free tier. Works fine for now. |
 | **Polygon Options** | Free tier: 403 on snapshots | LOW | Needs $79/mo upgrade. Not blocking. |
 | **X/Twitter API** | HTTP 402 | LOW | Needs paid tier. Graceful fallback to 0.5. |
@@ -38,22 +37,64 @@
 
 ## Active Positions (Real Money)
 
-| Venue | Positions | Expiry | Notes |
-|---|---|---|---|
-| IBKR | 8 puts (ARCC, PFF, LQD, EMB, MAIN, JNK, KRE, IWM) | Apr/Jul 2026 | $910 total invested |
-| WealthSimple TFSA | Roll-down planned | Apr→Jul | See `APR10_ROLL_EXECUTION_PLAN.md` |
-| Moomoo | No options yet | — | Options approval pending |
+### IBKR (Account U24346218)
+
+| Ticker | Strike | Qty | Entry | Expiry | Status |
+|--------|--------|-----|-------|--------|--------|
+| ARCC | $17P | 1 | $0.25 | Apr 17 | **ROLLING DECISION Apr 10** |
+| PFF | $29P | 1 | $0.40 | Apr 17 | Let expire (down -92%) |
+| MAIN | $50P | 1 | $0.85 | Apr 17 | Roll or exit decision due |
+| JNK | $92P | 1 | $0.80 | Apr 17 | Hold/roll decision |
+| XLF | $46P | 1 | $0.75 | May 1 | Monitor |
+| LQD | $106P | 1 | $0.64 | May 15 | Performing (+71%) |
+| EMB | $90P | 1 | $0.75 | May 15 | Performing |
+| BKLN | $20P | 3 | $0.40 | Jun 18 | Hold |
+| HYG | $77P | 1 | $0.80 | Jun 18 | Hold |
+| ~~KRE~~ | ~~$58P~~ | ~~1~~ | ~~$1.45~~ | ~~Apr 4~~ | **EXPIRED** |
+| ~~IWM~~ | ~~$230P~~ | ~~1~~ | ~~$3.96~~ | ~~Apr~~ | **EXPIRED** |
+
+### WealthSimple TFSA ($18,637.76 CAD as of Mar 29)
+
+| Ticker | Strike | Qty | Expiry | Status |
+|--------|--------|-----|--------|--------|
+| ARCC | $16P | 10 | Apr 17 | **Roll to Jun $15P on Apr 10** |
+| OBDC | $10P | 65 | Apr 17 | **Roll to Jul $7.5P on Apr 10** (+17%) |
+| JNK | $94P | 5 | Apr 17 | **Roll 2, let 3 expire on Apr 10** |
+| KRE | $60P | 1 | Apr 17 | **Close for ~$94 credit on Apr 10** |
+| GLD | $515C | 1 | Mar 19, 2027 | LEAPS hold (+25%) |
+| OWL | $8P | 5 | Jun 18 | Hold |
+| XLE | $85C | 26 | Jan 15, 2027 | LEAPS hold (+162%) |
+
+### Other Venues
+
+| Venue | Value | Notes |
+|-------|-------|-------|
+| Moomoo | $2,609.26 USD | SQQQ x172, SPXS x106, GLD $298C, SLV $33.5C x7 |
+| Polymarket | $535.73 USDC | Active bets |
+| NDAX | LIQUIDATED | $4,492 CAD withdrawn |
+
+## Critical Dates
+
+| Date | Event | Action |
+|------|-------|--------|
+| **Apr 4** | KRE $58P / IWM $230P expiry | EXPIRED (done) |
+| **Apr 10** | **WS TFSA 7-DTE roll window** | Execute rolls per `docs/APR10_ROLL_EXECUTION_PLAN.md` |
+| **Apr 17** | **IBKR + WS Apr OPEX** | Let PFF expire, manage ARCC/MAIN/JNK |
+| May 1 | XLF $46P expiry | Monitor |
+| May 15 | LQD/EMB expiry | Monitor (performing) |
+| Jun 18 | BKLN x3, HYG, OWL expiry | Monitor |
 
 ## Active Workstreams
 
-| Workstream | Status | Owner | Notes |
-|---|---|---|---|
-| Context Guardrails | DONE | — | copilot-instructions.md, AGENTS.md, STATUS.md, 3 path-specific instructions |
-| UW Field Parsing Fix | DONE | — | Fixed 2026-03-31: headers, URLs, version, field mappings. 31 tests. |
-| Root Directory Cleanup | DONE | — | 170+ → 31 root files. 99→`_scratch/`, 22→`docs/archive/` |
-| Architecture Rework v3.3 | Phase 1-2 DONE | — | Phase 3-7 planned (see `AAC_ARCHITECTURE_REWORK_PLAN.md`) |
-| Full Codebase Audit | COMPLETE | — | 593 files audited, 225K LOC. 7-phase remediation executed. 86 files archived, 3 runtime bombs fixed, 10 silent exception handlers fixed, test suite hardened. 1671 tests passing. |
-| WS TFSA Roll-Down | PLANNED | — | Plan in `APR10_ROLL_EXECUTION_PLAN.md`, ~C$614 budget |
+| Workstream | Status | Notes |
+|---|---|---|
+| Monitoring Overhaul | **DONE** | Parallel collectors, degradation panel, ASCII banner, 5s timeouts. Live-tested 2026-04-02. |
+| 3,297 Quality Fixes | **DONE** | ruff clean, lint zero, F821/F402/F601/E741/E701 all fixed. |
+| Context Guardrails | DONE | copilot-instructions.md, AGENTS.md, STATUS.md, 3 path-specific |
+| Root Cleanup + Archives | DONE | 86 files archived, root 170+ → 30 |
+| **Apr 10 Roll Execution** | **UPCOMING** | WS TFSA roll-down, ~C$614 budget. See `docs/APR10_ROLL_EXECUTION_PLAN.md` |
+| Architecture Rework v3.3 | Phase 1-2 DONE | Phase 3-7 planned |
+| Moomoo Options Approval | WAITING | Applied ~Mar 15, still pending |
 
 ## Known Test Issues
 
