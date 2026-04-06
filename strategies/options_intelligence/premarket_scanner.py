@@ -29,17 +29,33 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 from zoneinfo import ZoneInfo
 
-from strategies.options_intelligence.discord_notifier import (
-    ConfirmationResult,
-    ConfirmationStatus,
-    GasketDiscordNotifier,
-    TradeRecommendation,
-)
-from strategies.options_intelligence.ibkr_executor import (
-    ExecutionSummary,
-    IBKRExecutor,
-)
 from strategies.options_intelligence.pipeline import PipelineResult
+
+try:
+    from strategies.options_intelligence.discord_notifier import (
+        ConfirmationResult,
+        ConfirmationStatus,
+        GasketDiscordNotifier,
+        TradeRecommendation,
+    )
+    DISCORD_AVAILABLE = True
+except ImportError:
+    DISCORD_AVAILABLE = False
+    ConfirmationResult = None
+    ConfirmationStatus = None
+    GasketDiscordNotifier = None
+    TradeRecommendation = None
+
+try:
+    from strategies.options_intelligence.ibkr_executor import (
+        ExecutionSummary,
+        IBKRExecutor,
+    )
+    EXECUTOR_AVAILABLE = True
+except ImportError:
+    EXECUTOR_AVAILABLE = False
+    ExecutionSummary = None
+    IBKRExecutor = None
 
 logger = logging.getLogger(__name__)
 

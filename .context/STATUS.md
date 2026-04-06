@@ -1,7 +1,7 @@
 # AAC Living Status Dashboard
 
-> **Last updated:** 2026-04-07 (Monday, markets open)
-> **Updated by:** Apr 7 alignment — position post-mortem applied, 1714 tests green, war_room + 13-moon updated, ROLL_DISCIPLINE encoded
+> **Last updated:** 2026-04-07 (Monday, evening)
+> **Updated by:** Major codebase consolidation — 100+ dead/unreferenced files archived, SharedInfrastructure removed, _scratch 87→29, strategies 99→86, empty stubs purged. 1709 tests green.
 > **Update this file** after every significant change. This is the single source of truth for what works.
 
 ---
@@ -25,7 +25,7 @@
 | **Paper Trading** | WORKING | `launch.py paper` |
 | **Web Dashboard** | WORKING | `launch.py dashboard` |
 | **CI Pipeline** | WORKING | `.github/workflows/ci.yml` |
-| **Pytest Suite** | WORKING | **1714 passed**, 23 skipped, 1 xfailed (2026-04-07) |
+| **Pytest Suite** | WORKING | **1709 passed**, 23 skipped, 1 xfailed (2026-04-07 post-consolidation) |
 
 ## What's Broken
 
@@ -111,9 +111,10 @@
 | Monitoring Overhaul | **DONE** | Parallel collectors, degradation panel, ASCII banner, 5s timeouts. Live-tested 2026-04-02. |
 | 3,297 Quality Fixes | **DONE** | ruff clean, lint zero, F821/F402/F601/E741/E701 all fixed. |
 | Context Guardrails | DONE | copilot-instructions.md, AGENTS.md, STATUS.md, 3 path-specific |
-| Root Cleanup + Archives | DONE | 86 files archived, root 170+ → 30 |
+| Root Cleanup + Archives | DONE | 86→100+ files archived, root 170+ → 30 |
 | ~~Apr 10 Roll Execution~~ | **CANCELLED** | Apr puts all $0 bid — no credit to recover. Roll plan dead. See post-mortem in war_room_engine.ROLL_DISCIPLINE. |
 | **Polymarket Division Activation** | **DONE** | active_scanner.py (450+ lines), 3 strategies unified, launch.py mode, DRY_RUN=true default |
+| **Codebase Consolidation** | **DONE** | 100+ files archived/deleted. SharedInfrastructure removed. _scratch 87→29. strategies 99→86. Empty stub dirs purged (api-gateway, market-data). Balance scanner relocated to scripts/. |
 | Architecture Rework v3.3 | Phase 1-2 DONE | Phase 3-7 planned |
 | Moomoo Options Approval | WAITING | Applied ~Mar 15, still pending |
 

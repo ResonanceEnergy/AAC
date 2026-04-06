@@ -242,9 +242,12 @@ class _BalanceStore:
         import asyncio
 
         try:
-            from _check_all_balances import scan_all
+            from scripts._check_all_balances import scan_all
         except ImportError:
-            return {"error": "Cannot import _check_all_balances — run from project root"}
+            try:
+                from _check_all_balances import scan_all
+            except ImportError:
+                return {"error": "Cannot import _check_all_balances — install scripts/ or run from project root"}
 
         if not quiet:
             print("  Scanning all accounts...")

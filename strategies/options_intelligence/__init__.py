@@ -13,19 +13,12 @@ Modules:
     skew_optimizer    — IV skew analysis for optimal strike selection
     feedback          — Fill logging & parameter tuning feedback loop
     pipeline          — Orchestrator for all intelligence modules
-    ibkr_executor     — IBKR execution bridge for live order placement
-    discord_notifier  — Gasket Discord webhook + reaction confirmation
     premarket_scanner — 9:15 AM ET Mon-Fri automated scan & notify
 """
 
 from strategies.options_intelligence.ai_scorer import (
     AITradeScorer,
     TradeScore,
-)
-from strategies.options_intelligence.discord_notifier import (
-    ConfirmationStatus,
-    GasketDiscordNotifier,
-    TradeRecommendation,
 )
 from strategies.options_intelligence.feedback import (
     FeedbackLoop,
@@ -35,11 +28,6 @@ from strategies.options_intelligence.flow_signals import (
     FlowConviction,
     FlowEntry,
     FlowSignalEngine,
-)
-from strategies.options_intelligence.ibkr_executor import (
-    ExecutionResult,
-    ExecutionSummary,
-    IBKRExecutor,
 )
 from strategies.options_intelligence.pipeline import (
     OptionsIntelligencePipeline,
@@ -73,11 +61,5 @@ __all__ = [
     "FillRecord",
     "OptionsIntelligencePipeline",
     "PipelineResult",
-    "IBKRExecutor",
-    "ExecutionResult",
-    "ExecutionSummary",
-    "GasketDiscordNotifier",
-    "TradeRecommendation",
-    "ConfirmationStatus",
     "PreMarketScanner",
 ]
