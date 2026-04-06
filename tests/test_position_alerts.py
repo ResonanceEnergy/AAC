@@ -16,7 +16,6 @@ from monitoring.position_alerts import (
     run_all_checks,
 )
 
-
 # ── Fixtures ─────────────────────────────────────────────────────────────
 
 def _make_data(

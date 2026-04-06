@@ -683,6 +683,30 @@ body {
   .detail-panel { width: 100vw; }
   .header h1 { font-size: 1.2rem; }
 }
+
+/* Space Weather */
+.sw-metric {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.5rem 0.8rem;
+  min-width: 120px;
+  flex: 1;
+}
+.sw-label { font-size: 0.65rem; color: var(--text-dim); margin-bottom: 0.2rem; }
+.sw-value { font-size: 1.1rem; font-weight: bold; color: var(--gold); }
+.sw-sub { font-size: 0.6rem; color: var(--text-dim); margin-top: 0.15rem; }
+.sw-scale-badge {
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 100px;
+}
+.sw-scale-badge .scale-label { font-size: 0.55rem; font-weight: normal; opacity: 0.7; }
 </style>
 </head>
 <body>
@@ -742,6 +766,41 @@ body {
   <div class="legend-item"><div class="legend-dot" style="background:var(--geo)"></div> Sacred Geometry</div>
   <div class="legend-item"><div class="legend-dot" style="background:var(--aquarius)"></div> Aquarius</div>
   <div class="legend-item"><div class="legend-dot" style="background:var(--crypto)"></div> Crypto</div>
+</div>
+
+<!-- Space Weather Panel -->
+<div id="space-weather-panel" style="padding:1rem;background:var(--bg2);border-top:1px solid var(--border)">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.6rem">
+    <h3 style="color:#f59e0b;font-size:0.85rem;margin:0">&#9728;&#65039; SPACE WEATHER -- NOAA SWPC Live</h3>
+    <span id="sw-updated" style="font-size:0.6rem;color:var(--text-dim)"></span>
+  </div>
+  <div style="font-size:0.65rem;color:var(--text-dim);margin-bottom:0.8rem">
+    Solar cycle 25 peak (2024-2026) amplifies geomagnetic volatility &mdash; correlated with market sentiment shifts.
+  </div>
+  <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:0.6rem">
+    <div id="sw-kp" class="sw-metric">
+      <div class="sw-label">&#129522; Kp Index</div>
+      <div class="sw-value">--</div>
+      <div class="sw-sub"></div>
+    </div>
+    <div id="sw-wind" class="sw-metric">
+      <div class="sw-label">&#128168; Solar Wind</div>
+      <div class="sw-value">--</div>
+      <div class="sw-sub"></div>
+    </div>
+    <div id="sw-flux" class="sw-metric">
+      <div class="sw-label">&#9728;&#65039; Solar Flux</div>
+      <div class="sw-value">--</div>
+      <div class="sw-sub"></div>
+    </div>
+    <div id="sw-ssn" class="sw-metric">
+      <div class="sw-label">&#11088; Sunspot #</div>
+      <div class="sw-value">--</div>
+      <div class="sw-sub"></div>
+    </div>
+  </div>
+  <div id="sw-scales" style="display:flex;gap:0.8rem;flex-wrap:wrap;margin-bottom:0.5rem"></div>
+  <div id="sw-alert" style="display:none;padding:0.5rem 0.8rem;border-radius:4px;font-size:0.7rem;margin-top:0.4rem"></div>
 </div>
 
 <div class="alerts-panel" id="alerts-panel"></div>
@@ -1557,6 +1616,116 @@ document.addEventListener('DOMContentLoaded', () => {
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') closeDetail();
 });
+
+// ── Space Weather (live NOAA SWPC) ────────────────────────────────────────
+async function fetchSpaceWeather() {
+  const timeout = 6000;
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeout);
+  const opts = { signal: ctrl.signal };
+
+  try {
+    // Kp Index
+    try {
+      const kpResp = await fetch('https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json', opts);
+      const kpData = await kpResp.json();
+      if (kpData && kpData.length) {
+        const latest = kpData[kpData.length - 1];
+        const kp = parseFloat(latest.Kp || latest.kp || 0);
+        const label = kp < 4 ? 'Quiet' : kp < 5 ? 'Active' : kp < 6 ? 'Minor Storm' : kp < 7 ? 'Moderate' : 'Strong Storm';
+        const color = kp < 4 ? '#22c55e' : kp < 5 ? '#eab308' : kp < 6 ? '#f97316' : '#ef4444';
+        document.querySelector('#sw-kp .sw-value').textContent = kp.toFixed(1);
+        document.querySelector('#sw-kp .sw-value').style.color = color;
+        document.querySelector('#sw-kp .sw-sub').textContent = label;
+        // Storm alert
+        const alertEl = document.getElementById('sw-alert');
+        if (kp >= 5) {
+          alertEl.style.display = 'block';
+          alertEl.style.background = 'rgba(239,68,68,0.15)';
+          alertEl.style.border = '1px solid #ef4444';
+          alertEl.style.color = '#fca5a5';
+          alertEl.innerHTML = '<strong>&#9888;&#65039; Geomagnetic Storm Active (Kp=' + kp.toFixed(0) + ')</strong> -- Elevated activity correlates with market volatility shifts. Solar cycle 25 peak amplifies fire peak resonance.';
+        } else if (kp >= 4) {
+          alertEl.style.display = 'block';
+          alertEl.style.background = 'rgba(234,179,8,0.1)';
+          alertEl.style.border = '1px solid #eab308';
+          alertEl.style.color = '#fcd34d';
+          alertEl.innerHTML = '&#129522; <strong>Activity Elevated (Kp=' + kp.toFixed(0) + ')</strong> -- Approaching storm threshold. Monitor for CME impacts.';
+        }
+      }
+    } catch(e) {}
+
+    // Solar Wind
+    try {
+      const windResp = await fetch('https://services.swpc.noaa.gov/products/summary/solar-wind-speed.json', opts);
+      const windData = await windResp.json();
+      let speed = null;
+      if (Array.isArray(windData) && windData.length) speed = windData[0].proton_speed || windData[0].WindSpeed;
+      else if (windData && typeof windData === 'object') speed = windData.WindSpeed || windData.proton_speed;
+      if (speed) {
+        document.querySelector('#sw-wind .sw-value').textContent = speed + ' km/s';
+        document.querySelector('#sw-wind .sw-sub').textContent = parseInt(speed) > 600 ? 'Fast stream' : parseInt(speed) > 400 ? 'Normal' : 'Slow';
+      }
+    } catch(e) {}
+
+    // Solar Flux (10.7cm)
+    try {
+      const fluxResp = await fetch('https://services.swpc.noaa.gov/products/summary/10cm-flux.json', opts);
+      const fluxData = await fluxResp.json();
+      let flux = null;
+      if (Array.isArray(fluxData) && fluxData.length) flux = fluxData[0].flux || fluxData[0].Flux;
+      else if (fluxData && typeof fluxData === 'object') flux = fluxData.Flux || fluxData.flux;
+      if (flux) {
+        document.querySelector('#sw-flux .sw-value').textContent = flux + ' sfu';
+        document.querySelector('#sw-flux .sw-sub').textContent = parseInt(flux) > 150 ? 'Elevated' : parseInt(flux) > 100 ? 'Moderate' : 'Low';
+      }
+    } catch(e) {}
+
+    // NOAA Scales (G/S/R)
+    try {
+      const scalesResp = await fetch('https://services.swpc.noaa.gov/products/noaa-scales.json', opts);
+      const scalesData = await scalesResp.json();
+      const current = scalesData['0'] || {};
+      const scalesEl = document.getElementById('sw-scales');
+      const scaleColors = {'0':'#22c55e','1':'#eab308','2':'#f97316','3':'#ef4444','4':'#dc2626','5':'#7f1d1d'};
+      let html = '';
+      [['G','Geomagnetic Storm','geo_storm'],['S','Solar Radiation','solar_rad'],['R','Radio Blackout','radio']].forEach(([key,label]) => {
+        const d = current[key] || {};
+        const sc = String(d.Scale || '0');
+        const bg = scaleColors[sc] || '#22c55e';
+        const textColor = parseInt(sc) >= 2 ? '#fff' : '#000';
+        html += '<div class="sw-scale-badge" style="background:' + bg + ';color:' + textColor + '">';
+        html += '<div>' + key + sc + '</div>';
+        html += '<div class="scale-label" style="color:' + textColor + ';opacity:0.8">' + label + '</div>';
+        if (d.Text && d.Text !== 'none') html += '<div class="scale-label" style="color:' + textColor + '">' + d.Text + '</div>';
+        html += '</div>';
+      });
+      scalesEl.innerHTML = html;
+    } catch(e) {}
+
+    // Sunspot number (predicted)
+    try {
+      const ssnResp = await fetch('https://services.swpc.noaa.gov/json/solar-cycle/predicted-solar-cycle.json', opts);
+      const ssnData = await ssnResp.json();
+      const now = new Date().toISOString().slice(0, 7);
+      for (const row of ssnData) {
+        if ((row['time-tag'] || '').startsWith(now)) {
+          document.querySelector('#sw-ssn .sw-value').textContent = Math.round(row.predicted_ssn || 0);
+          document.querySelector('#sw-ssn .sw-sub').textContent = 'Cycle 25 (' + (row.low_ssn||'?') + '-' + (row.high_ssn||'?') + ')';
+          break;
+        }
+      }
+    } catch(e) {}
+
+    document.getElementById('sw-updated').textContent = 'Updated: ' + new Date().toLocaleTimeString();
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// Fetch space weather on load, refresh every 5 minutes
+fetchSpaceWeather();
+setInterval(fetchSpaceWeather, 300000);
 </script>
 </body>
 </html>"""

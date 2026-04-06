@@ -108,6 +108,8 @@ MODES = [
     "integrate",
     "war-room",
     "mission-control",
+    "13-moon",
+    "polymarket",
 ]
 
 BANNER = r"""
@@ -137,7 +139,8 @@ MODE_DESCRIPTIONS = {
     "integrate": "Run Unified Component Integrator -- wire all 550+ components",
     "war-room": "Start War Room Streamlit (kills stale instances, opens War Room + 13 Moon tabs)",
     "mission-control": "Unified Mission Control dashboard — single pane of glass (port 8069)",
-
+    "13-moon": "13-Moon Doctrine live dashboard (Streamlit, port 8503)",
+    "polymarket": "Polymarket Division — active scanning + execution (scan/monitor/live)",
 }
 
 
@@ -541,16 +544,49 @@ def _mode_war_room(port: int = 8502, open_browsers: bool = True) -> int:
 
     logger.info(str(_green(f"  [+] War Room started on http://localhost:{port}")))
 
+    # Also export & open 13-Moon HTML storyboard
+    try:
+        from strategies.thirteen_moon_doctrine import ThirteenMoonDoctrine
+        from strategies.thirteen_moon_storyboard import export_interactive_storyboard
+        d = ThirteenMoonDoctrine()
+        moon_path = export_interactive_storyboard(d)
+        moon_url = "file:///" + os.path.abspath(moon_path).replace("\\", "/")
+        logger.info(str(_green(f"  [+] 13-Moon storyboard exported to {moon_path}")))
+    except Exception as e:
+        moon_url = None
+        logger.info(str(_yellow(f"  [!] Failed to export 13-Moon storyboard: {e}")))
+
     if open_browsers:
         try:
             war_room_url = f"http://localhost:{port}"
-            storyboard_path = PROJECT_ROOT / "data" / "storyboard" / "thirteen_moon_storyboard.html"
             webbrowser.open(war_room_url, new=2)
-            if storyboard_path.exists():
-                webbrowser.open(storyboard_path.resolve().as_uri(), new=2)
-                logger.info(str(_green("  [+] Opened War Room + 13 Moon browser tabs")))
-            else:
-                logger.info(str(_yellow("  [!] 13 Moon storyboard HTML not found")))
+            if moon_url:
+                webbrowser.open(moon_url, new=2)
+            logger.info(str(_green("  [+] Opened War Room + 13 Moon browser tabs")))
+        except Exception as e:
+            logger.info(str(_yellow(f"  [!] Browser auto-open failed: {e}")))
+
+    return 0
+
+
+def _mode_thirteen_moon(port: int = 8503, open_browser: bool = True) -> int:
+    """Export and open 13-Moon Doctrine HTML storyboard."""
+    logger.info(str(_cyan("  13-Moon Doctrine Storyboard")))
+
+    try:
+        from strategies.thirteen_moon_doctrine import ThirteenMoonDoctrine
+        from strategies.thirteen_moon_storyboard import export_interactive_storyboard
+        d = ThirteenMoonDoctrine()
+        path = export_interactive_storyboard(d)
+        logger.info(str(_green(f"  [+] 13-Moon storyboard exported to {path}")))
+    except Exception as e:
+        logger.info(str(_red(f"  [X] Failed to export 13-Moon storyboard: {e}")))
+        return 1
+
+    if open_browser:
+        try:
+            file_url = "file:///" + os.path.abspath(path).replace("\\", "/")
+            webbrowser.open(file_url, new=2)
         except Exception as e:
             logger.info(str(_yellow(f"  [!] Browser auto-open failed: {e}")))
 
@@ -564,6 +600,24 @@ def _mode_mission_control(port: int = 8069, open_browser: bool = True) -> int:
     run(port=port, open_browser=open_browser)
     return 0
 
+
+def _mode_polymarket() -> int:
+    """Start Polymarket Active Scanner — all 3 strategies."""
+    import asyncio as _asyncio
+    logger.info(str(_cyan("  [*] Starting Polymarket Active Scanner ...")))
+    logger.info(str(_cyan("  [*] Strategies: War Room + PlanktonXD + PolyMC")))
+    dry_run = os.environ.get("DRY_RUN", "true").lower() == "true"
+    logger.info(str(_cyan(f"  [*] DRY_RUN={dry_run}")))
+
+    from strategies.polymarket_division.active_scanner import ActiveScanner
+    scanner = ActiveScanner(dry_run=dry_run)
+
+    async def _run() -> int:
+        opps = await scanner.scan_all()
+        print(scanner.generate_report(opps))
+        return 0
+
+    return _asyncio.run(_run())
 
 
 # ── Dispatch ────────────────────────────────────────────────────────────────
@@ -586,6 +640,8 @@ MODE_DISPATCH = {
     "integrate": _mode_integrate,
     "war-room": _mode_war_room,
     "mission-control": _mode_mission_control,
+    "13-moon": _mode_thirteen_moon,
+    "polymarket": _mode_polymarket,
 }
 
 

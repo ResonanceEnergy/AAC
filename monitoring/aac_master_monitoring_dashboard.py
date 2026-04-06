@@ -243,10 +243,11 @@ try:
 except ImportError:
     PLANKTONXD_AVAILABLE = False
 
-# Polymarket Division — War Room Poly + PolyMC Agent + Monitor
+# Polymarket Division — War Room Poly + PolyMC Agent + Monitor + Active Scanner
 try:
     from strategies.polymarket_division import get_division_status
     from strategies.polymarket_division.account_tracker import PolymarketAccountTracker
+    from strategies.polymarket_division.active_scanner import ActiveScanner
     from strategies.polymarket_division.polymc_agent import PolyMCAgent
     from strategies.polymarket_division.polymc_monitor import PolyMCMonitor
     from strategies.polymarket_division.war_room_poly import WarRoomPoly
@@ -420,6 +421,7 @@ class AACMasterMonitoringDashboard:
         self.polymc_monitor = PolyMCMonitor() if POLYMARKET_DIVISION_AVAILABLE else None
         self.war_room_poly = WarRoomPoly() if POLYMARKET_DIVISION_AVAILABLE else None
         self.poly_account_tracker = PolymarketAccountTracker() if POLYMARKET_DIVISION_AVAILABLE else None
+        self.active_scanner = ActiveScanner(dry_run=True) if POLYMARKET_DIVISION_AVAILABLE else None
         self.grok_scorer = AITradeScorer() if GROK_SCORER_AVAILABLE else None
         self.polygon_client = PolygonClient() if POLYGON_AVAILABLE else None
         self.cross_pillar_hub = CrossPillarHub() if CROSS_PILLAR_AVAILABLE else None
@@ -604,6 +606,7 @@ class AACMasterMonitoringDashboard:
             ("superstonk", self._get_superstonk_data),
             ("planktonxd", self._get_planktonxd_data),
             ("polymarket_division", self._get_polymarket_division_data),
+            ("active_scanner", self._get_active_scanner_data),
             ("grok_scorer", self._get_grok_scorer_data),
             ("openclaw", self._get_openclaw_data),
             ("stock_ticker", self._get_stock_ticker_data),
@@ -2050,6 +2053,26 @@ class AACMasterMonitoringDashboard:
             }
         except Exception as e:
             self.logger.warning("Polymarket Division data fetch failed: %s", e)
+            return {"status": "error", "error": str(e)}
+
+    def _get_active_scanner_data(self) -> Dict[str, Any]:
+        """Get Active Scanner unified engine status."""
+        if not POLYMARKET_DIVISION_AVAILABLE or not self.active_scanner:
+            return {"status": "not_available"}
+        try:
+            scanner = self.active_scanner
+            return {
+                "status": "ok",
+                "dry_run": scanner.dry_run,
+                "daily_bet_count": scanner.daily_bet_count,
+                "max_daily_bets": scanner.MAX_DAILY_BETS,
+                "max_position_usd": scanner.MAX_POSITION_SIZE_USD,
+                "min_edge": scanner.MIN_EDGE_THRESHOLD,
+                "scan_interval_s": scanner.DEFAULT_SCAN_INTERVAL,
+                "execution_log_count": len(scanner.execution_log),
+            }
+        except Exception as e:
+            self.logger.warning("Active Scanner data fetch failed: %s", e)
             return {"status": "error", "error": str(e)}
 
     def _get_grok_scorer_data(self) -> Dict[str, Any]:
@@ -3793,6 +3816,23 @@ class AACMasterMonitoringDashboard:
                     print(f"         {slabel}:  {s_pos:>3} pos  {s_ord:>3} ord  ${s_val:>9,.2f}  ({s_pct:5.1f}%)")
             elif acct.get("status") == "error":
                 print(f"    💰 ACCOUNT: ⚠️  {acct.get('error', 'error')}")
+
+            # 6. Active Scanner — Unified Engine
+            asc = data.get("active_scanner", {})
+            if asc.get("status") == "ok":
+                mode = "DRY RUN" if asc.get("dry_run", True) else "LIVE"
+                mode_icon = "🔵" if asc.get("dry_run", True) else "🔴"
+                bets = asc.get("daily_bet_count", 0)
+                max_b = asc.get("max_daily_bets", 50)
+                max_pos = asc.get("max_position_usd", 25)
+                min_edge = asc.get("min_edge", 0.03)
+                interval = asc.get("scan_interval_s", 300)
+                execs = asc.get("execution_log_count", 0)
+                print(
+                    f"    🔍 ACTIVE SCANNER: {mode_icon} {mode}  |  "
+                    f"Bets today: {bets}/{max_b}  |  Max ${max_pos}  |  "
+                    f"Min edge: {min_edge:.0%}  |  Interval: {interval}s  |  Executions: {execs}"
+                )
 
             print("  " + "▓" * 76)
         elif px and px.get("status") != "not_available":

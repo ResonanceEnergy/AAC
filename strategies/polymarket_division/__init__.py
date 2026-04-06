@@ -26,6 +26,7 @@ Division Structure:
     polymc_monitor.py     — Hourly monitoring loop with exit strategies
     war_room_poly.py      — War Room adapted for Polymarket thesis bets
     division_activator.py — CLI to activate, monitor, and report on all 3
+    active_scanner.py     — Unified live trading engine (scan/monitor/live)
 """
 
 from typing import Any, Dict, List
@@ -50,6 +51,13 @@ DIVISION_STRATEGIES = {
         "module": "strategies.polymarket_division.polymc_agent",
         "class": "PolyMCAgent",
         "description": "Top 100 markets + 100K Monte Carlo + exit strategies",
+        "status": "active",
+    },
+    "active_scanner": {
+        "name": "Active Scanner (Unified)",
+        "module": "strategies.polymarket_division.active_scanner",
+        "class": "ActiveScanner",
+        "description": "Unified live scanner — runs all 3 strategies with execution",
         "status": "active",
     },
 }
@@ -78,4 +86,4 @@ def get_division_status() -> Dict[str, Any]:
     return status
 
 
-__all__ = ["DIVISION_STRATEGIES", "get_division_status"]
+__all__ = ["DIVISION_STRATEGIES", "get_division_status", "ActiveScanner"]

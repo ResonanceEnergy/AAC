@@ -44,6 +44,10 @@ import numpy as np
 
 import strategies.war_room_engine as wre
 from config.account_balances import Balances
+from strategies.war_room_live_feeds import (
+    get_last_feed_result,
+    update_all_live_data_sync,
+)
 
 # ---------------------------------------------------------------------------
 # Imports from war_room_engine
@@ -57,6 +61,19 @@ from strategies.thirteen_moon_doctrine import (
     SACRED_GEOMETRY_OVERLAY,
     ThirteenMoonDoctrine,
 )
+
+# Polymarket Division — safe import
+try:
+    from strategies.polymarket_division import get_division_status
+    from strategies.polymarket_division.active_scanner import ActiveScanner
+    from strategies.polymarket_division.polymc_agent import PolyMCAgent
+    from strategies.polymarket_division.polymc_monitor import PolyMCMonitor
+    from strategies.polymarket_division.war_room_poly import WarRoomPoly
+
+    POLYMARKET_AVAILABLE = True
+except ImportError:
+    POLYMARKET_AVAILABLE = False
+
 from strategies.war_room_engine import (
     ACCOUNTS,
     ASSETS,
@@ -141,6 +158,21 @@ def _refresh_live_war_room_state() -> dict:
 # ============================================================================
 st.sidebar.title("\u2694\ufe0f War Room Controls")
 
+# -- Live Feeds --
+st.sidebar.subheader("\U0001f4e1 Live Data Feeds")
+if st.sidebar.button("\u26a1 Fetch Live Data", use_container_width=True):
+    with st.spinner("Fetching live data from 11 sources..."):
+        try:
+            live_ind = update_all_live_data_sync()
+            st.session_state["live_indicators"] = live_ind
+            st.session_state["live_fetch_ts"] = time.time()
+            feed = get_last_feed_result()
+            if feed:
+                st.session_state["last_feed_result"] = feed
+            st.sidebar.success("Live data fetched!")
+        except Exception as exc:
+            st.sidebar.error(f"Live fetch failed: {exc}")
+
 # MC paths selector
 mc_paths = st.sidebar.select_slider(
     "MC Simulation Paths",
@@ -161,14 +193,42 @@ scenario_choice = st.sidebar.selectbox(
 
 st.sidebar.markdown("---")
 
-# Indicator overrides
-st.sidebar.subheader("12-Indicator Overrides")
-ind_oil = st.sidebar.number_input("Oil ($/bbl)", 50.0, 300.0, float(SPOT_PRICES["oil"]), 1.0)
-ind_gold = st.sidebar.number_input("Gold ($/oz)", 1500.0, 10000.0, float(SPOT_PRICES["gold"]), 50.0)
-ind_vix = st.sidebar.number_input("VIX", 10.0, 80.0, 25.0, 1.0)
-ind_spy = st.sidebar.number_input("SPY", 300.0, 800.0, float(SPOT_PRICES["spy"]), 5.0)
-ind_btc = st.sidebar.number_input("BTC", 10000.0, 200000.0, float(SPOT_PRICES["btc"]), 1000.0)
-ind_hy = st.sidebar.number_input("HY Spread (bp)", 100.0, 1200.0, 550.0, 25.0)
+# -- Probability Threshold Sliders (Fix 6) --
+st.sidebar.subheader("\U0001f3af Probability Thresholds")
+thresh_oil = st.sidebar.number_input("Oil Threshold ($)", 50.0, 300.0, 120.0, 5.0)
+thresh_gold = st.sidebar.number_input("Gold Threshold ($)", 2000.0, 10000.0, 5500.0, 100.0)
+thresh_spy = st.sidebar.number_input("SPY Threshold ($)", 300.0, 800.0, 560.0, 10.0)
+thresh_btc = st.sidebar.number_input("BTC Threshold ($)", 10000.0, 200000.0, 50000.0, 5000.0)
+thresh_pf1 = st.sidebar.number_input("Portfolio Tier 1 ($)", 50000.0, 1000000.0, 150000.0, 10000.0)
+thresh_pf2 = st.sidebar.number_input("Portfolio Tier 2 ($)", 500000.0, 10000000.0, 1000000.0, 100000.0)
+
+st.sidebar.markdown("---")
+
+# -- 15-Indicator Overrides (Fix 5) --
+st.sidebar.subheader("\U0001f4ca 15-Indicator Overrides")
+
+# Get defaults from live data if available, else engine defaults
+_live_ind = st.session_state.get("live_indicators")
+_defaults = _live_ind if _live_ind else IndicatorState()
+
+st.sidebar.caption("**Financial (12)**")
+ind_oil = st.sidebar.number_input("Oil ($/bbl)", 50.0, 300.0, float(_defaults.oil_price), 1.0)
+ind_gold = st.sidebar.number_input("Gold ($/oz)", 1500.0, 10000.0, float(_defaults.gold_price), 50.0)
+ind_vix = st.sidebar.number_input("VIX", 10.0, 80.0, float(_defaults.vix), 1.0)
+ind_spy = st.sidebar.number_input("SPY", 300.0, 800.0, float(_defaults.spy_price), 5.0)
+ind_btc = st.sidebar.number_input("BTC", 10000.0, 200000.0, float(_defaults.btc_price), 1000.0)
+ind_hy = st.sidebar.number_input("HY Spread (bp)", 100.0, 1200.0, float(_defaults.hy_spread_bp), 25.0)
+ind_bdc_nav = st.sidebar.number_input("BDC NAV Discount (%)", 0.0, 50.0, float(_defaults.bdc_nav_discount), 1.0)
+ind_bdc_nonaccrual = st.sidebar.number_input("BDC Non-Accrual (%)", 0.0, 20.0, float(_defaults.bdc_nonaccrual_pct), 0.5)
+ind_defi_tvl = st.sidebar.number_input("DeFi TVL Change (%)", -100.0, 200.0, float(_defaults.defi_tvl_change_pct), 5.0)
+ind_stablecoin = st.sidebar.number_input("Stablecoin Depeg (%)", 0.0, 10.0, float(_defaults.stablecoin_depeg_pct), 0.1)
+ind_fed = st.sidebar.number_input("Fed Funds Rate (%)", 0.0, 10.0, float(_defaults.fed_funds_rate), 0.25)
+ind_dxy = st.sidebar.number_input("DXY", 80.0, 130.0, float(_defaults.dxy), 0.5)
+
+st.sidebar.caption("**Sentiment (3)**")
+ind_x_sent = st.sidebar.slider("X/Twitter Sentiment", 0.0, 1.0, float(_defaults.x_sentiment), 0.05)
+ind_news = st.sidebar.slider("News Severity", 0.0, 1.0, float(_defaults.news_severity), 0.05)
+ind_fg = st.sidebar.slider("Fear & Greed Index", 0.0, 100.0, float(_defaults.fear_greed_index), 1.0)
 
 run_btn = st.sidebar.button("\u26a1 Run Simulation", type="primary", use_container_width=True)
 
@@ -179,7 +239,18 @@ refresh_meta = _refresh_live_war_room_state()
 # HEADER
 # ============================================================================
 st.title("\u2694\ufe0f AAC War Room Storyboard")
-st.caption("Forward Monte Carlo -- 50-Milestone Spiderweb -- 5-Arm Allocation -- 7 Scenarios -- 12 Indicators -- 13 Moon Doctrine")
+st.caption("Forward Monte Carlo -- 50-Milestone Spiderweb -- 5-Arm Allocation -- 7 Scenarios -- 15 Indicators -- 13 Moon Doctrine")
+
+# -- Data Freshness Banner (Fix 4) --
+_live_ts = st.session_state.get("live_fetch_ts")
+if _live_ts:
+    _age_min = (time.time() - _live_ts) / 60
+    if _age_min < 60:
+        st.success(f"\U0001f4e1 Live data: {_age_min:.0f} min ago")
+    else:
+        st.warning(f"\u26a0\ufe0f Live data is {_age_min / 60:.1f} hours stale -- click 'Fetch Live Data' to refresh")
+else:
+    st.warning("\u26a0\ufe0f Using hardcoded spot prices (Mar 29). Click '\u26a1 Fetch Live Data' in sidebar to get real-time data.")
 
 # ============================================================================
 # ACT 1: THE SITUATION (Current State)
@@ -191,6 +262,11 @@ col_phase, col_score, col_val, col_regime = st.columns(4)
 indicators = IndicatorState(
     oil_price=ind_oil, gold_price=ind_gold, vix=ind_vix,
     spy_price=ind_spy, btc_price=ind_btc, hy_spread_bp=ind_hy,
+    bdc_nav_discount=ind_bdc_nav, bdc_nonaccrual_pct=ind_bdc_nonaccrual,
+    defi_tvl_change_pct=ind_defi_tvl, stablecoin_depeg_pct=ind_stablecoin,
+    fed_funds_rate=ind_fed, dxy=ind_dxy,
+    x_sentiment=ind_x_sent, news_severity=ind_news,
+    fear_greed_index=ind_fg,
 )
 composite = compute_composite_score(indicators)
 phase = get_current_phase()
@@ -207,8 +283,8 @@ col_regime.markdown(
     unsafe_allow_html=True,
 )
 
-# 12-indicator heatmap
-st.subheader("12-Indicator Heatmap")
+# 15-indicator heatmap
+st.subheader("15-Indicator Heatmap")
 ind_scores = composite["individual_scores"]
 ind_cols = st.columns(6)
 for i, (name, score) in enumerate(ind_scores.items()):
@@ -295,11 +371,23 @@ st.header("Act 3: The Simulation")
 if run_btn or "mc_result" not in st.session_state:
     with st.spinner(f"Running {mc_paths:,} path Monte Carlo over {mc_horizon} days..."):
         seed = mc_seed if mc_seed > 0 else None
+        _mc_kwargs = dict(
+            n_paths=mc_paths,
+            horizon_days=mc_horizon,
+            seed=seed,
+            portfolio_value=pf_val if pf_val > 0 else STARTING_CAPITAL_CAD * CAD_TO_USD,
+            oil_threshold=thresh_oil,
+            gold_threshold=thresh_gold,
+            spy_threshold=thresh_spy,
+            btc_threshold=thresh_btc,
+            portfolio_tier1=thresh_pf1,
+            portfolio_tier2=thresh_pf2,
+        )
         if scenario_choice != "-- Base Case --":
             mc = run_scenario_mc(scenario_choice, n_paths=mc_paths)
             st.info(f"Scenario: **{SCENARIOS[scenario_choice]['name']}** -- {SCENARIOS[scenario_choice]['description']}")
         else:
-            mc = run_monte_carlo(n_paths=mc_paths, horizon_days=mc_horizon, seed=seed)
+            mc = run_monte_carlo(**_mc_kwargs)
         st.session_state["mc_result"] = mc
 
 mc: MCResult = st.session_state["mc_result"]
@@ -322,12 +410,12 @@ with mc_a:
 with mc_b:
     st.subheader("Key Probabilities")
     probs = [
-        ("Oil > $120", mc.prob_oil_above_120),
-        ("Gold > $5500", mc.prob_gold_above_3500),
-        ("SPY < $600", mc.prob_spy_below_500),
-        ("BTC < $55K", mc.prob_btc_below_60k),
-        ("Portfolio > $150K", mc.prob_portfolio_above_150k),
-        ("Portfolio > $1M", mc.prob_portfolio_above_1m),
+        (f"Oil > ${mc.oil_threshold:,.0f}", mc.prob_oil_above),
+        (f"Gold > ${mc.gold_threshold:,.0f}", mc.prob_gold_above),
+        (f"SPY < ${mc.spy_threshold:,.0f}", mc.prob_spy_below),
+        (f"BTC < ${mc.btc_threshold:,.0f}", mc.prob_btc_below),
+        (f"Portfolio > ${mc.portfolio_tier1/1000:,.0f}K", mc.prob_portfolio_above_tier1),
+        (f"Portfolio > ${mc.portfolio_tier2/1000000:,.0f}M", mc.prob_portfolio_above_tier2),
     ]
     for label, prob in probs:
         pct = prob * 100
@@ -680,15 +768,138 @@ with st.expander("\U0001f30d Full 14-Moon Timeline (Moon 0 \u2192 Moon 13)", exp
     st.dataframe(timeline_rows, use_container_width=True, hide_index=True)
 
 # ============================================================================
+# ACT 9: POLYMARKET DIVISION
+# ============================================================================
+st.header("Act 9: Polymarket Division")
+
+if POLYMARKET_AVAILABLE:
+    try:
+        div_status = get_division_status()
+        loaded = sum(1 for v in div_status.values() if v.get("status") == "loaded")
+        total = len(div_status)
+
+        # War Room Poly — thesis matching (geopolitical scenarios)
+        try:
+            wrp = WarRoomPoly()
+            thesis = wrp.get_thesis_chain()
+            pressure = thesis.get("pressure_level", "unknown")
+            matches = thesis.get("matches", [])
+            stages = thesis.get("escalation_stages", [])
+
+            p_col1, p_col2, p_col3 = st.columns(3)
+            p_col1.metric("Strategies Loaded", f"{loaded}/{total}")
+            p_col2.metric("Pressure Level", pressure.upper())
+            p_col3.metric("Thesis Matches", len(matches))
+
+            if stages:
+                st.subheader("⚔️ Escalation Stages")
+                for stage in stages[:5]:
+                    st.markdown(f"- **{stage.get('name', '')}**: {stage.get('description', '')}")
+
+            if matches:
+                st.subheader("🎯 Thesis Matches")
+                match_rows = []
+                for m in matches[:10]:
+                    match_rows.append({
+                        "Market": m.get("question", m.get("market", "")),
+                        "Alignment": f"{m.get('alignment', 0):.0%}",
+                        "Thesis": m.get("thesis", ""),
+                    })
+                if match_rows:
+                    st.dataframe(match_rows, use_container_width=True, hide_index=True)
+        except Exception:
+            p_col1, p_col2 = st.columns(2)
+            p_col1.metric("Strategies Loaded", f"{loaded}/{total}")
+            p_col2.metric("Division Status", "ACTIVE" if loaded > 0 else "OFFLINE")
+
+        # PolyMC — Monte Carlo portfolio
+        try:
+            agent = PolyMCAgent()
+            mc_result = agent.run_portfolio_monte_carlo()
+            portfolio = agent.TARGET_PORTFOLIO
+
+            st.subheader("🎲 PolyMC Portfolio Monte Carlo")
+            mc_cols = st.columns(5)
+            mc_cols[0].metric("Total Cost", f"${mc_result.get('total_cost', 0):.2f}")
+            mc_cols[1].metric("Mean Return", f"${mc_result.get('mean_return', 0):.2f}")
+            mc_cols[2].metric("EV %", f"{mc_result.get('ev_pct', 0):.1f}%")
+            mc_cols[3].metric("P(Profit)", f"{mc_result.get('prob_profit', 0):.0%}")
+            mc_cols[4].metric("Sharpe", f"{mc_result.get('sharpe', 0):.2f}")
+
+            port_rows = []
+            for bet in portfolio:
+                port_rows.append({
+                    "Market": bet.market_name,
+                    "Side": bet.side,
+                    "Entry": f"${bet.entry_price:.2f}",
+                    "Our Prob": f"{bet.our_probability:.0%}",
+                    "Size": f"${bet.size_usd:.0f}",
+                })
+            if port_rows:
+                st.dataframe(port_rows, use_container_width=True, hide_index=True)
+        except Exception:
+            st.info("PolyMC Agent data unavailable.")
+
+        # Monitor — exit signals
+        try:
+            monitor = PolyMCMonitor()
+            signals = monitor.check_exit_signals()
+            if signals:
+                st.subheader("📡 Exit Signals")
+                sig_rows = []
+                for sig in signals:
+                    sig_rows.append({
+                        "Bet": sig.bet_name,
+                        "Signal": sig.signal_type,
+                        "Price": f"${sig.current_price:.2f}",
+                        "Action": sig.action,
+                        "Urgency": sig.urgency,
+                    })
+                st.dataframe(sig_rows, use_container_width=True, hide_index=True)
+            else:
+                st.success("All positions stable — no exit signals.")
+        except Exception:
+            st.info("Monitor data unavailable.")
+
+        # Active Scanner status
+        try:
+            scanner = ActiveScanner(dry_run=True)
+            mode = "DRY RUN" if scanner.dry_run else "LIVE"
+            sc_cols = st.columns(4)
+            sc_cols[0].metric("Scanner Mode", mode)
+            sc_cols[1].metric("Bets Today", f"{scanner.daily_bet_count}/{scanner.MAX_DAILY_BETS}")
+            sc_cols[2].metric("Max Position", f"${scanner.MAX_POSITION_SIZE_USD}")
+            sc_cols[3].metric("Min Edge", f"{scanner.MIN_EDGE_THRESHOLD:.0%}")
+        except Exception:
+            st.info("Active Scanner data unavailable.")
+
+        # Strategy registry
+        st.subheader("📋 Strategy Registry")
+        strat_rows = []
+        for key, info in div_status.items():
+            strat_rows.append({
+                "Strategy": info.get("name", key),
+                "Status": info.get("status", "unknown"),
+                "Description": info.get("description", ""),
+            })
+        if strat_rows:
+            st.dataframe(strat_rows, use_container_width=True, hide_index=True)
+
+    except Exception as e:
+        st.warning(f"Polymarket Division data unavailable: {e}")
+else:
+    st.info("Polymarket Division not installed — enable strategies/polymarket_division to see metrics.")
+
+# ============================================================================
 # FOOTER
 # ============================================================================
 st.markdown("---")
 st.markdown(
     "<div style='text-align:center;color:#666;font-size:0.8em'>"
-    "AAC War Room Storyboard v1.1 -- "
+    "AAC War Room Storyboard v1.2 -- "
     f"{len(ASSETS)} assets -- {len(MILESTONES)} milestones -- "
     f"{len(SCENARIOS)} scenarios -- {len(CURRENT_POSITIONS)} positions -- "
-    f"14 moon cycles"
+    f"15 indicators -- 14 moon cycles"
     "</div>",
     unsafe_allow_html=True,
 )

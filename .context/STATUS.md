@@ -1,7 +1,7 @@
 # AAC Living Status Dashboard
 
-> **Last updated:** 2026-04-02
-> **Updated by:** Monitoring overhaul + quality fixes + live dashboard smoke test
+> **Last updated:** 2026-04-06 08:45 ET
+> **Updated by:** Full alignment — test suite validated (1712p), lint clean, position/date audit, context sync
 > **Update this file** after every significant change. This is the single source of truth for what works.
 
 ---
@@ -21,10 +21,11 @@
 | **Doctrine Engine** | WORKING | 11 packs, 4-state machine |
 | **Matrix Monitor** | WORKING | Parallel collection (5s timeout/collector), degradation panel, ASCII banner. Confirmed live 2026-04-02: 24/30 collectors OK, 6 timeout (expected — IBKR/NCC/NCL offline). |
 | **War Room Engine** | WORKING | Wired to integrator. Regime: STAGFLATION (70%), Vol Shock 40/100. |
+| **Polymarket Division** | ACTIVE | py-clob-client v0.34.6, wallet live ($535.73 USDC), active_scanner.py (450+ lines), `launch.py polymarket` |
 | **Paper Trading** | WORKING | `launch.py paper` |
 | **Web Dashboard** | WORKING | `launch.py dashboard` |
 | **CI Pipeline** | WORKING | `.github/workflows/ci.yml` |
-| **Pytest Suite** | WORKING | **1684 passed**, 23 skipped, 0 failures (2026-04-02) |
+| **Pytest Suite** | WORKING | **1712 passed**, 23 skipped, 1 xfailed (2026-04-06) |
 
 ## What's Broken
 
@@ -70,15 +71,15 @@
 | Venue | Value | Notes |
 |-------|-------|-------|
 | Moomoo | $2,609.26 USD | SQQQ x172, SPXS x106, GLD $298C, SLV $33.5C x7 |
-| Polymarket | $535.73 USDC | Active bets |
+| Polymarket | $535.73 USDC | ACTIVE — 3 unified strategies (War Room, PolyMC, PlanktonXD), active_scanner.py, 2 open orders, 124 trades |
 | NDAX | LIQUIDATED | $4,492 CAD withdrawn |
 
 ## Critical Dates
 
 | Date | Event | Action |
 |------|-------|--------|
-| **Apr 4** | KRE $58P / IWM $230P expiry | EXPIRED (done) |
-| **Apr 10** | **WS TFSA 7-DTE roll window** | Execute rolls per `docs/APR10_ROLL_EXECUTION_PLAN.md` |
+| **Apr 4** | KRE $58P / IWM $230P expiry | **EXPIRED** (confirmed) |
+| **Apr 10** | **WS TFSA 7-DTE roll window** | **4 DAYS AWAY** — Execute rolls per `docs/APR10_ROLL_EXECUTION_PLAN.md` |
 | **Apr 17** | **IBKR + WS Apr OPEX** | Let PFF expire, manage ARCC/MAIN/JNK |
 | May 1 | XLF $46P expiry | Monitor |
 | May 15 | LQD/EMB expiry | Monitor (performing) |
@@ -93,6 +94,7 @@
 | Context Guardrails | DONE | copilot-instructions.md, AGENTS.md, STATUS.md, 3 path-specific |
 | Root Cleanup + Archives | DONE | 86 files archived, root 170+ → 30 |
 | **Apr 10 Roll Execution** | **UPCOMING** | WS TFSA roll-down, ~C$614 budget. See `docs/APR10_ROLL_EXECUTION_PLAN.md` |
+| **Polymarket Division Activation** | **DONE** | active_scanner.py (450+ lines), 3 strategies unified, launch.py mode, DRY_RUN=true default |
 | Architecture Rework v3.3 | Phase 1-2 DONE | Phase 3-7 planned |
 | Moomoo Options Approval | WAITING | Applied ~Mar 15, still pending |
 

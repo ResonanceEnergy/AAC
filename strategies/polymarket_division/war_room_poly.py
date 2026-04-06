@@ -119,33 +119,40 @@ class WarRoomPoly:
         """
         Calculate thesis-adjusted probability for a market.
 
-        Uses pressure cooker level as confidence multiplier:
-        higher pressure = more confident in thesis chain unfolding.
+        POST-MORTEM FIX (2026-04-03): The old multiplier system (2x-5x)
+        created fantasy probabilities (50% for 10-cent markets). This caused
+        $452 in losses. Markets are efficient — our edge is 2-5%, not 40%.
+
+        New approach: bounded deviation from market consensus.
+        Max 2x multiplier with strong evidence, typical 1.2-1.5x.
         """
         info = THESIS_STAGES.get(stage)
         if not info:
             return market_price
 
-        # Base multiplier: 2x-5x depending on how underpriced
+        # Cap the multiplier: max 2x for highest-conviction thesis bets
+        # Previously was 2x-5x which produced insane probabilities
         if market_price < 0.05:
-            base_mult = 5.0
+            base_mult = 1.5  # Was 5.0 — markets below 5c are usually correct
         elif market_price < 0.10:
-            base_mult = 4.0
+            base_mult = 1.4  # Was 4.0
         elif market_price < 0.20:
-            base_mult = 3.0
+            base_mult = 1.3  # Was 3.0
         elif market_price < 0.30:
-            base_mult = 2.5
+            base_mult = 1.2  # Was 2.5
         else:
-            base_mult = 2.0
+            base_mult = 1.1  # Was 2.0
 
-        # Pressure adjustment: higher pressure = more confident
-        pressure_boost = 1.0 + (self.pressure_level * 0.5)
+        # Pressure adjustment: mild boost (was 1.0 + pressure*0.5 = up to 1.5x)
+        pressure_boost = 1.0 + (self.pressure_level * 0.15)  # Max 1.15x
 
-        # Stage weight: earlier stages in chain get bigger boost
-        stage_boost = 1.0 + info["pressure_weight"]
+        # Stage weight: slight preference for confirmed early stages
+        stage_boost = 1.0 + (info["pressure_weight"] * 0.3)  # Max ~1.075x
 
         adjusted = market_price * base_mult * pressure_boost * stage_boost
-        return min(adjusted, 0.95)  # Cap at 95%
+        # Hard cap: never claim more than 2x market price OR 50% probability
+        upper_bound = min(market_price * 2.0, 0.50)
+        return min(adjusted, upper_bound)
 
     def scan_results(self, scanner_opportunities: list) -> List[ThesisMarketMatch]:
         """

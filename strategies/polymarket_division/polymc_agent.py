@@ -115,14 +115,15 @@ class TargetBet:
 
     @property
     def kelly_fraction(self) -> float:
-        """Kelly criterion: f* = (bp - q) / b."""
+        """Kelly criterion: f* = (bp - q) / b, capped at quarter-Kelly."""
         if self.entry_price <= 0 or self.entry_price >= 1:
             return 0.0
         b = (1.0 / self.entry_price) - 1.0
         p = self.our_prob
         q = 1.0 - p
         f = (b * p - q) / b
-        return max(f, 0.0)
+        # Quarter-Kelly: full Kelly is too aggressive for prediction markets
+        return max(f * 0.25, 0.0)
 
 
 # The 5 target bets from the PolyMC thesis

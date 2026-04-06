@@ -361,15 +361,22 @@ class MCResult:
     portfolio_p95: float
     var_95: float                    # Value at Risk (95%)
     cvar_95: float                   # Conditional VaR (95%)
-    # Scenario probabilities
-    prob_oil_above_120: float
-    prob_gold_above_3500: float
-    prob_spy_below_500: float
-    prob_btc_below_60k: float
-    prob_portfolio_above_150k: float
-    prob_portfolio_above_1m: float
+    # Scenario probabilities (thresholds are configurable)
+    prob_oil_above: float
+    prob_gold_above: float
+    prob_spy_below: float
+    prob_btc_below: float
+    prob_portfolio_above_tier1: float
+    prob_portfolio_above_tier2: float
+    # Thresholds used (for dynamic labels)
+    oil_threshold: float = 120.0
+    gold_threshold: float = 5500.0
+    spy_threshold: float = 560.0
+    btc_threshold: float = 50000.0
+    portfolio_tier1: float = 150_000.0
+    portfolio_tier2: float = 1_000_000.0
     # Timing
-    runtime_ms: float
+    runtime_ms: float = 0.0
 
 
 def run_monte_carlo(
@@ -380,6 +387,12 @@ def run_monte_carlo(
     vols: Optional[dict[str, float]] = None,
     portfolio_value: float = STARTING_CAPITAL_CAD * CAD_TO_USD,
     seed: Optional[int] = None,
+    oil_threshold: float = 120.0,
+    gold_threshold: float = 5500.0,
+    spy_threshold: float = 560.0,
+    btc_threshold: float = 50000.0,
+    portfolio_tier1: float = 150_000.0,
+    portfolio_tier2: float = 1_000_000.0,
 ) -> MCResult:
     """
     Run multivariate GBM Monte Carlo with Cholesky decomposition.
@@ -484,13 +497,13 @@ def run_monte_carlo(
     var_95 = portfolio_value - float(pf_sorted[var_idx])
     cvar_95 = portfolio_value - float(np.mean(pf_sorted[:var_idx]))
 
-    # Scenario probabilities (thresholds calibrated Mar 29 2026)
-    prob_oil_120 = float(np.mean(S_T[:, ASSETS.index("oil")] > 120))
-    prob_gold_5500 = float(np.mean(S_T[:, ASSETS.index("gold")] > 5500))
-    prob_spy_560 = float(np.mean(S_T[:, ASSETS.index("spy")] < 560))
-    prob_btc_50k = float(np.mean(S_T[:, ASSETS.index("btc")] < 50000))
-    prob_pf_150k = float(np.mean(portfolio_values > 150_000))
-    prob_pf_1m = float(np.mean(portfolio_values > 1_000_000))
+    # Scenario probabilities (thresholds configurable via params)
+    prob_oil_val = float(np.mean(S_T[:, ASSETS.index("oil")] > oil_threshold))
+    prob_gold_val = float(np.mean(S_T[:, ASSETS.index("gold")] > gold_threshold))
+    prob_spy_val = float(np.mean(S_T[:, ASSETS.index("spy")] < spy_threshold))
+    prob_btc_val = float(np.mean(S_T[:, ASSETS.index("btc")] < btc_threshold))
+    prob_pf_t1 = float(np.mean(portfolio_values > portfolio_tier1))
+    prob_pf_t2 = float(np.mean(portfolio_values > portfolio_tier2))
 
     runtime = (time.perf_counter() - t0) * 1000
 
@@ -509,12 +522,18 @@ def run_monte_carlo(
         portfolio_p95=round(float(np.percentile(portfolio_values, 95)), 2),
         var_95=round(var_95, 2),
         cvar_95=round(cvar_95, 2),
-        prob_oil_above_120=round(prob_oil_120, 4),
-        prob_gold_above_3500=round(prob_gold_5500, 4),
-        prob_spy_below_500=round(prob_spy_560, 4),
-        prob_btc_below_60k=round(prob_btc_50k, 4),
-        prob_portfolio_above_150k=round(prob_pf_150k, 4),
-        prob_portfolio_above_1m=round(prob_pf_1m, 4),
+        prob_oil_above=round(prob_oil_val, 4),
+        prob_gold_above=round(prob_gold_val, 4),
+        prob_spy_below=round(prob_spy_val, 4),
+        prob_btc_below=round(prob_btc_val, 4),
+        prob_portfolio_above_tier1=round(prob_pf_t1, 4),
+        prob_portfolio_above_tier2=round(prob_pf_t2, 4),
+        oil_threshold=oil_threshold,
+        gold_threshold=gold_threshold,
+        spy_threshold=spy_threshold,
+        btc_threshold=btc_threshold,
+        portfolio_tier1=portfolio_tier1,
+        portfolio_tier2=portfolio_tier2,
         runtime_ms=round(runtime, 1),
     )
 
@@ -1844,13 +1863,13 @@ def render_mc_result(mc: MCResult) -> str:
         lines.append(f"  {asset:>8s} ${curr:>9,.1f} ${mean:>9,.1f} ${p5:>9,.1f} ${p95:>9,.1f}")
     lines.append("")
 
-    lines.append("  SCENARIO PROBABILITIES (calibrated Mar 19):")
-    lines.append(f"    Oil >$120:          {mc.prob_oil_above_120*100:>6.1f}%")
-    lines.append(f"    Gold >$5500:        {mc.prob_gold_above_3500*100:>6.1f}%")
-    lines.append(f"    SPY <$600:          {mc.prob_spy_below_500*100:>6.1f}%")
-    lines.append(f"    BTC <$55K:          {mc.prob_btc_below_60k*100:>6.1f}%")
-    lines.append(f"    Portfolio >$150K:   {mc.prob_portfolio_above_150k*100:>6.1f}%")
-    lines.append(f"    Portfolio >$1M:     {mc.prob_portfolio_above_1m*100:>6.1f}%")
+    lines.append("  SCENARIO PROBABILITIES:")
+    lines.append(f"    Oil >${mc.oil_threshold:,.0f}:          {mc.prob_oil_above*100:>6.1f}%")
+    lines.append(f"    Gold >${mc.gold_threshold:,.0f}:        {mc.prob_gold_above*100:>6.1f}%")
+    lines.append(f"    SPY <${mc.spy_threshold:,.0f}:          {mc.prob_spy_below*100:>6.1f}%")
+    lines.append(f"    BTC <${mc.btc_threshold:,.0f}:          {mc.prob_btc_below*100:>6.1f}%")
+    lines.append(f"    Portfolio >${mc.portfolio_tier1/1000:,.0f}K:   {mc.prob_portfolio_above_tier1*100:>6.1f}%")
+    lines.append(f"    Portfolio >${mc.portfolio_tier2/1000000:,.0f}M:     {mc.prob_portfolio_above_tier2*100:>6.1f}%")
     lines.append("")
     lines.append(_divider())
     return "\n".join(lines)
