@@ -1,7 +1,11 @@
 """Live balance check across all APIs."""
-import sys, os, asyncio
+import asyncio
+import os
+import sys
+
 sys.path.insert(0, os.path.dirname(__file__))
 from dotenv import dotenv_values
+
 env = dotenv_values('.env')
 
 # === 1. IBKR via ib_insync ===
@@ -40,7 +44,7 @@ except Exception as e:
 print()
 print("=== MOOMOO (OpenD 11111) ===")
 try:
-    from futu import OpenSecTradeContext, TrdEnv, TrdMarket, Currency
+    from futu import Currency, OpenSecTradeContext, TrdEnv, TrdMarket
     ctx = OpenSecTradeContext(host="127.0.0.1", port=11111, filter_trdmarket=TrdMarket.US, security_firm=None)
     ret, data = ctx.accinfo_query(trd_env=TrdEnv.REAL, currency=Currency.USD)
     if ret == 0:

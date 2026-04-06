@@ -1,6 +1,8 @@
 """Check CLOB balance for ALL signature types to find where the funds are."""
 import os
+
 from dotenv import load_dotenv
+
 load_dotenv()
 
 from py_clob_client.client import ClobClient
@@ -21,7 +23,7 @@ for sig_type, desc in SIG_TYPES.items():
     print(f"\n{'='*60}")
     print(f"Signature Type {sig_type}: {desc}")
     print(f"{'='*60}")
-    
+
     try:
         client = ClobClient(
             HOST,
@@ -30,11 +32,11 @@ for sig_type, desc in SIG_TYPES.items():
             signature_type=sig_type,
             funder=EOA,
         )
-        
+
         # Derive API creds - returns ApiCreds object
         creds = client.derive_api_key()
         print(f"  Creds type: {type(creds).__name__}")
-        
+
         # Try both dict and object access
         try:
             api_key = creds.apiKey if hasattr(creds, 'apiKey') else creds["apiKey"]
@@ -51,9 +53,9 @@ for sig_type, desc in SIG_TYPES.items():
                 if hasattr(creds, '__dict__'):
                     print(f"  Creds dict: {creds.__dict__}")
                 raise Exception("Cannot extract API key")
-        
+
         print(f"  API Key: {str(api_key)[:25]}...")
-        
+
         # Create client with creds
         client2 = ClobClient(
             HOST,
@@ -67,22 +69,22 @@ for sig_type, desc in SIG_TYPES.items():
                 "passphrase": passphrase,
             }
         )
-        
+
         # Check collateral balance
         params = BalanceAllowanceParams(asset_type=0)
         bal = client2.get_balance_allowance(params)
         print(f"  COLLATERAL: {bal}")
-        
+
         # Parse balance
         if isinstance(bal, dict):
             balance_val = bal.get("balance", "0")
         else:
             balance_val = getattr(bal, "balance", "0")
-        
+
         if balance_val and str(balance_val) != "0":
             print(f"\n  *** FOUND FUNDS! Balance: {balance_val} ***")
             print(f"  *** Use POLYMARKET_SIGNATURE_TYPE={sig_type} in .env ***")
-                
+
     except Exception as e:
         err = str(e)
         if len(err) > 200:

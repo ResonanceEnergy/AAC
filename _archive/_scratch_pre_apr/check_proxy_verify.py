@@ -1,8 +1,9 @@
 """Verify: Exchange.getPolyProxyWalletAddress(EOA) vs PROXY_IN_ENV."""
 import os
+
 import dotenv
-from web3 import Web3
 from eth_abi import encode
+from web3 import Web3
 
 dotenv.load_dotenv()
 
@@ -58,7 +59,7 @@ if len(computed_code) == 0:
 else:
     print(f"Computed proxy IS deployed ({len(computed_code)} bytes)")
 
-# Also check the safe factory 
+# Also check the safe factory
 SAFE_FACTORY = Web3.to_checksum_address("0xaacfeea03eb1561c4e67d661e40682bd20e3541b")
 safe_code = w3.eth.get_code(SAFE_FACTORY)
 print(f"\nSafe factory: {len(safe_code)} bytes code")

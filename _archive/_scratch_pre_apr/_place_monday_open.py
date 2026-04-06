@@ -40,9 +40,9 @@ Usage:
 """
 
 import asyncio
-import sys
-import os
 import io
+import os
+import sys
 
 if hasattr(sys.stdout, "buffer") and (sys.stdout is None or sys.stdout.encoding.lower() != "utf-8"):
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
@@ -51,9 +51,11 @@ sys.path.insert(0, r"c:\dev\AAC_fresh")
 os.chdir(r"c:\dev\AAC_fresh")
 
 import nest_asyncio
+
 nest_asyncio.apply()
 
 from shared.config_loader import load_env_file
+
 load_env_file()
 
 # Paper trading by default -- change to 7496 for LIVE
@@ -381,7 +383,8 @@ async def scan_and_execute(orders_to_run, mode="scan"):
                   f"uPnL=${pos.unrealizedPNL:+.2f}")
 
     # Process each order
-    from ib_insync import Option as IbOption, LimitOrder as IbLimitOrder
+    from ib_insync import LimitOrder as IbLimitOrder
+    from ib_insync import Option as IbOption
 
     results = []
     for o in orders_to_run:

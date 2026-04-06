@@ -4,11 +4,15 @@ ROOT CAUSE CONFIRMED: Address mismatch.
 CTF Exchange derives proxy 0xB3A0... for our EOA, but funds are at 0xF4Ba...
 These are DIFFERENT addresses. Let's investigate both.
 """
-import os, json, requests
+import json
+import os
+
+import requests
 from dotenv import load_dotenv
+from eth_abi import encode
 from eth_account import Account
 from web3 import Web3
-from eth_abi import encode
+
 load_dotenv()
 
 PK = os.getenv("POLYMARKET_PRIVATE_KEY")

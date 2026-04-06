@@ -2,11 +2,13 @@
 import json
 import os
 import sys
-from web3 import Web3
+
 from eth_account import Account
+from web3 import Web3
 
 sys.path.insert(0, ".")
 from shared.config_loader import load_env_file
+
 load_env_file()
 
 RPC = "https://polygon-mainnet.infura.io/v3/84842078b09946638c03157f83405213"
@@ -84,7 +86,7 @@ import urllib.request
 # The Polymarket CLOB server has a mapping. Let's check via proxy resolution
 # Try registering the funder with the CLOB
 from py_clob_client.client import ClobClient
-from py_clob_client.clob_types import BalanceAllowanceParams, AssetType
+from py_clob_client.clob_types import AssetType, BalanceAllowanceParams
 
 client = ClobClient(
     "https://clob.polymarket.com",
@@ -101,8 +103,9 @@ print(f"  CLOB client address: {client.get_address()}")
 print(f"  CLOB builder funder: {client.builder.funder}")
 print(f"  CLOB builder sig_type: {client.builder.sig_type}")
 
-# Check if there's a register_proxy or similar 
+# Check if there's a register_proxy or similar
 import inspect
+
 all_attrs = [m for m in dir(client) if not m.startswith('_')]
 proxy_methods = [m for m in all_attrs if any(kw in m.lower() for kw in ['register', 'proxy', 'fund', 'map'])]
 print(f"  Proxy-related methods: {proxy_methods}")

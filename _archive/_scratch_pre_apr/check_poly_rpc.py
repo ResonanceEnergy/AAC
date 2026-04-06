@@ -1,7 +1,7 @@
 """Check wallet status using Etherscan V2 API + direct RPC."""
 import json
-import urllib.request
 import time
+import urllib.request
 
 EOA = "0x4BFC40EA4051f84E90eA0a25998578f6191Acad9"
 PROXY = "0xF4BaEe5f82823e10141715610D4e050A3dCeEDD8"
@@ -53,33 +53,33 @@ if not rpc:
 
 if rpc:
     print(f"\nUsing RPC: {rpc}")
-    
+
     for name, addr in [("EOA", EOA), ("PROXY", PROXY)]:
         print(f"\n{'='*50}")
         print(f"{name}: {addr}")
         print("=" * 50)
-        
+
         # Native MATIC balance
         bal = rpc_call(rpc, "eth_getBalance", [addr, "latest"])
         matic = int(bal, 16) / 1e18
         print(f"  MATIC: {matic:.8f}")
-        
+
         # Code check
         code = rpc_call(rpc, "eth_getCode", [addr, "latest"])
         code_bytes = (len(code) - 2) // 2
         print(f"  Contract code: {code_bytes} bytes")
         print(f"  Raw code: {code}")
-        
+
         if code.startswith("0x363d3d373d3d3d363d73"):
             impl = "0x" + code[22:62]
             print(f"  ** EIP-1167 MINIMAL PROXY -> implementation: {impl}")
         elif code == "0x":
             print(f"  ** Plain EOA")
-        
+
         # Nonce
         nonce = rpc_call(rpc, "eth_getTransactionCount", [addr, "latest"])
         print(f"  Nonce: {int(nonce, 16)}")
-        
+
         # USDC balances (balanceOf)
         for token_name, token_addr in [("USDC.e", USDC_E), ("USDC", USDC_NATIVE)]:
             padded = addr[2:].lower().zfill(64)
@@ -89,16 +89,16 @@ if rpc:
             bal_usd = bal_raw / 1e6
             marker = " <<<" if bal_usd > 0 else ""
             print(f"  {token_name}: ${bal_usd:.2f}{marker}")
-        
+
         time.sleep(0.3)
-    
+
     # Also check the Polymarket "proxy factory" - derive our actual proxy from EOA
     # Polymarket proxy factory on Polygon
     PROXY_FACTORY = "0xaB45c5A4B0c941a2F231C04C3f49182e1A254052"
     print(f"\n{'='*50}")
     print("PROXY FACTORY CHECK")
     print("=" * 50)
-    
+
     # getProxy(address) = 0x59659440 (function selector for getProxy)
     padded_eoa = EOA[2:].lower().zfill(64)
     calldata = "0x59659440" + padded_eoa
@@ -116,7 +116,7 @@ if rpc:
     # Reverse: derive EOA for the proxy address
     # proxyOwner(address) or similar
     print(f"\n  Checking standard proxy patterns on PROXY contract...")
-    
+
     # owner() = 0x8da5cb5b
     try:
         result = rpc_call(rpc, "eth_call", [{"to": PROXY, "data": "0x8da5cb5b"}, "latest"])

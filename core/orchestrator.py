@@ -1305,6 +1305,7 @@ class AAC2100Orchestrator:
                     if b.get('asset', '').upper() in (currency.upper(), 'USDT', 'USDC')
                 )
                 if total > 0:
+                    self._last_known_balance = total
                     return total
 
             # Fall back to config default
@@ -1314,7 +1315,12 @@ class AAC2100Orchestrator:
 
         except Exception as e:
             self.logger.warning(f"Failed to get account balance: {e}")
-            return getattr(self.config.risk, 'default_account_balance', 10000)
+            if hasattr(self, '_last_known_balance') and self._last_known_balance > 0:
+                self.logger.warning(f"Using last known balance: ${self._last_known_balance}")
+                return self._last_known_balance
+            default_balance = getattr(self.config.risk, 'default_account_balance', 10000)
+            self.logger.warning(f"Using config default balance: ${default_balance} — TRADE SIZING MAY BE WRONG")
+            return default_balance
 
     async def _auto_execute_loop(self):
         """

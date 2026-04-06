@@ -11,16 +11,16 @@
 ║     python setup_machine.py --reinstall  # Rebuild venv      ║
 ╚══════════════════════════════════════════════════════════════╝
 """
+import json
+import logging
 import os
-import sys
-import subprocess
 import platform
 import shutil
-import json
 import socket
-from pathlib import Path
+import subprocess
+import sys
 from datetime import datetime
-import logging
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 

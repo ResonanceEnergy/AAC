@@ -41,17 +41,16 @@ sys.path.insert(0, str(PROJECT_ROOT))
 os.chdir(PROJECT_ROOT)
 
 # ── Core imports (always available) ───────────────────────────────────
+from agents.master_agent_file import (
+    AACMasterAgentSystem,
+    get_master_agent_system,
+)
 from weekly_tracker import (
     WEEKLY_GROWTH_RATE,
     CompoundTracker,
     WeeklyAllocation,
     WeekPhase,
     get_current_phase,
-)
-
-from agents.master_agent_file import (
-    AACMasterAgentSystem,
-    get_master_agent_system,
 )
 
 # ── Agent imports ─────────────────────────────────────────────────────

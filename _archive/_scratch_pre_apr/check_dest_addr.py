@@ -1,6 +1,6 @@
 """Check the destination address and the Ethereum mainnet TX."""
+from eth_abi import decode, encode
 from web3 import Web3
-from eth_abi import encode, decode
 
 EOA = "0x4BFC40EA4051f84E90eA0a25998578f6191Acad9"
 DEST = "0x89404369C1D90145462e38BA479970a3e1e6736E"
@@ -41,14 +41,14 @@ try:
     gas_used = receipt["gasUsed"]
     status = receipt["status"]
     block = tx["blockNumber"]
-    
+
     print(f"  From:    {sender}")
     print(f"  To:      {to}")
     print(f"  Value:   {value} ETH")
     print(f"  Block:   {block}")
     print(f"  Status:  {'SUCCESS' if status == 1 else 'FAILED'}")
     print(f"  Gas:     {gas_used}")
-    
+
     # Check if there are any logs (token transfers, etc.)
     if receipt["logs"]:
         print(f"  Logs:    {len(receipt['logs'])} events")
@@ -61,13 +61,13 @@ try:
                     print(f"           ^ ERC20 Transfer event")
     else:
         print(f"  Logs:    None (simple ETH transfer)")
-    
+
     # Check if from matches our EOA
     if sender.lower() == EOA.lower():
         print(f"\n  ** CONFIRMED: This TX was sent FROM your wallet **")
     else:
         print(f"\n  ** WARNING: Sender {sender} is NOT your EOA {EOA} **")
-        
+
 except Exception as e:
     print(f"  Error: {e}")
 
@@ -80,7 +80,7 @@ for rpc in ["https://polygon-mainnet.infura.io/v3/84842078b09946638c03157f834052
             code_p = w3p.eth.get_code(dest_cs)
             bal_p = w3p.eth.get_balance(dest_cs)
             print(f"Polygon: {len(code_p)} bytes code, {Web3.from_wei(bal_p, 'ether')} POL")
-            
+
             # Check USDC.e balance
             USDC_E = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174"
             sel = w3p.keccak(text="balanceOf(address)")[:4]

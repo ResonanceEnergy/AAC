@@ -33,7 +33,7 @@ calls = {
     "getOwner()": "0x893d20e8",
     "admin()": "0xf851a440",
     "getAdmin()": "0x6e9960c3",
-    "wallet()": "0x521eb273",  
+    "wallet()": "0x521eb273",
     "signerAddress()": "0x5b7633d0",
     "signer()": "0x238ac933",
     "proxyOwner()": "0x025313a2",
@@ -76,10 +76,10 @@ factory_code = rpc("eth_getCode", [FACTORY, "latest"])
 print(f"Factory code length: {(len(factory_code)-2)//2 if isinstance(factory_code, str) else 'error'} bytes")
 
 # Try calling factory with our EOA to see what proxy it maps to
-# polyProxy(address) 
+# polyProxy(address)
 factory_selectors = {
     "polyProxy": "0x37c3cc0c",
-    "getProxy": "0xec618c04", 
+    "getProxy": "0xec618c04",
     "proxyFor": "0x52d1902d",
     "wallets": "0x7bb98a68",
 }
@@ -116,6 +116,7 @@ print()
 # 5. Key insight: with EIP-1167 proxy + CREATE2, the salt often encodes the owner
 # Let's check if our EOA would produce the same proxy address via CREATE2
 import hashlib
+
 # CREATE2: keccak256(0xff ++ deployer ++ salt ++ keccak256(initCode))
 # For Polymarket, salt is typically keccak256(abi.encode(ownerAddress, bytes32(0)))
 
@@ -128,26 +129,28 @@ print(f"Expected init code: {init_code}")
 
 # Try with EOA as salt (raw address padded)
 from hashlib import sha3_256
+
 try:
     from eth_abi import encode as eth_encode
+
     # salt = keccak256(abi.encode(["address", "uint256"], [eoa, 0]))
     from web3 import Web3
     w3 = Web3()
     init_code_hash = w3.keccak(bytes.fromhex(init_code))
-    
+
     # Try salt = keccak256(addr)
     salt1 = w3.keccak(bytes.fromhex(EOA[2:].lower().zfill(64)))
-    
-    # Try salt = address padded to 32 bytes  
+
+    # Try salt = address padded to 32 bytes
     salt2 = bytes.fromhex(EOA[2:].lower().zfill(64))
-    
+
     # CREATE2 = keccak256(0xff ++ factory ++ salt ++ keccak256(init_code))
     for salt_name, salt in [("keccak(EOA)", salt1), ("padded EOA", salt2)]:
         pre = b'\xff' + bytes.fromhex(FACTORY[2:]) + salt + init_code_hash
         addr = "0x" + w3.keccak(pre).hex()[-40:]
         match = addr.lower() == PROXY.lower()
         print(f"  CREATE2 with {salt_name}: {addr} {'*** MATCH! ***' if match else '(no match)'}")
-        
+
 except ImportError as e:
     print(f"  (web3/eth_abi not available for CREATE2 check: {e})")
     # Fallback: try with hashlib

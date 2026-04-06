@@ -1,5 +1,6 @@
 """Test CLOB balance using exact Polymarket SDK pattern."""
 import os
+
 import dotenv
 import requests
 
@@ -50,6 +51,7 @@ print(f"Token ID: {token_id[:40]}...")
 
 # Check what BalanceAllowanceParams expects
 import inspect
+
 print(f"\nBalanceAllowanceParams fields: {inspect.signature(BalanceAllowanceParams)}")
 
 # Check COLLATERAL balance (= USDC.e available for trading)

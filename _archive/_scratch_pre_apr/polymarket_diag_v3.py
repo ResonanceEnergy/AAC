@@ -1,8 +1,12 @@
 """
 Polymarket Diagnostic v3 — Correct BalanceAllowanceParams usage.
 """
-import os, json, requests
+import json
+import os
+
+import requests
 from dotenv import load_dotenv
+
 load_dotenv()
 
 PK = os.getenv("POLYMARKET_PRIVATE_KEY")
@@ -10,9 +14,9 @@ FUNDER = os.getenv("POLYMARKET_FUNDER_ADDRESS")
 CHAIN_ID = int(os.getenv("POLYMARKET_CHAIN_ID", "137"))
 HOST = "https://clob.polymarket.com"
 
-from py_clob_client.client import ClobClient
-from py_clob_client.clob_types import ApiCreds, BalanceAllowanceParams, AssetType
 from eth_account import Account
+from py_clob_client.client import ClobClient
+from py_clob_client.clob_types import ApiCreds, AssetType, BalanceAllowanceParams
 
 acct = Account.from_key(PK)
 EOA = acct.address
@@ -68,7 +72,7 @@ for sig_type in [1, 2]:
         params = BalanceAllowanceParams(asset_type=AssetType.COLLATERAL)
         result = c.update_balance_allowance(params)
         print(f"    Update result: {result}")
-        
+
         # Now re-check balance
         params2 = BalanceAllowanceParams(asset_type=AssetType.COLLATERAL)
         bal = c.get_balance_allowance(params2)

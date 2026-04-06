@@ -1,8 +1,9 @@
 """Find all funds across all chains for our EOA."""
-from web3 import Web3
-from eth_abi import encode, decode
 import json
 import urllib.request
+
+from eth_abi import decode, encode
+from web3 import Web3
 
 EOA = "0x4BFC40EA4051f84E90eA0a25998578f6191Acad9"
 

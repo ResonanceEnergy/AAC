@@ -2,9 +2,12 @@
 Parse the full creation TX calldata to find the real owner EOA.
 The owner's address is encoded as the CREATE2 salt inside the factory call.
 """
-import os, json
+import json
+import os
+
 from dotenv import load_dotenv
 from web3 import Web3
+
 load_dotenv()
 
 INFURA = "https://polygon-mainnet.infura.io/v3/84842078b09946638c03157f83405213"
@@ -52,6 +55,7 @@ print()
 # ============================================================
 print("=== SCANNING ALL EMBEDDED ADDRESSES ===")
 from eth_abi import encode
+
 CTF_EXCHANGE = "0x4bFb41d5B3570DeFd03C39a9A4D8dE6Bd8B8982E"
 func_sig = Web3.keccak(text="getPolyProxyWalletAddress(address)")[:4]
 
@@ -128,7 +132,7 @@ print(f"  Embedded bytes data ({len(raw_bytes)} bytes): {raw_bytes.hex()[:200]}.
 if len(raw_bytes) >= 4:
     inner_method = raw_bytes[:4].hex()
     print(f"  Inner method selector: 0x{inner_method}")
-    
+
     # Parse the inner bytes for addresses
     print(f"\n  Inner call data words:")
     inner_data = raw_bytes[4:]

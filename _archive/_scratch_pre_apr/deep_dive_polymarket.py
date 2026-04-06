@@ -3,14 +3,20 @@ DEEP DIVE: Full Polymarket account analysis.
 Key: 0x9a9f...c113 (imported into Polymarket at signup)
 Proxy wallet: 0xF4BaEe5f82823e10141715610D4e050A3dCeEDD8
 """
-import json, os, sys, traceback
+import json
+import os
+import sys
+import traceback
+
 sys.path.insert(0, os.path.dirname(__file__))
 from dotenv import load_dotenv
+
 load_dotenv(os.path.join(os.path.dirname(__file__), ".env"), override=True)
 
-from py_clob_client.client import ClobClient
-from py_clob_client.clob_types import BalanceAllowanceParams, AssetType
 from urllib.request import Request, urlopen
+
+from py_clob_client.client import ClobClient
+from py_clob_client.clob_types import AssetType, BalanceAllowanceParams
 
 HOST = "https://clob.polymarket.com"
 KEY = os.environ["POLYMARKET_PRIVATE_KEY"]
@@ -53,6 +59,7 @@ print("=" * 70)
 
 # ─── 1. Derive EOA from private key ───
 from eth_account import Account
+
 eoa = Account.from_key(KEY)
 print(f"\n[1] KEY DERIVATION")
 print(f"  Private key: {KEY[:10]}...{KEY[-6:]}")
@@ -108,12 +115,12 @@ for sig_type in [0, 1, 2]:
 
         bal = client.get_balance_allowance(BalanceAllowanceParams(asset_type=AssetType.COLLATERAL))
         balance = bal.get("balance", "?")
-        
+
         # Also check conditional token balance
         # bal_cond = client.get_balance_allowance(BalanceAllowanceParams(asset_type=AssetType.CONDITIONAL))
-        
+
         print(f"  Sig {sig_type} ({label:12s}): API Key={creds.api_key[:16]}... Balance=${balance}")
-        
+
         # Check allowances from CLOB perspective
         allowances = bal.get("allowances", {})
         for addr, val in allowances.items():
@@ -121,7 +128,7 @@ for sig_type in [0, 1, 2]:
                 print(f"    Allowance {addr[:10]}...: {val}")
         if all(v == "0" for v in allowances.values()):
             print(f"    All CLOB allowances: 0")
-            
+
     except Exception as e:
         print(f"  Sig {sig_type} ({label:12s}): ERROR - {e}")
 print()
@@ -132,14 +139,14 @@ try:
     client = ClobClient(HOST, key=KEY, chain_id=CHAIN_ID, signature_type=1, funder=FUNDER)
     creds = client.derive_api_key()
     client.set_api_creds(creds)
-    
+
     # Open orders
     try:
         orders = client.get_orders()
         print(f"  Open orders: {len(orders) if isinstance(orders, list) else orders}")
     except Exception as e:
         print(f"  Open orders error: {e}")
-    
+
     # Trades
     try:
         trades = client.get_trades()
@@ -157,13 +164,13 @@ try:
     client = ClobClient(HOST, key=KEY, chain_id=CHAIN_ID, signature_type=0)
     creds = client.derive_api_key()
     client.set_api_creds(creds)
-    
+
     bal = client.get_balance_allowance(BalanceAllowanceParams(asset_type=AssetType.COLLATERAL))
     print(f"  Balance: ${bal.get('balance', '?')}")
-    
+
     orders = client.get_orders()
     print(f"  Orders: {len(orders) if isinstance(orders, list) else orders}")
-    
+
     trades = client.get_trades()
     print(f"  Trades: {len(trades) if isinstance(trades, list) else trades}")
 except Exception as e:
@@ -225,11 +232,11 @@ IMPL = "0x44e999d5c2f66ef0861317f9a4805ac2e90aeb4f"
 try:
     from web3 import Web3
     w3 = Web3()
-    
+
     # Standard EIP-1167 init code
     init_code_hex = "3d602d80600a3d3981f3363d3d373d3d3d363d73" + IMPL[2:].lower() + "5af43d82803e903d91602b57fd5bf3"
     init_code_hash = w3.keccak(bytes.fromhex(init_code_hex))
-    
+
     # Try many salt formulations
     salts = {
         "keccak(EOA padded 32)": w3.keccak(bytes.fromhex(eoa.address[2:].lower().zfill(64))),
@@ -239,7 +246,7 @@ try:
         "keccak(abi.encode(addr,0))": w3.keccak(bytes.fromhex(eoa.address[2:].lower().zfill(64) + "0" * 64)),
         "keccak(abi.encode(addr,1))": w3.keccak(bytes.fromhex(eoa.address[2:].lower().zfill(64) + "0" * 63 + "1")),
     }
-    
+
     for name, salt in salts.items():
         if isinstance(salt, bytes) and len(salt) == 32:
             pre = b'\xff' + bytes.fromhex(FACTORY[2:]) + salt + init_code_hash
@@ -248,7 +255,7 @@ try:
             if match:
                 print(f"  *** MATCH *** Salt={name} -> {computed}")
             # Only print non-matches in verbose mode
-    
+
     # Also try with EOA as uint256 directly (no keccak)
     for i in range(5):
         salt_raw = bytes.fromhex(eoa.address[2:].lower().zfill(64))
@@ -258,17 +265,17 @@ try:
         computed = "0x" + w3.keccak(pre).hex()[-40:]
         if computed.lower() == FUNDER.lower():
             print(f"  *** MATCH with nonce {i} ***")
-    
+
     # Direct: just the address left-padded
     salt_left = bytes(12) + bytes.fromhex(eoa.address[2:].lower())
     pre = b'\xff' + bytes.fromhex(FACTORY[2:]) + salt_left + init_code_hash
     computed = "0x" + w3.keccak(pre).hex()[-40:]
     if computed.lower() == FUNDER.lower():
         print(f"  *** MATCH with left-padded address ***")
-    
+
     print(f"  (Tested {len(salts) + 6} salt formulations)")
     print(f"  Note: If no match found, the proxy may use a different CREATE2 pattern")
-    
+
 except ImportError:
     print("  web3 not available for CREATE2 check")
 except Exception as e:

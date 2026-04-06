@@ -36,10 +36,10 @@ Usage:
   .venv\\Scripts\\python.exe _place_moomoo_monday.py --live         # *** LIVE EXECUTION ***
   .venv\\Scripts\\python.exe _place_moomoo_monday.py --sep          # Scan Sep 2026 cycle too
 """
-import sys
+import argparse
 import io
 import os
-import argparse
+import sys
 from datetime import datetime
 
 if hasattr(sys.stdout, "buffer") and (sys.stdout is None or sys.stdout.encoding.lower() != "utf-8"):
@@ -49,15 +49,17 @@ sys.path.insert(0, r"c:\dev\AAC_fresh")
 os.chdir(r"c:\dev\AAC_fresh")
 
 from moomoo import (
+    RET_OK,
+    Currency,
     OpenQuoteContext,
     OpenSecTradeContext,
-    TrdEnv,
-    TrdSide,
-    OrderType as MooOrderType,
     SecurityFirm,
+    TrdEnv,
     TrdMarket,
-    Currency,
-    RET_OK,
+    TrdSide,
+)
+from moomoo import (
+    OrderType as MooOrderType,
 )
 
 # ============================================================================

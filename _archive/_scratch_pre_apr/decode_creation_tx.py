@@ -2,10 +2,14 @@
 Decode the creation TX of 0xF4Ba... to find the REAL owner EOA.
 TX: 0x1d1648ab72deda8e81ac9c721955983d97df83c460954637d110e86128243007
 """
-import os, json, requests
+import json
+import os
+
+import requests
 from dotenv import load_dotenv
-from web3 import Web3
 from eth_abi import decode
+from web3 import Web3
+
 load_dotenv()
 
 INFURA = "https://polygon-mainnet.infura.io/v3/84842078b09946638c03157f83405213"
@@ -97,7 +101,7 @@ try:
     data = r.json()
     if data.get("result"):
         tx_data = data["result"]
-        print(f"  From: {tx_data.get('from')}")  
+        print(f"  From: {tx_data.get('from')}")
         print(f"  To: {tx_data.get('to')}")
         print(f"  Input: {tx_data.get('input', '')[:200]}...")
     else:
@@ -107,7 +111,7 @@ except Exception as e:
 print()
 
 # ============================================================
-# 5. Try to find the ACTUAL owner by brute-force checking 
+# 5. Try to find the ACTUAL owner by brute-force checking
 #    proxy factory's derivation with known addresses from logs
 # ============================================================
 print("=== FIND REAL OWNER ===")
@@ -169,9 +173,9 @@ print("=== DECODE FACTORY METHOD CALL ===")
 # Let's try common function signatures
 known_sigs = {
     "ec9b5578": "createProxy(address)",
-    "1688f0b9": "createProxyWithNonce(address,bytes,uint256)",  
+    "1688f0b9": "createProxyWithNonce(address,bytes,uint256)",
     "61b69abd": "createProxy(address,bytes)",
-    "85a5affe": "multiSendCalldata(bytes)",  
+    "85a5affe": "multiSendCalldata(bytes)",
     "ac9650d8": "multicall(bytes[])",
     "8d80ff0a": "multiSend(bytes)",
     "ee22610b": "createProxyWithCallback(address,bytes,uint256,address)",

@@ -86,10 +86,10 @@ Usage:
   .venv\\Scripts\\python.exe _inject_9900_monday.py --moomoo     # Scan Moomoo chains
   .venv\\Scripts\\python.exe _inject_9900_monday.py --live       # Moomoo LIVE execution
 """
-import sys
+import argparse
 import io
 import os
-import argparse
+import sys
 from datetime import datetime
 
 if hasattr(sys.stdout, "buffer") and (sys.stdout is None or sys.stdout.encoding.lower() != "utf-8"):
@@ -361,13 +361,13 @@ def scan_moomoo_chains():
     """Connect to Moomoo and scan option chains for the planned trades."""
     try:
         from moomoo import (
+            RET_OK,
+            Currency,
             OpenQuoteContext,
             OpenSecTradeContext,
-            TrdEnv,
             SecurityFirm,
+            TrdEnv,
             TrdMarket,
-            Currency,
-            RET_OK,
         )
     except ImportError:
         print("  ERROR: moomoo SDK not installed. Run: pip install moomoo-api")
@@ -475,15 +475,17 @@ def execute_moomoo_live():
     """Execute the Moomoo portion of the plan LIVE."""
     try:
         from moomoo import (
+            RET_OK,
+            Currency,
             OpenQuoteContext,
             OpenSecTradeContext,
-            TrdEnv,
-            TrdSide,
-            OrderType as MooOrderType,
             SecurityFirm,
+            TrdEnv,
             TrdMarket,
-            Currency,
-            RET_OK,
+            TrdSide,
+        )
+        from moomoo import (
+            OrderType as MooOrderType,
         )
     except ImportError:
         print("  ERROR: moomoo SDK not installed.")
@@ -627,15 +629,17 @@ def fire_all_orders():
     """
     try:
         from moomoo import (
+            RET_OK,
+            Currency,
             OpenQuoteContext,
             OpenSecTradeContext,
-            TrdEnv,
-            TrdSide,
-            OrderType as MooOrderType,
             SecurityFirm,
+            TrdEnv,
             TrdMarket,
-            Currency,
-            RET_OK,
+            TrdSide,
+        )
+        from moomoo import (
+            OrderType as MooOrderType,
         )
     except ImportError:
         print("  ERROR: moomoo SDK not installed.")

@@ -1,6 +1,6 @@
 """Check all proxy/safe options for our EOA on Polygon."""
-from web3 import Web3
 from eth_abi import decode
+from web3 import Web3
 
 RPCS = [
     "https://polygon-rpc.com",

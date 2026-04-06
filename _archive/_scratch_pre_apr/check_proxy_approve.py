@@ -3,11 +3,12 @@ import json
 import os
 import sys
 
-from web3 import Web3
 from eth_account import Account
+from web3 import Web3
 
 sys.path.insert(0, ".")
 from shared.config_loader import load_env_file
+
 load_env_file()
 
 RPC = "https://polygon-mainnet.infura.io/v3/84842078b09946638c03157f83405213"

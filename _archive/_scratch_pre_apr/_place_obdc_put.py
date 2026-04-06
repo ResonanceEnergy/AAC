@@ -3,7 +3,10 @@
 AAC War Room -- BUY OBDC PUT (March 27, 2026)
 OBDC $7.50P July 17 2026, limit $0.20, max contracts
 """
-import asyncio, sys, os, io
+import asyncio
+import io
+import os
+import sys
 
 if hasattr(sys.stdout, "buffer") and (sys.stdout is None or sys.stdout.encoding.lower() != "utf-8"):
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")

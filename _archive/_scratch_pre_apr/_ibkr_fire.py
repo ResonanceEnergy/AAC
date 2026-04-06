@@ -16,11 +16,11 @@ Usage:
 """
 from __future__ import annotations
 
-import asyncio
-import sys
-import os
-import io
 import argparse
+import asyncio
+import io
+import os
+import sys
 from datetime import datetime
 
 if hasattr(sys.stdout, "buffer"):
@@ -30,6 +30,7 @@ sys.path.insert(0, r"c:\dev\AAC_fresh")
 os.chdir(r"c:\dev\AAC_fresh")
 
 from dotenv import load_dotenv
+
 load_dotenv()
 
 # ============================================================================
@@ -123,8 +124,9 @@ async def get_mid(ib, contract):
 
 
 async def run(live: bool):
-    from ib_insync import IB, LimitOrder as IbLimitOrder
     import nest_asyncio
+    from ib_insync import IB
+    from ib_insync import LimitOrder as IbLimitOrder
     nest_asyncio.apply()
 
     print("=" * 70)

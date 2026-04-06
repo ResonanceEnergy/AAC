@@ -20,13 +20,13 @@ print(f"API Key Test: status={status} message={msg}")
 
 for name, addr in [("EOA", EOA), ("PROXY", PROXY)]:
     print(f"\n{name} ({addr}):")
-    
+
     # TX count
     url = f"https://api.polygonscan.com/api?module=proxy&action=eth_getTransactionCount&address={addr}&tag=latest&apikey={POLYGON_API}"
     data = api_get(url)
     nonce = int(data.get("result", "0x0"), 16)
     print(f"  TX count (nonce): {nonce}")
-    
+
     # Contract code
     url = f"https://api.polygonscan.com/api?module=proxy&action=eth_getCode&address={addr}&tag=latest&apikey={POLYGON_API}"
     data = api_get(url)
@@ -34,7 +34,7 @@ for name, addr in [("EOA", EOA), ("PROXY", PROXY)]:
     code_bytes = (len(code) - 2) // 2
     print(f"  Code length: {code_bytes} bytes")
     print(f"  Code: {code}")
-    
+
     # EIP-1167 minimal proxy check
     if code.startswith("0x363d3d373d3d3d363d73"):
         impl = "0x" + code[22:62]
@@ -44,7 +44,7 @@ for name, addr in [("EOA", EOA), ("PROXY", PROXY)]:
     else:
         print(f"  ** Contract (not EIP-1167)")
 
-    # MATIC balance 
+    # MATIC balance
     url = f"https://api.polygonscan.com/api?module=account&action=balance&address={addr}&tag=latest&apikey={POLYGON_API}"
     data = api_get(url)
     bal = data.get("result", "0")
@@ -53,7 +53,7 @@ for name, addr in [("EOA", EOA), ("PROXY", PROXY)]:
         print(f"  MATIC: {matic}")
     else:
         print(f"  MATIC query: {data.get('message', '?')} result={bal}")
-    
+
     # Transaction list (simpler query)
     url = f"https://api.polygonscan.com/api?module=account&action=txlist&address={addr}&startblock=0&endblock=99999999&sort=desc&apikey={POLYGON_API}"
     data = api_get(url)

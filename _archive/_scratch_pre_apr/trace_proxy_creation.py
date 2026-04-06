@@ -61,7 +61,7 @@ if resp2.get("status") == "1" and resp2["result"]:
             input_data = tx.get("input", "")
             print(f"  Input length: {len(input_data)} chars")
             print(f"  Input (first 200): {input_data[:200]}")
-            
+
             # The factory function likely takes the owner address as parameter
             # Parse the input data
             if len(input_data) > 10:

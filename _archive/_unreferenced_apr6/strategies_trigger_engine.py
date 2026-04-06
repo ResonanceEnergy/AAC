@@ -32,6 +32,8 @@ from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
 from typing import Dict, List, Optional, Tuple
 
+from strategies.rocket_ship.lunar_cycles import NEW_MOON_DATES, RocketLunarEngine
+
 from strategies.rocket_ship.core import (
     INDICATORS_REQUIRED_FOR_IGNITION,
     LIFEBOAT_INCEPTION,
@@ -41,7 +43,6 @@ from strategies.rocket_ship.core import (
     TriggerStatus,
 )
 from strategies.rocket_ship.indicators import IndicatorEngine
-from strategies.rocket_ship.lunar_cycles import NEW_MOON_DATES, RocketLunarEngine
 
 logger = logging.getLogger(__name__)
 
@@ -220,8 +221,9 @@ class TriggerEngine:
         if self._ignition_date is not None:
             # Already ignited
             days_in_rocket = (target - self._ignition_date).days
-            from strategies.rocket_ship.core import ROCKET_MOON_END
             from strategies.rocket_ship.lunar_cycles import NEW_MOON_DATES as NMD
+
+            from strategies.rocket_ship.core import ROCKET_MOON_END
             orbit_start = NMD[ROCKET_MOON_END - 1]
             if target >= orbit_start:
                 phase = SystemPhase.ORBIT

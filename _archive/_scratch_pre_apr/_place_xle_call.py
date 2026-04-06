@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""
+r"""
 AAC War Room — BUY XLE CALL (March 27, 2026)
 =============================================
 XLE $65 Call, June 18 2026 expiry, limit $2.68
@@ -13,9 +13,9 @@ Usage:
 """
 
 import asyncio
-import sys
-import os
 import io
+import os
+import sys
 
 if hasattr(sys.stdout, "buffer") and (sys.stdout is None or sys.stdout.encoding.lower() != "utf-8"):
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
@@ -24,9 +24,11 @@ sys.path.insert(0, r"c:\dev\AAC_fresh")
 os.chdir(r"c:\dev\AAC_fresh")
 
 import nest_asyncio
+
 nest_asyncio.apply()
 
 from shared.config_loader import load_env_file
+
 load_env_file()
 
 # Override to live port 7496

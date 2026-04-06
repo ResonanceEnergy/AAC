@@ -1,11 +1,19 @@
 """Full system status check — run once and delete."""
-import sys, os
+import os
+import sys
+
 sys.path.insert(0, os.path.dirname(__file__))
 
 from strategies.war_room_engine import (
-    IndicatorState, compute_composite_score, get_portfolio_value_usd,
-    get_current_phase, SPOT_PRICES, CURRENT_POSITIONS, ACCOUNTS,
-    MILESTONES, check_milestones,
+    ACCOUNTS,
+    CURRENT_POSITIONS,
+    MILESTONES,
+    SPOT_PRICES,
+    IndicatorState,
+    check_milestones,
+    compute_composite_score,
+    get_current_phase,
+    get_portfolio_value_usd,
 )
 
 ind = IndicatorState()
@@ -97,6 +105,7 @@ for m in already:
 # 6. Quick MC
 print("\n--- MONTE CARLO (quick 20K paths) ---")
 from strategies.war_room_engine import run_monte_carlo
+
 mc = run_monte_carlo(n_paths=20_000)
 print(f"  Portfolio mean:   ${mc.portfolio_mean:,.2f}")
 print(f"  Portfolio median: ${mc.portfolio_median:,.2f}")

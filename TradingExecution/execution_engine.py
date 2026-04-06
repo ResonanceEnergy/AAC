@@ -577,6 +577,15 @@ class ExecutionEngine:
             order.metadata["exchange_order_id"] = result.order_id
             self.logger.info(f"Order submitted: {order.order_id} -> {result.order_id}")
 
+        except (ConnectionError, TimeoutError, OSError) as e:
+            order.status = OrderStatus.PENDING
+            order.metadata["error"] = str(e)
+            order.metadata["needs_reconciliation"] = True
+            self.logger.critical(f"Order submission uncertain (network): {order.order_id} - {e} — RECONCILE IMMEDIATELY")
+        except (ValueError, KeyError, AttributeError) as e:
+            order.status = OrderStatus.REJECTED
+            order.metadata["error"] = str(e)
+            self.logger.error(f"Order rejected (validation): {order.order_id} - {e}")
         except Exception as e:
             order.status = OrderStatus.REJECTED
             order.metadata["error"] = str(e)
@@ -610,6 +619,10 @@ class ExecutionEngine:
                 await connector.cancel_order(order.symbol, exchange_order_id)
             order.status = OrderStatus.CANCELLED
             return True
+        except (ConnectionError, TimeoutError, OSError) as e:
+            self.logger.critical(f"Cancel uncertain for {order_id} - exchange state unknown, RECONCILE: {e}")
+            order.metadata["cancel_uncertain"] = True
+            return False
         except Exception as e:
             self.logger.error(f"Cancel failed: {order_id} - {e}")
             return False
@@ -889,8 +902,10 @@ class ExecutionEngine:
             cost = Decimal(str(order.filled_quantity * (getattr(order, 'average_fill_price', 0) or order.price or 0)))
             capital_mgr = CapitalManagementSystem()
             await capital_mgr.update_capital_position(margin_used=cost)
-        except Exception as e:
+        except (ImportError, AttributeError) as e:
             self.logger.debug(f"Capital management update skipped: {e}")
+        except Exception as e:
+            self.logger.warning(f"Capital management update failed: {e}")
 
     async def load_positions_from_db(self):
         """Load open positions from database on startup"""

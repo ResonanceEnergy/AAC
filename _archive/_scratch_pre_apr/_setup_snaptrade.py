@@ -18,9 +18,9 @@ Usage:
     python _setup_snaptrade.py --status       # Check connection status
     python _setup_snaptrade.py --accounts     # List linked accounts
 """
+import argparse
 import os
 import sys
-import argparse
 import uuid
 from pathlib import Path
 
@@ -28,6 +28,7 @@ os.chdir(Path(__file__).resolve().parent)
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from dotenv import load_dotenv, set_key
+
 load_dotenv(os.path.join(os.path.dirname(__file__), ".env"), override=True)
 
 ENV_PATH = os.path.join(os.path.dirname(__file__), ".env")

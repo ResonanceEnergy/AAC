@@ -5,9 +5,10 @@ Find the actual Polymarket proxy factory by:
 3. Trying the Polymarket CTF Exchange proxy wallet registry
 """
 import os
+
 import dotenv
+from eth_abi import decode, encode
 from web3 import Web3
-from eth_abi import encode, decode
 
 dotenv.load_dotenv()
 
@@ -89,7 +90,7 @@ print(f"\n=== Proxy details ===")
 print(f"  Nonce: {nonce}")
 print(f"  Code length: {len(w3.eth.get_code(PROXY))} bytes")
 
-# 5. Try to find proxy creation via broader event search  
+# 5. Try to find proxy creation via broader event search
 # ProxyCreation is the Gnosis Safe standard event
 print("\n=== Searching for ProxyCreation events (Gnosis Safe pattern) ===")
 proxy_creation_topic = Web3.keccak(text="ProxyCreation(address,address)")
@@ -120,7 +121,7 @@ print("\n=== Polymarket-specific proxy factory search ===")
 # These are the official addresses from Polymarket's documentation/github
 POLY_FACTORIES = [
     "0xaB45c5A4B0c941a2F231C04C3f49182e1A254052",
-    "0x6A499875cFC55E6a1F524bc052aD4eE3e8d85C2f",  
+    "0x6A499875cFC55E6a1F524bc052aD4eE3e8d85C2f",
     "0x72A206aaE3B9C1c2b13f76CF6e9c74d34abBa74a",
     "0xd08cda4b7F20E77bb6d4f8da2943FA67e8194382",  # Another known address
     "0x87d20B8e9EF72b36C4e6Cf4E4D50d5A56eBb79dA",  # Yet another

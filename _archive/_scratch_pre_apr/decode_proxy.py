@@ -1,5 +1,6 @@
 """Decode the minimal proxy bytecode and find what EOA created/owns it."""
-import json, sys
+import json
+import sys
 from urllib.request import Request, urlopen
 
 INFURA = "https://polygon-mainnet.infura.io/v3/84842078b09946638c03157f83405213"

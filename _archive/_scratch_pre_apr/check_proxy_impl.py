@@ -9,6 +9,7 @@ from web3 import Web3
 
 sys.path.insert(0, ".")
 from shared.config_loader import load_env_file
+
 load_env_file()
 
 RPC = "https://polygon-mainnet.infura.io/v3/84842078b09946638c03157f83405213"
@@ -77,7 +78,7 @@ USDC_E = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174"
 # balanceOf(proxy) selector + arg
 balance_calldata = "0x70a08231" + PROXY[2:].lower().zfill(64)
 
-# exec(USDC_E, balanceOf_calldata) 
+# exec(USDC_E, balanceOf_calldata)
 # Selector: 0x1cff79cd = exec(address,bytes)
 exec_data = (
     "0x1cff79cd"

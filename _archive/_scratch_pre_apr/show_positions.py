@@ -1,11 +1,13 @@
 """Show all Polymarket open orders and positions."""
+import json
 import os
 import sys
-import json
+
 import requests
 
 sys.path.insert(0, ".")
 from dotenv import load_dotenv
+
 load_dotenv()
 
 PROXY = os.getenv("POLYMARKET_FUNDER_ADDRESS", "0xF4BaEe5f82823e10141715610D4e050A3dCeEDD8")

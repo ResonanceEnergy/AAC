@@ -1,6 +1,9 @@
 """Check CLOB balance for ALL signature types to find where the funds are."""
-import os, sys
+import os
+import sys
+
 from dotenv import load_dotenv
+
 load_dotenv()
 
 from py_clob_client.client import ClobClient
@@ -24,7 +27,7 @@ for sig_type, desc in SIG_TYPES.items():
     print(f"\n{'='*60}")
     print(f"Signature Type {sig_type}: {desc}")
     print(f"{'='*60}")
-    
+
     try:
         client = ClobClient(
             HOST,
@@ -33,12 +36,12 @@ for sig_type, desc in SIG_TYPES.items():
             signature_type=sig_type,
             funder=EOA,
         )
-        
+
         # Derive API creds
         creds = client.derive_api_key()
         api_key = creds.get("apiKey", "NONE")
         print(f"  API Key: {api_key[:20]}...")
-        
+
         # Create a new client with derived creds
         client2 = ClobClient(
             HOST,
@@ -52,17 +55,17 @@ for sig_type, desc in SIG_TYPES.items():
                 "passphrase": creds["passphrase"],
             }
         )
-        
+
         # Check collateral balance
         params = BalanceAllowanceParams(asset_type=0)  # 0 = COLLATERAL
         bal = client2.get_balance_allowance(params)
         print(f"  COLLATERAL balance: {bal}")
-        
+
         balance_val = bal.get("balance", "0")
         if balance_val and balance_val != "0":
             print(f"\n  *** FOUND FUNDS! Balance: {balance_val} ***")
             print(f"  *** Use signature_type={sig_type} in .env ***")
-        
+
         # Also check conditional token balances (types 1 and 2)
         for asset_type, asset_name in [(1, "CONDITIONAL_YES"), (2, "CONDITIONAL_NO")]:
             try:
@@ -73,7 +76,7 @@ for sig_type, desc in SIG_TYPES.items():
                     print(f"  {asset_name} balance: {b}")
             except:
                 pass
-                
+
     except Exception as e:
         err = str(e)
         if "not registered" in err.lower() or "no api key" in err.lower():

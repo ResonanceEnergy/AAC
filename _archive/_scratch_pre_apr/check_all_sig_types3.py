@@ -1,10 +1,12 @@
 """Check CLOB balance for ALL signature types."""
 import os
+
 from dotenv import load_dotenv
+
 load_dotenv()
 
 from py_clob_client.client import ClobClient
-from py_clob_client.clob_types import BalanceAllowanceParams, ApiCreds
+from py_clob_client.clob_types import ApiCreds, BalanceAllowanceParams
 
 PRIVATE_KEY = os.getenv("POLYMARKET_PRIVATE_KEY")
 EOA = "0x4BFC40EA4051f84E90eA0a25998578f6191Acad9"
@@ -21,7 +23,7 @@ for sig_type, desc in SIG_TYPES.items():
     print(f"\n{'='*60}")
     print(f"Signature Type {sig_type}: {desc}")
     print(f"{'='*60}")
-    
+
     try:
         client = ClobClient(
             HOST,
@@ -30,22 +32,22 @@ for sig_type, desc in SIG_TYPES.items():
             signature_type=sig_type,
             funder=EOA,
         )
-        
+
         # Derive creds
         creds = client.derive_api_key()
         api_key = creds.api_key
         api_secret = creds.api_secret
         api_passphrase = creds.api_passphrase
-        
+
         print(f"  API Key: {api_key[:25]}...")
-        
+
         # Create client with creds - use ApiCreds object
         creds_obj = ApiCreds(
             api_key=api_key,
             api_secret=api_secret,
             api_passphrase=api_passphrase,
         )
-        
+
         client2 = ClobClient(
             HOST,
             key=PRIVATE_KEY,
@@ -54,14 +56,14 @@ for sig_type, desc in SIG_TYPES.items():
             funder=EOA,
             creds=creds_obj,
         )
-        
+
         # Check collateral balance
         params = BalanceAllowanceParams(asset_type=0)
         bal = client2.get_balance_allowance(params)
         print(f"  COLLATERAL: {bal}")
-        
+
         balance_val = bal.get("balance", "0") if isinstance(bal, dict) else getattr(bal, "balance", "0")
-        
+
         if balance_val and str(balance_val) != "0":
             # Convert from smallest unit (USDC has 6 decimals)
             try:
@@ -70,7 +72,7 @@ for sig_type, desc in SIG_TYPES.items():
             except:
                 print(f"\n  *** FOUND FUNDS: {balance_val} ***")
             print(f"  *** Use POLYMARKET_SIGNATURE_TYPE={sig_type} in .env ***")
-                
+
     except Exception as e:
         err = str(e)
         if len(err) > 300:

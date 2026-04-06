@@ -7,10 +7,13 @@ getPolyProxyWalletAddress(0x4BFC40EA...) = 0xB3A0... (empty, undeployed)
 The private key in .env (0x9a9f...) → EOA 0x4BFC40EA → proxy 0xB3A0... ($0)
 The REAL owner of 0xF4Ba... ($556) → EOA 0x6e9b70D1 → DIFFERENT private key
 """
-import os, requests
+import os
+
+import requests
 from dotenv import load_dotenv
-from web3 import Web3
 from eth_abi import encode
+from web3 import Web3
+
 load_dotenv()
 
 INFURA = "https://polygon-mainnet.infura.io/v3/84842078b09946638c03157f83405213"
@@ -45,7 +48,7 @@ result = w3.eth.call({"to": w3.to_checksum_address(USDC_E), "data": data.hex()})
 usdc = int(result.hex(), 16)
 print(f"Real owner USDC.e: {usdc / 1e6}")
 
-# 3. Check nonce  
+# 3. Check nonce
 nonce = w3.eth.get_transaction_count(w3.to_checksum_address(REAL_OWNER))
 print(f"Real owner nonce: {nonce}")
 print()

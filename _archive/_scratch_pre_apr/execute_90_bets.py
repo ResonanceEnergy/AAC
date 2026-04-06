@@ -21,10 +21,10 @@ from datetime import datetime
 sys.path.insert(0, ".")
 
 from dotenv import load_dotenv
+
 load_dotenv()
 
 from strategies.polymarket_blackswan_scanner import PolymarketBlackSwanScanner
-
 
 # ═══════════════════════════════════════════════════════════════════════════
 # CONFIG
@@ -71,7 +71,9 @@ def place_limit_buy(client, token_id: str, price: float, size: float,
                     tick_size: str = "0.01", neg_risk: bool = False):
     """Place a GTC limit BUY order. Returns order result dict or error string."""
     from py_clob_client.clob_types import (
-        OrderArgs, OrderType, PartialCreateOrderOptions,
+        OrderArgs,
+        OrderType,
+        PartialCreateOrderOptions,
     )
     from py_clob_client.order_builder.constants import BUY
 

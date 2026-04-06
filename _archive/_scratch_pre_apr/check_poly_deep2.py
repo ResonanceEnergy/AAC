@@ -7,6 +7,7 @@ import urllib.request
 
 sys.path.insert(0, ".")
 from shared.config_loader import load_env_file
+
 load_env_file()
 
 EOA = "0x4BFC40EA4051f84E90eA0a25998578f6191Acad9"
@@ -26,7 +27,7 @@ print("PART 1: Authenticated CLOB Client")
 print("=" * 60)
 
 from py_clob_client.client import ClobClient
-from py_clob_client.clob_types import BalanceAllowanceParams, AssetType
+from py_clob_client.clob_types import AssetType, BalanceAllowanceParams
 
 pk = os.getenv("POLYMARKET_PRIVATE_KEY", "")
 funder = os.getenv("POLYMARKET_FUNDER_ADDRESS", "")
@@ -98,7 +99,7 @@ print("=" * 60)
 
 for name, addr in [("EOA", EOA), ("PROXY", PROXY)]:
     print(f"\n--- {name} ({addr[:12]}...) ---")
-    
+
     # Normal txns
     try:
         url = f"https://api.polygonscan.com/api?module=account&action=txlist&address={addr}&startblock=0&endblock=99999999&page=1&offset=10&sort=desc&apikey={POLYGON_API}"
@@ -114,7 +115,7 @@ for name, addr in [("EOA", EOA), ("PROXY", PROXY)]:
     except Exception as e:
         print(f"  Normal TX error: {e}")
     time.sleep(0.3)
-    
+
     # ERC-20 token transfers (includes USDC)
     try:
         url = f"https://api.polygonscan.com/api?module=account&action=tokentx&address={addr}&startblock=0&endblock=99999999&page=1&offset=20&sort=desc&apikey={POLYGON_API}"
@@ -167,7 +168,7 @@ for name, addr in [("EOA", EOA), ("PROXY", PROXY)]:
     time.sleep(0.3)
 
 # ============================================================
-# PART 4: Check if the funder address is actually a Polymarket proxy 
+# PART 4: Check if the funder address is actually a Polymarket proxy
 # ============================================================
 print(f"\n{'=' * 60}")
 print("PART 4: Contract Code Check")

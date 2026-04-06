@@ -1,5 +1,7 @@
 """Check on-chain state of 0xF4Ba... proxy wallet on Polygon."""
-import json, os, sys
+import json
+import os
+import sys
 from urllib.request import Request, urlopen
 
 INFURA = "https://polygon-mainnet.infura.io/v3/84842078b09946638c03157f83405213"
@@ -46,14 +48,14 @@ if code != '0x':
     impl_slot = "0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc"
     impl = rpc("eth_getStorageAt", [PROXY, impl_slot, "latest"])
     print(f"EIP-1967 impl: {impl}")
-    
+
     admin_slot = "0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103"
     admin = rpc("eth_getStorageAt", [PROXY, admin_slot, "latest"])
     print(f"EIP-1967 admin: {admin}")
-    
+
     slot0 = rpc("eth_getStorageAt", [PROXY, "0x0", "latest"])
     print(f"Slot 0 (owner?): {slot0}")
-    
+
     slot1 = rpc("eth_getStorageAt", [PROXY, "0x1", "latest"])
     print(f"Slot 1: {slot1}")
 
@@ -89,7 +91,7 @@ if code != '0x':
         print(f"getProxyAdmin(): {result}")
     except:
         pass
-    
+
     # implementation() = 0x5c60da1b
     try:
         result = rpc("eth_call", [{"to": PROXY, "data": "0x5c60da1b"}, "latest"])

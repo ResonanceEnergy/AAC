@@ -1,7 +1,7 @@
 """Deep dive into Polymarket wallet/positions for both EOA and PROXY addresses."""
 import json
-import urllib.request
 import time
+import urllib.request
 
 EOA = "0x4BFC40EA4051f84E90eA0a25998578f6191Acad9"
 PROXY = "0xF4BaEe5f82823e10141715610D4e050A3dCeEDD8"

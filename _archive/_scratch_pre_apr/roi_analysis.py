@@ -1,6 +1,7 @@
 """Analyze ROI potential of all Black Swan scanner opportunities."""
 import asyncio
 import sys
+
 sys.path.insert(0, '.')
 
 from strategies.polymarket_blackswan_scanner import PolymarketBlackSwanScanner

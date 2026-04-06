@@ -1,5 +1,6 @@
 """Check Polymarket profile/portfolio for our EOA and the mystery funder."""
-import json, urllib.request
+import json
+import urllib.request
 
 EOA = "0x4BFC40EA4051f84E90eA0a25998578f6191Acad9"
 OLD_FUNDER = "0xF4BaEe5f82823e10141715610D4e050A3dCeEDD8"
@@ -16,14 +17,14 @@ for name, addr in addresses.items():
     print(f"\n{'='*60}")
     print(f"Checking: {name} = {addr}")
     print(f"{'='*60}")
-    
+
     # Try Polymarket profile API
     urls = [
         f"https://clob.polymarket.com/profile/{addr}",
         f"https://gamma-api.polymarket.com/users/{addr}",
         f"https://clob.polymarket.com/data/positions?user={addr}",
     ]
-    
+
     for url in urls:
         try:
             req = urllib.request.Request(url, headers={
@@ -62,14 +63,16 @@ print(f"\n{'='*60}")
 print("Checking CLOB orders with our API creds...")
 print(f"{'='*60}")
 import os
+
 from dotenv import load_dotenv
+
 load_dotenv()
 try:
     from py_clob_client.client import ClobClient
     from py_clob_client.clob_types import ApiCreds
-    
+
     PRIVATE_KEY = os.getenv("POLYMARKET_PRIVATE_KEY")
-    
+
     for sig_type in [0, 1, 2]:
         client = ClobClient(
             "https://clob.polymarket.com",
@@ -92,20 +95,20 @@ try:
             funder=EOA,
             creds=creds_obj,
         )
-        
+
         # Try to get open orders
         try:
             orders = client2.get_orders()
             print(f"\n  Sig type {sig_type} orders: {orders}")
         except Exception as e:
             print(f"\n  Sig type {sig_type} orders error: {str(e)[:100]}")
-        
+
         # Try to get trades
         try:
             trades = client2.get_trades()
             print(f"  Sig type {sig_type} trades: {trades}")
         except Exception as e:
             print(f"  Sig type {sig_type} trades error: {str(e)[:100]}")
-            
+
 except Exception as e:
     print(f"  Error: {e}")

@@ -10,11 +10,11 @@ Usage:
     python _check_all_balances.py --json       # JSON output
     python _check_all_balances.py --update     # update doctrine after scan
 """
+import argparse
+import asyncio
+import json
 import os
 import sys
-import json
-import asyncio
-import argparse
 from datetime import datetime, timezone
 from decimal import Decimal
 from pathlib import Path
@@ -23,6 +23,7 @@ os.chdir(Path(__file__).resolve().parent)
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from dotenv import load_dotenv
+
 load_dotenv(os.path.join(os.path.dirname(__file__), ".env"), override=True)
 
 # ─── Constants ────────────────────────────────────────────────────────────
@@ -156,9 +157,9 @@ async def scan_moomoo() -> dict:
     result = {"platform": "Moomoo", "status": "error", "balances": {}, "positions": []}
     try:
         from moomoo import (
+            RET_OK,
             Currency,
             OpenSecTradeContext,
-            RET_OK,
             SecurityFirm,
             TrdEnv,
             TrdMarket,
@@ -283,7 +284,7 @@ async def scan_polymarket() -> dict:
     result = {"platform": "Polymarket", "status": "error", "balances": {}, "positions": []}
     try:
         from py_clob_client.client import ClobClient
-        from py_clob_client.clob_types import BalanceAllowanceParams, AssetType
+        from py_clob_client.clob_types import AssetType, BalanceAllowanceParams
 
         key = os.environ.get("POLYMARKET_PRIVATE_KEY", "")
         funder = os.environ.get("POLYMARKET_FUNDER_ADDRESS", "")
@@ -447,8 +448,8 @@ async def scan_wealthsimple() -> dict:
         return result
 
     try:
-        from snaptrade_client.client import SnapTrade
         from snaptrade_client import Configuration
+        from snaptrade_client.client import SnapTrade
         cfg = Configuration(consumer_key=consumer_key, client_id=client_id)
         snaptrade = SnapTrade(configuration=cfg)
 

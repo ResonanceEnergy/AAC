@@ -214,11 +214,16 @@ class MoomooConnector(BaseExchangeConnector):
             await self._audit_auth("success", f"Connected to {self._host}:{self._port}")
             return True
 
-        except Exception as e:
+        except (ConnectionError, OSError, TimeoutError) as e:
             duration_ms = (time.time() - start_time) * 1000
             self.logger.error(f"Moomoo connection failed: {e}")
             await self._audit_auth("failure", str(e))
-            return False
+            raise ConnectionError(f"Moomoo connection failed: {e}") from e
+        except Exception as e:
+            duration_ms = (time.time() - start_time) * 1000
+            self.logger.error(f"Moomoo connection failed (unexpected): {e}")
+            await self._audit_auth("failure", str(e))
+            raise ConnectionError(f"Moomoo connection failed: {e}") from e
 
     async def disconnect(self) -> None:
         """Close Moomoo connections."""

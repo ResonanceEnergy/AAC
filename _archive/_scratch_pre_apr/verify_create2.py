@@ -5,10 +5,14 @@ The CLOB uses CREATE2 to compute proxy address from:
 
 If the derived address != 0xF4Ba..., that explains $0 balance.
 """
-import os, json, requests
+import json
+import os
+
+import requests
 from dotenv import load_dotenv
 from eth_account import Account
 from web3 import Web3
+
 load_dotenv()
 
 PK = os.getenv("POLYMARKET_PRIVATE_KEY")
@@ -31,6 +35,7 @@ CTF_EXCHANGE = "0x4bFb41d5B3570DeFd03C39a9A4D8dE6Bd8B8982E"
 # Function selector for getPolyProxyWalletAddress(address)
 # keccak256("getPolyProxyWalletAddress(address)") = first 4 bytes
 import hashlib
+
 from eth_abi import encode
 
 func_sig = Web3.keccak(text="getPolyProxyWalletAddress(address)")[:4]

@@ -2,8 +2,14 @@
 Polymarket Full Diagnostic — based on complete docs deep dive.
 Tests all signature types, Data API, geoblock, and proxy registration.
 """
-import os, sys, json, time, requests
+import json
+import os
+import sys
+import time
+
+import requests
 from dotenv import load_dotenv
+
 load_dotenv()
 
 PK = os.getenv("POLYMARKET_PRIVATE_KEY")
@@ -11,8 +17,8 @@ FUNDER = os.getenv("POLYMARKET_FUNDER_ADDRESS")  # 0xF4Ba...
 CHAIN_ID = int(os.getenv("POLYMARKET_CHAIN_ID", "137"))
 HOST = "https://clob.polymarket.com"
 
-from py_clob_client.client import ClobClient
 from eth_account import Account
+from py_clob_client.client import ClobClient
 
 acct = Account.from_key(PK)
 EOA = acct.address
@@ -137,7 +143,7 @@ DATA_API = "https://data-api.polymarket.com"
 
 for label, addr in [("EOA", EOA), ("Proxy/Funder", FUNDER)]:
     print(f"\n  --- {label}: {addr} ---")
-    
+
     # Positions
     try:
         r = requests.get(f"{DATA_API}/positions?user={addr}", timeout=10)
@@ -151,14 +157,14 @@ for label, addr in [("EOA", EOA), ("Proxy/Funder", FUNDER)]:
             print(f"    Response: {json.dumps(data)[:200]}")
     except Exception as e:
         print(f"  Positions error: {e}")
-    
+
     # Value
     try:
         r = requests.get(f"{DATA_API}/value?user={addr}", timeout=10)
         print(f"  Value: status={r.status_code}, data={r.text[:200]}")
     except Exception as e:
         print(f"  Value error: {e}")
-    
+
     # Activity
     try:
         r = requests.get(f"{DATA_API}/activity?user={addr}", timeout=10)
@@ -210,7 +216,7 @@ try:
     print(f"  New API Key:    {new_creds.api_key}")
     print(f"  New Secret:     {new_creds.api_secret[:20]}...")
     print(f"  New Passphrase: {new_creds.api_passphrase[:20]}...")
-    
+
     # Now try balance with the fresh key and sig type 1
     fresh_full = ClobClient(
         HOST, CHAIN_ID, key=PK,
@@ -220,7 +226,7 @@ try:
     )
     bal = fresh_full.get_balance_allowance()
     print(f"  COLLATERAL balance (fresh key, type 1): {bal}")
-    
+
     # And with sig type 2
     fresh_full2 = ClobClient(
         HOST, CHAIN_ID, key=PK,
@@ -230,7 +236,7 @@ try:
     )
     bal2 = fresh_full2.get_balance_allowance()
     print(f"  COLLATERAL balance (fresh key, type 2): {bal2}")
-    
+
 except Exception as e:
     print(f"  Error: {e}")
 
@@ -246,14 +252,14 @@ print("=" * 60)
 # Build L2 headers manually using the client's internals
 if creds:
     try:
-        from py_clob_client.signing.hmac import build_hmac_signature
         from py_clob_client.headers import create_level_2_headers
-        
+        from py_clob_client.signing.hmac import build_hmac_signature
+
         for sig_str in ["EOA", "POLY_PROXY", "GNOSIS_SAFE"]:
             url = f"{HOST}/balance-allowance?asset_type=COLLATERAL&signature_type={sig_str}"
             # Use built-in client for the request
             print(f"  Trying raw GET {url}")
-            
+
             # We'll use the client's internal request method
             test_client = ClobClient(
                 HOST, CHAIN_ID, key=PK,
@@ -295,7 +301,7 @@ if creds:
 print()
 
 # ============================================================
-# 11. NOTIFICATION CHECK  
+# 11. NOTIFICATION CHECK
 # ============================================================
 print("=" * 60)
 print("11. NOTIFICATION CHECK")

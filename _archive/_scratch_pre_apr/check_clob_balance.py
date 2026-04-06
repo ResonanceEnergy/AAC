@@ -1,9 +1,11 @@
 """Check CLOB balance with corrected EOA signature type."""
 import os
 import sys
+
 sys.path.insert(0, os.path.dirname(__file__))
 
 from dotenv import load_dotenv
+
 load_dotenv(os.path.join(os.path.dirname(__file__), ".env"), override=True)
 
 from py_clob_client.client import ClobClient

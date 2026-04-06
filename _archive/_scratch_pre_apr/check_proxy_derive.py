@@ -5,10 +5,11 @@ The address is: keccak256(0xff ++ factory ++ salt ++ keccak256(init_code))[12:]
 where salt = keccak256(abi.encode(eoa_address, impl_address))
 """
 import os
+
 import dotenv
 import requests
-from web3 import Web3
 from eth_abi import encode
+from web3 import Web3
 
 dotenv.load_dotenv()
 
@@ -23,7 +24,7 @@ IMPL = "0x44e999d5c2f66ef0861317f9a4805ac2e90aeb4f"
 # Source: Polymarket github + on-chain analysis
 FACTORIES = [
     "0xaB45c5A4B0c941a2F231C04C3f49182e1A254052",  # Known factory 1
-    "0x6A499875cFC55E6a1F524bc052aD4eE3e8d85C2f",  # Known factory 2  
+    "0x6A499875cFC55E6a1F524bc052aD4eE3e8d85C2f",  # Known factory 2
     "0x72A206aaE3B9C1c2b13f76CF6e9c74d34abBa74a",  # Known factory 3
 ]
 
@@ -91,7 +92,7 @@ print(f"  Init code hash: {init_code_hash.hex()}")
 # Try different salt derivation methods
 for factory in FACTORIES:
     factory_cs = Web3.to_checksum_address(factory)
-    
+
     # Method 1: salt = keccak256(eoa_address)
     salt1 = Web3.keccak(bytes.fromhex(EOA[2:].lower().zfill(64)))
     addr1 = Web3.keccak(
@@ -101,7 +102,7 @@ for factory in FACTORIES:
         + init_code_hash
     )
     computed1 = Web3.to_checksum_address("0x" + addr1.hex()[-40:])
-    
+
     # Method 2: salt = abi.encode(address) padded to 32 bytes
     salt2 = Web3.keccak(encode(["address"], [EOA]))
     addr2 = Web3.keccak(
@@ -111,7 +112,7 @@ for factory in FACTORIES:
         + init_code_hash
     )
     computed2 = Web3.to_checksum_address("0x" + addr2.hex()[-40:])
-    
+
     # Method 3: salt = raw address bytes padded to 32
     salt3 = bytes(12) + bytes.fromhex(EOA[2:])  # left-pad to 32 bytes
     addr3 = Web3.keccak(
@@ -121,7 +122,7 @@ for factory in FACTORIES:
         + init_code_hash
     )
     computed3 = Web3.to_checksum_address("0x" + addr3.hex()[-40:])
-    
+
     print(f"\n  Factory {factory[:10]}...:")
     print(f"    salt=keccak(eoa):       {computed1} {'MATCH!' if computed1.lower() == PROXY.lower() else ''}")
     print(f"    salt=keccak(encode):    {computed2} {'MATCH!' if computed2.lower() == PROXY.lower() else ''}")

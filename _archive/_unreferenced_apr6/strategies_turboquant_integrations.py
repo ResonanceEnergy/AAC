@@ -37,7 +37,6 @@ from pathlib import Path
 from typing import Any, Optional
 
 import numpy as np
-
 from strategies.turboquant_engine import (
     MonteCarloCompressor,
     TurboQuantIndex,

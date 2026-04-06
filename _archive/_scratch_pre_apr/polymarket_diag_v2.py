@@ -1,8 +1,13 @@
 """
 Polymarket Diagnostic v2 — Fixed creds handling.
 """
-import os, sys, json, requests
+import json
+import os
+import sys
+
+import requests
 from dotenv import load_dotenv
+
 load_dotenv()
 
 PK = os.getenv("POLYMARKET_PRIVATE_KEY")
@@ -10,9 +15,9 @@ FUNDER = os.getenv("POLYMARKET_FUNDER_ADDRESS")
 CHAIN_ID = int(os.getenv("POLYMARKET_CHAIN_ID", "137"))
 HOST = "https://clob.polymarket.com"
 
+from eth_account import Account
 from py_clob_client.client import ClobClient
 from py_clob_client.clob_types import ApiCreds
-from eth_account import Account
 
 acct = Account.from_key(PK)
 EOA = acct.address
@@ -107,17 +112,20 @@ print()
 print("=== RAW HTTP — balance-allowance ===")
 try:
     # Build HMAC headers manually
-    import time, hmac, hashlib, base64
-    
+    import base64
+    import hashlib
+    import hmac
+    import time
+
     timestamp = str(int(time.time()))
     method = "GET"
     path = "/balance-allowance"
     body = ""
-    
+
     for sig_str in ["EOA", "POLY_PROXY", "GNOSIS_SAFE"]:
         query = f"asset_type=COLLATERAL&signature_type={sig_str}"
         full_path = f"{path}?{query}"
-        
+
         # HMAC signature: timestamp + method + path + body
         message = timestamp + method + full_path + body
         sig = base64.urlsafe_b64encode(
@@ -127,7 +135,7 @@ try:
                 hashlib.sha256,
             ).digest()
         ).decode("utf-8")
-        
+
         headers = {
             "POLY_ADDRESS": EOA,
             "POLY_SIGNATURE": sig,
@@ -135,7 +143,7 @@ try:
             "POLY_API_KEY": api_key,
             "POLY_PASSPHRASE": api_passphrase,
         }
-        
+
         url = f"{HOST}{full_path}"
         r = requests.get(url, headers=headers, timeout=10)
         print(f"  {sig_str}: status={r.status_code}, body={r.text[:200]}")

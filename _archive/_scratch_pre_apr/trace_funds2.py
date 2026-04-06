@@ -1,7 +1,12 @@
 """Trace all ETH transactions from our EOA to understand fund flow."""
-import json, urllib.request, time, os, sys
-from web3 import Web3
+import json
+import os
+import sys
+import time
+import urllib.request
+
 from dotenv import load_dotenv
+from web3 import Web3
 
 load_dotenv()
 
@@ -28,41 +33,41 @@ try:
         "endblock": "99999999",
         "sort": "asc",
     })
-    
+
     if data["status"] == "1":
         txs = data["result"]
         print(f"Found {len(txs)} transactions\n")
-        
+
         total_in = 0
         total_out = 0
         total_gas = 0
-        
+
         for i, tx in enumerate(txs):
             direction = "OUT" if tx["from"].lower() == EOA.lower() else "IN"
             value_eth = Web3.from_wei(int(tx["value"]), "ether")
             gas_cost = Web3.from_wei(int(tx["gasUsed"]) * int(tx["gasPrice"]), "ether")
-            
+
             if direction == "OUT":
                 total_out += float(value_eth)
                 total_gas += float(gas_cost)
             else:
                 total_in += float(value_eth)
-            
+
             func = ""
             inp = tx.get("input", "0x")
             if inp and inp != "0x" and len(inp) >= 10:
                 func = f" [fn: {inp[:10]}]"
-            
+
             status = "OK" if tx.get("isError", "0") == "0" else "FAILED"
             to_addr = tx.get("to", "") or "CONTRACT_CREATE"
             flag = " <<< YOUR DEST" if to_addr.lower() == DEST.lower() else ""
-            
+
             print(f"TX {i+1}: {direction} | {float(value_eth):.6f} ETH | gas: {float(gas_cost):.6f} ETH | {status}")
             print(f"       From: {tx['from']}")
             print(f"       To:   {to_addr}{func}{flag}")
             print(f"       Hash: {tx['hash']}")
             print()
-        
+
         print(f"--- Summary ---")
         print(f"Total received:  {total_in:.6f} ETH")
         print(f"Total sent:      {total_out:.6f} ETH")
@@ -70,7 +75,7 @@ try:
         print(f"Net balance:     {total_in - total_out - total_gas:.6f} ETH")
     else:
         print(f"Error: {data.get('message', 'unknown')} | {data.get('result', '')}")
-        
+
 except Exception as e:
     print(f"Error: {e}")
 
