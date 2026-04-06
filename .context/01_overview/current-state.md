@@ -1,6 +1,6 @@
 # Current State
 
-Date: 2026-04-06
+Date: 2026-04-07
 Repo: AAC
 Branch: `main`
 Workspace: `c:\dev\AAC_fresh`
@@ -9,18 +9,19 @@ Version: 3.6.0 (pyproject.toml)
 
 ## Operational Summary
 
-AAC is in **LIVE TRADING** mode with real money positions on IBKR and an active Polymarket division.
+AAC is in **LIVE TRADING** mode. Apr 6 post-mortem completed — 8 puts expired worthless, ROLL_DISCIPLINE rules encoded.
 
 ### What's Running
-- IBKR: 9 live put positions ($910+ invested) — ARCC, PFF, LQD, EMB, MAIN, JNK, XLF, BKLN x3, HYG
-- Moomoo: Real mode, FUTUCA, $2,609.26 USD — options approval pending
-- WealthSimple TFSA: Roll-down plan created (C$614 budget, Apr→Jul)
+- IBKR: 5 active puts (XLF May 1, LQD/EMB May 15, BKLN x3/HYG Jun 18) — all OTM
+- IBKR: 4 Apr 17 puts expiring worthless (ARCC/PFF/MAIN/JNK) — $150 premium lost
+- Moomoo: Real mode, FUTUCA, ~$17,684 USD — SQQQ x172 + SPXS x106 performing in VIX 24
+- WealthSimple TFSA: ~$18,638 CAD — 3 active (GLD/XLE LEAPS + OWL put), 4 Apr puts expiring worthless ($1,495 lost)
 - Matrix Monitor: 4 display modes, 20+ panels, 24/30 collectors OK
 - Doctrine Engine: 12 packs, 4-state machine
-- 8 strategies wired to unified integrator (War Room, Storm Lifeboat, Matrix Maximizer, Exploitation Matrix, Polymarket BlackSwan, BlackSwan Authority, PolyMC, Polymarket Active Scanner)
-- **Polymarket Division**: ACTIVE — `active_scanner.py` (450+ lines), 3 strategies unified (War Room Poly, PolyMC, PlanktonXD), py-clob-client v0.34.6, wallet live ($535.73 USDC, 2 open orders, 124 trades)
-- `launch.py polymarket` mode — scan/monitor/live CLI with `--mode`, `--interval`, `--max-cycles`, `--json`
-- Pytest: **1712 passed**, 23 skipped, 1 xfailed
+- 8 strategies wired to unified integrator
+- **Polymarket Division**: ACTIVE — $535.73 USDC, active_scanner.py
+- Grand total: ~$32,538 USD | VIX 24.05 | CAD/USD 0.7189
+- Pytest: **1714 passed**, 23 skipped, 1 xfailed
 
 ### What's Broken
 - CoinGecko: Pro key expired → auto-downgrades to free tier (10 req/min)

@@ -1,7 +1,7 @@
 # AAC Living Status Dashboard
 
-> **Last updated:** 2026-04-06 08:45 ET
-> **Updated by:** Full alignment — test suite validated (1712p), lint clean, position/date audit, context sync
+> **Last updated:** 2026-04-07 (Monday, markets open)
+> **Updated by:** Apr 7 alignment — position post-mortem applied, 1714 tests green, war_room + 13-moon updated, ROLL_DISCIPLINE encoded
 > **Update this file** after every significant change. This is the single source of truth for what works.
 
 ---
@@ -10,7 +10,7 @@
 
 | Component | Status | Notes |
 |---|---|---|
-| **IBKR Connector** | LIVE | Port 7496, account U24346218. KRE/IWM expired Apr 4. 7 active positions. |
+| **IBKR Connector** | LIVE | Port 7496, account U24346218. 5 active puts (all OTM). 4 Apr puts expired worthless. |
 | **Moomoo Connector** | LIVE | OpenD, FUTUCA, real mode, $365.15 USD. Options approval still pending. |
 | **yfinance** | WORKING | Free, primary options chain source |
 | **CoinGecko** | DEGRADED | Pro key expired → free tier (10 req/min). Prices work. |
@@ -20,12 +20,12 @@
 | **NewsAPI** | WORKING | Headlines |
 | **Doctrine Engine** | WORKING | 11 packs, 4-state machine |
 | **Matrix Monitor** | WORKING | Parallel collection (5s timeout/collector), degradation panel, ASCII banner. Confirmed live 2026-04-02: 24/30 collectors OK, 6 timeout (expected — IBKR/NCC/NCL offline). |
-| **War Room Engine** | WORKING | Wired to integrator. Regime: STAGFLATION (70%), Vol Shock 40/100. |
+| **War Room Engine** | WORKING | Wired to integrator. Regime: STAGFLATION (70%), Vol Shock 40/100. ROLL_DISCIPLINE rules added Apr 6. |
 | **Polymarket Division** | ACTIVE | py-clob-client v0.34.6, wallet live ($535.73 USDC), active_scanner.py (450+ lines), `launch.py polymarket` |
 | **Paper Trading** | WORKING | `launch.py paper` |
 | **Web Dashboard** | WORKING | `launch.py dashboard` |
 | **CI Pipeline** | WORKING | `.github/workflows/ci.yml` |
-| **Pytest Suite** | WORKING | **1712 passed**, 23 skipped, 1 xfailed (2026-04-06) |
+| **Pytest Suite** | WORKING | **1714 passed**, 23 skipped, 1 xfailed (2026-04-07) |
 
 ## What's Broken
 
@@ -36,54 +36,73 @@
 | **X/Twitter API** | HTTP 402 | LOW | Needs paid tier. Graceful fallback to 0.5. |
 | **NDAX** | LIQUIDATED | NONE | All crypto sold. Connector exists but unused. |
 
-## Active Positions (Real Money)
+## Active Positions (Real Money) — Updated Apr 7
 
-### IBKR (Account U24346218)
+### IBKR (Account U24346218) — ~$920 equity
 
-| Ticker | Strike | Qty | Entry | Expiry | Status |
-|--------|--------|-----|-------|--------|--------|
-| ARCC | $17P | 1 | $0.25 | Apr 17 | **ROLLING DECISION Apr 10** |
-| PFF | $29P | 1 | $0.40 | Apr 17 | Let expire (down -92%) |
-| MAIN | $50P | 1 | $0.85 | Apr 17 | Roll or exit decision due |
-| JNK | $92P | 1 | $0.80 | Apr 17 | Hold/roll decision |
-| XLF | $46P | 1 | $0.75 | May 1 | Monitor |
-| LQD | $106P | 1 | $0.64 | May 15 | Performing (+71%) |
-| EMB | $90P | 1 | $0.75 | May 15 | Performing |
-| BKLN | $20P | 3 | $0.40 | Jun 18 | Hold |
-| HYG | $77P | 1 | $0.80 | Jun 18 | Hold |
-| ~~KRE~~ | ~~$58P~~ | ~~1~~ | ~~$1.45~~ | ~~Apr 4~~ | **EXPIRED** |
-| ~~IWM~~ | ~~$230P~~ | ~~1~~ | ~~$3.96~~ | ~~Apr~~ | **EXPIRED** |
+| Ticker | Strike | Qty | Entry | Expiry | Spot | Status |
+|--------|--------|-----|-------|--------|------|--------|
+| XLF | $46P | 1 | $0.75 | May 1 | $49.90 | **21-DTE roll decision Apr 10** |
+| LQD | $106P | 1 | $0.63 | May 15 | $109.11 | OTM, monitor |
+| EMB | $90P | 1 | $0.48 | May 15 | $93.96 | OTM, monitor |
+| BKLN | $20P | 3 | $0.40 | Jun 18 | $20.49 | Near ATM, hold |
+| HYG | $77P | 1 | $0.80 | Jun 18 | $79.61 | OTM, hold |
+| ~~ARCC~~ | ~~$17P~~ | ~~1~~ | ~~$0.25~~ | ~~Apr 17~~ | | **EXPIRING WORTHLESS** ($0 bid) |
+| ~~PFF~~ | ~~$29P~~ | ~~1~~ | ~~$0.17~~ | ~~Apr 17~~ | | **EXPIRING WORTHLESS** ($0 bid) |
+| ~~MAIN~~ | ~~$50P~~ | ~~1~~ | ~~$0.73~~ | ~~Apr 17~~ | | **EXPIRING WORTHLESS** ($0 bid) |
+| ~~JNK~~ | ~~$92P~~ | ~~1~~ | ~~$0.35~~ | ~~Apr 17~~ | | **EXPIRING WORTHLESS** ($0 bid) |
+| ~~KRE~~ | ~~$58P~~ | ~~1~~ | ~~$1.45~~ | ~~Apr 4~~ | | EXPIRED |
+| ~~IWM~~ | ~~$230P~~ | ~~1~~ | ~~$3.96~~ | ~~Apr 4~~ | | EXPIRED |
 
-### WealthSimple TFSA ($18,637.76 CAD as of Mar 29)
+**IBKR Apr expired premium lost: -$150** (ARCC $25 + PFF $17 + MAIN $73 + JNK $35)
 
-| Ticker | Strike | Qty | Expiry | Status |
-|--------|--------|-----|--------|--------|
-| ARCC | $16P | 10 | Apr 17 | **Roll to Jun $15P on Apr 10** |
-| OBDC | $10P | 65 | Apr 17 | **Roll to Jul $7.5P on Apr 10** (+17%) |
-| JNK | $94P | 5 | Apr 17 | **Roll 2, let 3 expire on Apr 10** |
-| KRE | $60P | 1 | Apr 17 | **Close for ~$94 credit on Apr 10** |
-| GLD | $515C | 1 | Mar 19, 2027 | LEAPS hold (+25%) |
-| OWL | $8P | 5 | Jun 18 | Hold |
-| XLE | $85C | 26 | Jan 15, 2027 | LEAPS hold (+162%) |
+### WealthSimple TFSA (~$18,638 CAD / ~$13,398 USD)
+
+| Ticker | Strike | Qty | Entry | Expiry | Spot | Status |
+|--------|--------|-----|-------|--------|------|--------|
+| GLD | $515C | 1 | $19.40 | Mar 2027 | $428.66 | LEAPS — OTM, hold (time value) |
+| XLE | $85C | 26 | $0.37 | Jan 2027 | $59.37 | LEAPS — deep OTM, hold |
+| OWL | $8P | 5 | $0.75 | Jun 18 | $8.55 | Near ATM, hold |
+| ~~ARCC~~ | ~~$16P~~ | ~~10~~ | ~~$0.13~~ | ~~Apr 17~~ | | **EXPIRING WORTHLESS** ($0 bid) |
+| ~~JNK~~ | ~~$94P~~ | ~~5~~ | ~~$0.57~~ | ~~Apr 17~~ | | **EXPIRING WORTHLESS** ($0 bid) |
+| ~~KRE~~ | ~~$60P~~ | ~~1~~ | ~~$1.05~~ | ~~Apr 17~~ | | **EXPIRING WORTHLESS** ($0 bid) |
+| ~~OBDC~~ | ~~$10P~~ | ~~65~~ | ~~$0.15~~ | ~~Apr 17~~ | | **EXPIRING WORTHLESS** ($0 bid, $975 loss) |
+
+**WS Apr expired premium lost: -$1,495** (ARCC $130 + JNK $285 + KRE $105 + OBDC $975)
+
+### Moomoo (FUTUCA) — ~$17,684 USD
+
+| Ticker | Type | Qty | Spot | MV | Notes |
+|--------|------|-----|------|-----|-------|
+| SQQQ | shares | 172 | $76.54 | $13,164 | Inverse QQQ — performing in VIX 24 |
+| SPXS | shares | 106 | $39.19 | $4,155 | Inverse SPX — performing |
+| GLD | $298C | 1 | $428.66 | ? | No entry data |
+| SLV | $33.5C | 7 | $65.79 | ? | No entry data |
+| Cash | | | | $365 | |
 
 ### Other Venues
 
 | Venue | Value | Notes |
 |-------|-------|-------|
-| Moomoo | $2,609.26 USD | SQQQ x172, SPXS x106, GLD $298C, SLV $33.5C x7 |
-| Polymarket | $535.73 USDC | ACTIVE — 3 unified strategies (War Room, PolyMC, PlanktonXD), active_scanner.py, 2 open orders, 124 trades |
+| Polymarket | $535.73 USDC | ACTIVE — 3 strategies, active_scanner.py |
 | NDAX | LIQUIDATED | $4,492 CAD withdrawn |
+
+### Grand Total: ~$32,538 USD | VIX: 24.05 | CAD/USD: 0.7189
+
+**TOTAL EXPIRED PREMIUM LOST: -$1,645** (all Apr puts)
 
 ## Critical Dates
 
 | Date | Event | Action |
 |------|-------|--------|
-| **Apr 4** | KRE $58P / IWM $230P expiry | **EXPIRED** (confirmed) |
-| **Apr 10** | **WS TFSA 7-DTE roll window** | **4 DAYS AWAY** — Execute rolls per `docs/APR10_ROLL_EXECUTION_PLAN.md` |
-| **Apr 17** | **IBKR + WS Apr OPEX** | Let PFF expire, manage ARCC/MAIN/JNK |
-| May 1 | XLF $46P expiry | Monitor |
-| May 15 | LQD/EMB expiry | Monitor (performing) |
-| Jun 18 | BKLN x3, HYG, OWL expiry | Monitor |
+| ~~Apr 4~~ | ~~KRE/IWM expiry~~ | EXPIRED |
+| **Apr 10** | **XLF 21-DTE roll trigger** | Evaluate XLF $46P May 1. If bid > $0.10, roll to Jun. If $0 → dead-put gate. |
+| **Apr 17** | **IBKR + WS Apr OPEX** | All Apr puts expire worthless. No action needed — $0 bid confirmed. |
+| **Apr 24** | **LQD/EMB 21-DTE roll trigger** | Roll decision for May 15 puts per ROLL_DISCIPLINE. |
+| May 1 | XLF $46P expiry | If not rolled Apr 10, expires. |
+| May 15 | LQD/EMB expiry | If not rolled Apr 24, expires. |
+| **May 28** | **BKLN/HYG/OWL 21-DTE roll trigger** | Jun 18 puts roll decision. First real test of new discipline. |
+| Jun 18 | BKLN x3, HYG, OWL, XLE Jun call, SLV Jun call | Jun OPEX — multiple positions. |
 
 ## Active Workstreams
 
@@ -93,7 +112,7 @@
 | 3,297 Quality Fixes | **DONE** | ruff clean, lint zero, F821/F402/F601/E741/E701 all fixed. |
 | Context Guardrails | DONE | copilot-instructions.md, AGENTS.md, STATUS.md, 3 path-specific |
 | Root Cleanup + Archives | DONE | 86 files archived, root 170+ → 30 |
-| **Apr 10 Roll Execution** | **UPCOMING** | WS TFSA roll-down, ~C$614 budget. See `docs/APR10_ROLL_EXECUTION_PLAN.md` |
+| ~~Apr 10 Roll Execution~~ | **CANCELLED** | Apr puts all $0 bid — no credit to recover. Roll plan dead. See post-mortem in war_room_engine.ROLL_DISCIPLINE. |
 | **Polymarket Division Activation** | **DONE** | active_scanner.py (450+ lines), 3 strategies unified, launch.py mode, DRY_RUN=true default |
 | Architecture Rework v3.3 | Phase 1-2 DONE | Phase 3-7 planned |
 | Moomoo Options Approval | WAITING | Applied ~Mar 15, still pending |

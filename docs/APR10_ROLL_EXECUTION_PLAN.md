@@ -1,6 +1,6 @@
 # APR10 ROLL EXECUTION PLAN — WealthSimple TFSA
 
-> **Execution Date:** April 10, 2026 (7 DTE before Apr 17 expiry)
+> **Execution Date:** April 6, 2026 (11 DTE before Apr 17 expiry) — ACCELERATED from Apr 10
 > **Budget:** ~C$614 USD (~0.72 FX rate)
 > **Account:** WealthSimple TFSA ($18,637.76 CAD as of Mar 29)
 

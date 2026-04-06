@@ -1560,7 +1560,9 @@ LEAPS_PLAYBOOK: Dict[str, Any] = {
     "strategy": "Buy and hold LEAPS. Ride the wave. Rotate only at major Fire Peak nodes.",
     "entry_window": "Monday March 30 / Tuesday April 1, 2026 (Pink Moon Fire Peak)",
     "accounts": "Split ~$10k-$12k across 7 accounts (IBKR, Moomoo, NDAX, Polymarket, MetaMask, EQ Bank, Wealthsimple)",
-    "existing_book": "HOLD: XLE Jan 2027 $85 Call + all 8 credit puts. No selling on jumps.",
+    "existing_book": "HOLD: XLE Jan 2027 $85 Call x26 (WS). GLD Mar 2027 $515 Call x1 (WS). "
+                     "OWL Jan 2027 $5P x10 (Moomoo) + OWL Jun $8P x5 (WS). "
+                     "Apr 17 puts ALL EXPIRED WORTHLESS — see ROLL_DISCIPLINE.",
     "positions": {
         "silver_leaps": {
             "allocation_pct": 55,
@@ -2198,6 +2200,12 @@ RISK_MANAGEMENT_DOCTRINE: Dict[str, Any] = {
         "War Room regime overrides individual trade decisions.",
         "IBKR margin call = liquidate smallest losers first.",
         "Record EVERY trade with timestamp, thesis, and conviction level.",
+        # ── Apr 6 2026 Post-Mortem Rules (8 dead puts lesson) ──
+        "MAX 20 contracts per position. OBDC x65 was untradeable at $0 bid.",
+        "Roll trigger at 21 DTE, NOT 7. By 7 DTE theta has already killed value.",
+        "Max 5% OTM for short-dated puts (≤3 months). Deep OTM = lotto tickets.",
+        "Dead-put gate: if STC bid = $0, do NOT roll. Re-evaluate thesis first.",
+        "Allocate 70% LEAPS / 30% directional puts. LEAPS compound, short puts decay.",
     ],
 }
 
@@ -2241,41 +2249,67 @@ def _build_aac_events() -> List[AACEvent]:
                  ["XRP", "ETH"], 0.0, "De-risk crypto. Reallocate to options thesis."),
     ])
 
-    # ── OPTIONS LIFECYCLE (June 20 2026 Expiry) ──────────────────────────
-    expiry = date(2026, 6, 20)
+    # ── APR 6 2026: POSITION POST-MORTEM & LESSONS ───────────────────────
     events.extend([
-        AACEvent(date(2026, 4, 6), "DTE 75: Options Mid-Life Check", "options_lifecycle", "dte_check",
-                 "MEDIUM", "All 8 puts at ~75 DTE. Theta decay accelerating. P&L review.",
-                 ["ARCC", "PFF", "LQD", "EMB", "MAIN", "JNK", "KRE", "IWM"], 0.5,
-                 "Options lifecycle management."),
-        AACEvent(date(2026, 4, 20), "DTE 61: Roll Window Opens", "options_lifecycle", "roll_window",
-                 "HIGH", "Consider rolling losers or winners. IV reassessment.",
-                 ["ARCC", "PFF", "LQD", "EMB", "MAIN", "JNK", "KRE", "IWM"], 0.6,
-                 "Rolling decisions begin."),
-        AACEvent(date(2026, 5, 6), "DTE 45: Theta Acceleration", "options_lifecycle", "theta_accel",
-                 "HIGH", "Theta decay enters hyperbolic zone. Close winners > 50% profit.",
-                 ["ARCC", "PFF", "LQD", "EMB", "MAIN", "JNK", "KRE", "IWM"], 0.7,
-                 "Critical theta inflection."),
-        AACEvent(date(2026, 5, 20), "DTE 31: One Month Out", "options_lifecycle", "dte_check",
-                 "HIGH", "30 DTE checkpoint. Roll or hold decision for all 8 positions.",
-                 ["ARCC", "PFF", "LQD", "EMB", "MAIN", "JNK", "KRE", "IWM"], 0.75,
-                 "One month to expiry — conviction test."),
-        AACEvent(date(2026, 5, 30), "DTE 21: Management Window", "options_lifecycle", "management",
-                 "CRITICAL", "21 DTE. Theta acceleration peak. Must decide: close, roll, or ride.",
-                 ["ARCC", "PFF", "LQD", "EMB", "MAIN", "JNK", "KRE", "IWM"], 0.85,
-                 "Highest theta decay rate period."),
-        AACEvent(date(2026, 6, 6), "DTE 14: Final Roll Window", "options_lifecycle", "final_roll",
-                 "CRITICAL", "14 DTE. Last chance to roll without excessive slippage.",
-                 ["ARCC", "PFF", "LQD", "EMB", "MAIN", "JNK", "KRE", "IWM"], 0.9,
+        AACEvent(date(2026, 4, 6), "8 PUTS EXPIRED WORTHLESS — POST-MORTEM", "trade", "expiry_loss",
+                 "CRITICAL", "All Apr 17 puts confirmed $0 bid at 11 DTE. IBKR: ARCC/PFF/MAIN/JNK. "
+                 "WS: ARCC x10/JNK x5/KRE x1/OBDC x65. Total premium lost: ~$1,850. "
+                 "OBDC x65 was the worst — untradeable size, $975 loss on one position.",
+                 ["ARCC", "PFF", "MAIN", "JNK", "KRE", "OBDC"], 0.0,
+                 "Hard lesson: position sizing, roll timing, and strike selection all failed."),
+        AACEvent(date(2026, 4, 6), "ROLL DISCIPLINE RULES ENCODED", "trade", "policy_change",
+                 "HIGH", "5 new rules from post-mortem: max 20 contracts, roll at 21 DTE, "
+                 "max 5% OTM for short-dated, dead-put gate ($0 bid = no roll), "
+                 "70/30 LEAPS vs puts allocation. Encoded in war_room_engine.ROLL_DISCIPLINE.",
+                 [], 0.95,
+                 "Institutional memory. Never repeat the OBDC x65 mistake."),
+        AACEvent(date(2026, 4, 6), "COGNITIVE ARCHITECTURE CONFIRMED", "trade", "system",
+                 "MEDIUM", "AAC validated as cognitive architecture (not agentic). "
+                 "Zero LLM in trading path. Structured data flow, explicit state, deterministic scoring. "
+                 "Architecture > Agents.",
+                 [], 0.9,
+                 "System design philosophy locked in."),
+    ])
+
+    # ── OPTIONS LIFECYCLE (Active positions after Apr 6 cleanup) ─────────
+    events.extend([
+        AACEvent(date(2026, 4, 6), "Apr 17 Puts: EXPIRED WORTHLESS", "options_lifecycle", "expiry",
+                 "HIGH", "IBKR: ARCC/PFF/MAIN/JNK. WS: ARCC x10/JNK x5/KRE x1/OBDC x65. "
+                 "All $0 bid at 11 DTE. Let expire. Premium lost ~$1,850.",
+                 ["ARCC", "PFF", "MAIN", "JNK", "KRE", "OBDC"], 0.0,
+                 "Dead puts. Lesson encoded in ROLL_DISCIPLINE."),
+        AACEvent(date(2026, 4, 20), "DTE 25: XLF May 1 Roll Decision", "options_lifecycle", "roll_window",
+                 "HIGH", "XLF $46P May 1 approaching. Roll at 21 DTE per new rules.",
+                 ["XLF"], 0.6,
+                 "First test of new 21-DTE roll discipline."),
+        AACEvent(date(2026, 4, 20), "DTE 59: LQD/EMB May 15 Check", "options_lifecycle", "dte_check",
+                 "MEDIUM", "LQD $106P and EMB $90P. ~60 DTE. Monitor credit spreads.",
+                 ["LQD", "EMB"], 0.5,
+                 "May expiry positions — still have time value."),
+        AACEvent(date(2026, 5, 6), "DTE 45: Jun Puts Theta Acceleration", "options_lifecycle", "theta_accel",
+                 "HIGH", "Theta enters hyperbolic zone for BKLN/HYG/OWL Jun puts. Close winners > 50% profit.",
+                 ["BKLN", "HYG", "OWL"], 0.7,
+                 "Critical theta inflection — Jun 18 expiry positions."),
+        AACEvent(date(2026, 5, 20), "DTE 31: Jun Puts One Month Out", "options_lifecycle", "dte_check",
+                 "HIGH", "30 DTE checkpoint for BKLN/HYG/OWL. Roll or hold per ROLL_DISCIPLINE.",
+                 ["BKLN", "HYG", "OWL"], 0.75,
+                 "One month to Jun expiry — conviction test."),
+        AACEvent(date(2026, 5, 28), "DTE 21: Jun Puts ROLL TRIGGER", "options_lifecycle", "management",
+                 "CRITICAL", "21 DTE = mandatory roll evaluation per new rules. Check bid. If $0 → dead-put gate.",
+                 ["BKLN", "HYG", "OWL"], 0.85,
+                 "New 21-DTE discipline — first real test on Jun puts."),
+        AACEvent(date(2026, 6, 4), "DTE 14: Jun Final Roll Window", "options_lifecycle", "final_roll",
+                 "CRITICAL", "14 DTE. Last chance to roll BKLN/HYG/OWL without excessive slippage.",
+                 ["BKLN", "HYG", "OWL"], 0.9,
                  "Final roll opportunity — gamma risk rising."),
-        AACEvent(date(2026, 6, 13), "DTE 7: Assignment Risk Zone", "options_lifecycle", "assignment_risk",
-                 "CRITICAL", "7 DTE. Gamma dominates. Pin risk active. Close or accept assignment.",
-                 ["ARCC", "PFF", "LQD", "EMB", "MAIN", "JNK", "KRE", "IWM"], 0.95,
+        AACEvent(date(2026, 6, 11), "DTE 7: Jun Assignment Risk Zone", "options_lifecycle", "assignment_risk",
+                 "CRITICAL", "7 DTE. Gamma dominates. If not rolled at 21 DTE, accept expiry outcome.",
+                 ["BKLN", "HYG", "OWL"], 0.95,
                  "Assignment probability increasing."),
-        AACEvent(expiry, "OPTIONS EXPIRY: All 8 Puts", "options_lifecycle", "expiry",
-                 "CRITICAL", "June quad witching. All positions expire. Manage by market close.",
-                 ["ARCC", "PFF", "LQD", "EMB", "MAIN", "JNK", "KRE", "IWM"], 1.0,
-                 "Zero DTE. Final settlement."),
+        AACEvent(date(2026, 6, 18), "OPTIONS EXPIRY: Jun Puts + Moomoo Calls", "options_lifecycle", "expiry",
+                 "CRITICAL", "Jun 18 expiry. BKLN/HYG/OWL puts + XLE/SLV Jun calls. Manage by market close.",
+                 ["BKLN", "HYG", "OWL", "XLE", "SLV"], 1.0,
+                 "Jun expiry. Calls may have value — puts depend on thesis."),
     ])
 
     # ── WAR ROOM MACRO EVENTS (90-Day War Room + Extended) ───────────────

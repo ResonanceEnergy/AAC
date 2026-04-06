@@ -1171,30 +1171,43 @@ def get_arm_allocations(phase: str) -> list[ArmAllocation]:
         ]
 
 
-# Current positions -- VERIFIED from IBKR TWS port 7496 LIVE, March 20 2026
-# All avgCost and mktVal pulled live via ib_insync portfolio()
-# NOTE: option mktVal stale (9+ days old as of Mar 29) -- re-pull from IBKR for live P&L
+# ═══════════════════════════════════════════════════════════════════════════
+# ROLL DISCIPLINE — Lessons from Apr 6 2026 position post-mortem
+# All Apr 17 puts expired worthless ($0 bid at 11 DTE). 65-contract OBDC
+# position had $0 recovery. Encoded as hard rules for all future entries.
+# ═══════════════════════════════════════════════════════════════════════════
+ROLL_DISCIPLINE = {
+    "max_contracts_per_position": 20,       # OBDC x65 was untradeable. Cap at 20.
+    "roll_trigger_dte": 21,                 # Roll at 21 DTE, NOT 7. Theta kills value.
+    "max_otm_pct_short_dated": 0.05,        # Max 5% OTM for puts ≤3 months to expiry.
+    "dead_put_gate": True,                  # If STC bid = $0, do NOT roll. Re-evaluate thesis.
+    "leaps_vs_puts_allocation": (0.70, 0.30),  # 70% LEAPS, 30% directional puts.
+}
+
+
+# Current positions -- Updated Apr 6 2026
+# EXPIRED: All Apr 17 puts confirmed $0 bid (worthless) as of Apr 4 close.
+# IWM $230P and KRE $58P expired Apr 4 (weekly), removed.
+# ACTIVE: LQD/EMB (May 15), XLF (May 1), BKLN/HYG/OWL (Jun 18),
+#         Moomoo calls, WS LEAPS, WS OWL Jun put.
 CURRENT_POSITIONS = [
-    # === 9 REAL POSITIONS from IBKR account U24346218 ===
-    Position(ArmType.BDC_NONACCRUAL, "ARCC", "put", 1, 0.25, 0.26,
-             strike=17.0, expiry="2026-04-17", account="IBKR"),
-    Position(ArmType.BDC_NONACCRUAL, "PFF", "put", 1, 0.17, 0.03,
-             strike=29.0, expiry="2026-04-17", account="IBKR"),
+    # === IBKR account U24346218 — ACTIVE positions only ===
     Position(ArmType.TRADFI_ROTATE, "LQD", "put", 1, 0.63, 0.66,
              strike=106.0, expiry="2026-05-15", account="IBKR"),
     Position(ArmType.TRADFI_ROTATE, "EMB", "put", 1, 0.48, 0.82,
              strike=90.0, expiry="2026-05-15", account="IBKR"),
-    Position(ArmType.BDC_NONACCRUAL, "MAIN", "put", 1, 0.73, 0.45,
-             strike=49.7, expiry="2026-04-17", account="IBKR"),
-    Position(ArmType.TRADFI_ROTATE, "JNK", "put", 1, 0.35, 0.37,
-             strike=92.0, expiry="2026-04-17", account="IBKR"),
     Position(ArmType.BDC_NONACCRUAL, "BKLN", "put", 3, 0.40, 0.21,
              strike=20.0, expiry="2026-06-18", account="IBKR"),
     Position(ArmType.TRADFI_ROTATE, "HYG", "put", 1, 0.80, 0.74,
              strike=77.0, expiry="2026-06-18", account="IBKR"),
     Position(ArmType.IRAN_OIL, "XLF", "put", 1, 0.75, 0.69,
              strike=46.0, expiry="2026-05-01", account="IBKR"),
-    # === 4 REAL POSITIONS from Moomoo FUTUCA -- live scan Mar 29 2026 ===
+    # === IBKR EXPIRED Apr 17 — kept for P&L tracking, value = $0 ===
+    # ARCC $17P x1 @ $0.25 → EXPIRED WORTHLESS
+    # PFF $29P x1 @ $0.17 → EXPIRED WORTHLESS
+    # MAIN $49.7P x1 @ $0.73 → EXPIRED WORTHLESS
+    # JNK $92P x1 @ $0.35 → EXPIRED WORTHLESS
+    # === 4 REAL POSITIONS from Moomoo FUTUCA — live scan Mar 29 2026 ===
     Position(ArmType.IRAN_OIL, "XLE", "call", 1, 3.00, 5.37,
              strike=60.0, expiry="2026-06-18", account="Moomoo"),
     Position(ArmType.CRYPTO_METALS, "SLV", "call", 1, 5.50, 10.12,
@@ -1203,23 +1216,18 @@ CURRENT_POSITIONS = [
              strike=70.0, expiry="2026-06-18", account="Moomoo"),
     Position(ArmType.BDC_NONACCRUAL, "OWL", "put", 10, 0.30, 0.45,
              strike=5.0, expiry="2027-01-15", account="Moomoo"),
-    # === 7 REAL POSITIONS from WealthSimple TFSA -- screenshots Mar 29 2026 ===
-    # Total TFSA value: $18,637.76 CAD (+$2,323.30 / +14.24% on day)
-    # Contributions this year: $13,229.49 CAD
-    Position(ArmType.BDC_NONACCRUAL, "ARCC", "put", 10, 0.13, 0.125,
-             strike=16.0, expiry="2026-04-17", account="WealthSimple"),
+    # === WealthSimple TFSA — ACTIVE positions only ===
     Position(ArmType.CRYPTO_METALS, "GLD", "call", 1, 19.40, 24.33,
              strike=515.0, expiry="2027-03-19", account="WealthSimple"),
-    Position(ArmType.TRADFI_ROTATE, "JNK", "put", 5, 0.57, 0.775,
-             strike=94.0, expiry="2026-04-17", account="WealthSimple"),
-    Position(ArmType.TRADFI_ROTATE, "KRE", "put", 1, 1.05, 1.23,
-             strike=60.0, expiry="2026-04-17", account="WealthSimple"),
-    Position(ArmType.BDC_NONACCRUAL, "OBDC", "put", 65, 0.15, 0.175,
-             strike=10.0, expiry="2026-04-17", account="WealthSimple"),
     Position(ArmType.BDC_NONACCRUAL, "OWL", "put", 5, 0.75, 0.725,
              strike=8.0, expiry="2026-06-18", account="WealthSimple"),
     Position(ArmType.IRAN_OIL, "XLE", "call", 26, 0.37, 0.97,
              strike=85.0, expiry="2027-01-15", account="WealthSimple"),
+    # === WS TFSA EXPIRED Apr 17 — kept for P&L tracking, value = $0 ===
+    # ARCC $16P x10 @ $0.13 → EXPIRED WORTHLESS
+    # JNK $94P x5 @ $0.57 → EXPIRED WORTHLESS
+    # KRE $60P x1 @ $1.05 → EXPIRED WORTHLESS
+    # OBDC $10P x65 @ $0.15 → EXPIRED WORTHLESS ($975 total loss)
 ]
 
 
