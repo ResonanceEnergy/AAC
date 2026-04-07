@@ -22,6 +22,7 @@ AAC is in **LIVE TRADING** mode. Apr 6 post-mortem completed — 8 puts expired 
 - **Polymarket Division**: ACTIVE — $535.73 USDC, active_scanner.py
 - Grand total: ~$32,538 USD | VIX 24.05 | CAD/USD 0.7189
 - Pytest: **1715 passed**, 0 failed, 23 skipped, 1 xfailed
+- Architecture Rework v3.3: **ALL PHASES COMPLETE (1-7)** — Strategy Advisor, NCL Relay, Doctrine Terrain, Monitor panels wired into orchestrator
 
 ### What's Broken
 - CoinGecko: Pro key expired → auto-downgrades to free tier (10 req/min)

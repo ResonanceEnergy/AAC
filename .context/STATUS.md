@@ -115,7 +115,7 @@
 | ~~Apr 10 Roll Execution~~ | **CANCELLED** | Apr puts all $0 bid — no credit to recover. Roll plan dead. See post-mortem in war_room_engine.ROLL_DISCIPLINE. |
 | **Polymarket Division Activation** | **DONE** | active_scanner.py (450+ lines), 3 strategies unified, launch.py mode, DRY_RUN=true default |
 | **Codebase Consolidation** | **DONE** | 100+ files archived/deleted. SharedInfrastructure removed. _scratch 87→29. strategies 99→86. Empty stub dirs purged (api-gateway, market-data). Balance scanner relocated to scripts/. |
-| Architecture Rework v3.3 | Phase 1-2 DONE, **Phase 7 COMPLETE** | Phase 3→5→6→4 assessed, see below |
+| Architecture Rework v3.3 | **ALL PHASES COMPLETE (1-7)** | Strategy Advisor loop, NCL Relay heartbeat, Doctrine Terrain routing, Monitor panels — all wired into orchestrator |
 | Moomoo Options Approval | WAITING | Applied ~Mar 15, still pending |
 
 ## Known Test Issues
