@@ -612,6 +612,7 @@ class AACMasterMonitoringDashboard:
             ("stock_ticker", self._get_stock_ticker_data),
             ("ncl_link", self._get_ncl_link_data),
             ("pillar_network", self._get_pillar_network_status),
+            ("relay_status", self._get_relay_status_data),
         ]
 
         # Pillar federation (conditional)
@@ -1695,6 +1696,20 @@ class AACMasterMonitoringDashboard:
         except Exception as exc:
             return {"status": "error", "error": str(exc)}
 
+    # ── NCL RELAY STATUS ────────────────────────────────────────────
+
+    def _get_relay_status_data(self) -> Dict[str, Any]:
+        """Get NCL relay client stats (published, queued, outbox depth)."""
+        try:
+            from shared.ncc_relay_client import get_relay_client
+            relay = get_relay_client()
+            stats = relay.stats
+            return {"status": "ok", **stats}
+        except ImportError:
+            return {"status": "not_available"}
+        except Exception as exc:
+            return {"status": "error", "error": str(exc)}
+
     # ── ACTIVE STRATEGY DOCTRINE ────────────────────────────────────
 
     def _get_active_strategy_doctrine_data(self) -> Dict[str, Any]:
@@ -2640,6 +2655,56 @@ class AACMasterMonitoringDashboard:
             except curses.error:
                 pass  # Terminal too small for this panel
 
+        # ── Strategy Advisor Leaderboard (curses panel) ────────────────
+        sa = data.get("strategy_advisor", {})
+        if sa and sa.get("status") == "ok" and y_pos < height - 8:
+            y_pos += 1
+            try:
+                stdscr.addstr(y_pos, 0, "[ADV] STRATEGY ADVISOR LEADERBOARD", curses.A_BOLD)
+                y_pos += 1
+                total = sa.get("total_strategies", 0)
+                openp = sa.get("total_open_positions", 0)
+                closedp = sa.get("total_closed_positions", 0)
+                approved = sa.get("approved_count", 0)
+                stdscr.addstr(
+                    y_pos, 0,
+                    f"Strats:{total} Open:{openp} Closed:{closedp} Live:{approved}"[: width - 1],
+                )
+                y_pos += 1
+                board = sa.get("leaderboard_top5", [])
+                for idx, row in enumerate(board[:5], 1):
+                    if y_pos >= height - 6:
+                        break
+                    name = row.get("strategy", "?")[:20]
+                    wr = row.get("win_rate", 0) * 100
+                    pnl = row.get("total_pnl", 0)
+                    sc = row.get("composite_score", 0)
+                    live = "*" if row.get("approved_live") else " "
+                    line = f"  {idx}{live}{name:<20} W:{wr:4.0f}% P&L:${pnl:>7.0f} S:{sc:.3f}"
+                    stdscr.addstr(y_pos, 0, line[: width - 1])
+                    y_pos += 1
+            except curses.error:
+                pass  # Terminal too small for this panel
+
+        # ── NCL Relay Status (curses panel) ────────────────────────────
+        if y_pos < height - 5:
+            y_pos += 1
+            try:
+                from shared.ncc_relay_client import get_relay_client
+                relay = get_relay_client()
+                rs = relay.stats
+                reachable = "ONLINE" if rs.get("relay_reachable") else "OFFLINE"
+                pub = rs.get("published", 0)
+                queued = rs.get("queued", 0)
+                depth = rs.get("outbox_depth", 0)
+                stdscr.addstr(y_pos, 0, "[RELAY] NCL RELAY STATUS", curses.A_BOLD)
+                y_pos += 1
+                line = f"  {reachable} | Sent:{pub} Queued:{queued} Outbox:{depth}"
+                stdscr.addstr(y_pos, 0, line[: width - 1])
+                y_pos += 1
+            except (ImportError, Exception):
+                pass
+
         # ── MULTI-PILLAR NETWORK (curses compact) ────────────────────
         pn = data.get("pillar_network", {})
         if pn and pn.get("status") == "ok" and y_pos < height - 10:
@@ -3313,6 +3378,21 @@ class AACMasterMonitoringDashboard:
                         f"{row['win_rate']*100:5.1f}%  ${row['total_pnl']:9.2f}  "
                         f"{row['sharpe']:7.3f}  {row['composite_score']:7.4f}"
                     )
+            print("=" * 60)
+
+        # ═══════════════════════════════════════════════════════════════
+        #  NCL RELAY STATUS
+        # ═══════════════════════════════════════════════════════════════
+        rs = data.get("relay_status", {})
+        if rs and rs.get("status") == "ok":
+            print("")
+            print("=" * 60)
+            print("  NCL RELAY STATUS")
+            print("=" * 60)
+            reachable = "ONLINE" if rs.get("relay_reachable") else "OFFLINE"
+            print(f"  Relay URL: {rs.get('relay_url', '?')}")
+            print(f"  Status: {reachable}")
+            print(f"  Published: {rs.get('published', 0)} | Queued: {rs.get('queued', 0)} | Outbox Depth: {rs.get('outbox_depth', 0)}")
             print("=" * 60)
 
         # ═══════════════════════════════════════════════════════════════

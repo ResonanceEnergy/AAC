@@ -1765,6 +1765,183 @@ class AAC2100Orchestrator:
             'timestamp': datetime.now().isoformat(),
         })
 
+    # ── Phase 3+5: Strategy Advisor + NCL Relay Integration ──────────
+
+    async def _strategy_advisor_loop(self):
+        """Evaluate all strategies every 30 min, publish leaderboard to NCL relay."""
+        try:
+            from shared.ncc_relay_client import get_relay_client
+            from strategies.strategy_advisor_engine import get_strategy_advisor_engine
+        except ImportError:
+            self.logger.warning("Strategy Advisor or NCL Relay client not available — skipping loop")
+            return
+
+        advisor = get_strategy_advisor_engine()
+        advisor.load_strategies()
+        advisor.load_state()
+        relay = get_relay_client()
+
+        self.logger.info(
+            "Strategy Advisor loop ACTIVE — %d strategies loaded, evaluating every 30 min",
+            len(advisor._strategies),
+        )
+
+        while not self._shutdown_event.is_set():
+            try:
+                # Build market snapshot from data aggregator
+                snapshot: Dict[str, Any] = {"spy_price": 0, "vix": 20}
+                try:
+                    spy_tick = await self.data_aggregator.get_latest_price("SPY")
+                    if spy_tick:
+                        snapshot["spy_price"] = spy_tick.price if hasattr(spy_tick, "price") else float(spy_tick)
+                except Exception:
+                    pass
+                try:
+                    vix_tick = await self.data_aggregator.get_latest_price("^VIX")
+                    if vix_tick:
+                        snapshot["vix"] = vix_tick.price if hasattr(vix_tick, "price") else float(vix_tick)
+                except Exception:
+                    pass
+
+                # Evaluate all strategies
+                recs = advisor.evaluate_all(snapshot)
+
+                # Paper-proof cycle with live prices
+                live_prices: Dict[str, float] = {}
+                if snapshot.get("spy_price", 0) > 0:
+                    live_prices["SPY"] = snapshot["spy_price"]
+                advisor.paper_proof_cycle(live_prices)
+
+                # Persist state
+                advisor.save_state()
+
+                # Publish to NCL relay
+                relay.publish(
+                    "ncl.sync.v1.bank.strategy_advisor",
+                    advisor.get_relay_payload(),
+                )
+
+                self.logger.info(
+                    "Strategy Advisor: %d recs, leaderboard published to relay",
+                    len(recs),
+                )
+            except Exception as exc:
+                self.logger.error("Strategy Advisor loop error: %s", exc)
+
+            await asyncio.sleep(1800)  # 30 minutes
+
+    async def _relay_heartbeat_loop(self):
+        """Publish orchestrator heartbeat + doctrine state to NCL relay every 60s."""
+        try:
+            from shared.ncc_relay_client import get_relay_client
+        except ImportError:
+            self.logger.warning("NCL Relay client not available — heartbeat disabled")
+            return
+
+        relay = get_relay_client()
+        self.logger.info("NCL Relay heartbeat loop ACTIVE — publishing every 60s")
+
+        while not self._shutdown_event.is_set():
+            try:
+                heartbeat: Dict[str, Any] = {
+                    "state": self.state.value,
+                    "metrics": {
+                        "scans_completed": self.metrics["scans_completed"],
+                        "signals_generated": self.metrics["signals_generated"],
+                        "trades_executed": self.metrics["trades_executed"],
+                        "total_pnl": self.metrics["total_pnl"],
+                    },
+                    "open_positions": len(self.execution_engine.get_open_positions()),
+                    "timestamp": datetime.now().isoformat(),
+                }
+                relay.publish("ncl.sync.v1.bank.heartbeat", heartbeat)
+
+                # Publish doctrine state
+                try:
+                    from aac.doctrine.strategic_doctrine import get_strategy_aware_doctrine
+                    doctrine = get_strategy_aware_doctrine()
+                    relay.publish(
+                        "ncl.sync.v1.bank.doctrine_state",
+                        doctrine.get_doctrine_state(),
+                    )
+                except ImportError:
+                    pass
+
+            except Exception as exc:
+                self.logger.debug("Relay heartbeat error: %s", exc)
+
+            await asyncio.sleep(60)
+
+    # ── Phase 4: Doctrine Terrain Routing ────────────────────────────
+
+    async def _doctrine_terrain_loop(self):
+        """Assess market terrain every 5 min and feed into StrategyAwareDoctrine."""
+        try:
+            from aac.doctrine.strategic_doctrine import (
+                get_strategic_doctrine_engine,
+                get_strategy_aware_doctrine,
+            )
+        except ImportError:
+            self.logger.warning("Strategic doctrine not available — terrain loop disabled")
+            return
+
+        engine = get_strategic_doctrine_engine()
+        doctrine = get_strategy_aware_doctrine()
+        self.logger.info("Doctrine Terrain loop ACTIVE — assessing every 5 min")
+
+        while not self._shutdown_event.is_set():
+            try:
+                # Gather market metrics for terrain assessment
+                volatility = 0.2
+                liquidity = 0.6
+                trend = 0.0
+                sr_proximity = 0.5
+                session_quality = 0.5
+
+                try:
+                    vix_tick = await self.data_aggregator.get_latest_price("^VIX")
+                    if vix_tick:
+                        vix_val = vix_tick.price if hasattr(vix_tick, "price") else float(vix_tick)
+                        volatility = min(1.0, vix_val / 60.0)  # VIX 60 = 1.0 extreme
+                except Exception:
+                    pass
+
+                # Assess terrain
+                terrain = engine.assess_terrain(
+                    volatility=volatility,
+                    liquidity=liquidity,
+                    trend=trend,
+                    sr_proximity=sr_proximity,
+                    session_quality=session_quality,
+                )
+
+                # Feed terrain posture into doctrine as regime hint
+                terrain_to_regime = {
+                    "death": "crash",
+                    "hemmed_in": "crisis",
+                    "difficult": "bear",
+                    "contentious": "bear",
+                    "open": "bull",
+                    "intersecting": "normal",
+                    "serious": "bull",
+                    "frontier": "normal",
+                    "dispersive": "normal",
+                }
+                regime = terrain_to_regime.get(terrain.terrain.value, "normal")
+                doctrine.update_regime(regime)
+
+                self.logger.debug(
+                    "Terrain: %s → regime=%s, posture=%s, confidence=%.2f",
+                    terrain.terrain.value,
+                    regime,
+                    terrain.recommended_posture.value,
+                    terrain.assessment_confidence,
+                )
+            except Exception as exc:
+                self.logger.error("Doctrine terrain loop error: %s", exc)
+
+            await asyncio.sleep(300)  # 5 minutes
+
     async def run(self):
         """Main AAC 2100 execution loop with quantum advantage, AI autonomy, and cross-temporal operations"""
         await self.initialize()
@@ -1809,6 +1986,18 @@ class AAC2100Orchestrator:
 
         # Always run advancement validation
         background_tasks.append(self._advancement_validation_loop())
+
+        # Phase 3+5: Strategy Advisor evaluation + NCL relay publishing
+        background_tasks.append(self._strategy_advisor_loop())
+        self.logger.info("Strategy Advisor loop (30 min): ENABLED")
+
+        # Phase 5: NCL Relay heartbeat (orchestrator status + doctrine)
+        background_tasks.append(self._relay_heartbeat_loop())
+        self.logger.info("NCL Relay heartbeat (60s): ENABLED")
+
+        # Phase 4: Doctrine terrain assessment loop
+        background_tasks.append(self._doctrine_terrain_loop())
+        self.logger.info("Doctrine Terrain loop (5 min): ENABLED")
 
         # Start execution engine background tasks
         await self.execution_engine.start_background_tasks(

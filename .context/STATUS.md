@@ -1,7 +1,7 @@
 # AAC Living Status Dashboard
 
-> **Last updated:** 2026-04-07 (Monday, evening)
-> **Updated by:** Major codebase consolidation — 100+ dead/unreferenced files archived, SharedInfrastructure removed, _scratch 87→29, strategies 99→86, empty stubs purged. 1709 tests green.
+> **Last updated:** 2026-04-07 (Monday, late)
+> **Updated by:** Paper trading fill fix (market orders always fill — deterministic). Architecture v3.3 Phase 3-7 assessed. 1715 tests green, 0 failed.
 > **Update this file** after every significant change. This is the single source of truth for what works.
 
 ---
@@ -25,7 +25,7 @@
 | **Paper Trading** | WORKING | `launch.py paper` |
 | **Web Dashboard** | WORKING | `launch.py dashboard` |
 | **CI Pipeline** | WORKING | `.github/workflows/ci.yml` |
-| **Pytest Suite** | WORKING | **1709 passed**, 23 skipped, 1 xfailed (2026-04-07 post-consolidation) |
+| **Pytest Suite** | WORKING | **1715 passed**, 0 failed, 23 skipped, 1 xfailed (2026-04-07 — paper fill fix) |
 
 ## What's Broken
 
@@ -115,7 +115,7 @@
 | ~~Apr 10 Roll Execution~~ | **CANCELLED** | Apr puts all $0 bid — no credit to recover. Roll plan dead. See post-mortem in war_room_engine.ROLL_DISCIPLINE. |
 | **Polymarket Division Activation** | **DONE** | active_scanner.py (450+ lines), 3 strategies unified, launch.py mode, DRY_RUN=true default |
 | **Codebase Consolidation** | **DONE** | 100+ files archived/deleted. SharedInfrastructure removed. _scratch 87→29. strategies 99→86. Empty stub dirs purged (api-gateway, market-data). Balance scanner relocated to scripts/. |
-| Architecture Rework v3.3 | Phase 1-2 DONE | Phase 3-7 planned |
+| Architecture Rework v3.3 | Phase 1-2 DONE, **Phase 7 COMPLETE** | Phase 3→5→6→4 assessed, see below |
 | Moomoo Options Approval | WAITING | Applied ~Mar 15, still pending |
 
 ## Known Test Issues

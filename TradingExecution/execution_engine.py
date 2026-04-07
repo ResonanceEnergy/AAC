@@ -472,33 +472,19 @@ class ExecutionEngine:
             # Get market conditions for partial fill modeling
             market_conditions = await self._get_market_conditions(order.symbol, order.exchange)
 
-            # Auto-fill market orders with partial fill modeling
+            # Auto-fill market orders — market orders always fill (price control
+            # is sacrificed for guaranteed execution). Partial fills only apply to
+            # LIMIT orders where price constraints may prevent execution.
             if order.order_type == OrderType.MARKET:
-                # Use optimal partial fill model
+                # Use partial fill model only for slippage estimation
                 model_name, expected_fill_qty, model_metric = self.select_optimal_partial_fill_model(
                     order.quantity, market_conditions
                 )
 
-                # Determine if order is partially filled or fully filled
-                # Use order-seeded RNG for deterministic fill simulation
-                import hashlib as _hl2
-                _fill_seed = int(_hl2.md5(f"{order.symbol}:{order.quantity}:{int(time.time()) // 60}".encode()).hexdigest()[:8], 16)
-                fill_random = (_fill_seed % 10000) / 10000.0
-                if fill_random < expected_fill_qty / order.quantity:
-                    # Full fill
-                    order.status = OrderStatus.FILLED
-                    order.filled_quantity = order.quantity
-                    order.remaining_quantity = 0
-                elif expected_fill_qty > 0:
-                    # Partial fill
-                    order.status = OrderStatus.PARTIAL
-                    order.filled_quantity = expected_fill_qty
-                    order.remaining_quantity = order.quantity - expected_fill_qty
-                else:
-                    # No fill
-                    order.status = OrderStatus.PENDING
-                    order.filled_quantity = 0
-                    order.remaining_quantity = order.quantity
+                # Market orders always fill fully — this is how real markets work
+                order.status = OrderStatus.FILLED
+                order.filled_quantity = order.quantity
+                order.remaining_quantity = 0
 
                 # Simulate realistic fill price with slippage
                 base_price = order.price
@@ -1493,7 +1479,7 @@ class ExecutionEngine:
 
         # Sample fill fraction from Beta distribution using seeded RNG
         import hashlib as _hl3
-        _beta_seed = int(_hl3.md5(f"{order_quantity}:{alpha:.2f}:{beta_param:.2f}:{int(time.time()) // 60}".encode()).hexdigest()[:8], 16)
+        _beta_seed = int(_hl3.md5(f"{order_quantity}:{alpha:.2f}:{beta_param:.2f}".encode()).hexdigest()[:8], 16)
         _beta_rng = np.random.RandomState(_beta_seed)
         fill_fraction = _beta_rng.beta(alpha, beta_param)
 
@@ -1712,7 +1698,7 @@ class ExecutionEngine:
 
         # Estimate volatility using symbol+time seed for consistency
         import hashlib as _hl
-        _seed = int(_hl.md5(f"{symbol}:{int(time.time()) // 120}".encode()).hexdigest()[:8], 16)
+        _seed = int(_hl.md5(f"{symbol}".encode()).hexdigest()[:8], 16)
         _rng = np.random.RandomState(_seed)
         conditions['volatility'] = 0.01 + _rng.random() * 0.04  # 1-5% daily vol
 
