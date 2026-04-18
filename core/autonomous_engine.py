@@ -563,6 +563,9 @@ class AutonomousEngine:
         # War Room auto-update & auto-evolve tasks
         self._register_war_room_tasks()
 
+        # Thirteen Moon doctrine auto-alerts
+        self._register_thirteen_moon_tasks()
+
     def _register_war_room_tasks(self):
         """Register War Room auto-update and auto-evolve tasks."""
         try:
@@ -578,6 +581,22 @@ class AutonomousEngine:
             logger.info("War Room auto-engine registered: %d tasks", len(self._war_room_auto.get_task_registry()))
         except Exception as e:
             logger.warning("War Room auto-engine registration failed (non-critical): %s", e)
+
+    def _register_thirteen_moon_tasks(self):
+        """Register Thirteen Moon doctrine auto-alert tasks."""
+        try:
+            from strategies.thirteen_moon_auto import ThirteenMoonAutoEngine
+            self._moon_auto = ThirteenMoonAutoEngine()
+            for task_def in self._moon_auto.get_task_registry():
+                self.register_task(
+                    task_def["name"],
+                    task_def["interval"],
+                    task_def["callback"],
+                    critical=task_def.get("critical", False),
+                )
+            logger.info("Thirteen Moon auto-engine registered: %d tasks", len(self._moon_auto.get_task_registry()))
+        except Exception as e:
+            logger.warning("Thirteen Moon auto-engine registration failed (non-critical): %s", e)
 
     def register_task(self, name: str, interval: float, callback, critical: bool = False):
         """Register task."""

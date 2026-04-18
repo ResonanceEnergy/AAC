@@ -1,0 +1,152 @@
+# AAC Metric Canon — Paper Trading Strategy Evaluation
+# =====================================================
+# Defines all metrics, thresholds, and units for BakeoffEngine scoring.
+# Threshold expressions: ">= X", "<= X", "> X", "< X"
+# Status mapping: good → 100pts, warning → 60pts, critical → 20pts
+
+metric_canon:
+  performance:
+    total_pnl_pct:
+      description: "Total P&L as percentage of starting capital"
+      unit: "percent"
+      threshold_good: ">= 5"
+      threshold_warning: ">= 0"
+      threshold_critical: "< -5"
+
+    win_rate:
+      description: "Percentage of winning trades"
+      unit: "percent"
+      threshold_good: ">= 55"
+      threshold_warning: ">= 45"
+      threshold_critical: "< 40"
+
+    avg_pnl_per_trade:
+      description: "Average P&L per closed trade"
+      unit: "USD"
+      threshold_good: ">= 5"
+      threshold_warning: ">= 0"
+      threshold_critical: "< -5"
+
+    trade_count:
+      description: "Total number of closed trades"
+      unit: "count"
+      threshold_good: ">= 100"
+      threshold_warning: ">= 20"
+      threshold_critical: "< 10"
+
+    profit_factor:
+      description: "Gross profit / gross loss"
+      unit: "ratio"
+      threshold_good: ">= 1.5"
+      threshold_warning: ">= 1.0"
+      threshold_critical: "< 0.8"
+
+  risk:
+    sharpe_ratio:
+      description: "Annualized risk-adjusted return (mean return / std return)"
+      unit: "ratio"
+      threshold_good: ">= 1.0"
+      threshold_warning: ">= 0.5"
+      threshold_critical: "< 0.3"
+
+    max_drawdown_pct:
+      description: "Maximum peak-to-trough equity drawdown"
+      unit: "percent"
+      threshold_good: "<= 10"
+      threshold_warning: "<= 20"
+      threshold_critical: "> 25"
+
+    consecutive_losses:
+      description: "Maximum consecutive losing trades"
+      unit: "count"
+      threshold_good: "<= 5"
+      threshold_warning: "<= 10"
+      threshold_critical: "> 15"
+
+    daily_var_95:
+      description: "95th percentile daily Value-at-Risk"
+      unit: "percent"
+      threshold_good: "<= 2"
+      threshold_warning: "<= 5"
+      threshold_critical: "> 8"
+
+  execution:
+    slippage_bps:
+      description: "Average execution slippage in basis points"
+      unit: "bps"
+      threshold_good: "<= 10"
+      threshold_warning: "<= 25"
+      threshold_critical: "> 50"
+
+    fill_rate:
+      description: "Percentage of orders that get filled"
+      unit: "percent"
+      threshold_good: ">= 90"
+      threshold_warning: ">= 70"
+      threshold_critical: "< 50"
+
+    avg_fill_time:
+      description: "Average time from order to fill"
+      unit: "seconds"
+      threshold_good: "<= 5"
+      threshold_warning: "<= 30"
+      threshold_critical: "> 60"
+
+  data:
+    intel_freshness:
+      description: "Age of latest intel signal consumed"
+      unit: "seconds"
+      threshold_good: "<= 300"
+      threshold_warning: "<= 900"
+      threshold_critical: "> 3600"
+
+    price_coverage:
+      description: "Percentage of tracked assets with current prices"
+      unit: "percent"
+      threshold_good: ">= 90"
+      threshold_warning: ">= 70"
+      threshold_critical: "< 50"
+
+  ops:
+    uptime_pct:
+      description: "Division uptime percentage"
+      unit: "percent"
+      threshold_good: ">= 99"
+      threshold_warning: ">= 95"
+      threshold_critical: "< 90"
+
+    error_rate:
+      description: "Errors per 1000 cycles"
+      unit: "per_thousand"
+      threshold_good: "<= 5"
+      threshold_warning: "<= 20"
+      threshold_critical: "> 50"
+
+    cycles_completed:
+      description: "Total optimizer cycles completed"
+      unit: "count"
+      threshold_good: ">= 100"
+      threshold_warning: ">= 20"
+      threshold_critical: "< 5"
+
+  fragility:
+    score_volatility:
+      description: "Standard deviation of composite scores over last 10 cycles"
+      unit: "points"
+      threshold_good: "<= 5"
+      threshold_warning: "<= 15"
+      threshold_critical: "> 25"
+
+    status_flips:
+      description: "Number of active/throttled/disabled status changes in 7 days"
+      unit: "count"
+      threshold_good: "<= 2"
+      threshold_warning: "<= 5"
+      threshold_critical: "> 10"
+
+    regime_sensitivity:
+      description: "Performance swing between bull/bear market regimes"
+      unit: "percent"
+      threshold_good: "<= 20"
+      threshold_warning: "<= 40"
+      threshold_critical: "> 60"

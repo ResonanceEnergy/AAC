@@ -68,5 +68,5 @@ DB_WAL_MODE = True
 
 # ── Paper Trading ────────────────────────────────────────────────────────────
 
-PAPER_INITIAL_BALANCE = 100_000.0
+PAPER_INITIAL_BALANCE = 10_000.0
 PAPER_COMMISSION_PCT = 0.001  # 0.1% per trade

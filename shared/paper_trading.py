@@ -96,10 +96,10 @@ class PaperPosition:
 class PaperAccount:
     """Paper trading account"""
     account_id: str
-    balance: float = 1000000.0  # $1M starting balance
-    equity: float = 1000000.0
+    balance: float = 10000.0  # $10K starting balance
+    equity: float = 10000.0
     margin_used: float = 0.0
-    margin_available: float = 1000000.0
+    margin_available: float = 10000.0
     total_pnl: float = 0.0
     daily_pnl: float = 0.0
     positions: Dict[str, PaperPosition] = field(default_factory=dict)

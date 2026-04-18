@@ -159,7 +159,7 @@ class CapitalManagementSystem:
         initial_capital = getattr(config.risk, 'initial_capital', None)
         if initial_capital is None:
             # Try to get from environment or use default
-            initial_capital = Decimal(str(get_env('INITIAL_CAPITAL', '1000000.0')))
+            initial_capital = Decimal(str(get_env('INITIAL_CAPITAL', '10000.0')))
         else:
             initial_capital = Decimal(str(initial_capital))
 

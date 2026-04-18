@@ -330,6 +330,21 @@ try:
 except ImportError:
     STRATEGY_ADVISOR_AVAILABLE = False
 
+# Paper Trading Divisions (Polymarket + Crypto paper bots)
+try:
+    from divisions.trading.polymarket_paper import PolymarketPaperDivision
+
+    POLYMARKET_PAPER_AVAILABLE = True
+except ImportError:
+    POLYMARKET_PAPER_AVAILABLE = False
+
+try:
+    from divisions.trading.crypto_paper import CryptoPaperDivision
+
+    CRYPTO_PAPER_AVAILABLE = True
+except ImportError:
+    CRYPTO_PAPER_AVAILABLE = False
+
 # Strategy-Aware Doctrine
 try:
     from aac.doctrine.strategic_doctrine import (
@@ -613,6 +628,8 @@ class AACMasterMonitoringDashboard:
             ("ncl_link", self._get_ncl_link_data),
             ("pillar_network", self._get_pillar_network_status),
             ("relay_status", self._get_relay_status_data),
+            ("polymarket_paper", self._get_polymarket_paper_data),
+            ("crypto_paper", self._get_crypto_paper_data),
         ]
 
         # Pillar federation (conditional)
@@ -1707,6 +1724,56 @@ class AACMasterMonitoringDashboard:
             return {"status": "ok", **stats}
         except ImportError:
             return {"status": "not_available"}
+        except Exception as exc:
+            return {"status": "error", "error": str(exc)}
+
+    # ── PAPER TRADING DIVISIONS ──────────────────────────────────────
+
+    def _get_polymarket_paper_data(self) -> Dict[str, Any]:
+        """Get Polymarket paper trading division status."""
+        if not POLYMARKET_PAPER_AVAILABLE:
+            return {"status": "not_available"}
+        try:
+            div = PolymarketPaperDivision(persist=True)
+            perf = div._engine.get_performance()
+            rankings = div._optimizer.get_rankings()
+            return {
+                "status": "ok",
+                "equity": perf.get("equity", 0),
+                "total_pnl": perf.get("total_pnl", 0),
+                "total_pnl_pct": perf.get("total_pnl_pct", 0),
+                "total_trades": perf.get("total_trades", 0),
+                "win_rate": perf.get("win_rate", 0),
+                "max_drawdown_pct": perf.get("max_drawdown_pct", 0),
+                "open_positions": len(div._engine.account.positions),
+                "cycles": div._total_cycles,
+                "best_strategy": div._optimizer.get_best_strategy(),
+                "rankings": rankings[:3],
+            }
+        except Exception as exc:
+            return {"status": "error", "error": str(exc)}
+
+    def _get_crypto_paper_data(self) -> Dict[str, Any]:
+        """Get Crypto paper trading division status."""
+        if not CRYPTO_PAPER_AVAILABLE:
+            return {"status": "not_available"}
+        try:
+            div = CryptoPaperDivision(persist=True)
+            perf = div._engine.get_performance()
+            rankings = div._optimizer.get_rankings()
+            return {
+                "status": "ok",
+                "equity": perf.get("equity", 0),
+                "total_pnl": perf.get("total_pnl", 0),
+                "total_pnl_pct": perf.get("total_pnl_pct", 0),
+                "total_trades": perf.get("total_trades", 0),
+                "win_rate": perf.get("win_rate", 0),
+                "max_drawdown_pct": perf.get("max_drawdown_pct", 0),
+                "open_positions": len(div._engine.account.positions),
+                "cycles": div._total_cycles,
+                "best_strategy": div._optimizer.get_best_strategy(),
+                "rankings": rankings[:3],
+            }
         except Exception as exc:
             return {"status": "error", "error": str(exc)}
 
@@ -4112,14 +4179,18 @@ class AACMasterMonitoringDashboard:
     async def _run_web_dashboard(self):
         """Run Streamlit web dashboard via subprocess."""
         if not STREAMLIT_AVAILABLE:
-            logger.info("Streamlit not available. Install with: pip install streamlit")
-            logger.info("Falling back to terminal mode.")
-            await self._run_terminal_dashboard()
-            return
+            raise RuntimeError(
+                "Web dashboard requested but streamlit is not installed. "
+                "Install with: pip install streamlit"
+            )
 
         import subprocess
 
         dashboard_script = Path(__file__).parent / "streamlit_dashboard.py"
+        if not dashboard_script.exists():
+            raise FileNotFoundError(
+                "Web dashboard module missing: monitoring/streamlit_dashboard.py"
+            )
         port = int(os.environ.get("STREAMLIT_PORT", "8501"))
         logger.info(f"Launching Streamlit dashboard on port {port}...")
         proc = subprocess.Popen(
@@ -4363,17 +4434,30 @@ _master_dashboard = None
 def get_master_dashboard(display_mode: str = DisplayMode.TERMINAL):
     """Get the appropriate dashboard instance based on display mode"""
     if display_mode == DisplayMode.WEB:
-        if STREAMLIT_AVAILABLE:
+        if not STREAMLIT_AVAILABLE:
+            raise RuntimeError(
+                "Web dashboard requested but streamlit is unavailable. "
+                "Install streamlit or use --mode terminal"
+            )
+        try:
             from monitoring.streamlit_dashboard import AACStreamlitDashboard
 
             return AACStreamlitDashboard()
-        else:
-            logger.info("Streamlit not available, falling back to terminal mode")
-            return AACMasterMonitoringDashboard(DisplayMode.TERMINAL)
+        except (ImportError, ModuleNotFoundError) as exc:
+            raise RuntimeError(
+                "Web dashboard requested but monitoring.streamlit_dashboard "
+                "is missing. Rebuild or restore monitoring/streamlit_dashboard.py"
+            ) from exc
     elif display_mode == DisplayMode.DASH:
-        from monitoring.dash_dashboard import AACDashDashboard
+        try:
+            from monitoring.dash_dashboard import AACDashDashboard
 
-        return AACDashDashboard()
+            return AACDashDashboard()
+        except (ImportError, ModuleNotFoundError) as exc:
+            raise RuntimeError(
+                "Dash dashboard requested but monitoring.dash_dashboard is missing. "
+                "Create monitoring/dash_dashboard.py or use --mode terminal"
+            ) from exc
     else:
         return AACMasterMonitoringDashboard(display_mode)
 
@@ -4409,13 +4493,13 @@ async def _async_main():
         if display_mode == DisplayMode.WEB:
             # Streamlit dashboard
             if hasattr(dashboard, "run_dashboard"):
-                dashboard.run_dashboard(port=args.port)
+                await dashboard.run_dashboard(port=args.port)
             else:
                 logger.info("Streamlit dashboard not available")
         elif display_mode == DisplayMode.DASH:
             # Dash dashboard
             if hasattr(dashboard, "run_dashboard"):
-                dashboard.run_dashboard(port=args.port)
+                await dashboard.run_dashboard(port=args.port)
             else:
                 logger.info("Dash dashboard not available")
         else:

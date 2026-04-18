@@ -1,0 +1,304 @@
+# AAC Gate Checklists — Strategy Promotion Requirements
+# =====================================================
+# Each gate has a checklist of items that must pass before
+# a strategy can be promoted to the next gate.
+# Items marked required: true are blocking.
+
+gate_checklists:
+  SPEC:
+    description: "Strategy specification review"
+    checklist:
+      documentation:
+        - id: "SPEC-01"
+          item: "Strategy has a written description and rationale"
+          required: true
+
+        - id: "SPEC-02"
+          item: "Target market/asset class identified"
+          required: true
+
+        - id: "SPEC-03"
+          item: "Expected edge documented (why this should work)"
+          required: true
+
+        - id: "SPEC-04"
+          item: "Risk parameters defined (max position, stop loss, drawdown limit)"
+          required: true
+
+      technical:
+        - id: "SPEC-05"
+          item: "Strategy class implements StrategyBase interface"
+          required: true
+
+        - id: "SPEC-06"
+          item: "evaluate() returns valid signals"
+          required: true
+
+        - id: "SPEC-07"
+          item: "Unit tests written and passing"
+          required: true
+
+  SIM:
+    description: "Simulation validation with historical/synthetic data"
+    checklist:
+      performance:
+        - id: "SIM-01"
+          item: "Completed >= 20 simulated trades"
+          required: true
+          metric: "trade_count"
+          threshold: ">= 20"
+
+        - id: "SIM-02"
+          item: "Win rate above chance (>= 45%)"
+          required: true
+          metric: "win_rate"
+          threshold: ">= 45"
+
+        - id: "SIM-03"
+          item: "Positive total P&L"
+          required: false
+          metric: "total_pnl_pct"
+          threshold: ">= 0"
+
+      risk:
+        - id: "SIM-04"
+          item: "Max drawdown <= 25%"
+          required: true
+          metric: "max_drawdown_pct"
+          threshold: "<= 25"
+
+        - id: "SIM-05"
+          item: "No excessive consecutive losses (<= 10)"
+          required: true
+          metric: "consecutive_losses"
+          threshold: "<= 10"
+
+      technical:
+        - id: "SIM-06"
+          item: "No runtime errors during simulation"
+          required: true
+
+        - id: "SIM-07"
+          item: "State persistence (JSON) verified"
+          required: true
+
+  PAPER:
+    description: "Paper trading with live market data, virtual capital"
+    checklist:
+      performance:
+        - id: "PAPER-01"
+          item: "Completed >= 100 paper trades"
+          required: true
+          metric: "trade_count"
+          threshold: ">= 100"
+
+        - id: "PAPER-02"
+          item: "Win rate >= 55%"
+          required: true
+          metric: "win_rate"
+          threshold: ">= 55"
+
+        - id: "PAPER-03"
+          item: "Positive total P&L"
+          required: true
+          metric: "total_pnl_pct"
+          threshold: ">= 0"
+
+        - id: "PAPER-04"
+          item: "Sharpe ratio >= 1.0"
+          required: true
+          metric: "sharpe_ratio"
+          threshold: ">= 1.0"
+
+        - id: "PAPER-05"
+          item: "Profit factor >= 1.3"
+          required: false
+          metric: "profit_factor"
+          threshold: ">= 1.3"
+
+      risk:
+        - id: "PAPER-06"
+          item: "Max drawdown <= 15%"
+          required: true
+          metric: "max_drawdown_pct"
+          threshold: "<= 15"
+
+        - id: "PAPER-07"
+          item: "No losing streak > 10 trades"
+          required: true
+          metric: "consecutive_losses"
+          threshold: "<= 10"
+
+        - id: "PAPER-08"
+          item: "Strategy active (not throttled/disabled) for >= 7 days"
+          required: true
+
+      execution:
+        - id: "PAPER-09"
+          item: "Fill rate >= 80%"
+          required: true
+          metric: "fill_rate"
+          threshold: ">= 80"
+
+        - id: "PAPER-10"
+          item: "Intel signals consumed reliably"
+          required: true
+
+      data:
+        - id: "PAPER-11"
+          item: "Operated through at least 1 market regime change"
+          required: false
+
+        - id: "PAPER-12"
+          item: "Data coverage adequate (>= 80% price availability)"
+          required: true
+          metric: "price_coverage"
+          threshold: ">= 80"
+
+      operational:
+        - id: "PAPER-13"
+          item: "Composite score >= 55 for 7+ consecutive days"
+          required: true
+
+        - id: "PAPER-14"
+          item: "Weekly review reports generated (>= 2)"
+          required: true
+
+  PILOT:
+    description: "Live trading with micro real capital ($50-100)"
+    checklist:
+      safety:
+        - id: "PILOT-01"
+          item: "Human approval obtained"
+          required: true
+
+        - id: "PILOT-02"
+          item: "Kill switch configured and tested"
+          required: true
+
+        - id: "PILOT-03"
+          item: "Max capital set to $500"
+          required: true
+
+        - id: "PILOT-04"
+          item: "Max single-trade loss capped at 5% of capital"
+          required: true
+
+      performance:
+        - id: "PILOT-05"
+          item: "Completed >= 50 real trades"
+          required: true
+          metric: "trade_count"
+          threshold: ">= 50"
+
+        - id: "PILOT-06"
+          item: "Positive P&L after fees and slippage"
+          required: true
+          metric: "total_pnl_pct"
+          threshold: ">= 0"
+
+        - id: "PILOT-07"
+          item: "Real fills within 20% of paper fills"
+          required: true
+
+        - id: "PILOT-08"
+          item: "Win rate >= 50%"
+          required: true
+          metric: "win_rate"
+          threshold: ">= 50"
+
+      risk:
+        - id: "PILOT-09"
+          item: "Max drawdown <= 15%"
+          required: true
+          metric: "max_drawdown_pct"
+          threshold: "<= 15"
+
+        - id: "PILOT-10"
+          item: "No single loss > 5% of capital"
+          required: true
+
+      execution:
+        - id: "PILOT-11"
+          item: "Exchange connector stable (>95% uptime)"
+          required: true
+          metric: "uptime_pct"
+          threshold: ">= 95"
+
+        - id: "PILOT-12"
+          item: "Order placement latency < 5 seconds"
+          required: true
+
+  POST_ANALYSIS:
+    description: "Post-pilot analysis before scaling"
+    checklist:
+      analysis:
+        - id: "POST-01"
+          item: "Paper vs. pilot P&L comparison completed"
+          required: true
+
+        - id: "POST-02"
+          item: "Execution quality report generated (slippage, fill rate)"
+          required: true
+
+        - id: "POST-03"
+          item: "Risk incidents documented (if any)"
+          required: true
+
+        - id: "POST-04"
+          item: "Market regime impact analyzed"
+          required: false
+
+        - id: "POST-05"
+          item: "Recommended parameter adjustments documented"
+          required: true
+
+      decision:
+        - id: "POST-06"
+          item: "Scale-up capital recommendation documented"
+          required: true
+
+        - id: "POST-07"
+          item: "Human approval for scaling"
+          required: true
+
+  SCALE:
+    description: "Full deployment with significant capital"
+    checklist:
+      readiness:
+        - id: "SCALE-01"
+          item: "Human approval for full capital allocation"
+          required: true
+
+        - id: "SCALE-02"
+          item: "Risk limits set for scaled capital"
+          required: true
+
+        - id: "SCALE-03"
+          item: "Monitoring dashboard operational"
+          required: true
+
+        - id: "SCALE-04"
+          item: "Alerting configured for anomalies"
+          required: true
+
+        - id: "SCALE-05"
+          item: "Rollback plan documented"
+          required: true
+
+      performance:
+        - id: "SCALE-06"
+          item: "Composite score >= 70 for 14+ consecutive days"
+          required: true
+
+        - id: "SCALE-07"
+          item: "Sharpe >= 1.0 on real trades"
+          required: true
+          metric: "sharpe_ratio"
+          threshold: ">= 1.0"
+
+        - id: "SCALE-08"
+          item: "Drawdown < 10% during pilot"
+          required: true
+          metric: "max_drawdown_pct"
+          threshold: "<= 10"

@@ -1,0 +1,165 @@
+# AAC Bake-Off Policy — Strategy Lifecycle & Scoring Rules
+# ========================================================
+# Defines scoring weights, decision thresholds, safety triggers,
+# and capital allocation policy for the BakeoffEngine.
+
+aac_bakeoff:
+  version: "1.0"
+  description: "Paper trading strategy lifecycle policy"
+
+  # ==================== SCORING ====================
+  scoring:
+    # Dimension weights (must sum to 1.0)
+    weights:
+      performance: 0.25
+      risk: 0.25
+      execution: 0.15
+      data: 0.15
+      ops: 0.10
+      fragility: 0.10
+
+    # Decision thresholds (composite score 0-100)
+    promotion_threshold: 70    # >= 70 → PROMOTE
+    hold_threshold: 50         # >= 50 → HOLD
+    quarantine_threshold: 35   # >= 35 → QUARANTINE
+    # < 35 → RETIRE
+
+    # Instability penalty (applied to volatile scores)
+    max_instability_penalty: 0.20  # Cap penalty at 20%
+    instability_window: 10         # Look at last N scores
+
+  # ==================== GATE POLICY ====================
+  gates:
+    minimum_days_at_gate:
+      SPEC: 0
+      SIM: 3
+      PAPER: 14
+      PILOT: 21
+      POST_ANALYSIS: 7
+      SCALE: 0
+
+    # Minimum trade count before gate promotion
+    minimum_trades:
+      SPEC: 0
+      SIM: 20
+      PAPER: 100
+      PILOT: 50
+      POST_ANALYSIS: 0
+      SCALE: 0
+
+    # Minimum composite score for promotion
+    minimum_composite:
+      SPEC: 0
+      SIM: 40
+      PAPER: 55
+      PILOT: 65
+      POST_ANALYSIS: 50
+      SCALE: 70
+
+    # Human approval required at these gates
+    human_approval_required:
+      - PILOT      # Before real money
+      - SCALE      # Before full allocation
+
+  # ==================== CAPITAL ALLOCATION ====================
+  capital:
+    # Initial allocation per strategy
+    paper_starting_balance: 10000
+
+    # Capital allocation mode: "equal", "proportional", "winner_take_most"
+    allocation_mode: "proportional"
+
+    # Limits
+    max_single_strategy_pct: 40   # No strategy gets >40% of total capital
+    min_active_strategies: 2       # Keep at least 2 active
+    rebalance_frequency_cycles: 10 # Rebalance capital every N cycles
+
+    # Pilot (real money) limits
+    pilot_initial_capital: 50     # Start with $50
+    pilot_max_capital: 500        # Cap at $500 during PILOT
+    pilot_max_loss_pct: 20        # Kill switch at -20%
+
+  # ==================== STRATEGY LIFECYCLE ====================
+  lifecycle:
+    # Auto-throttle conditions
+    throttle_conditions:
+      - condition: "win_rate < 40 AND trade_count >= 20"
+        action: "throttle"
+        description: "Low win rate after sufficient trades"
+
+      - condition: "max_drawdown_pct > 20"
+        action: "throttle"
+        description: "Excessive drawdown"
+
+      - condition: "consecutive_losses > 10"
+        action: "throttle"
+        description: "Extended losing streak"
+
+    # Auto-disable conditions
+    disable_conditions:
+      - condition: "total_pnl_pct < -15"
+        action: "disable"
+        description: "Capital impairment exceeds 15%"
+
+      - condition: "win_rate < 30 AND trade_count >= 50"
+        action: "disable"
+        description: "Persistently poor win rate"
+
+      - condition: "max_drawdown_pct > 30"
+        action: "disable"
+        description: "Severe drawdown"
+
+    # Recovery from throttle
+    recovery:
+      throttle_to_active_after_cycles: 5  # Must improve for 5 cycles
+      min_recovery_composite: 45           # Must score above this
+
+  # ==================== SAFETY TRIGGERS ====================
+  triggers:
+    - name: "drawdown_halt"
+      condition: "max_drawdown_pct > 40"
+      action: "HALT all paper trading"
+      severity: "critical"
+
+    - name: "equity_halt"
+      condition: "total_equity_pct < 50"
+      action: "HALT all paper trading"
+      severity: "critical"
+
+    - name: "drawdown_safe_mode"
+      condition: "max_drawdown_pct > 25"
+      action: "SAFE_MODE — reduce position sizes 50%"
+      severity: "high"
+
+    - name: "all_disabled_caution"
+      condition: "active_strategy_count == 0"
+      action: "CAUTION — no strategies producing signals"
+      severity: "high"
+
+    - name: "no_intel_caution"
+      condition: "intel_age_seconds > 3600"
+      action: "CAUTION — intel stale, pause new entries"
+      severity: "medium"
+
+    - name: "score_instability"
+      condition: "score_volatility > 25"
+      action: "CAUTION — composite scores highly unstable"
+      severity: "medium"
+
+  # ==================== REVIEW SCHEDULE ====================
+  reviews:
+    weekly:
+      day: "Sunday"
+      generate_report: true
+      update_allocations: true
+      review_disabled_strategies: true
+
+    monthly:
+      generate_deep_analysis: true
+      parameter_sweep: true
+      regime_analysis: true
+
+    gate_review:
+      triggered_by: "composite >= promotion_threshold for 7 consecutive days"
+      requires: "gate_checklist_pass"
+      auto_promote: false  # Always require human approval for gate changes

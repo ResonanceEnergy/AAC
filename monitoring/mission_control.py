@@ -81,6 +81,21 @@ def _safe(fn, label: str) -> Any:
         return {"error": str(exc)}
 
 
+def _parse_moomoo_symbol(code: str) -> dict[str, Any]:
+    """Parse moomoo option code like US.XLE270115C65000 into components.
+
+    Returns dict with symbol, right, strike, expiry or empty dict if not an option.
+    """
+    import re
+    m = re.match(r"^[A-Z]{2}\.([A-Z]+)(\d{6})([CP])(\d+)$", code)
+    if not m:
+        return {}
+    ticker, date_str, right, strike_raw = m.groups()
+    expiry = f"20{date_str}"  # YYMMDD -> 20YYMMDD
+    strike = int(strike_raw) / 1000.0
+    return {"symbol": ticker, "right": right, "strike": strike, "expiry": expiry}
+
+
 def collect_portfolio() -> dict:
     """Portfolio value and account breakdown from account_balances.json."""
     cached = _get_cached("portfolio")
@@ -95,6 +110,7 @@ def collect_portfolio() -> dict:
     accounts_raw = raw.get("accounts", {})
     fx = raw.get("fx", {})
     cad_usd = fx.get("cad_usd", 0.72)
+    now = datetime.datetime.now()
 
     accounts = []
     total_usd = 0.0
@@ -106,19 +122,38 @@ def collect_portfolio() -> dict:
         total_assets = float(acct.get("total_assets", 0) or 0)
         value_usd = total_assets if currency == "USD" else total_assets * cad_usd
 
+        # Calculate data age
+        verified = acct.get("verified", "")
+        days_stale = 0
+        if verified:
+            try:
+                vdate = datetime.datetime.strptime(verified, "%Y-%m-%d")
+                days_stale = (now - vdate).days
+            except ValueError:
+                pass
+
         positions = []
         acct_unrealized = 0.0
         for pos in acct.get("positions") or []:
             unrealized = float(pos.get("unrealizedPNL", pos.get("pl_val", 0)) or 0)
-            mkt_val = float(pos.get("marketValue", pos.get("market_val", 0)) or 0)
+            mkt_val = float(pos.get("marketValue", pos.get("market_val", pos.get("market_val_cad", 0))) or 0)
             avg_cost = float(pos.get("avgCost", pos.get("cost_price", 0)) or 0)
-            mkt_price = float(pos.get("marketPrice", 0) or 0)
+            mkt_price = float(pos.get("marketPrice", pos.get("price_cad", 0)) or 0)
             qty = float(pos.get("qty", 0) or 0)
             right = pos.get("right", "")
             sec_type = pos.get("secType", "")
             symbol = pos.get("symbol", "?")
             strike = pos.get("strike")
             expiry = pos.get("expiry", "")
+
+            # Parse moomoo-style option codes (e.g. US.XLE270115C65000)
+            if not right and "." in symbol:
+                parsed = _parse_moomoo_symbol(symbol)
+                if parsed:
+                    symbol = parsed["symbol"]
+                    right = parsed["right"]
+                    strike = parsed["strike"]
+                    expiry = parsed["expiry"]
 
             ptype = "call" if right == "C" else "put" if right == "P" else sec_type.lower() or "equity"
             acct_unrealized += unrealized
@@ -146,7 +181,8 @@ def collect_portfolio() -> dict:
             "position_count": len(positions),
             "unrealized_pnl": round(acct_unrealized, 2),
             "positions": positions,
-            "verified": acct.get("verified", ""),
+            "verified": verified,
+            "days_stale": days_stale,
         })
 
     result = {
@@ -154,6 +190,7 @@ def collect_portfolio() -> dict:
         "total_positions": total_positions,
         "total_unrealized_pnl": round(total_unrealized, 2),
         "fx_cad_usd": cad_usd,
+        "fx_updated": fx.get("updated", "unknown"),
         "accounts": accounts,
         "last_updated": raw.get("_meta", {}).get("updated", "unknown"),
     }
@@ -469,29 +506,88 @@ def collect_health() -> dict:
     return result
 
 
+def _format_interval(seconds: float) -> str:
+    """Format seconds into human-readable interval."""
+    if seconds >= 86400:
+        days = seconds / 86400
+        return f"{days:.0f}d" if days >= 2 else "24h"
+    if seconds >= 3600:
+        return f"{seconds / 3600:.0f}h"
+    if seconds >= 60:
+        return f"{seconds / 60:.0f}m"
+    return f"{seconds:.0f}s"
+
+
 def collect_tasks() -> dict:
-    """Autonomous engine scheduled tasks (if running)."""
+    """Autonomous engine scheduled tasks — all groups."""
     cached = _get_cached("tasks")
     if cached is not None:
         return cached
 
-    # Read from the autonomous engine task definitions
-    tasks = [
-        {"name": "market_scan", "interval": "60s", "desc": "Fetch live market data"},
-        {"name": "strategy_signals", "interval": "60s", "desc": "Generate trading signals"},
-        {"name": "position_reconcile", "interval": "300s", "desc": "Match positions to reality"},
-        {"name": "connector_health", "interval": "120s", "desc": "Exchange health checks"},
-        {"name": "introspection", "interval": "300s", "desc": "Self-check for gaps"},
-        {"name": "status_report", "interval": "3600s", "desc": "Hourly status report"},
-        {"name": "daily_pnl_reset", "interval": "24h", "desc": "Daily accounting reset"},
-        {"name": "gap_analysis", "interval": "600s", "desc": "System gap analysis"},
-        {"name": "daily_brief", "interval": "24h", "desc": "Morning briefing"},
-        {"name": "intelligence_cycle", "interval": "3600s", "desc": "Market intelligence model"},
-        {"name": "rocket_ship_brief", "interval": "24h", "desc": "Rocket ship recommendations"},
+    # Core engine tasks
+    core_tasks = [
+        {"name": "market_scan", "interval": "60s", "group": "core"},
+        {"name": "strategy_signals", "interval": "60s", "group": "core"},
+        {"name": "position_reconcile", "interval": "5m", "group": "core"},
+        {"name": "connector_health", "interval": "2m", "group": "core"},
+        {"name": "introspection", "interval": "5m", "group": "core"},
+        {"name": "status_report", "interval": "1h", "group": "core"},
+        {"name": "daily_pnl_reset", "interval": "24h", "group": "core"},
+        {"name": "gap_analysis", "interval": "10m", "group": "core"},
+        {"name": "daily_brief", "interval": "24h", "group": "core"},
+        {"name": "intelligence_cycle", "interval": "1h", "group": "core"},
+        {"name": "rocket_ship_brief", "interval": "24h", "group": "core"},
     ]
 
-    result = {"tasks": tasks, "engine_status": "configured"}
+    # War Room tasks — pull from actual registry
+    wr_tasks = []
+    try:
+        from strategies.war_room_auto import WarRoomAutoEngine
+        engine = WarRoomAutoEngine()
+        for td in engine.get_task_registry():
+            wr_tasks.append({
+                "name": td["name"],
+                "interval": _format_interval(td["interval"]),
+                "group": "war_room",
+            })
+    except Exception:
+        pass
+
+    # Thirteen Moon tasks — pull from actual registry
+    tm_tasks = []
+    try:
+        from strategies.thirteen_moon_auto import ThirteenMoonAutoEngine
+        engine = ThirteenMoonAutoEngine()
+        for td in engine.get_task_registry():
+            tm_tasks.append({
+                "name": td["name"],
+                "interval": _format_interval(td["interval"]),
+                "group": "moon",
+            })
+    except Exception:
+        pass
+
+    all_tasks = core_tasks + wr_tasks + tm_tasks
+    result = {"tasks": all_tasks, "engine_status": "configured", "total": len(all_tasks)}
     _set_cached("tasks", result)
+    return result
+
+
+def collect_daily_tasks() -> dict:
+    """Daily task aggregator — fluid daily tasks from all sources."""
+    cached = _get_cached("daily_tasks")
+    if cached is not None:
+        return cached
+
+    try:
+        from monitoring.daily_tasks import DailyTaskAggregator
+        agg = DailyTaskAggregator(horizon_days=3)
+        result = agg.collect_all()
+    except Exception as e:
+        _log.warning("daily_tasks_collect_error", error=str(e))
+        result = {"error": str(e), "total_tasks": 0, "all_tasks": []}
+
+    _set_cached("daily_tasks", result)
     return result
 
 
@@ -1031,6 +1127,7 @@ def api_all():
         "moon": _safe(collect_moon, "moon"),
         "health": _safe(collect_health, "health"),
         "tasks": _safe(collect_tasks, "tasks"),
+        "daily_tasks": _safe(collect_daily_tasks, "daily_tasks"),
         "unusual_whales": _safe(collect_unusual_whales, "unusual_whales"),
         "divisions": _safe(collect_divisions, "divisions"),
         "api_feeds": _safe(collect_api_feeds, "api_feeds"),
@@ -1069,6 +1166,11 @@ def api_regime():
 @app.get("/api/health")
 def api_health():
     return JSONResponse(_safe(collect_health, "health"))
+
+
+@app.get("/api/daily_tasks")
+def api_daily_tasks():
+    return JSONResponse(_safe(collect_daily_tasks, "daily_tasks"))
 
 
 @app.get("/", response_class=HTMLResponse)

@@ -1,9 +1,25 @@
 #!/usr/bin/env python3
 """
-AAC War Room Storyboard -- Interactive browser dashboard.
+AAC War Room Storyboard v2.0 -- Interactive browser dashboard.
 
 Visual narrative of the War Room's Monte Carlo simulations, 50-milestone
-spiderweb, 5-arm allocations, 7 scenarios, and 12-indicator composite.
+spiderweb, 5-arm allocations, 7 scenarios, 15-indicator composite,
+13-Moon Doctrine, Polymarket Division, Goal-Mandate Roadmap, Paper Trading
+Division bakeoff, and Position Calendar with Roll Discipline.
+
+12 Acts:
+  1. The Situation (15-indicator heatmap + regime)
+  2. The Positions (portfolio by account)
+  3. The Simulation (Monte Carlo forward paths)
+  4. The Scenarios (43+ crisis worlds)
+  5. The Spiderweb (50 milestones)
+  6. The Mandate (today's orders)
+  7. The Greeks (position risk)
+  8. The 13 Moon Doctrine (lunar cycles + events)
+  9. Polymarket Division (thesis matching + scanner)
+  10. Goal-Mandate Roadmap (5 missions, 8 sprints)
+  11. Paper Trading Division (9 strategies, gate progression)
+  12. Position Calendar & Roll Discipline
 
 Usage:
     launch.bat war-room                           # recommended on Windows
@@ -239,7 +255,7 @@ refresh_meta = _refresh_live_war_room_state()
 # HEADER
 # ============================================================================
 st.title("\u2694\ufe0f AAC War Room Storyboard")
-st.caption("Forward Monte Carlo -- 50-Milestone Spiderweb -- 5-Arm Allocation -- 7 Scenarios -- 15 Indicators -- 13 Moon Doctrine")
+st.caption("Forward Monte Carlo -- 50-Milestone Spiderweb -- 5-Arm Allocation -- 7 Scenarios -- 15 Indicators -- 13 Moon Doctrine -- Goal-Mandate Roadmap -- Paper Trading -- Position Calendar")
 
 # -- Data Freshness Banner (Fix 4) --
 _live_ts = st.session_state.get("live_fetch_ts")
@@ -250,7 +266,7 @@ if _live_ts:
     else:
         st.warning(f"\u26a0\ufe0f Live data is {_age_min / 60:.1f} hours stale -- click 'Fetch Live Data' to refresh")
 else:
-    st.warning("\u26a0\ufe0f Using hardcoded spot prices (Mar 29). Click '\u26a1 Fetch Live Data' in sidebar to get real-time data.")
+    st.warning("\u26a0\ufe0f Using hardcoded spot prices (Apr 9). Click '\u26a1 Fetch Live Data' in sidebar to get real-time data.")
 
 # ============================================================================
 # ACT 1: THE SITUATION (Current State)
@@ -305,24 +321,31 @@ st.header("Act 2: The Positions")
 pos_col1, pos_col2 = st.columns([3, 2])
 
 with pos_col1:
-    st.subheader("IBKR Live Positions")
-    pos_rows = []
+    st.subheader("All Positions by Account")
+    # Group by account
+    _pos_by_account: dict[str, list] = {}
     for p in CURRENT_POSITIONS:
-        pnl = p.pnl
-        pnl_pct = p.pnl_pct
-        pos_rows.append({
-            "Symbol": p.symbol,
-            "Type": p.position_type.upper(),
-            "Qty": p.quantity,
-            "Strike": f"${p.strike:,.1f}" if p.strike else "--",
-            "Expiry": p.expiry or "--",
-            "Entry": f"${p.entry_price:.2f}",
-            "Current": f"${p.current_price:.2f}",
-            "P&L": f"${pnl:+,.0f}",
-            "P&L%": f"{pnl_pct:+.0f}%",
-            "Arm": p.arm.value,
-        })
-    st.dataframe(pos_rows, use_container_width=True, hide_index=True)
+        _pos_by_account.setdefault(p.account, []).append(p)
+
+    for acct_name, acct_positions in _pos_by_account.items():
+        st.markdown(f"**{acct_name}** ({len(acct_positions)} positions)")
+        pos_rows = []
+        for p in acct_positions:
+            pnl = p.pnl
+            pnl_pct = p.pnl_pct
+            pos_rows.append({
+                "Symbol": p.symbol,
+                "Type": p.position_type.upper(),
+                "Qty": p.quantity,
+                "Strike": f"${p.strike:,.1f}" if p.strike else "--",
+                "Expiry": p.expiry or "--",
+                "Entry": f"${p.entry_price:.2f}",
+                "Current": f"${p.current_price:.2f}",
+                "P&L": f"${pnl:+,.0f}",
+                "P&L%": f"{pnl_pct:+.0f}%",
+                "Arm": p.arm.value,
+            })
+        st.dataframe(pos_rows, use_container_width=True, hide_index=True)
 
 with pos_col2:
     st.subheader("Account Balances")
@@ -891,15 +914,210 @@ else:
     st.info("Polymarket Division not installed — enable strategies/polymarket_division to see metrics.")
 
 # ============================================================================
+# ACT 10: GOAL-MANDATE ROADMAP
+# ============================================================================
+st.header("Act 10: Goal-Mandate Roadmap")
+st.caption("5 core missions, 8 sprints, honest assessment of what works vs what's broken")
+
+# Core Missions status
+_CORE_MISSIONS = [
+    {"name": "Find Trades", "icon": "\U0001f50d", "status": "WORKING",
+     "desc": "yfinance options chain, UW flow data, War Room 15-indicator composite, Polymarket scanner"},
+    {"name": "Execute Trades", "icon": "\u26a1", "status": "WORKING",
+     "desc": "IBKR live (15 positions), Moomoo OpenD (degraded), Polymarket CLOB, WealthSimple manual"},
+    {"name": "Manage Risk", "icon": "\U0001f6e1\ufe0f", "status": "IN PROGRESS",
+     "desc": "ROLL_DISCIPLINE codified, 21-DTE triggers, max 20 contracts. Dead-put gate. Position calendar active."},
+    {"name": "Track P&L", "icon": "\U0001f4b0", "status": "WORKING",
+     "desc": "account_balances.json central store, per-account positions, FX conversion, MV tracking"},
+    {"name": "Monitor Health", "icon": "\U0001f4e1", "status": "WORKING",
+     "desc": "Matrix Monitor (24/30 collectors), War Room feeds (10/12), mission_control.py, degradation panel"},
+]
+
+miss_cols = st.columns(5)
+for i, m in enumerate(_CORE_MISSIONS):
+    with miss_cols[i]:
+        bg = "#27ae60" if m["status"] == "WORKING" else "#f39c12" if m["status"] == "IN PROGRESS" else "#e74c3c"
+        st.markdown(
+            f"<div style='text-align:center;padding:12px;background:{bg};"
+            f"border-radius:8px;color:#fff;margin:2px'>"
+            f"<div style='font-size:1.8em'>{m['icon']}</div>"
+            f"<b>{m['name']}</b><br/>"
+            f"<small>{m['status']}</small></div>",
+            unsafe_allow_html=True,
+        )
+
+# Sprint Roadmap
+_SPRINTS = [
+    {"id": 0, "name": "Cleanup & Foundation", "status": "DONE", "desc": "Archive 37 strategies, fix crashes, lint zero"},
+    {"id": 1, "name": "Signal Pipeline", "status": "DONE", "desc": "Reliable market data -> signal path (yfinance + UW + FRED)"},
+    {"id": 2, "name": "Execution", "status": "DONE", "desc": "Signal -> order -> confirmation (IBKR live, 23 trades executed)"},
+    {"id": 3, "name": "Risk & Roll Discipline", "status": "DONE", "desc": "ROLL_DISCIPLINE codified, 21-DTE rules, dead-put gate"},
+    {"id": 4, "name": "P&L Tracking", "status": "DONE", "desc": "account_balances.json, position snapshots, trade logs"},
+    {"id": 5, "name": "Monitoring", "status": "DONE", "desc": "Matrix Monitor, Mission Control, War Room Storyboard, 1928+ tests"},
+    {"id": 6, "name": "Second Strategy", "status": "IN PROGRESS", "desc": "Polymarket Division active, Paper Trading bakeoff running"},
+    {"id": 7, "name": "Automation & Scheduling", "status": "NOT STARTED", "desc": "Unattended running, scheduled scans, auto-roll execution"},
+]
+
+with st.expander("\U0001f4cb Sprint Roadmap (0-7)", expanded=True):
+    for sp in _SPRINTS:
+        icon = "\u2705" if sp["status"] == "DONE" else "\U0001f7e1" if sp["status"] == "IN PROGRESS" else "\u23f3"
+        st.markdown(f"{icon} **Sprint {sp['id']}: {sp['name']}** -- _{sp['status']}_ -- {sp['desc']}")
+
+# ============================================================================
+# ACT 11: PAPER TRADING DIVISION
+# ============================================================================
+st.header("Act 11: Paper Trading Division")
+st.caption("Strategy bakeoff, gate progression, zero real capital at risk")
+
+# Paper Trading status
+_PT_STRATEGIES = [
+    {"name": "poly_grid", "division": "Polymarket", "status": "ACTIVE", "phase": "BOOTSTRAP"},
+    {"name": "poly_dca", "division": "Polymarket", "status": "ACTIVE", "phase": "BOOTSTRAP"},
+    {"name": "poly_momentum", "division": "Polymarket", "status": "ACTIVE", "phase": "BOOTSTRAP"},
+    {"name": "poly_mean_rev", "division": "Polymarket", "status": "ACTIVE", "phase": "BOOTSTRAP"},
+    {"name": "poly_arb", "division": "Polymarket", "status": "ACTIVE", "phase": "BOOTSTRAP"},
+    {"name": "crypto_grid", "division": "Crypto", "status": "ACTIVE", "phase": "BOOTSTRAP"},
+    {"name": "crypto_dca", "division": "Crypto", "status": "ACTIVE", "phase": "BOOTSTRAP"},
+    {"name": "crypto_momentum", "division": "Crypto", "status": "ACTIVE", "phase": "BOOTSTRAP"},
+    {"name": "crypto_mean_rev", "division": "Crypto", "status": "ACTIVE", "phase": "BOOTSTRAP"},
+]
+
+pt_col1, pt_col2, pt_col3 = st.columns(3)
+pt_col1.metric("Strategies Active", f"{len(_PT_STRATEGIES)}")
+pt_col2.metric("Divisions", "2 (Polymarket + Crypto)")
+pt_col3.metric("Virtual Capital", "$20K ($10K/div)")
+
+# 7 Non-Negotiable Mandates
+with st.expander("\u2694\ufe0f 7 Non-Negotiable Mandates", expanded=False):
+    _MANDATES = [
+        "M1: Zero real capital at risk (JSON-only persistence)",
+        "M2: Deterministic execution (fixed slippage/fees, no randomness)",
+        "M3: Continuous scoring (StrategyOptimizer ranks strategies)",
+        "M4: Data from councils only (consume INTEL_UPDATE signals)",
+        "M5: Doctrine-gated execution (HALT/SAFE_MODE stops activity)",
+        "M6: Full audit trail (all fills/scores persisted)",
+        "M7: Strategy isolation (independent P&L tracking)",
+    ]
+    for m in _MANDATES:
+        st.markdown(f"\u2705 {m}")
+
+# Gate Promotion Criteria
+with st.expander("\U0001f3af Gate Promotion Criteria", expanded=False):
+    gate_cols = st.columns(4)
+    gate_cols[0].markdown("**BOOTSTRAP -> CALIBRATE**\n\n- 50+ trades\n- System online 48h\n- No crashes")
+    gate_cols[1].markdown("**CALIBRATE -> COMPETE**\n\n- 100+ trades\n- Win rate > 50%\n- Max DD < 20%")
+    gate_cols[2].markdown("**COMPETE -> VALIDATE**\n\n- 500+ trades\n- Win rate > 55%\n- Sharpe > 1.0\n- Max DD < 15%")
+    gate_cols[3].markdown("**VALIDATE -> PILOT**\n\n- 1000+ trades\n- Consistent 4 weeks\n- Sharpe > 1.2\n- Deploy $50-$100 real")
+
+# Strategy registry table
+st.subheader("Strategy Registry")
+st.dataframe(_PT_STRATEGIES, use_container_width=True, hide_index=True)
+
+# ============================================================================
+# ACT 12: POSITION CALENDAR & ROLL DISCIPLINE
+# ============================================================================
+st.header("Act 12: Position Calendar & Roll Discipline")
+st.caption("Upcoming expirations, roll triggers, and codified discipline from Apr 6 post-mortem")
+
+# Roll Discipline rules
+rd_col1, rd_col2 = st.columns(2)
+
+with rd_col1:
+    st.subheader("\U0001f4dc Roll Discipline Rules")
+    rd_rules = wre.ROLL_DISCIPLINE
+    st.markdown(f"- **Max contracts/position:** {rd_rules['max_contracts_per_position']}")
+    st.markdown(f"- **Roll trigger DTE:** {rd_rules['roll_trigger_dte']} days")
+    st.markdown(f"- **Max OTM % (short-dated):** {rd_rules['max_otm_pct_short_dated']:.0%}")
+    st.markdown(f"- **Dead-put gate:** {'YES' if rd_rules['dead_put_gate'] else 'NO'} (if bid=$0, do NOT roll)")
+    leaps_pct, puts_pct = rd_rules['leaps_vs_puts_allocation']
+    st.markdown(f"- **Allocation:** {leaps_pct:.0%} LEAPS / {puts_pct:.0%} directional puts")
+
+with rd_col2:
+    st.subheader("\u26a0\ufe0f Post-Mortem Lessons")
+    st.warning("Apr 6: All Apr 17 puts expired worthless ($0 bid at 11 DTE). OBDC x65 was untradeable.")
+    st.info("Encoded as ROLL_DISCIPLINE hard rules for all future entries.")
+
+# Position Calendar
+st.subheader("\U0001f4c5 Position Calendar")
+
+import datetime as _dt
+
+_today = _dt.date.today()
+_calendar_events = [
+    {"date": "2026-04-10", "event": "XLF 21-DTE roll trigger", "action": "Evaluate XLF $46P May 1. If bid > $0.10 roll to Jun. If $0 -> dead-put gate.", "priority": "HIGH"},
+    {"date": "2026-04-10", "event": "March CPI Release", "action": "CPI war-month inflation. IBKR/WS final week positioning.", "priority": "HIGH"},
+    {"date": "2026-04-11", "event": "Q1 Bank Earnings Begin", "action": "IV rank assessment for XLF, HYG.", "priority": "MEDIUM"},
+    {"date": "2026-04-17", "event": "Apr OPEX + ECB Rate Decision", "action": "IBKR: ARCC/PFF/MAIN/JNK expire. WS: ARCC/JNK/KRE/OBDC expire. ~$1,645 total loss.", "priority": "CRITICAL"},
+    {"date": "2026-04-20", "event": "Iran Nuclear Talks", "action": "XLF May 1 roll decision (25 DTE).", "priority": "HIGH"},
+    {"date": "2026-04-22", "event": "FAANG Earnings Begin", "action": "TSLA/AMZN/MSFT/META/AAPL/GOOG. Earnings IV plays.", "priority": "MEDIUM"},
+    {"date": "2026-04-24", "event": "LQD/EMB 21-DTE roll trigger", "action": "Roll decision for May 15 puts per ROLL_DISCIPLINE.", "priority": "HIGH"},
+    {"date": "2026-04-30", "event": "March PCE + Q1 GDP", "action": "Recession signal watch.", "priority": "HIGH"},
+    {"date": "2026-05-01", "event": "XLF $46P expiry", "action": "If not rolled Apr 10, expires.", "priority": "CRITICAL"},
+    {"date": "2026-05-06", "event": "FOMC May Meeting", "action": "Emergency cut watch + DTE 45 Jun puts.", "priority": "HIGH"},
+    {"date": "2026-05-15", "event": "LQD/EMB expiry", "action": "If not rolled Apr 24, expires.", "priority": "CRITICAL"},
+    {"date": "2026-05-28", "event": "Jun 18 positions: 21-DTE trigger", "action": "IBKR: SLV/XLE calls, BKLN/HYG puts. WS: OWL puts.", "priority": "HIGH"},
+    {"date": "2026-06-18", "event": "Jun OPEX (8 IBKR + 1 WS)", "action": "Major expiry cluster.", "priority": "CRITICAL"},
+    {"date": "2026-06-26", "event": "OBDC 21-DTE roll trigger", "action": "OBDC $7.5P x11 Jul 17 roll decision.", "priority": "HIGH"},
+    {"date": "2026-07-17", "event": "OBDC $7.5P x11 expiry", "action": "Jul OPEX.", "priority": "CRITICAL"},
+]
+
+cal_rows = []
+for evt in _calendar_events:
+    evt_date = _dt.date.fromisoformat(evt["date"])
+    days_until = (evt_date - _today).days
+    if days_until < -7:
+        continue  # skip events more than a week past
+    pri_icon = {
+        "CRITICAL": "\U0001f534", "HIGH": "\U0001f7e0", "MEDIUM": "\U0001f7e1",
+    }.get(evt["priority"], "\u26aa")
+    status = "PAST" if days_until < 0 else "TODAY" if days_until == 0 else f"{days_until}d"
+    cal_rows.append({
+        "": pri_icon,
+        "Date": evt["date"],
+        "In": status,
+        "Event": evt["event"],
+        "Action": evt["action"],
+        "Priority": evt["priority"],
+    })
+
+if cal_rows:
+    st.dataframe(cal_rows, use_container_width=True, hide_index=True)
+
+# Active vs Expiring positions summary
+st.subheader("Position Expiry Clusters")
+from collections import Counter as _Counter
+expiry_counts = _Counter()
+for p in CURRENT_POSITIONS:
+    if p.expiry:
+        expiry_counts[p.expiry] += 1
+
+if expiry_counts:
+    exp_rows = []
+    for exp_date, count in sorted(expiry_counts.items()):
+        try:
+            ed = _dt.date.fromisoformat(exp_date)
+            days_to = (ed - _today).days
+        except ValueError:
+            days_to = 999
+        exp_rows.append({
+            "Expiry": exp_date,
+            "Days": days_to,
+            "Positions": count,
+            "Status": "EXPIRED" if days_to < 0 else "EXPIRING" if days_to <= 7 else "ACTIVE",
+        })
+    st.dataframe(exp_rows, use_container_width=True, hide_index=True)
+
+# ============================================================================
 # FOOTER
 # ============================================================================
 st.markdown("---")
 st.markdown(
     "<div style='text-align:center;color:#666;font-size:0.8em'>"
-    "AAC War Room Storyboard v1.2 -- "
+    "AAC War Room Storyboard v2.0 -- "
     f"{len(ASSETS)} assets -- {len(MILESTONES)} milestones -- "
     f"{len(SCENARIOS)} scenarios -- {len(CURRENT_POSITIONS)} positions -- "
-    f"15 indicators -- 14 moon cycles"
+    f"15 indicators -- 14 moon cycles -- "
+    f"5 core missions -- 9 strategies -- 8 sprints"
     "</div>",
     unsafe_allow_html=True,
 )

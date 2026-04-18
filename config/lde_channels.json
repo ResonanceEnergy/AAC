@@ -1,0 +1,42 @@
+{
+  "youtube_channels": [
+    {
+      "url": "https://www.youtube.com/@ThePlainBagel",
+      "category": "finance_education",
+      "priority": "high"
+    },
+    {
+      "url": "https://www.youtube.com/@PatrickBoyleOnFinance",
+      "category": "macro_analysis",
+      "priority": "high"
+    },
+    {
+      "url": "https://www.youtube.com/@TheSwedishInvestor",
+      "category": "value_investing",
+      "priority": "medium"
+    },
+    {
+      "url": "https://www.youtube.com/@BenFelixCSI",
+      "category": "rational_finance",
+      "priority": "high"
+    },
+    {
+      "url": "https://www.youtube.com/@MarkMeldrum",
+      "category": "fixed_income",
+      "priority": "medium"
+    }
+  ],
+  "ingest_settings": {
+    "max_videos_per_channel": 5,
+    "max_video_age_days": 14,
+    "max_duration_hours": 2.0,
+    "use_whisper": false,
+    "schedule_cron": "0 8 * * *"
+  },
+  "doctrine_settings": {
+    "signal_decay_days": 30,
+    "min_conviction_threshold": 0.6,
+    "max_doctrine_rules": 200,
+    "backtest_lookback_days": 90
+  }
+}

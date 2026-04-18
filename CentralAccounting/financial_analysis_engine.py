@@ -70,9 +70,9 @@ class FinancialAnalysisEngine:
     def __init__(self):
         self.positions: Dict[str, Position] = {}
         self.daily_pnl_history: List[float] = []
-        self.capital_base = 1000000.0  # $1M base capital
-        self.margin_limit = 500000.0   # $500K margin limit
-        self.daily_loss_limit = 20000.0  # $20K daily loss limit
+        self.capital_base = 10000.0  # $10K base capital
+        self.margin_limit = 5000.0   # $5K margin limit
+        self.daily_loss_limit = 500.0  # $500 daily loss limit
 
         # Risk monitoring state
         self.current_drawdown = 0.0

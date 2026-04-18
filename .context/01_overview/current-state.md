@@ -1,6 +1,6 @@
 # Current State
 
-Date: 2026-04-07
+Date: 2026-04-09
 Repo: AAC
 Branch: `main`
 Workspace: `c:\dev\AAC_fresh`
@@ -9,19 +9,22 @@ Version: 3.6.0 (pyproject.toml)
 
 ## Operational Summary
 
-AAC is in **LIVE TRADING** mode. Apr 6 post-mortem completed — 8 puts expired worthless, ROLL_DISCIPLINE rules encoded.
+AAC is in **LIVE TRADING** mode. Live IBKR data pull Apr 9 confirmed 15 positions (10 new). Port 7497 verified.
 
 ### What's Running
-- IBKR: 5 active puts (XLF May 1, LQD/EMB May 15, BKLN x3/HYG Jun 18) — all OTM
-- IBKR: 4 Apr 17 puts expiring worthless (ARCC/PFF/MAIN/JNK) — $150 premium lost
-- Moomoo: Real mode, FUTUCA, ~$17,684 USD — SQQQ x172 + SPXS x106 performing in VIX 24
+- IBKR: 15 active positions (5 calls + 10 puts) — Net liq CAD $20,079.57 (~USD $14,520), Cash CAD $2,700.83
+  - Calls: SLV $66C x8, SLV $75C x2 LEAPS, TSLA $500C x1 LEAPS, SLV $70C x2, XLE $65C x3 ($12,143 MV)
+  - Puts: OBDC $7.5P x11, BKLN $20P x3, HYG $77P, LQD $106P, EMB $90P, XLF $46P + 4 Apr 17 expiring ($431 MV)
+- Moomoo: OpenD running but API port 11111 NOT listening — dummy credentials in OpenD.xml. Last known: ~$17,684 USD
 - WealthSimple TFSA: ~$18,638 CAD — 3 active (GLD/XLE LEAPS + OWL put), 4 Apr puts expiring worthless ($1,495 lost)
+- **War Room**: Composite 39.6 | REGIME: WATCH | 15 live API feeds (10/12 sources returning data)
+- **13-Moon Doctrine**: Moon 1 (Pink Moon) — DEPLOY mandate. 184 events, 6 overlay layers, lead-time alerts active
 - Matrix Monitor: 4 display modes, 20+ panels, 24/30 collectors OK
 - Doctrine Engine: 12 packs, 4-state machine
 - 8 strategies wired to unified integrator
 - **Polymarket Division**: ACTIVE — $535.73 USDC, active_scanner.py
-- Grand total: ~$32,538 USD | VIX 24.05 | CAD/USD 0.7189
-- Pytest: **1715 passed**, 0 failed, 23 skipped, 1 xfailed
+- Grand total: ~$46,220 USD | VIX 20.88 | CAD/USD 0.7231
+- Pytest: **1928 passed**, 0 failed, 23 skipped, 1 xfailed
 - Architecture Rework v3.3: **ALL PHASES COMPLETE (1-7)** — Strategy Advisor, NCL Relay, Doctrine Terrain, Monitor panels wired into orchestrator
 
 ### What's Broken
@@ -38,6 +41,14 @@ AAC is in **LIVE TRADING** mode. Apr 6 post-mortem completed — 8 puts expired 
 - `AGENTS.md` (root) — behavioral rules for AI agents
 - `.context/STATUS.md` — living status dashboard (single source of truth)
 - `.context/` 10-folder system — durable project context
+- **13-Moon Doctrine** — temporal overlay layer:
+  - Engine: `strategies/thirteen_moon_doctrine.py` (~1400 lines)
+  - Storyboard: `strategies/thirteen_moon_storyboard.py` (~950 lines)
+  - HTML: `data/storyboard/thirteen_moon_storyboard.html`
+  - CLI: `python -m strategies.thirteen_moon_doctrine --upcoming 30`
+  - 14 moon cycles (Mar 3, 2026 → Apr 19, 2027), 184 events, 6 overlay layers
+  - Lead-time alerts: 14 event categories with escalating day-threshold actions
+  - Integrated into Matrix Monitor sidebar
 
 ### Architecture Rework v3.3
 - Phase 1: Wire 7 strategies — DONE

@@ -9,15 +9,42 @@ import asyncio
 import time
 from pathlib import Path
 from typing import Any, Dict, List
+from unittest.mock import patch
+
+import pytest
 
 from shared.audit_logger import get_audit_logger
 from shared.paper_trading import (
     OrderSide,
     OrderStatus,
     OrderType,
+    PaperAccount,
     initialize_paper_trading,
     paper_trading_engine,
 )
+
+
+@pytest.fixture(autouse=True)
+async def _reset_paper_engine():
+    """Reset paper trading with generous balance; mock pricing to avoid HTTP."""
+    paper_trading_engine.account = PaperAccount(account_id=paper_trading_engine.account_id)
+    paper_trading_engine.account.balance = 1_000_000.0
+    paper_trading_engine.account.equity = 1_000_000.0
+    paper_trading_engine.max_position_size_pct = 1.0
+
+    _orig_simulate = paper_trading_engine._simulate_price
+
+    async def _mock_price(symbol):
+        return _orig_simulate(symbol)
+
+    async def _mock_reset():
+        paper_trading_engine.account = PaperAccount(account_id=paper_trading_engine.account_id)
+        paper_trading_engine.account.balance = 1_000_000.0
+        paper_trading_engine.account.equity = 1_000_000.0
+
+    with patch.object(paper_trading_engine, "_get_current_price", new=_mock_price), \
+         patch.object(paper_trading_engine, "reset_account", new=_mock_reset):
+        yield
 
 
 async def test_basic_market_orders():

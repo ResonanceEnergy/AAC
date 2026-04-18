@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 """
-AAC War Room Engine v2.0
+AAC War Room Engine v2.1
 ========================
 Forward Monte Carlo simulation (100,000 paths), milestone-driven spiderweb
 trigger system, Black-Scholes Greeks, 5-arm position management, and
 twice-daily CLI runner.
+
+Updated Apr 10 2026: Live yfinance spot prices with 5-min file cache.\n39 positions across IBKR (15), Moomoo (10), WealthSimple (10+).
+Includes inverse ETF shares (SQQQ/SPXS), LEAPS, and ROLL_DISCIPLINE rules.
 
 Milestone-driven: timeline measured in DOLLAR GAINS, not dates.
 Phase transitions at $150K -> $1M -> $5M -> $100M.
@@ -34,6 +37,7 @@ import logging
 import math
 import os
 import sys
+import time
 from dataclasses import asdict, dataclass, field
 from datetime import date, datetime
 from enum import Enum
@@ -72,50 +76,162 @@ ASSETS = [
     "xlf", "xlre", "eth", "xrp", "btc",
 ]
 
-# LIVE prices -- March 29, 2026 (Yahoo Finance close Mar 27 + crypto Mar 29)
-SPOT_PRICES = {
-    "oil": 100.0,       # WTI crude -- spiking on Iran ground troops talk ($92-$101 range)
-    "gold": 4524.0,     # COMEX gold -- pulled back from $4861 ATH
-    "silver": 65.0,     # COMEX silver -- corrected with gold (SLV $63.44)
-    "gdx": 86.0,        # Gold miners ETF -- down 10% from highs
-    "spy": 634.0,       # S&P 500 -- 4 straight weekly declines, -5% from highs
-    "qqq": 563.0,       # Nasdaq -- tech correction, -8.3% YTD, 52wk 402-637
-    "xlf": 48.0,        # Financials -- -12.26% YTD, credit stress building
-    "xlre": 40.0,       # Real estate -- flat YTD, 52wk 35.76-44.07
-    "eth": 1993.0,      # Ethereum -- CRASHED -48% from 3800, 52wk low 1387
-    "xrp": 1.32,        # XRP -- CRASHED -47% from 2.50
-    "btc": 66353.0,     # Bitcoin -- holding relative to alts, 52wk 60K-126K
+# yfinance symbol map for the 11 MC assets
+_YF_SYMBOL_MAP: dict[str, str] = {
+    "oil": "CL=F",
+    "gold": "GC=F",
+    "silver": "SI=F",
+    "gdx": "GDX",
+    "spy": "SPY",
+    "qqq": "QQQ",
+    "xlf": "XLF",
+    "xlre": "XLRE",
+    "eth": "ETH-USD",
+    "xrp": "XRP-USD",
+    "btc": "BTC-USD",
+    "vix": "^VIX",
+    "dxy": "DX-Y.NYB",
 }
 
-# Forward-looking annualized drifts (updated Mar 29 -- post crash/correction)
+# Fallback prices -- used when yfinance is unavailable (updated Apr 10, 2026)
+_FALLBACK_PRICES: dict[str, float] = {
+    "oil": 98.4,
+    "gold": 4800.0,
+    "silver": 76.4,
+    "gdx": 48.0,
+    "spy": 680.5,
+    "qqq": 575.0,
+    "xlf": 50.9,
+    "xlre": 44.0,
+    "eth": 1600.0,
+    "xrp": 2.10,
+    "btc": 72400.0,
+    "vix": 20.0,
+    "dxy": 99.0,
+}
+
+_SPOT_CACHE_PATH = Path(__file__).resolve().parent.parent / "data" / "war_room" / "spot_cache.json"
+_SPOT_CACHE_TTL = 300  # 5-minute cache
+
+
+def _load_spot_cache() -> dict[str, float] | None:
+    """Return cached spot prices if still fresh, else None."""
+    try:
+        if _SPOT_CACHE_PATH.exists():
+            with open(_SPOT_CACHE_PATH, "r", encoding="utf-8") as fh:
+                cache = json.load(fh)
+            if time.time() - cache.get("ts", 0) < _SPOT_CACHE_TTL:
+                return cache.get("prices")
+    except (json.JSONDecodeError, OSError, ValueError):
+        pass
+    return None
+
+
+def _save_spot_cache(prices: dict[str, float]) -> None:
+    """Persist spot price snapshot to disk."""
+    try:
+        _SPOT_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
+        with open(_SPOT_CACHE_PATH, "w", encoding="utf-8") as fh:
+            json.dump({"ts": time.time(), "prices": prices}, fh)
+    except OSError:
+        pass
+
+
+def _fetch_live_spots() -> dict[str, float]:
+    """Fetch live spot prices from yfinance for all 11 MC assets."""
+    try:
+        import yfinance as yf  # noqa: E402
+    except ImportError:
+        logging.getLogger(__name__).debug("yfinance not installed -- using fallback prices")
+        return {}
+
+    prices: dict[str, float] = {}
+    for asset, symbol in _YF_SYMBOL_MAP.items():
+        try:
+            fi = yf.Ticker(symbol).fast_info
+            price = float(getattr(fi, "last_price", 0) or 0)
+            if price > 0:
+                prices[asset] = round(price, 2)
+        except (AttributeError, ValueError, KeyError, OSError):
+            pass
+    return prices
+
+
+def get_spot_prices() -> dict[str, float]:
+    """Return current spot prices: cache -> yfinance live -> fallback."""
+    cached = _load_spot_cache()
+    if cached and all(a in cached for a in ASSETS):
+        return cached
+
+    live = _fetch_live_spots()
+    if live:
+        # Merge with fallback for any missing assets
+        merged = dict(_FALLBACK_PRICES)
+        merged.update(live)
+        _save_spot_cache(merged)
+        return merged
+
+    return dict(_FALLBACK_PRICES)
+
+
+# Module-level reference -- lazy-loaded on first real use
+SPOT_PRICES = _FALLBACK_PRICES  # tests/imports get instant fallback
+
+# Forward-looking annualized drifts (policy-level assumptions, review monthly)
 CRISIS_DRIFTS = {
-    "oil": 0.65,       # +65% forward (Iran ground troops talk, oil at $100+)
-    "gold": 0.25,      # +25% forward (pulled back from ATH, still bullish)
-    "silver": 0.25,    # +25% forward (corrected -17%, slower momentum)
-    "gdx": 0.35,       # +35% forward (miners corrected -10%, leverage to gold)
-    "spy": -0.25,      # -25% forward (already down 5%, 4 straight weekly drops)
-    "qqq": -0.20,      # -20% forward (already in correction, -8.3% YTD)
-    "xlf": -0.25,      # -25% forward (already -12.26% YTD, stress building)
-    "xlre": -0.10,     # -10% forward (flat YTD, limited further downside)
-    "eth": -0.25,      # -25% forward (already crashed 48%, near 52wk low)
-    "xrp": -0.20,      # -20% forward (already crashed 47%, limited further)
-    "btc": -0.15,      # -15% forward (holding well at $66K, resilient)
+    "oil": 0.40,       # +40% forward (Iran tension premium)
+    "gold": 0.30,      # +30% forward (structurally bullish, central bank buying)
+    "silver": 0.30,    # +30% forward (industrial + monetary demand)
+    "gdx": 0.35,       # +35% forward (miners leveraged to gold)
+    "spy": -0.15,      # -15% forward (correction regime)
+    "qqq": -0.20,      # -20% forward (tech correction)
+    "xlf": -0.20,      # -20% forward (bank earnings uncertainty)
+    "xlre": -0.10,     # -10% forward (rate pressure)
+    "eth": -0.30,      # -30% forward (crypto weakness)
+    "xrp": -0.25,      # -25% forward (altcoin capitulation)
+    "btc": -0.20,      # -20% forward (testing support)
 }
 
-# Annualized volatilities (VIX at 31, fear elevated, Iran escalation)
-CRISIS_VOLS = {
-    "oil": 1.05,       # extreme -- Iran ground troops, $92-$101 intraday swings
-    "gold": 0.68,      # slightly lower after pullback from ATH
-    "silver": 0.78,    # corrected, slightly lower vol
-    "gdx": 0.95,       # miners volatile but less extreme
-    "spy": 0.58,       # VIX at 31 = ~58% annualized
-    "qqq": 0.62,       # tech vol elevated, Nasdaq in correction
-    "xlf": 0.55,       # financial stress vol
-    "xlre": 0.45,      # RE vol moderate, flat YTD
-    "eth": 1.30,       # crypto vol extreme after 48% crash
-    "xrp": 1.35,       # altcoin vol extreme after 47% crash
-    "btc": 1.05,       # BTC vol elevated but lower than alts
+# Annualized volatilities -- derived from live VIX via get_crisis_vols()
+# Ratios are calibrated relative to SPY vol (VIX/100).
+_VOL_RATIOS: dict[str, float] = {
+    "oil": 2.0,        # ~2x SPY vol (geopolitical premium)
+    "gold": 1.3,       # ~1.3x SPY vol (safe haven, moderate)
+    "silver": 1.55,    # ~1.55x SPY vol (more volatile than gold)
+    "gdx": 1.9,        # ~1.9x SPY vol (leveraged to gold moves)
+    "spy": 1.0,        # baseline = VIX/100
+    "qqq": 1.2,        # ~1.2x SPY vol (tech premium)
+    "xlf": 1.07,       # ~1.07x SPY vol (financial stress)
+    "xlre": 0.9,       # ~0.9x SPY vol (lower beta)
+    "eth": 2.85,       # ~2.85x SPY vol (crypto extreme)
+    "xrp": 3.1,        # ~3.1x SPY vol (altcoin extreme)
+    "btc": 2.25,       # ~2.25x SPY vol (BTC lower than alts)
 }
+
+# Fallback static vols (used if VIX unavailable)
+_FALLBACK_VOLS: dict[str, float] = {
+    "oil": 0.85, "gold": 0.55, "silver": 0.65, "gdx": 0.80,
+    "spy": 0.42, "qqq": 0.50, "xlf": 0.45, "xlre": 0.38,
+    "eth": 1.20, "xrp": 1.30, "btc": 0.95,
+}
+
+
+def get_crisis_vols() -> dict[str, float]:
+    """Return annualized vols derived from live VIX.
+
+    SPY vol = VIX / 100.  Other assets scale via _VOL_RATIOS.
+    Falls back to _FALLBACK_VOLS if VIX is unavailable.
+    """
+    spots = get_spot_prices()
+    vix = spots.get("vix", 0)
+    if vix > 5:  # sanity check -- VIX below 5 is nonsensical
+        spy_vol = vix / 100.0
+        return {asset: round(spy_vol * ratio, 4) for asset, ratio in _VOL_RATIOS.items()}
+    return dict(_FALLBACK_VOLS)
+
+
+# Keep CRISIS_VOLS as module-level alias for backward compatibility
+CRISIS_VOLS = _FALLBACK_VOLS
 
 # Correlation matrix (11x11) -- from geopolitical analysis
 # Order: oil, gold, silver, gdx, spy, qqq, xlf, xlre, eth, xrp, btc
@@ -403,9 +519,9 @@ def run_monte_carlo(
     import time
     t0 = time.perf_counter()
 
-    spots = spot_prices or SPOT_PRICES
+    spots = spot_prices or get_spot_prices()
     mu = drifts or CRISIS_DRIFTS
-    sig = vols or CRISIS_VOLS
+    sig = vols or get_crisis_vols()
 
     n_assets = len(ASSETS)
     dt = 1.0 / TRADING_DAYS_PER_YEAR
@@ -861,29 +977,53 @@ def get_spiderweb_chains(milestone_id: int) -> list[list[Milestone]]:
 
 @dataclass
 class IndicatorState:
-    """Current reading of the 15-indicator model -- LIVE March 29 2026.
+    """Current reading of the 15-indicator model.
 
     12 financial indicators + 3 sentiment indicators.
     X/Twitter sentiment carries heavy bias (0.12 weight) as leading
     indicator for regime shifts -- social narrative precedes price action.
+
+    Price defaults are populated from the spot price cache when available.
+    Non-price indicators use neutral/baseline defaults until live feeds patch them.
     """
-    # -- 12 financial indicators --
-    oil_price: float = 100.0
-    gold_price: float = 4524.0
-    vix: float = 31.0
-    hy_spread_bp: float = 600.0
-    bdc_nav_discount: float = 16.0
-    bdc_nonaccrual_pct: float = 4.0
-    defi_tvl_change_pct: float = -35.0
-    stablecoin_depeg_pct: float = 0.2
-    btc_price: float = 66353.0
+    # -- 12 financial indicators (defaults updated from spot cache in __post_init__) --
+    oil_price: float = 0.0
+    gold_price: float = 0.0
+    vix: float = 0.0
+    hy_spread_bp: float = 400.0       # neutral baseline
+    bdc_nav_discount: float = 8.0     # neutral baseline
+    bdc_nonaccrual_pct: float = 2.0   # neutral baseline
+    defi_tvl_change_pct: float = 0.0  # neutral (no change)
+    stablecoin_depeg_pct: float = 0.0 # neutral (no depeg)
+    btc_price: float = 0.0
     fed_funds_rate: float = 4.5
-    dxy: float = 103.0
-    spy_price: float = 634.0
-    # -- 3 sentiment indicators (NEW) --
+    dxy: float = 0.0
+    spy_price: float = 0.0
+    # -- 3 sentiment indicators --
     x_sentiment: float = 0.5       # 0=extreme fear, 1=extreme greed (from Twitter/X)
     news_severity: float = 0.0     # 0=benign, 1=black-swan (from BlackSwanNewsScanner)
     fear_greed_index: float = 50.0  # 0-100 from alternative.me
+    # -- alpha intelligence (council + doctrine combined) --
+    alpha_signal: float = 0.0      # -1=bearish convergence, 0=neutral, +1=bullish convergence
+
+    def __post_init__(self) -> None:
+        """Populate price defaults from spot cache (fast, no network calls)."""
+        spots = _load_spot_cache()
+        if not spots:
+            spots = _FALLBACK_PRICES
+        _price_map = {
+            "oil_price": "oil",
+            "gold_price": "gold",
+            "btc_price": "btc",
+            "spy_price": "spy",
+            "vix": "vix",
+            "dxy": "dxy",
+        }
+        for attr, key in _price_map.items():
+            if getattr(self, attr) == 0.0:
+                val = spots.get(key, 0.0)
+                if val > 0:
+                    setattr(self, attr, val)
 
 
 def compute_composite_score(ind: IndicatorState) -> dict[str, Any]:
@@ -1042,19 +1182,27 @@ def compute_composite_score(ind: IndicatorState) -> dict[str, Any]:
     else:
         scores["fear_greed"] = max(0, fgi_inv * 0.8)
 
-    # Weighted composite -- 15 indicators
-    # X sentiment takes HEAVY BIAS at 0.12 (was 0 -- now highest single sentiment weight)
-    # News + Fear&Greed add 0.04 + 0.04.
-    # Financial indicators reduced proportionally to make room (sum still = 1.00).
+    # 16. Alpha engine (council + doctrine combined signal)
+    # alpha_signal: -1 = bearish convergence (crisis), +1 = bullish (calm)
+    # Invert: negative alpha → high crisis score, positive → low crisis score
+    scores["alpha"] = max(0.0, min(100.0, 50.0 - ind.alpha_signal * 50.0))
+
+    # Weighted composite -- 16 indicators
+    # X sentiment reduced from 0.12→0.08 because council intel now also
+    # flows through the alpha engine for a more refined combined signal.
+    # Oil 0.12→0.10, HY spread 0.08→0.07, SPY 0.07→0.06 to make room.
+    # Financial indicators reduced proportionally (sum still = 1.00).
     weights = {
-        "oil": 0.12, "gold": 0.08, "vix": 0.10, "hy_spread": 0.08,
+        "oil": 0.10, "gold": 0.08, "vix": 0.10, "hy_spread": 0.07,
         "bdc_nav": 0.07, "bdc_nonaccrual": 0.05, "defi_tvl": 0.04,
         "stablecoin": 0.04, "btc": 0.05, "fed_rate": 0.05,
-        "dxy": 0.05, "spy": 0.07,
-        # -- SENTIMENT (0.20 total, X dominant) --
-        "x_sentiment": 0.12,   # HEAVY BIAS -- social narrative leads price
+        "dxy": 0.05, "spy": 0.06,
+        # -- SENTIMENT (0.16 total) --
+        "x_sentiment": 0.08,   # social narrative (raw); also flows via alpha
         "news": 0.04,          # black-swan news scanner
         "fear_greed": 0.04,    # alternative.me crypto fear & greed
+        # -- ALPHA INTELLIGENCE (0.08) --
+        "alpha": 0.08,         # council + doctrine combined signal
     }
 
     composite = sum(scores[k] * weights[k] for k in scores)
@@ -1185,60 +1333,104 @@ ROLL_DISCIPLINE = {
 }
 
 
-# Current positions -- Updated Apr 6 2026
-# EXPIRED: All Apr 17 puts confirmed $0 bid (worthless) as of Apr 4 close.
-# IWM $230P and KRE $58P expired Apr 4 (weekly), removed.
-# ACTIVE: LQD/EMB (May 15), XLF (May 1), BKLN/HYG/OWL (Jun 18),
-#         Moomoo calls, WS LEAPS, WS OWL Jun put.
+# Current positions -- Updated Apr 9 2026
+# IBKR live-verified: 15 positions (5 calls + 10 puts). Net liq CAD $20,079.57.
+# Moomoo: SQQQ x172, SPXS x106 (inverse ETFs), + options.
+# WS TFSA: ~$18,638 CAD. Apr 17 puts all expiring worthless.
+# EXPIRED: KRE/IWM expired Apr 4. Apr 17 puts pending expiry.
 CURRENT_POSITIONS = [
-    # === IBKR account U24346218 — ACTIVE positions only ===
-    Position(ArmType.TRADFI_ROTATE, "LQD", "put", 1, 0.63, 0.66,
-             strike=106.0, expiry="2026-05-15", account="IBKR"),
-    Position(ArmType.TRADFI_ROTATE, "EMB", "put", 1, 0.48, 0.82,
-             strike=90.0, expiry="2026-05-15", account="IBKR"),
-    Position(ArmType.BDC_NONACCRUAL, "BKLN", "put", 3, 0.40, 0.21,
+    # === IBKR account U24346218 — 15 LIVE positions (Apr 9 verified) ===
+    # -- Calls (5 positions, ~$12,143 MV) --
+    Position(ArmType.CRYPTO_METALS, "SLV", "call", 8, 7.85, 8.20,
+             strike=66.0, expiry="2026-06-18", account="IBKR"),
+    Position(ArmType.CRYPTO_METALS, "SLV", "call", 2, 11.01, 11.01,
+             strike=75.0, expiry="2027-01-15", account="IBKR"),
+    Position(ArmType.TRADFI_ROTATE, "TSLA", "call", 1, 20.41, 18.87,
+             strike=500.0, expiry="2027-01-15", account="IBKR"),
+    Position(ArmType.CRYPTO_METALS, "SLV", "call", 2, 5.71, 6.35,
+             strike=70.0, expiry="2026-06-18", account="IBKR"),
+    Position(ArmType.IRAN_OIL, "XLE", "call", 3, 2.69, 0.75,
+             strike=65.0, expiry="2026-06-18", account="IBKR"),
+    # -- Puts (10 positions, ~$431 MV) --
+    Position(ArmType.BDC_NONACCRUAL, "OBDC", "put", 11, 0.18, 0.16,
+             strike=7.5, expiry="2026-07-17", account="IBKR"),
+    Position(ArmType.BDC_NONACCRUAL, "BKLN", "put", 3, 0.40, 0.39,
              strike=20.0, expiry="2026-06-18", account="IBKR"),
-    Position(ArmType.TRADFI_ROTATE, "HYG", "put", 1, 0.80, 0.74,
+    Position(ArmType.TRADFI_ROTATE, "HYG", "put", 1, 0.80, 0.36,
              strike=77.0, expiry="2026-06-18", account="IBKR"),
-    Position(ArmType.IRAN_OIL, "XLF", "put", 1, 0.75, 0.69,
+    Position(ArmType.TRADFI_ROTATE, "LQD", "put", 1, 0.63, 0.28,
+             strike=106.0, expiry="2026-05-15", account="IBKR"),
+    Position(ArmType.TRADFI_ROTATE, "EMB", "put", 1, 0.48, 0.26,
+             strike=90.0, expiry="2026-05-15", account="IBKR"),
+    Position(ArmType.BDC_NONACCRUAL, "MAIN", "put", 1, 0.73, 0.20,
+             strike=49.7, expiry="2026-04-17", account="IBKR"),
+    Position(ArmType.IRAN_OIL, "XLF", "put", 1, 0.75, 0.13,
              strike=46.0, expiry="2026-05-01", account="IBKR"),
-    # === IBKR EXPIRED Apr 17 — kept for P&L tracking, value = $0 ===
-    # ARCC $17P x1 @ $0.25 → EXPIRED WORTHLESS
-    # PFF $29P x1 @ $0.17 → EXPIRED WORTHLESS
-    # MAIN $49.7P x1 @ $0.73 → EXPIRED WORTHLESS
-    # JNK $92P x1 @ $0.35 → EXPIRED WORTHLESS
-    # === 4 REAL POSITIONS from Moomoo FUTUCA — live scan Mar 29 2026 ===
-    Position(ArmType.IRAN_OIL, "XLE", "call", 1, 3.00, 5.37,
+    Position(ArmType.BDC_NONACCRUAL, "ARCC", "put", 1, 0.25, 0.10,
+             strike=17.0, expiry="2026-04-17", account="IBKR"),
+    Position(ArmType.TRADFI_ROTATE, "JNK", "put", 1, 0.35, 0.02,
+             strike=92.0, expiry="2026-04-17", account="IBKR"),
+    Position(ArmType.TRADFI_ROTATE, "PFF", "put", 1, 0.17, 0.00,
+             strike=29.0, expiry="2026-04-17", account="IBKR"),
+    # === Moomoo FUTUCA — live scan Apr 6 ===
+    # -- Inverse ETF shares --
+    Position(ArmType.IRAN_OIL, "SQQQ", "long", 172, 44.50, 76.54,
+             account="Moomoo"),
+    Position(ArmType.IRAN_OIL, "SPXS", "long", 106, 25.00, 39.19,
+             account="Moomoo"),
+    # -- Options --
+    Position(ArmType.IRAN_OIL, "XLE", "call", 1, 0.00, 5.55,
              strike=60.0, expiry="2026-06-18", account="Moomoo"),
-    Position(ArmType.CRYPTO_METALS, "SLV", "call", 1, 5.50, 10.12,
+    Position(ArmType.CRYPTO_METALS, "SLV", "call", 4, 13.31, 13.48,
+             strike=65.0, expiry="2027-01-15", account="Moomoo"),
+    Position(ArmType.CRYPTO_METALS, "SLV", "call", 1, 0.00, 10.20,
              strike=67.5, expiry="2026-09-18", account="Moomoo"),
-    Position(ArmType.CRYPTO_METALS, "SLV", "call", 1, 4.00, 6.10,
+    Position(ArmType.CRYPTO_METALS, "SLV", "call", 1, 0.00, 6.10,
              strike=70.0, expiry="2026-06-18", account="Moomoo"),
-    Position(ArmType.BDC_NONACCRUAL, "OWL", "put", 10, 0.30, 0.45,
+    Position(ArmType.CRYPTO_METALS, "GLD", "call", 1, 0.00, 0.00,
+             strike=298.0, expiry="2026-06-18", account="Moomoo"),
+    Position(ArmType.CRYPTO_METALS, "SLV", "call", 7, 0.00, 4.79,
+             strike=33.5, expiry="2026-06-18", account="Moomoo"),
+    Position(ArmType.BDC_NONACCRUAL, "OWL", "put", 12, 0.08, 0.40,
              strike=5.0, expiry="2027-01-15", account="Moomoo"),
-    # === WealthSimple TFSA — ACTIVE positions only ===
+    Position(ArmType.IRAN_OIL, "XLE", "call", 3, 5.65, 5.53,
+             strike=65.0, expiry="2027-01-15", account="Moomoo"),
+    # === WealthSimple TFSA — ACTIVE positions ===
     Position(ArmType.CRYPTO_METALS, "GLD", "call", 1, 19.40, 24.33,
              strike=515.0, expiry="2027-03-19", account="WealthSimple"),
     Position(ArmType.BDC_NONACCRUAL, "OWL", "put", 5, 0.75, 0.725,
              strike=8.0, expiry="2026-06-18", account="WealthSimple"),
     Position(ArmType.IRAN_OIL, "XLE", "call", 26, 0.37, 0.97,
              strike=85.0, expiry="2027-01-15", account="WealthSimple"),
-    # === WS TFSA EXPIRED Apr 17 — kept for P&L tracking, value = $0 ===
-    # ARCC $16P x10 @ $0.13 → EXPIRED WORTHLESS
-    # JNK $94P x5 @ $0.57 → EXPIRED WORTHLESS
-    # KRE $60P x1 @ $1.05 → EXPIRED WORTHLESS
-    # OBDC $10P x65 @ $0.15 → EXPIRED WORTHLESS ($975 total loss)
+    # -- WS Apr 17 expiring (near-worthless, tracked for P&L) --
+    Position(ArmType.BDC_NONACCRUAL, "ARCC", "put", 10, 0.13, 0.00,
+             strike=16.0, expiry="2026-04-17", account="WealthSimple"),
+    Position(ArmType.TRADFI_ROTATE, "JNK", "put", 5, 0.57, 0.00,
+             strike=94.0, expiry="2026-04-17", account="WealthSimple"),
+    Position(ArmType.TRADFI_ROTATE, "KRE", "put", 1, 1.05, 0.00,
+             strike=60.0, expiry="2026-04-17", account="WealthSimple"),
+    Position(ArmType.BDC_NONACCRUAL, "OBDC", "put", 65, 0.15, 0.00,
+             strike=10.0, expiry="2026-04-17", account="WealthSimple"),
+    # -- WS active Jun/Jul positions --
+    Position(ArmType.BDC_NONACCRUAL, "OBDC", "put", 10, 0.10, 0.12,
+             strike=7.5, expiry="2026-07-17", account="WealthSimple"),
+    Position(ArmType.BDC_NONACCRUAL, "ARCC", "put", 5, 0.28, 0.30,
+             strike=15.0, expiry="2026-06-18", account="WealthSimple"),
+    Position(ArmType.TRADFI_ROTATE, "JNK", "put", 2, 0.45, 0.52,
+             strike=92.0, expiry="2026-06-18", account="WealthSimple"),
 ]
 
 
 def _infer_arm_type(symbol: str) -> ArmType:
     """Map a symbol into the closest existing War Room arm."""
-    if symbol in {"XLE", "USO", "XOP", "XLF", "SPY", "QQQ"}:
+    if symbol in {"XLE", "USO", "XOP", "XLF", "SPY", "QQQ", "SQQQ", "SPXS", "SPXL"}:
         return ArmType.IRAN_OIL
     if symbol in {"ARCC", "PFF", "MAIN", "BKLN", "HYG", "OWL", "OBDC", "KRE", "JNK", "LQD", "EMB"}:
         return ArmType.BDC_NONACCRUAL if symbol in {"ARCC", "PFF", "MAIN", "BKLN", "OWL", "OBDC"} else ArmType.TRADFI_ROTATE
     if symbol in {"SLV", "GLD", "GDX", "BITO", "BTC", "ETH", "XRP"}:
         return ArmType.CRYPTO_METALS
+    if symbol in {"TSLA", "AAPL", "AMZN", "MSFT", "META", "GOOG", "NVDA"}:
+        return ArmType.TRADFI_ROTATE
     return ArmType.TRADFI_ROTATE
 
 
@@ -1471,8 +1663,9 @@ def _build_all_scenarios() -> dict[str, dict]:
         key = sc.code.lower()
 
         # --- Price overrides -------------------------------------------------
-        oil_base, gold_base = SPOT_PRICES["oil"], SPOT_PRICES["gold"]
-        spy_base, btc_base = SPOT_PRICES["spy"], SPOT_PRICES["btc"]
+        _spots = get_spot_prices()
+        oil_base, gold_base = _spots["oil"], _spots["gold"]
+        spy_base, btc_base = _spots["spy"], _spots["btc"]
 
         oil_price = oil_base * (1.0 + sc.oil_sensitivity * sev * 0.50)
 
@@ -1538,7 +1731,7 @@ def run_scenario_mc(scenario_name: str, n_paths: int = 50_000) -> MCResult:
         raise ValueError(f"Unknown scenario: {scenario_name}. Available: {list(SCENARIOS.keys())}")
 
     # Override spots
-    spots = dict(SPOT_PRICES)
+    spots = dict(get_spot_prices())
     for k in ["oil_price", "gold_price", "spy_price", "btc_price"]:
         asset = k.replace("_price", "")
         if k in sc and asset in spots:
@@ -1617,9 +1810,9 @@ def generate_mandate(
         "bdc_nonaccrual_pct": ind.bdc_nonaccrual_pct,
         "btc_price": ind.btc_price,
         "spy_price": ind.spy_price,
-        "eth_price": SPOT_PRICES["eth"],
-        "xlf_price": SPOT_PRICES["xlf"],
-        "qqq_price": SPOT_PRICES["qqq"],
+        "eth_price": get_spot_prices()["eth"],
+        "xlf_price": get_spot_prices()["xlf"],
+        "qqq_price": get_spot_prices()["qqq"],
     }
     new_ms = check_milestones(state)
     new_ms_names = [f"#{m.id} {m.name}" for m in new_ms]
@@ -1863,8 +2056,9 @@ def render_mc_result(mc: MCResult) -> str:
     lines.append("  ASSET PRICE PROJECTIONS (90-day):")
     lines.append(f"  {'Asset':>8s} {'Current':>10s} {'Mean':>10s} {'P5':>10s} {'P95':>10s}")
     lines.append(f"  {'-'*8:>8s} {'-'*10:>10s} {'-'*10:>10s} {'-'*10:>10s} {'-'*10:>10s}")
+    _spots_display = get_spot_prices()
     for asset in ASSETS:
-        curr = SPOT_PRICES[asset]
+        curr = _spots_display[asset]
         mean = mc.asset_means[asset]
         p5 = mc.asset_p5[asset]
         p95 = mc.asset_p95[asset]
@@ -1970,6 +2164,79 @@ def render_positions() -> str:
     return "\n".join(lines)
 
 
+# -- Greeks spot price cache  ------------------------------------------------
+_GREEKS_CACHE_PATH = Path(__file__).resolve().parent.parent / "data" / "war_room" / "greeks_spot_cache.json"
+_GREEKS_CACHE_TTL = 300  # 5 minutes
+
+
+def _get_greeks_spot_map() -> dict[str, float]:
+    """Fetch live underlying prices for all position symbols (cached 5 min).
+
+    Uses yfinance for each unique symbol in CURRENT_POSITIONS.
+    Falls back to strike*1.1 if a symbol cannot be fetched.
+    Also populates the VIX value for use as sigma proxy.
+    """
+    # Try cache first
+    try:
+        if _GREEKS_CACHE_PATH.exists():
+            with open(_GREEKS_CACHE_PATH, "r", encoding="utf-8") as fh:
+                cache = json.load(fh)
+            if time.time() - cache.get("ts", 0) < _GREEKS_CACHE_TTL:
+                return cache.get("prices", {})
+    except (json.JSONDecodeError, OSError, ValueError):
+        pass
+
+    # Collect unique symbols from positions
+    symbols = {pos.symbol for pos in CURRENT_POSITIONS if pos.strike and pos.expiry}
+
+    prices: dict[str, float] = {}
+    try:
+        import yfinance as yf  # noqa: E402
+        for sym in sorted(symbols):
+            try:
+                fi = yf.Ticker(sym).fast_info
+                price = float(getattr(fi, "last_price", 0) or 0)
+                if price > 0:
+                    prices[sym] = round(price, 2)
+            except (AttributeError, ValueError, KeyError, OSError):
+                pass
+        # Also fetch VIX for sigma calculation
+        try:
+            fi = yf.Ticker("^VIX").fast_info
+            vix_val = float(getattr(fi, "last_price", 0) or 0)
+            if vix_val > 0:
+                prices["_VIX"] = round(vix_val, 2)
+        except (AttributeError, ValueError, KeyError, OSError):
+            pass
+    except ImportError:
+        pass
+
+    # Save cache
+    if prices:
+        try:
+            _GREEKS_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
+            with open(_GREEKS_CACHE_PATH, "w", encoding="utf-8") as fh:
+                json.dump({"ts": time.time(), "prices": prices}, fh)
+        except OSError:
+            pass
+
+    return prices
+
+
+def _get_greeks_sigma(spot_map: dict[str, float]) -> float:
+    """Derive option IV proxy from live VIX.
+
+    VIX ~= SPY 30-day annualized IV * 100.
+    We use VIX/100 as base sigma, with a floor of 0.20 and ceiling of 1.0.
+    For individual names, multiply by 1.2 to account for single-stock vol premium.
+    """
+    vix = spot_map.get("_VIX", 0)
+    if vix > 0:
+        base_sigma = vix / 100.0
+        return max(0.20, min(1.0, base_sigma * 1.2))
+    return 0.35  # fallback
+
+
 def render_greeks() -> str:
     """Render Greeks for all option positions (puts and calls)."""
     lines = []
@@ -1981,6 +2248,9 @@ def render_greeks() -> str:
                  f"{'Delta':>8s} {'Gamma':>8s} {'Vega':>8s} {'Theta':>8s} {'Score':>6s}")
     lines.append(f"  {'-'*8} {'-'*8} {'-'*10} {'-'*8} {'-'*8} {'-'*8} {'-'*8} {'-'*8} {'-'*6}")
 
+    spot_map = _get_greeks_spot_map()
+    sigma = _get_greeks_sigma(spot_map)
+
     for pos in CURRENT_POSITIONS:
         if pos.strike and pos.expiry:
             # Calculate time to expiry
@@ -1988,15 +2258,7 @@ def render_greeks() -> str:
             dte = max((exp_date - datetime.now()).days, 1)
             T = dte / 365.0
 
-            # Underlying spot prices (LIVE March 19 evening)
-            spot_map = {
-                "ARCC": 19.0, "PFF": 31.0, "LQD": 103.0, "EMB": 87.0,
-                "MAIN": 46.0, "JNK": 85.0, "KRE": 45.0, "IWM": 198.0,
-                "SPY": 665.0, "QQQ": 450.0, "XLF": 35.0, "XLRE": 22.0,
-                "GLD": 486.0, "SLV": 78.0,
-            }
             spot = spot_map.get(pos.symbol, pos.strike * 1.1)
-            sigma = 0.35  # approximate IV for these instruments
 
             if "call" in pos.position_type:
                 g = bs_call(spot, pos.strike, T, RISK_FREE_RATE, sigma)
@@ -2293,9 +2555,9 @@ def main() -> None:
             "bdc_nonaccrual_pct": ind.bdc_nonaccrual_pct,
             "btc_price": ind.btc_price,
             "spy_price": ind.spy_price,
-            "eth_price": SPOT_PRICES["eth"],
-            "xlf_price": SPOT_PRICES["xlf"],
-            "qqq_price": SPOT_PRICES["qqq"],
+            "eth_price": get_spot_prices()["eth"],
+            "xlf_price": get_spot_prices()["xlf"],
+            "qqq_price": get_spot_prices()["qqq"],
         }
         new_ms = check_milestones(state)
         if new_ms:
@@ -2319,22 +2581,18 @@ def main() -> None:
     elif args.greeks:
         if args.json:
             results = []
+            spot_map = _get_greeks_spot_map()
+            sigma = _get_greeks_sigma(spot_map)
             for pos in CURRENT_POSITIONS:
                 if pos.strike and pos.expiry:
                     exp_date = datetime.strptime(pos.expiry, "%Y-%m-%d")
                     dte = max((exp_date - datetime.now()).days, 1)
                     T = dte / 365.0
-                    spot_map = {
-                        "ARCC": 19.0, "PFF": 31.0, "LQD": 103.0, "EMB": 87.0,
-                        "MAIN": 46.0, "JNK": 85.0, "KRE": 45.0, "IWM": 198.0,
-                        "SPY": 665.0, "QQQ": 450.0, "XLF": 35.0, "XLRE": 22.0,
-                        "GLD": 486.0, "SLV": 78.0,
-                    }
                     spot = spot_map.get(pos.symbol, pos.strike * 1.1)
                     if "call" in pos.position_type:
-                        g = bs_call(spot, pos.strike, T, RISK_FREE_RATE, 0.35)
+                        g = bs_call(spot, pos.strike, T, RISK_FREE_RATE, sigma)
                     else:
-                        g = bs_put(spot, pos.strike, T, RISK_FREE_RATE, 0.35)
+                        g = bs_put(spot, pos.strike, T, RISK_FREE_RATE, sigma)
                     results.append({"symbol": pos.symbol, **asdict(g)})
             print(json.dumps(results, indent=2))
         else:

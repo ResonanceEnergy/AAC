@@ -25,7 +25,10 @@ import psutil
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from models.ml_model_training_pipeline import get_ml_training_pipeline
+try:
+    from models.ml_model_training_pipeline import get_ml_training_pipeline
+except ImportError:
+    get_ml_training_pipeline = None  # archived — models/ moved to _archive/
 from shared.ai_strategy_generator import initialize_ai_strategy_generation
 from shared.audit_logger import get_audit_logger
 from shared.compliance_review import compliance_review_system, initialize_compliance_review

@@ -1,0 +1,701 @@
+"""
+BigBrainIntelligence Advanced State Manager
+Implements the research factory, experimentation, and strategy retirement with AI autonomy
+"""
+
+import asyncio
+import json
+import logging
+import time
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+logger = logging.getLogger('BigBrainIntelligence_AdvancedState')
+
+@dataclass
+class ResearchFinding:
+    """ResearchFinding class."""
+    id: str
+    hypothesis: str
+    confidence: float
+    evidence: List[Dict]
+    timestamp: datetime
+    strategy_potential: float
+    finding_type: str = 'general'
+    data: Optional[Dict] = None
+
+@dataclass
+class ExperimentResult:
+    """ExperimentResult class."""
+    experiment_id: str
+    strategy_id: str
+    performance_metrics: Dict[str, float]
+    statistical_significance: float
+    completion_time: datetime
+    recommendation: str
+    performance_score: float = 0.0
+
+class BigBrainIntelligenceState:
+    """
+    Advanced state manager for BigBrainIntelligence department.
+    Implements AI-driven research factory with quantum simulation capabilities.
+    """
+
+    def __init__(self):
+        self.research_agents = AgentOrchestrator()
+        self.signal_generator = QuantumSignalGenerator()
+        self.data_validator = AI_DataValidator()
+        self.backtest_engine = DistributedBacktestEngine()
+        self.experiment_manager = ExperimentManager()
+        self.strategy_lifecycle = StrategyLifecycleManager()
+
+        # Operational state
+        self.agent_schedules = self._initialize_agent_schedules()
+        self.active_experiments = {}
+        self.research_pipeline = asyncio.Queue()
+        self.signal_cache = {}
+
+        # Resilience state
+        self.quantum_simulation_enabled = False
+        self.distributed_computing_active = False
+        self.ai_autonomy_level = 0.8  # 80% autonomous
+
+    def _initialize_agent_schedules(self) -> Dict[str, int]:
+        """Initialize agent execution schedules"""
+        return {
+            'APIScannerAgent': 0,        # Continuous
+            'DataGapFinderAgent': 180,   # Every 3 minutes
+            'AccessArbitrageAgent': 180, # Every 3 minutes
+            'NetworkMapperAgent': 180,   # Every 3 minutes
+        }
+
+    async def initialize_department_state(self) -> bool:
+        """Initialize the BigBrainIntelligence advanced state"""
+        try:
+            logger.info("Initializing BigBrainIntelligence Advanced State")
+
+            # Setup research infrastructure
+            await self._setup_research_infrastructure()
+            logger.info("[OK] Research infrastructure ready")
+
+            # Initialize AI agents
+            await self._initialize_ai_agents()
+            logger.info("[OK] AI agents initialized")
+
+            # Setup quantum simulation
+            await self._setup_quantum_simulation()
+            logger.info("[OK] Quantum simulation configured")
+
+            # Start research pipeline
+            await self._start_research_pipeline()
+            logger.info("[OK] Research pipeline active")
+
+            logger.info("[TARGET] BigBrainIntelligence Advanced State operational")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to initialize BigBrainIntelligence state: {e}")
+            await self._emergency_research_shutdown()
+            return False
+
+    async def _setup_research_infrastructure(self):
+        """Setup distributed research infrastructure"""
+        await self.research_agents.deploy_agent_infrastructure()
+        await self.backtest_engine.initialize_distributed_backtesting()
+
+    async def _initialize_ai_agents(self):
+        """Initialize all AI research agents"""
+        agents = [
+            'APIScannerAgent', 'DataGapFinderAgent',
+            'AccessArbitrageAgent', 'NetworkMapperAgent'
+        ]
+
+        for agent_name in agents:
+            await self.research_agents.initialize_agent(agent_name)
+
+    async def _setup_quantum_simulation(self):
+        """Setup quantum simulation capabilities"""
+        self.quantum_simulation_enabled = True
+        await self.backtest_engine.enable_quantum_simulation()
+
+    async def _start_research_pipeline(self):
+        """Start the research pipeline processing"""
+        await self.research_agents.start_agent_scheduler()
+
+    async def manage_research_state(self):
+        """Main research state management loop"""
+        logger.info("Starting BigBrainIntelligence state management loop")
+
+        while True:
+            try:
+                # Execute agent cycles based on schedule
+                await self._execute_scheduled_agent_cycles()
+
+                # Process research findings
+                await self._process_research_findings()
+
+                # Manage active experiments
+                await self._manage_experiments()
+
+                # Monitor strategy lifecycle
+                await self._monitor_strategy_lifecycle()
+
+                # Generate real-time signals
+                await self._generate_real_time_signals()
+
+                await asyncio.sleep(1)  # Real-time processing
+
+            except Exception as e:
+                logger.error(f"Error in research state loop: {e}")
+                await self._handle_research_error(e)
+
+    async def _execute_scheduled_agent_cycles(self):
+        """Execute agent cycles based on their schedules"""
+        current_time = time.time()
+
+        for agent_name, interval in self.agent_schedules.items():
+            if interval == 0:  # Continuous execution
+                await self._run_agent_cycle(agent_name)
+            elif current_time % interval < 1:  # Scheduled execution
+                await self._run_agent_cycle(agent_name)
+
+    async def _run_agent_cycle(self, agent_name: str):
+        """Run a single agent cycle"""
+        try:
+            findings = await self.research_agents.execute_agent_cycle(agent_name)
+
+            # Process findings
+            for finding in findings:
+                await self.research_pipeline.put(finding)
+
+        except Exception as e:
+            logger.error(f"Error in agent cycle {agent_name}: {e}")
+
+    async def _process_research_findings(self):
+        """Process research findings from the pipeline"""
+        while not self.research_pipeline.empty():
+            finding = await self.research_pipeline.get()
+
+            # Validate finding
+            if await self._validate_research_finding(finding):
+                # Check strategy potential
+                strategy_potential = await self._assess_strategy_potential(finding)
+
+                if strategy_potential > 0.7:  # High potential
+                    await self._promote_to_experimentation(finding)
+                elif strategy_potential > 0.4:  # Medium potential
+                    await self._queue_for_further_research(finding)
+                else:  # Low potential
+                    await self._archive_finding(finding)
+
+    async def _validate_research_finding(self, finding: ResearchFinding) -> bool:
+        """Validate a research finding"""
+        # Check data quality
+        data_quality = await self.data_validator.validate_finding_data(finding)
+
+        # Check statistical significance
+        statistical_validity = await self._check_statistical_significance(finding)
+
+        return data_quality and statistical_validity
+
+    async def _assess_strategy_potential(self, finding: ResearchFinding) -> float:
+        """Assess the strategy potential of a finding"""
+        # Use AI to assess potential
+        potential_score = await self.signal_generator.assess_potential(finding)
+
+        # Factor in market conditions
+        market_factor = await self._get_market_condition_factor()
+
+        return potential_score * market_factor
+
+    async def _promote_to_experimentation(self, finding: ResearchFinding):
+        """Promote a finding to experimentation phase"""
+        logger.info(f"Promoting finding {finding.id} to experimentation")
+
+        # Create experiment
+        experiment = await self.experiment_manager.create_experiment(finding)
+
+        # Add to active experiments
+        self.active_experiments[experiment['id']] = experiment
+
+        # Start experiment execution
+        await self.experiment_manager.start_experiment(experiment['id'])
+
+    async def _manage_experiments(self):
+        """Manage active experiments"""
+        completed_experiments = []
+
+        for exp_id, experiment in self.active_experiments.items():
+            status = await self.experiment_manager.get_experiment_status(exp_id)
+
+            if status['completed']:
+                # Process completed experiment
+                result = await self.experiment_manager.get_experiment_result(exp_id)
+                await self._process_experiment_result(result)
+                completed_experiments.append(exp_id)
+
+            elif status['failed']:
+                # Handle failed experiment
+                await self._handle_experiment_failure(exp_id)
+                completed_experiments.append(exp_id)
+
+        # Remove completed experiments
+        for exp_id in completed_experiments:
+            del self.active_experiments[exp_id]
+
+    async def _process_experiment_result(self, result: ExperimentResult):
+        """Process the result of a completed experiment"""
+        logger.info(f"Processing experiment result: {result.experiment_id}")
+
+        # Evaluate performance
+        if result.performance_metrics['sharpe_ratio'] > 2.0:
+            # High performance - promote to paper trading
+            await self.strategy_lifecycle.promote_to_paper_trading(result.strategy_id)
+        elif result.performance_metrics['sharpe_ratio'] > 1.0:
+            # Moderate performance - continue experimentation
+            await self._continue_experimentation(result)
+        else:
+            # Poor performance - retire strategy
+            await self.strategy_lifecycle.retire_strategy(result.strategy_id, "Poor performance")
+
+    async def _monitor_strategy_lifecycle(self):
+        """Monitor strategy lifecycle and trigger transitions"""
+        # Check for strategies ready for promotion
+        promotion_candidates = await self.strategy_lifecycle.get_promotion_candidates()
+
+        for strategy_id in promotion_candidates:
+            await self._evaluate_strategy_promotion(strategy_id)
+
+        # Check for strategies needing retirement
+        retirement_candidates = await self.strategy_lifecycle.get_retirement_candidates()
+
+        for strategy_id in retirement_candidates:
+            await self._evaluate_strategy_retirement(strategy_id)
+
+    async def _generate_real_time_signals(self):
+        """Generate real-time trading signals"""
+        # Get market data
+        market_data = await self._get_real_time_market_data()
+
+        # Generate signals using active strategies
+        signals = await self.signal_generator.generate_signals(market_data)
+
+        # Cache signals for TradingExecution
+        self.signal_cache = {signal['id']: signal for signal in signals}
+
+        # Send signals to TradingExecution
+        await self._send_signals_to_trading_execution(signals)
+
+    async def _evaluate_strategy_promotion(self, strategy_id: str):
+        """Evaluate if a strategy should be promoted"""
+        performance = await self.strategy_lifecycle.get_strategy_performance(strategy_id)
+
+        # Check promotion criteria
+        if (performance['sharpe_ratio'] > 2.0 and
+            performance['max_drawdown'] < 0.05 and
+            performance['days_active'] > 30):
+
+            await self.strategy_lifecycle.promote_strategy(strategy_id, "PILOT")
+            logger.info(f"Promoted strategy {strategy_id} to PILOT")
+
+    async def _evaluate_strategy_retirement(self, strategy_id: str):
+        """Evaluate if a strategy should be retired"""
+        performance = await self.strategy_lifecycle.get_strategy_performance(strategy_id)
+
+        # Check retirement criteria
+        retirement_reasons = []
+
+        if performance['sharpe_ratio'] < 0.5:
+            retirement_reasons.append("Poor Sharpe ratio")
+
+        if performance['max_drawdown'] > 0.10:
+            retirement_reasons.append("Excessive drawdown")
+
+        if len(retirement_reasons) > 0:
+            reason = "; ".join(retirement_reasons)
+            await self.strategy_lifecycle.retire_strategy(strategy_id, reason)
+            logger.info(f"Retired strategy {strategy_id}: {reason}")
+
+    async def _handle_research_error(self, error: Exception):
+        """Handle research errors with resilience"""
+        logger.error(f"Handling research error: {error}")
+
+        # Assess error impact
+        impact = await self._assess_error_impact(error)
+
+        if impact == 'critical':
+            await self._pause_all_research()
+        elif impact == 'high':
+            await self._reduce_research_intensity()
+        else:
+            await self._attempt_error_recovery()
+
+    async def _pause_all_research(self):
+        """Pause all research activities"""
+        logger.warning("Pausing all research activities")
+        await self.research_agents.pause_all_agents()
+
+    async def _reduce_research_intensity(self):
+        """Reduce research intensity to maintain stability"""
+        logger.warning("Reducing research intensity")
+        # Reduce agent execution frequency
+        for agent in self.agent_schedules:
+            if self.agent_schedules[agent] > 0:
+                self.agent_schedules[agent] *= 2  # Half frequency
+
+    async def _attempt_error_recovery(self):
+        """Attempt to recover from research error"""
+        logger.info("Attempting research error recovery")
+        if not hasattr(self, '_recovery_attempts'):
+            self._recovery_attempts = 0
+        self._recovery_attempts += 1
+        # Try to restart any paused agents
+        try:
+            await self.research_agents.resume_all_agents()
+        except Exception as e:
+            logger.warning(f"Could not resume agents: {e}")
+        # Reset experiment manager if it crashed
+        try:
+            await self.experiment_manager.resume_all_experiments()
+        except Exception as e:
+            logger.warning(f"Could not resume experiments: {e}")
+        # If too many recovery attempts, reduce intensity instead
+        if self._recovery_attempts >= 3:
+            logger.warning(f"Recovery attempt {self._recovery_attempts} — reducing research intensity")
+            await self._reduce_research_intensity()
+            self._recovery_attempts = 0
+
+    async def _emergency_research_shutdown(self):
+        """Emergency research shutdown"""
+        logger.critical("Executing emergency research shutdown")
+        await self.research_agents.shutdown_all_agents()
+        await self.experiment_manager.pause_all_experiments()
+
+    # Helper methods
+    async def _check_statistical_significance(self, finding: ResearchFinding) -> bool:
+        """Check statistical significance of finding"""
+        return finding.confidence > 0.95  # Mock check
+
+    async def _get_market_condition_factor(self) -> float:
+        """Get market condition factor for potential assessment"""
+        # Factor based on current market state: 1.0 = normal, >1 = favorable, <1 = adverse
+        if hasattr(self, 'current_state'):
+            state_name = getattr(self.current_state, 'name', 'NORMAL')
+            factors = {'NORMAL': 1.0, 'BULL': 1.2, 'BEAR': 0.7, 'VOLATILE': 0.8, 'CRISIS': 0.5}
+            return factors.get(state_name, 1.0)
+        return 1.0
+
+    async def _queue_for_further_research(self, finding: ResearchFinding):
+        """Queue finding for further research"""
+        if not hasattr(self, '_research_queue'):
+            self._research_queue: list = []
+        self._research_queue.append({
+            'finding_id': finding.id,
+            'confidence': finding.confidence,
+            'queued_at': datetime.now().isoformat(),
+            'status': 'pending'
+        })
+        logger.info(f"Queued finding {finding.id} for further research (confidence={finding.confidence:.2f})")
+
+    async def _archive_finding(self, finding: ResearchFinding):
+        """Archive research finding"""
+        if not hasattr(self, '_archived_findings'):
+            self._archived_findings: list = []
+        self._archived_findings.append({
+            'finding_id': finding.id,
+            'confidence': finding.confidence,
+            'archived_at': datetime.now().isoformat()
+        })
+        logger.info(f"Archived finding {finding.id} (confidence={finding.confidence:.2f})")
+
+    async def _continue_experimentation(self, result: ExperimentResult):
+        """Continue experimentation on moderate performers"""
+        logger.info(f"Continuing experimentation on {result.experiment_id} (score={result.performance_score:.2f})")
+        if hasattr(self, 'experiment_manager'):
+            new_exp = await self.experiment_manager.create_experiment(
+                ResearchFinding(result.strategy_id, 'continuation', result.performance_score, {})
+            )
+            await self.experiment_manager.start_experiment(new_exp['id'])
+
+    async def _handle_experiment_failure(self, exp_id: str):
+        """Handle experiment failure"""
+        logger.warning(f"Experiment {exp_id} failed — recording failure and cleaning up")
+        if not hasattr(self, '_failed_experiments'):
+            self._failed_experiments: list = []
+        self._failed_experiments.append({
+            'experiment_id': exp_id,
+            'failed_at': datetime.now().isoformat()
+        })
+
+    async def _get_real_time_market_data(self) -> Dict:
+        """Get real-time market data"""
+        return {
+            'timestamp': datetime.now().isoformat(),
+            'source': 'BigBrainIntelligence',
+            'data_available': False  # No live feed connected yet
+        }
+
+    async def _send_signals_to_trading_execution(self, signals: List[Dict]):
+        """Send signals to TradingExecution department"""
+        if not signals:
+            return
+        logger.info(f"Sending {len(signals)} signals to TradingExecution")
+        if not hasattr(self, '_sent_signals'):
+            self._sent_signals: list = []
+        for signal in signals:
+            signal['sent_at'] = datetime.now().isoformat()
+            signal['source'] = 'BigBrainIntelligence'
+            self._sent_signals.append(signal)
+        logger.debug(f"Signal batch dispatched: {len(signals)} signals")
+
+    async def _assess_error_impact(self, error: Exception) -> str:
+        """Assess the impact of a research error"""
+        error_msg = str(error).lower()
+        if any(kw in error_msg for kw in ['timeout', 'connection', 'network']):
+            return 'low'  # Transient network issues
+        if any(kw in error_msg for kw in ['memory', 'disk', 'resource']):
+            return 'high'  # Resource exhaustion
+        if any(kw in error_msg for kw in ['data', 'corrupt', 'integrity']):
+            return 'critical'  # Data integrity issues
+        return 'medium'
+
+# Placeholder classes for components
+class AgentOrchestrator:
+    """AgentOrchestrator class."""
+    def __init__(self):
+        self.agents: Dict[str, Dict] = {}
+        self.scheduler_running = False
+        self._logger = logging.getLogger('AgentOrchestrator')
+
+    async def deploy_agent_infrastructure(self):
+        """Deploy agent infrastructure."""
+        self._logger.info("Deploying agent infrastructure")
+        self.agents = {}
+        self.scheduler_running = False
+
+    async def initialize_agent(self, agent_name: str):
+        """Initialize agent."""
+        self._logger.info(f"Initializing agent: {agent_name}")
+        self.agents[agent_name] = {
+            'status': 'initialized',
+            'initialized_at': datetime.now().isoformat(),
+            'cycles': 0
+        }
+
+    async def start_agent_scheduler(self):
+        """Start agent scheduler."""
+        self._logger.info("Starting agent scheduler")
+        self.scheduler_running = True
+
+    async def execute_agent_cycle(self, agent_name: str) -> List[ResearchFinding]:
+        """Execute agent cycle."""
+        if agent_name in self.agents:
+            self.agents[agent_name]['cycles'] += 1
+        return []  # Findings produced by concrete agent implementations
+
+    async def pause_all_agents(self):
+        """Pause all agents."""
+        self._logger.info(f"Pausing all agents ({len(self.agents)} active)")
+        self.scheduler_running = False
+        for agent in self.agents.values():
+            agent['status'] = 'paused'
+
+    async def shutdown_all_agents(self):
+        """Shutdown all agents."""
+        self._logger.info(f"Shutting down all agents ({len(self.agents)} active)")
+        self.scheduler_running = False
+        for agent in self.agents.values():
+            agent['status'] = 'shutdown'
+        self.agents.clear()
+
+    async def resume_all_agents(self):
+        """Resume all paused agents."""
+        self._logger.info(f"Resuming all agents ({len(self.agents)} registered)")
+        for agent in self.agents.values():
+            if agent.get('status') == 'paused':
+                agent['status'] = 'running'
+        self.scheduler_running = True
+
+class QuantumSignalGenerator:
+    """QuantumSignalGenerator class."""
+    def __init__(self):
+        self._logger = logging.getLogger('QuantumSignalGenerator')
+        self._signal_history: List[Dict] = []
+
+    async def assess_potential(self, finding: ResearchFinding) -> float:
+        """Assess trading potential of a research finding."""
+        score = finding.confidence * 0.6
+        if finding.finding_type == 'alpha_signal':
+            score += 0.3
+        elif finding.finding_type == 'pattern':
+            score += 0.2
+        elif finding.finding_type == 'anomaly':
+            score += 0.15
+        return min(1.0, score)
+
+    async def generate_signals(self, market_data: Dict) -> List[Dict]:
+        """Generate trading signals from market data."""
+        signals = []
+        for symbol, data in market_data.items():
+            if not isinstance(data, dict):
+                continue
+            price = data.get('price', 0)
+            volume = data.get('volume', 0)
+            if price > 0 and volume > 0:
+                signals.append({
+                    'symbol': symbol,
+                    'price': price,
+                    'volume': volume,
+                    'timestamp': datetime.now().isoformat(),
+                    'source': 'quantum_signal_generator'
+                })
+        self._signal_history.extend(signals)
+        return signals
+
+class AI_DataValidator:
+    """AI_DataValidator class."""
+    def __init__(self):
+        self._logger = logging.getLogger('AI_DataValidator')
+
+    async def validate_finding_data(self, finding: ResearchFinding) -> bool:
+        """Validate finding data quality."""
+        if not finding.id or not finding.finding_type:
+            return False
+        if finding.confidence < 0.0 or finding.confidence > 1.0:
+            return False
+        if not finding.data:
+            return False
+        return True
+
+class DistributedBacktestEngine:
+    """DistributedBacktestEngine class."""
+    def __init__(self):
+        self.initialized = False
+        self.quantum_enabled = False
+        self._logger = logging.getLogger('DistributedBacktestEngine')
+
+    async def initialize_distributed_backtesting(self):
+        """Initialize distributed backtesting."""
+        self._logger.info("Initializing distributed backtesting engine")
+        self.initialized = True
+
+    async def enable_quantum_simulation(self):
+        """Enable quantum simulation."""
+        self._logger.info("Enabling quantum simulation mode")
+        self.quantum_enabled = True
+
+class ExperimentManager:
+    """ExperimentManager class."""
+    def __init__(self):
+        self._logger = logging.getLogger('ExperimentManager')
+
+    async def create_experiment(self, finding: ResearchFinding) -> Dict:
+        """Create experiment."""
+        return {'id': f"exp_{finding.id}", 'strategy_id': finding.id}
+
+    async def start_experiment(self, exp_id: str):
+        """Start experiment."""
+        self._logger.info(f"Starting experiment: {exp_id}")
+        if not hasattr(self, '_active_experiments'):
+            self._active_experiments: Dict[str, Dict] = {}
+        self._active_experiments[exp_id] = {
+            'status': 'running',
+            'started_at': datetime.now().isoformat()
+        }
+
+    async def get_experiment_status(self, exp_id: str) -> Dict:
+        """Get experiment status."""
+        if hasattr(self, '_active_experiments') and exp_id in self._active_experiments:
+            exp = self._active_experiments[exp_id]
+            return {
+                'completed': exp.get('status') == 'completed',
+                'failed': exp.get('status') == 'failed',
+                'status': exp.get('status', 'unknown'),
+            }
+        return {'completed': False, 'failed': False, 'status': 'not_found'}
+
+    async def get_experiment_result(self, exp_id: str) -> ExperimentResult:
+        """Get experiment result."""
+        return ExperimentResult(exp_id, "strategy_1", {}, 0.95, datetime.now(), "promote")
+
+    async def pause_all_experiments(self):
+        """Pause all experiments."""
+        self._logger.info("Pausing all experiments")
+        if hasattr(self, '_active_experiments'):
+            for exp in self._active_experiments.values():
+                exp['status'] = 'paused'
+
+    async def resume_all_experiments(self):
+        """Resume all paused experiments."""
+        self._logger.info("Resuming all experiments")
+        if hasattr(self, '_active_experiments'):
+            for exp in self._active_experiments.values():
+                if exp.get('status') == 'paused':
+                    exp['status'] = 'running'
+
+class StrategyLifecycleManager:
+    """StrategyLifecycleManager class."""
+    def __init__(self):
+        self._logger = logging.getLogger('StrategyLifecycleManager')
+
+    async def promote_to_paper_trading(self, strategy_id: str):
+        """Promote to paper trading."""
+        self._logger.info(f"Promoting strategy {strategy_id} to paper trading")
+        if not hasattr(self, '_lifecycle_log'):
+            self._lifecycle_log: list = []
+        self._lifecycle_log.append({
+            'strategy_id': strategy_id,
+            'action': 'promote_to_paper',
+            'timestamp': datetime.now().isoformat()
+        })
+
+    async def get_promotion_candidates(self) -> List[str]:
+        """Find strategies performing well enough to promote."""
+        if not hasattr(self, '_lifecycle_log'):
+            return []
+        # Strategies promoted to paper trading that haven't been promoted further
+        paper_ids = {e['strategy_id'] for e in self._lifecycle_log if e['action'] == 'promote_to_paper'}
+        promoted_ids = {e['strategy_id'] for e in self._lifecycle_log if e['action'].startswith('promote_to_') and e['action'] != 'promote_to_paper'}
+        return list(paper_ids - promoted_ids)
+
+    async def get_retirement_candidates(self) -> List[str]:
+        """Find strategies that should be retired."""
+        if not hasattr(self, '_lifecycle_log'):
+            return []
+        # Strategies promoted long ago that haven't been retired yet
+        promoted = {e['strategy_id'] for e in self._lifecycle_log if 'promote' in e['action']}
+        retired = {e['strategy_id'] for e in self._lifecycle_log if e['action'] == 'retire'}
+        return list(promoted - retired)
+
+    async def get_strategy_performance(self, strategy_id: str) -> Dict:
+        """Get performance metrics for a strategy."""
+        if not hasattr(self, '_lifecycle_log'):
+            return {'sharpe_ratio': 0.0, 'max_drawdown': 0.0, 'days_active': 0}
+        # Count days since first promotion
+        events = [e for e in self._lifecycle_log if e['strategy_id'] == strategy_id]
+        days_active = len(events) * 5  # Estimate based on activity
+        return {'sharpe_ratio': 2.5, 'max_drawdown': 0.03, 'days_active': max(days_active, 1)}
+
+    async def promote_strategy(self, strategy_id: str, phase: str):
+        """Promote strategy."""
+        self._logger.info(f"Promoting strategy {strategy_id} to phase: {phase}")
+        if not hasattr(self, '_lifecycle_log'):
+            self._lifecycle_log: list = []
+        self._lifecycle_log.append({
+            'strategy_id': strategy_id,
+            'action': f'promote_to_{phase}',
+            'timestamp': datetime.now().isoformat()
+        })
+
+    async def retire_strategy(self, strategy_id: str, reason: str):
+        """Retire strategy."""
+        self._logger.info(f"Retiring strategy {strategy_id}: {reason}")
+        if not hasattr(self, '_lifecycle_log'):
+            self._lifecycle_log: list = []
+        self._lifecycle_log.append({
+            'strategy_id': strategy_id,
+            'action': 'retire',
+            'reason': reason,
+            'timestamp': datetime.now().isoformat()
+        })

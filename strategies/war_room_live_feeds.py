@@ -81,6 +81,12 @@ class LiveFeedResult:
     news_headline_count: int = 0
     # X/Twitter sentiment
     x_sentiment_score: Optional[float] = None
+    # Council intel (YouTube + X via Grok)
+    council_scenario_signals: Dict[str, float] = field(default_factory=dict)
+    council_topics: List[str] = field(default_factory=list)
+    council_emerging: List[str] = field(default_factory=list)
+    council_x_posts: int = 0
+    council_yt_videos: int = 0
     # IBKR live data
     ibkr_connected: bool = False
     ibkr_net_liquidation: Optional[float] = None
@@ -92,6 +98,15 @@ class LiveFeedResult:
     ibkr_positions: List[Dict[str, Any]] = field(default_factory=list)
     ibkr_vix: Optional[float] = None
     ibkr_spy_price: Optional[float] = None
+    # DeFi TVL % change (from CoinGecko defi_market_cap vs baseline)
+    defi_tvl_change_pct: Optional[float] = None
+    # BDC NAV discount (from yfinance BDC basket price-to-book)
+    bdc_nav_discount_live: Optional[float] = None
+    # BDC non-accrual proxy (estimated from BDC P/B + HY spread)
+    bdc_nonaccrual_proxy: Optional[float] = None
+    # Alpha engine intelligence (from council + doctrine combined)
+    alpha_signal: Optional[float] = None
+    alpha_weights: Dict[str, float] = field(default_factory=dict)
     # Errors (non-fatal -- partial data is still useful)
     errors: List[str] = field(default_factory=list)
 
@@ -139,6 +154,95 @@ _CG_COIN_MAP = {
     "usd-coin": "usdc",
 }
 
+# ── DeFi TVL baseline for % change computation ──────────────────────────
+# Reference defi_market_cap from CoinGecko (rolling baseline).
+# On first run, use this reference value. Subsequent runs update it.
+# DeFi market cap ~$90B as of early 2026 (CoinGecko /global endpoint).
+_DEFI_MARKET_CAP_BASELINE: float = 90_000_000_000.0  # $90B reference
+_defi_market_cap_prev: Optional[float] = None
+
+
+def _compute_defi_tvl_change(current_defi_cap: float) -> float:
+    """Compute DeFi TVL % change vs rolling baseline.
+
+    Uses module-level state: first call uses hardcoded baseline,
+    subsequent calls compare against previously fetched value.
+    Returns negative = DeFi stress (TVL declining).
+    """
+    global _defi_market_cap_prev
+    baseline = _defi_market_cap_prev if _defi_market_cap_prev else _DEFI_MARKET_CAP_BASELINE
+    if baseline <= 0:
+        return 0.0
+    change_pct = ((current_defi_cap - baseline) / baseline) * 100.0
+    _defi_market_cap_prev = current_defi_cap
+    return round(change_pct, 2)
+
+
+# ── BDC basket for NAV discount + non-accrual proxy ─────────────────────
+_BDC_BASKET = ["ARCC", "MAIN", "FSK", "OBDC"]
+
+
+async def fetch_bdc_data(result: LiveFeedResult) -> None:
+    """Fetch BDC NAV discount and non-accrual proxy from yfinance.
+
+    BDC NAV Discount: average (1 - price/bookValue) across BDC basket.
+    Non-Accrual Proxy: estimated from price-to-book stress level.
+      - P/B < 0.75 → non-accrual ~6%+ (severe stress)
+      - P/B 0.75-0.85 → non-accrual ~4-6% (moderate stress)
+      - P/B 0.85-0.95 → non-accrual ~2-4% (mild stress)
+      - P/B > 0.95 → non-accrual ~1-2% (healthy)
+    """
+    try:
+        import yfinance as yf
+
+        loop = asyncio.get_event_loop()
+        discounts = []
+        p2b_ratios = []
+
+        def _fetch_bdc_basket() -> tuple[list[float], list[float]]:
+            disc: list[float] = []
+            p2b: list[float] = []
+            for sym in _BDC_BASKET:
+                try:
+                    ticker = yf.Ticker(sym)
+                    info = ticker.info
+                    price = info.get("currentPrice") or info.get("regularMarketPrice", 0)
+                    book = info.get("bookValue", 0)
+                    if price and price > 0 and book and book > 0:
+                        pb_ratio = price / book
+                        p2b.append(pb_ratio)
+                        nav_discount = (1.0 - pb_ratio) * 100.0
+                        disc.append(nav_discount)
+                except Exception:
+                    continue
+            return disc, p2b
+
+        discounts, p2b_ratios = await loop.run_in_executor(None, _fetch_bdc_basket)
+
+        if discounts:
+            avg_discount = sum(discounts) / len(discounts)
+            result.bdc_nav_discount_live = round(avg_discount, 2)
+            logger.info("BDC NAV discount: %.1f%% (from %d BDCs)", avg_discount, len(discounts))
+
+        if p2b_ratios:
+            avg_pb = sum(p2b_ratios) / len(p2b_ratios)
+            # Map P/B to non-accrual estimate (piecewise linear)
+            if avg_pb < 0.75:
+                nonaccrual = 6.0 + (0.75 - avg_pb) * 20.0  # severe: 6-10%
+            elif avg_pb < 0.85:
+                nonaccrual = 4.0 + (0.85 - avg_pb) * 20.0  # moderate: 4-6%
+            elif avg_pb < 0.95:
+                nonaccrual = 2.0 + (0.95 - avg_pb) * 20.0  # mild: 2-4%
+            else:
+                nonaccrual = max(0.5, 2.0 - (avg_pb - 0.95) * 10.0)  # healthy: 0.5-2%
+            result.bdc_nonaccrual_proxy = round(min(nonaccrual, 10.0), 2)
+            logger.info("BDC non-accrual proxy: %.1f%% (avg P/B=%.3f)", result.bdc_nonaccrual_proxy, avg_pb)
+
+    except Exception as exc:
+        msg = f"BDC data error: {exc}"
+        logger.warning(msg)
+        result.errors.append(msg)
+
 
 async def fetch_coingecko_data(result: LiveFeedResult) -> None:
     """Fetch live crypto prices and global data from CoinGecko."""
@@ -176,20 +280,22 @@ async def fetch_coingecko_data(result: LiveFeedResult) -> None:
             if depegs:
                 result.stablecoin_depeg_pct = max(depegs) * 100
 
-            # Global market data (DeFi TVL proxy, BTC dominance)
+            # Global market data (BTC dominance, volume, DeFi cap)
+            # NOTE: get_global_data() already unwraps the "data" key.
             global_data = await cg.get_global_data()
-            if global_data and "data" in global_data:
-                gd = global_data["data"]
-                result.total_market_cap_usd = gd.get("total_market_cap", {}).get("usd")
-                result.btc_dominance = gd.get("market_cap_percentage", {}).get("btc")
-                result.total_volume_24h = gd.get("total_volume", {}).get("usd")
-                # DeFi market cap is tracked separately
-                defi_cap = gd.get("defi_market_cap")
+            if global_data:
+                result.total_market_cap_usd = global_data.get("total_market_cap", {}).get("usd")
+                result.btc_dominance = global_data.get("market_cap_percentage", {}).get("btc")
+                result.total_volume_24h = global_data.get("total_volume", {}).get("usd")
+                # DeFi market cap — compute TVL change vs baseline
+                defi_cap = global_data.get("defi_market_cap")
                 if defi_cap:
                     result.defi_market_cap = float(defi_cap)
+                    result.defi_tvl_change_pct = _compute_defi_tvl_change(float(defi_cap))
 
-            logger.info("CoinGecko: BTC=$%s ETH=$%s XRP=$%s",
-                        result.btc_price, result.eth_price, result.xrp_price)
+            logger.info("CoinGecko: BTC=$%s ETH=$%s XRP=$%s DeFi=$%s",
+                        result.btc_price, result.eth_price, result.xrp_price,
+                        result.defi_market_cap)
         finally:
             await cg.disconnect()
     except Exception as exc:
@@ -585,60 +691,46 @@ _BULLISH_TERMS = ["rally", "breakout", "all time high", "ath", "moon", "bull mar
 
 
 async def fetch_x_sentiment(result: LiveFeedResult) -> None:
-    """Fetch X/Twitter sentiment via v2 search API."""
+    """Fetch X/Twitter sentiment via council X (Grok-powered search).
+
+    Replaces the broken direct Twitter API v2 (HTTP 402) with the working
+    councils/xai pipeline that uses Grok's built-in X search capability.
+    Falls back to neutral 0.5 if council fails.
+    """
     try:
-        import urllib.parse
+        from strategies.war_room_council_feeds import fetch_x_intel
 
-        import aiohttp
-        bearer = os.getenv("TWITTER_BEARER_TOKEN", "")
-        if not bearer:
-            result.errors.append("X Sentiment: TWITTER_BEARER_TOKEN not set")
-            return
+        x_result = await fetch_x_intel()
 
-        # Search for market-related tweets
-        query = "(SPY OR market OR stocks) (crash OR rally OR recession OR bull OR sell)"
-        encoded_q = urllib.parse.quote(query)
-        url = (
-            f"https://api.twitter.com/2/tweets/search/recent"
-            f"?query={encoded_q}&max_results=50"
-        )
-        headers = {"Authorization": f"Bearer {bearer}"}
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url, headers=headers,
-                                   timeout=aiohttp.ClientTimeout(total=10)) as resp:
-                if resp.status == 200:
-                    data = await resp.json()
-                    tweets = data.get("data", [])
-                    if not tweets:
-                        result.x_sentiment_score = 0.5  # neutral if no results
-                        return
-                    bearish = 0
-                    bullish = 0
-                    for tweet in tweets:
-                        text = tweet.get("text", "").lower()
-                        for term in _BEARISH_TERMS:
-                            if term in text:
-                                bearish += 1
-                        for term in _BULLISH_TERMS:
-                            if term in text:
-                                bullish += 1
-                    total = bearish + bullish
-                    if total > 0:
-                        # 0 = extreme fear, 1 = extreme greed
-                        result.x_sentiment_score = round(bullish / total, 3)
-                    else:
-                        result.x_sentiment_score = 0.5  # neutral
-                    logger.info("X Sentiment: %.3f (bearish=%d, bullish=%d, %d tweets)",
-                                result.x_sentiment_score, bearish, bullish, len(tweets))
-                elif resp.status == 403:
-                    # Free tier doesn't include search -- graceful degrade
-                    result.errors.append("X Sentiment: Requires Twitter API Basic tier")
-                elif resp.status == 401:
-                    result.errors.append("X Sentiment: Invalid bearer token")
-                else:
-                    result.errors.append(f"X Sentiment: HTTP {resp.status}")
+        if x_result.x_posts_analyzed > 0:
+            result.x_sentiment_score = x_result.x_sentiment_score
+            result.council_x_posts = x_result.x_posts_analyzed
+            result.council_topics.extend(x_result.x_key_themes[:10])
+            result.council_emerging.extend(x_result.x_emerging_topics[:5])
+
+            # Merge scenario signals
+            for sc, strength in x_result.scenario_signals.items():
+                existing = result.council_scenario_signals.get(sc, 0.0)
+                result.council_scenario_signals[sc] = max(existing, strength)
+
+            # Blend X severity into news severity
+            if x_result.x_severity_score > 0:
+                existing = result.news_severity_score or 0.0
+                result.news_severity_score = round(existing * 0.6 + x_result.x_severity_score * 0.4, 3)
+
+            logger.info("X Council Sentiment: %.3f (%d posts, %d themes, %d scenarios)",
+                        result.x_sentiment_score, x_result.x_posts_analyzed,
+                        len(x_result.x_key_themes), len(x_result.scenario_signals))
+        else:
+            result.x_sentiment_score = 0.5
+            logger.info("X Council: no posts analyzed, defaulting to neutral 0.5")
+
+    except ImportError:
+        result.errors.append("X Council: war_room_council_feeds not importable")
+        result.x_sentiment_score = 0.5
     except Exception as exc:
-        result.errors.append(f"X Sentiment error: {exc}")
+        result.errors.append(f"X Council error: {exc}")
+        result.x_sentiment_score = 0.5
 
 
 # ============================================================================
@@ -783,10 +875,34 @@ async def fetch_all_live_data() -> LiveFeedResult:
         fetch_fred_indicators(result),
         fetch_fear_greed(result),
         fetch_news_severity(result),
-        fetch_x_sentiment(result),
+        fetch_x_sentiment(result),          # Now uses council X (Grok-powered)
         fetch_vix_fred(result),
+        fetch_bdc_data(result),
         return_exceptions=True,
     )
+
+    # Phase 3: YouTube council intel (supplements news severity + scenario signals)
+    try:
+        from strategies.war_room_council_feeds import fetch_youtube_intel
+        yt_result = await fetch_youtube_intel()
+        if yt_result.yt_videos_processed > 0:
+            result.council_yt_videos = yt_result.yt_videos_processed
+            result.council_topics.extend(yt_result.yt_key_topics[:10])
+            # Merge YouTube scenario signals
+            for sc, strength in yt_result.scenario_signals.items():
+                existing = result.council_scenario_signals.get(sc, 0.0)
+                result.council_scenario_signals[sc] = max(existing, strength)
+            # Blend YouTube severity into news severity
+            if yt_result.yt_severity_score > 0:
+                existing = result.news_severity_score or 0.0
+                result.news_severity_score = round(existing * 0.7 + yt_result.yt_severity_score * 0.3, 3)
+            logger.info("YouTube Council: %d videos, sentiment=%.2f, %d scenario hits",
+                        yt_result.yt_videos_processed, yt_result.yt_sentiment_score,
+                        len(yt_result.scenario_signals))
+    except ImportError:
+        result.errors.append("YouTube Council: war_room_council_feeds not importable")
+    except Exception as exc:
+        result.errors.append(f"YouTube Council error: {exc}")
 
     return result
 
@@ -947,6 +1063,18 @@ def apply_live_data_to_indicators(
     if result.stablecoin_depeg_pct is not None:
         ind.stablecoin_depeg_pct = result.stablecoin_depeg_pct
 
+    # -- CoinGecko: DeFi TVL change --
+    if result.defi_tvl_change_pct is not None:
+        ind.defi_tvl_change_pct = result.defi_tvl_change_pct
+
+    # -- yfinance: BDC NAV discount --
+    if result.bdc_nav_discount_live is not None:
+        ind.bdc_nav_discount = result.bdc_nav_discount_live
+
+    # -- yfinance: BDC non-accrual proxy --
+    if result.bdc_nonaccrual_proxy is not None:
+        ind.bdc_nonaccrual_pct = result.bdc_nonaccrual_proxy
+
     # -- Fear & Greed Index --
     if result.fear_greed_value is not None:
         ind.fear_greed_index = float(result.fear_greed_value)
@@ -985,6 +1113,10 @@ def apply_live_data_to_indicators(
     if result.dark_pool_notional > 10_000_000_000:  # >$10B notional = unusual
         # Bump fear slightly — institutions moving big blocks
         ind.news_severity = min(1.0, ind.news_severity + 0.05)
+
+    # -- Alpha engine: council + doctrine combined signal --
+    if result.alpha_signal is not None:
+        ind.alpha_signal = result.alpha_signal
 
     # -- IBKR: Update account balance + positions in war_room_engine --
     if result.ibkr_connected:
@@ -1028,6 +1160,18 @@ async def update_all_live_data(
 
     # Apply to indicators
     ind = apply_live_data_to_indicators(result, indicators)
+
+    # Process Council scenario transitions (if any council data arrived)
+    if result.council_scenario_signals:
+        try:
+            from strategies.war_room_council_feeds import update_scenario_statuses
+            transitions = update_scenario_statuses(result.council_scenario_signals)
+            if transitions:
+                logger.info("Council scenario transitions: %s", transitions)
+        except ImportError:
+            pass
+        except Exception as exc:
+            logger.warning("Council scenario update failed: %s", exc)
 
     logger.info("Live feeds applied: %s", result.summary())
     return ind

@@ -209,7 +209,18 @@ tr:hover td { background: var(--surface2); }
     </div>
 </div>
 
-<!-- Row 3.5: Top 10 Scenarios (full width, expandable) -->
+<!-- Row 3.5: Daily Tasks (full width, prominent) -->
+<div class="grid-full">
+    <div class="card" id="card-daily-tasks" style="border-left: 3px solid var(--amber);">
+        <h2>📋 Daily Tasks <span id="daily-tasks-date" style="font-size:12px; color:var(--dim);"></span>
+            <span id="daily-tasks-progress" style="float:right; font-size:12px;"></span>
+        </h2>
+        <div id="daily-tasks-summary" style="display:flex; gap:12px; margin-bottom:10px; flex-wrap:wrap;"></div>
+        <div id="daily-tasks-slots"></div>
+    </div>
+</div>
+
+<!-- Row 3.6: Top 10 Scenarios (full width, expandable) -->
 <div class="grid-full">
     <div class="card" id="card-scenarios">
         <h2>&#127919; Top 10 Scenarios <span id="scenario-total" style="font-size:11px; color:var(--dim);"></span></h2>
@@ -362,12 +373,25 @@ function renderPortfolio(d) {
     $('total-usd').style.color = 'var(--green)';
     $('total-positions').textContent = `${d.total_positions} positions across ${d.accounts?.length || 0} accounts`;
     const pnl = d.total_unrealized_pnl;
-    $('unrealized-pnl').innerHTML = `<span class="${pnlClass(pnl)}">Unrealized P&L: ${pnl >= 0 ? '+' : ''}${fmtUsd(pnl)}</span>`;
+    let pnlHtml = `<span class="${pnlClass(pnl)}">Unrealized P&L: ${pnl >= 0 ? '+' : ''}${fmtUsd(pnl)}</span>`;
+    // Show data freshness warning
+    const maxStale = Math.max(...(d.accounts||[]).map(a => a.days_stale || 0));
+    if (maxStale >= 3) {
+        pnlHtml += ` <span style="color:var(--red); font-size:11px;">&#9888; Data ${maxStale}d old</span>`;
+    } else if (maxStale >= 1) {
+        pnlHtml += ` <span style="color:var(--amber); font-size:11px;">${maxStale}d ago</span>`;
+    }
+    if (d.fx_updated) {
+        pnlHtml += `<div style="font-size:10px; color:var(--dim);">FX: 1 CAD = $${d.fx_cad_usd} USD (${d.fx_updated})</div>`;
+    }
+    $('unrealized-pnl').innerHTML = pnlHtml;
 
     let acctHtml = '';
     for (const a of (d.accounts || [])) {
         if (a.value_usd < 1 && a.position_count === 0) continue;
-        acctHtml += `<div class="acct-card"><div class="acct-name">${a.name}</div><div class="acct-val">${fmtUsd(a.value_usd)}</div><div class="label">${a.position_count} pos</div></div>`;
+        const native = a.currency !== 'USD' ? `<div style="font-size:11px; color:var(--dim);">${a.currency} $${fmt(a.total_assets, 2)}</div>` : '';
+        const staleTag = (a.days_stale || 0) >= 3 ? `<span style="color:var(--red); font-size:10px;"> ${a.days_stale}d</span>` : (a.days_stale || 0) >= 1 ? `<span style="color:var(--amber); font-size:10px;"> ${a.days_stale}d</span>` : '';
+        acctHtml += `<div class="acct-card"><div class="acct-name">${a.name}${staleTag}</div><div class="acct-val">${fmtUsd(a.value_usd)}</div>${native}<div class="label">${a.position_count} pos</div></div>`;
     }
     $('acct-summary').innerHTML = acctHtml;
 }
@@ -588,15 +612,112 @@ function renderUnusualWhales(d) {
     }
 }
 
+function renderDailyTasks(d) {
+    if (!d || d.error) {
+        $('daily-tasks-slots').innerHTML = `<span class="amber">${d?.error || 'No data'}</span>`;
+        return;
+    }
+
+    // Header info
+    $('daily-tasks-date').textContent = `${d.day_name || ''} ${d.date || ''}`;
+    const remaining = d.remaining || 0;
+    const total = d.total_tasks || 0;
+    const completed = d.completed || 0;
+    const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+    $('daily-tasks-progress').innerHTML = `<span style="color:${pct >= 80 ? 'var(--green)' : pct >= 50 ? 'var(--amber)' : 'var(--red)'};">${completed}/${total} done (${pct}%)</span>`;
+
+    // Summary badges
+    const bp = d.by_priority || {};
+    const priColors = {CRITICAL:'var(--red)', HIGH:'var(--amber)', MEDIUM:'var(--cyan)', LOW:'var(--green)'};
+    let summaryHtml = '';
+    for (const [pri, count] of Object.entries(bp)) {
+        const color = priColors[pri] || 'var(--dim)';
+        summaryHtml += `<span style="background:${color}22; border:1px solid ${color}; color:${color}; padding:2px 8px; border-radius:12px; font-size:11px; font-weight:600;">${pri}: ${count}</span>`;
+    }
+    const bs = d.by_source || {};
+    const srcIcons = {moon:'🌙', options:'📊', war_room:'🏛️', strategy:'📋', engine:'⚙️', portfolio:'💼'};
+    for (const [src, count] of Object.entries(bs)) {
+        summaryHtml += `<span style="color:var(--dim); font-size:11px;">${srcIcons[src]||'•'} ${src}: ${count}</span>`;
+    }
+    $('daily-tasks-summary').innerHTML = summaryHtml;
+
+    // Slots
+    const slots = d.slots || {};
+    const bySlot = d.by_slot || {};
+    const slotColors = {
+        pre_market: '#6fc3df', market_open: '#c3e88d', mid_day: '#ffcb6b',
+        power_hour: '#ff5370', after_hours: '#c792ea', overnight: '#546e7a'
+    };
+    let slotsHtml = '';
+
+    for (const [slotKey, slotMeta] of Object.entries(slots)) {
+        const tasks = bySlot[slotKey];
+        if (!tasks || tasks.length === 0) continue;
+
+        const color = slotColors[slotKey] || 'var(--dim)';
+        slotsHtml += `<div style="margin-bottom:12px;">
+            <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
+                <span style="font-size:14px;">${slotMeta.emoji || '•'}</span>
+                <span style="color:${color}; font-weight:600; font-size:12px;">${slotMeta.label}</span>
+                <span style="color:var(--dim); font-size:10px;">${slotMeta.start}–${slotMeta.end} ET</span>
+                <span style="color:var(--dim); font-size:10px;">(${tasks.length})</span>
+            </div>`;
+
+        for (const t of tasks) {
+            const priIcon = {CRITICAL:'🔴', HIGH:'🟠', MEDIUM:'🟡', LOW:'🟢'}[t.priority] || '⚪';
+            const srcIcon = srcIcons[t.source] || '•';
+            const check = t.completed ? '✅' : '⬜';
+            const opac = t.completed ? 'opacity:0.5;' : '';
+            const daysLabel = t.days_until > 0 ? `<span style="color:var(--amber); font-size:10px; margin-left:4px;">[${t.days_until}d]</span>` : '';
+            const assetsLabel = t.assets && t.assets.length > 0 ? `<span style="color:var(--cyan); font-size:10px; margin-left:4px;">[${t.assets.slice(0,4).join(', ')}]</span>` : '';
+
+            slotsHtml += `<div style="background:var(--surface2); border-left:3px solid ${color}; border-radius:4px; padding:6px 10px; margin-bottom:4px; ${opac}">
+                <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
+                    <span>${check}</span>
+                    <span>${priIcon}</span>
+                    <span>${srcIcon}</span>
+                    <span style="font-weight:600; font-size:12px;">${t.name}</span>
+                    ${daysLabel}${assetsLabel}
+                </div>`;
+
+            if (t.action_required) {
+                slotsHtml += `<div style="color:var(--dim); font-size:10px; margin-top:2px; padding-left:20px;">→ ${t.action_required}</div>`;
+            }
+            slotsHtml += `</div>`;
+        }
+        slotsHtml += `</div>`;
+    }
+
+    $('daily-tasks-slots').innerHTML = slotsHtml || '<span class="neutral">No tasks for today</span>';
+}
+
 function renderTasks(d) {
     if (!d || d.error || !d.tasks) return;
-    let html = '';
+    const groups = {core: [], war_room: [], moon: []};
+    const labels = {core: '⚙️ Core Engine', war_room: '🏛️ War Room', moon: '🌙 Thirteen Moon'};
+    const colors = {core: 'var(--cyan)', war_room: 'var(--amber)', moon: 'var(--magenta, #c792ea)'};
     for (const t of d.tasks) {
-        html += `<div style="background:var(--surface2); border-radius:4px; padding:4px 8px; font-size:11px;">
-            <span style="color:var(--cyan);">${t.name}</span>
-            <span style="color:var(--dim); margin-left:4px;">every ${t.interval}</span>
-        </div>`;
+        const g = t.group || 'core';
+        if (!groups[g]) groups[g] = [];
+        groups[g].push(t);
     }
+    let html = '';
+    for (const [key, tasks] of Object.entries(groups)) {
+        if (tasks.length === 0) continue;
+        const color = colors[key] || 'var(--cyan)';
+        const label = labels[key] || key;
+        html += `<div style="width:100%; margin-bottom:6px;">
+            <span style="color:${color}; font-size:11px; font-weight:bold;">${label} (${tasks.length})</span>
+        </div>`;
+        for (const t of tasks) {
+            html += `<div style="background:var(--surface2); border-left:2px solid ${color}; border-radius:4px; padding:4px 8px; font-size:11px;">
+                <span style="color:${color};">${t.name}</span>
+                <span style="color:var(--dim); margin-left:4px;">every ${t.interval}</span>
+            </div>`;
+        }
+    }
+    const total = d.total || d.tasks.length;
+    $('card-tasks').querySelector('h2').innerHTML = `&#9889; Autonomous Tasks <span style="color:var(--dim); font-size:13px;">(${total})</span>`;
     $('tasks-list').innerHTML = html || '<span class="neutral">No tasks</span>';
 }
 
@@ -767,6 +888,7 @@ function renderAll(data) {
     renderIndicators(data.war_room);
     renderArms(data.war_room);
     renderPositions(data.portfolio);
+    renderDailyTasks(data.daily_tasks);
     renderScenarios(data.scenarios);
     renderPolymarket(data.polymarket);
     renderMoon(data.moon);

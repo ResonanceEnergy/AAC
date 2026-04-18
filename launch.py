@@ -95,6 +95,7 @@ MODES = [
     "api",
     "dashboard",
     "deploy",
+    "lde",
     "matrix",
     "monitor",
     "paper",
@@ -110,6 +111,7 @@ MODES = [
     "mission-control",
     "13-moon",
     "polymarket",
+    "roadmap",
 ]
 
 BANNER = r"""
@@ -141,6 +143,7 @@ MODE_DESCRIPTIONS = {
     "mission-control": "Unified Mission Control dashboard — single pane of glass (port 8069)",
     "13-moon": "13-Moon Doctrine live dashboard (Streamlit, port 8503)",
     "polymarket": "Polymarket Division — active scanning + execution (scan/monitor/live)",
+    "roadmap": "Command Roadmap — daily/weekly tasks + 13-Moon + war room (HTML)",
 }
 
 
@@ -274,7 +277,7 @@ def _mode_all(display: str = "web", port: int = 8501) -> int:
 
 def _mode_dashboard() -> int:
     logger.info(str(_cyan("  Starting Dashboard ...")))
-    return _run([_python(), "-m", "core.command_center", "--mode", "dashboard"])
+    return _run([_python(), "-m", "monitoring.aac_master_monitoring_dashboard", "--mode", "web"])
 
 
 def _mode_monitor() -> int:
@@ -593,6 +596,28 @@ def _mode_thirteen_moon(port: int = 8503, open_browser: bool = True) -> int:
     return 0
 
 
+def _mode_roadmap(open_browser: bool = True, **_kw: object) -> int:
+    """Export and open the unified Command Roadmap HTML dashboard."""
+    logger.info(str(_cyan("  Command Roadmap — daily/weekly + 13-Moon + war room")))
+
+    try:
+        from strategies.roadmap_storyboard import export_roadmap
+        path = export_roadmap()
+        logger.info(str(_green(f"  [+] Roadmap exported to {path}")))
+    except Exception as e:
+        logger.info(str(_red(f"  [X] Failed to export roadmap: {e}")))
+        return 1
+
+    if open_browser:
+        try:
+            file_url = "file:///" + os.path.abspath(path).replace("\\", "/")
+            webbrowser.open(file_url, new=2)
+        except Exception as e:
+            logger.info(str(_yellow(f"  [!] Browser auto-open failed: {e}")))
+
+    return 0
+
+
 def _mode_mission_control(port: int = 8069, open_browser: bool = True) -> int:
     """Start Mission Control — unified dashboard."""
     logger.info(str(_cyan("  [*] Starting Mission Control on port %d ...") % port))
@@ -620,6 +645,15 @@ def _mode_polymarket() -> int:
     return _asyncio.run(_run())
 
 
+def _mode_lde(args: argparse.Namespace) -> int:
+    """Launch the Living Doctrine Engine dashboard."""
+    port = getattr(args, "port", None) or 8510
+    logger.info(str(_cyan(f"  [*] Starting LDE Dashboard on port {port} ...")))
+    from monitoring.lde_dashboard import run_dashboard
+    run_dashboard(port=port)
+    return 0
+
+
 # ── Dispatch ────────────────────────────────────────────────────────────────
 
 MODE_DISPATCH = {
@@ -627,6 +661,7 @@ MODE_DISPATCH = {
     "api": _mode_api,
     "dashboard": _mode_dashboard,
     "deploy": _mode_deploy,
+    "lde": _mode_lde,
     "matrix": _mode_matrix,
     "monitor": _mode_monitor,
     "paper": _mode_paper,
@@ -642,6 +677,7 @@ MODE_DISPATCH = {
     "mission-control": _mode_mission_control,
     "13-moon": _mode_thirteen_moon,
     "polymarket": _mode_polymarket,
+    "roadmap": _mode_roadmap,
 }
 
 

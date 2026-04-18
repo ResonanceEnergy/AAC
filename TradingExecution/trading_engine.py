@@ -342,9 +342,9 @@ class TradingEngine:
         if self.dry_run:
             # Return mock balance for testing
             return {
-                'USD': 100000.0,
-                'BTC': 1.0,
-                'ETH': 10.0,
+                'USD': 10000.0,
+                'BTC': 0.1,
+                'ETH': 1.0,
             }
 
         # Get balance from exchange connector

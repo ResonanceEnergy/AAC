@@ -20,6 +20,7 @@ Architecture:
     │    milestone_check   300s  50 gates → triggers     │
     │    mandate_gen     86400s  daily mandate → JSON    │
     │    storyboard_regen 3600s  HTML regen from live    │
+    │    council_scan      900s  YT+X → scenarios+ind   │
     │                                                   │
     │  AUTO-EVOLVE (parameter adaptation)               │
     │    scenario_reweight 86400s  P adjustments        │
@@ -69,6 +70,7 @@ class AutoUpdateParams:
     milestone_check_interval: float = 300.0     # 5 min — 50-gate trigger scan
     mandate_gen_interval: float = 86400.0       # 24 hr — daily mandate
     storyboard_regen_interval: float = 3600.0   # 1 hr — HTML refresh
+    council_scan_interval: float = 900.0        # 15 min — YouTube + X council intelligence
 
     # ── Data Retention ────────────────────────────────────────────────
     indicator_snapshot_max_days: int = 90        # Keep 90 days of minute-level snaps
@@ -318,6 +320,63 @@ class WarRoomAutoEngine:
                     fh.is_stale = True
             self._save_feed_health()
 
+    async def task_council_scan(self):
+        """Run YouTube + X council intelligence scan and apply to war room."""
+        now = datetime.now(timezone.utc).isoformat()
+        logger.info("WAR ROOM AUTO: council intelligence scan")
+        try:
+            from strategies.war_room_council_feeds import fetch_and_apply_council_intel
+            council_result = await fetch_and_apply_council_intel()
+
+            # Track feed health for council sources
+            for name, count in [("youtube_council", council_result.yt_videos_processed),
+                                ("x_council", council_result.x_posts_analyzed)]:
+                if name not in self.feed_health:
+                    self.feed_health[name] = FeedHealth(name=name)
+                fh = self.feed_health[name]
+                if count > 0:
+                    fh.last_success = now
+                    fh.consecutive_failures = 0
+                    fh.is_stale = False
+                    fh.last_value = council_result.summary()[:200]
+                else:
+                    fh.consecutive_failures += 1
+                    fh.last_failure = now
+                    if fh.consecutive_failures >= self.update_params.feed_max_retries:
+                        fh.is_stale = True
+            self._save_feed_health()
+
+            # Log intel update
+            try:
+                from strategies.ninety_day_war_room import log_intel_update
+                log_intel_update("Council scan: YouTube + X intelligence", {
+                    "yt_videos": council_result.yt_videos_processed,
+                    "x_posts": council_result.x_posts_analyzed,
+                    "scenarios": list(council_result.scenario_signals.keys())[:5],
+                    "sentiment": council_result.combined_sentiment,
+                })
+            except Exception:
+                pass
+
+            logger.info("WAR ROOM AUTO: council scan completed — %s", council_result.summary())
+
+            # ── Inject alpha signal into IndicatorState for composite scoring ──
+            if council_result.alpha_signal is not None:
+                try:
+                    from strategies.war_room_engine import IndicatorState
+                    IndicatorState.alpha_signal = council_result.alpha_signal
+                    logger.info(
+                        "WAR ROOM AUTO: alpha injected into IndicatorState: %.4f",
+                        council_result.alpha_signal,
+                    )
+                except (ImportError, AttributeError) as exc:
+                    logger.warning("WAR ROOM AUTO: alpha injection failed: %s", exc)
+
+        except ImportError:
+            logger.warning("WAR ROOM AUTO: war_room_council_feeds not importable")
+        except Exception as e:
+            logger.error("WAR ROOM AUTO: council scan failed: %s", e)
+
     async def task_balance_sync(self):
         """Sync account balances from all platforms."""
         logger.info("WAR ROOM AUTO: balance sync")
@@ -371,6 +430,7 @@ class WarRoomAutoEngine:
                 "bdc_nonaccrual_pct": IndicatorState.bdc_nonaccrual_pct,
                 "defi_tvl_change_pct": IndicatorState.defi_tvl_change_pct,
                 "stablecoin_depeg_pct": IndicatorState.stablecoin_depeg_pct,
+                "alpha_signal": IndicatorState.alpha_signal,
             }
             self._append_jsonl("indicator_snapshots.jsonl", snap)
         except Exception as e:
@@ -782,6 +842,7 @@ class WarRoomAutoEngine:
             {"name": "wr_milestones",     "interval": up.milestone_check_interval,      "callback": self.task_milestone_check,     "critical": False},
             {"name": "wr_mandate",        "interval": up.mandate_gen_interval,          "callback": self.task_mandate_gen,         "critical": False},
             {"name": "wr_storyboard",     "interval": up.storyboard_regen_interval,     "callback": self.task_storyboard_regen,    "critical": False},
+            {"name": "wr_council_scan",   "interval": up.council_scan_interval,          "callback": self.task_council_scan,        "critical": False},
             # Auto-Evolve tasks
             {"name": "wr_scenario_evolve",   "interval": ep.scenario_reweight_interval,     "callback": self.task_scenario_reweight,     "critical": False},
             {"name": "wr_arm_rebalance",     "interval": ep.arm_rebalance_interval,         "callback": self.task_arm_rebalance,         "critical": False},
@@ -815,6 +876,7 @@ class WarRoomAutoEngine:
                     "milestone_check": f"{self.update_params.milestone_check_interval}s",
                     "mandate_gen": f"{self.update_params.mandate_gen_interval}s",
                     "storyboard_regen": f"{self.update_params.storyboard_regen_interval}s",
+                    "council_scan": f"{self.update_params.council_scan_interval}s",
                 },
                 "evolve": {
                     "regime_thresholds": f"CALM≤{self.evolve_params.regime_calm_max} WATCH≤{self.evolve_params.regime_watch_max} ELEVATED≤{self.evolve_params.regime_elevated_max} CRISIS>",
