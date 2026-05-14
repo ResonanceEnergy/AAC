@@ -72,7 +72,11 @@ def _collect_payload() -> dict[str, Any]:
 def _render_streamlit(payload: dict[str, Any]) -> None:
     import streamlit as st
 
-    st.set_page_config(page_title="AAC Streamlit Dashboard", layout="wide")
+    try:
+        st.set_page_config(page_title="AAC Streamlit Dashboard", layout="wide")
+    except Exception:
+        # Already configured by caller (main()); harmless.
+        pass
     st.title("AAC Monitoring Dashboard")
     st.caption("Rebuilt streamlit_dashboard module (web mode)")
 
@@ -164,7 +168,19 @@ class AACStreamlitDashboard:
 
 
 def main() -> None:
-    payload = _collect_payload()
+    # Render header immediately so the page paints, then collect data under a
+    # spinner. Otherwise slow collectors (IBKR timeouts, xAI calls) block the
+    # first paint for tens of seconds and the user sees a blank page.
+    try:
+        import streamlit as st
+
+        st.set_page_config(page_title="AAC Streamlit Dashboard", layout="wide")
+        st.title("AAC Monitoring Dashboard")
+        st.caption("Loading collectors ...")
+        with st.spinner("Collecting portfolio, war room, health, and feed data ..."):
+            payload = _collect_payload()
+    except ImportError:
+        payload = _collect_payload()
     _render_streamlit(payload)
 
 

@@ -53,7 +53,7 @@ def launch_web(port: int = 8501) -> int:
         logger.warning(f"  [!] Matrix Monitor (web): port {port} already in use — skipping duplicate launch")
         return 0
     logger.info(f"  Starting Matrix Monitor — Streamlit on port {port} ...")
-    dashboard_path = PROJECT_ROOT / "monitoring" / "aac_master_monitoring_dashboard.py"
+    dashboard_path = PROJECT_ROOT / "monitoring" / "streamlit_dashboard.py"
     if not dashboard_path.exists():
         logger.error(f"  [X] Dashboard not found: {dashboard_path}")
         return 1
