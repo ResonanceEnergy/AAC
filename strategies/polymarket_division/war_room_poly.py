@@ -27,6 +27,11 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
+try:
+    import aiohttp
+except ImportError:
+    aiohttp = None  # type: ignore[assignment]
+
 if hasattr(sys.stdout, "buffer") and sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
@@ -101,6 +106,91 @@ class WarRoomPoly:
     def __init__(self):
         self.matches: List[ThesisMarketMatch] = []
         self.pressure_level: float = 0.44  # Current pressure cooker level
+        self._session: Optional[Any] = None
+
+    async def _get_session(self):
+        if aiohttp is None:
+            raise ImportError("aiohttp required: pip install aiohttp")
+        if self._session is None or self._session.closed:
+            self._session = aiohttp.ClientSession()
+        return self._session
+
+    async def scan(self) -> List[ThesisMarketMatch]:
+        """Async scan: fetch markets from Gamma API and classify through thesis stages."""
+        GAMMA_API = "https://gamma-api.polymarket.com"
+        session = await self._get_session()
+        opportunities = []
+        try:
+            url = (
+                f"{GAMMA_API}/markets"
+                f"?limit=100&offset=0&active=true&closed=false"
+                f"&order=volume&ascending=false"
+            )
+            async with session.get(url, timeout=aiohttp.ClientTimeout(total=15)) as resp:
+                if resp.status != 200:
+                    logger.warning("Gamma API returned %s for war_room scan", resp.status)
+                    return []
+                data = await resp.json()
+
+            for m in (data or []):
+                question = m.get("question", "")
+                stage = self.classify_market(question)
+                if not stage:
+                    continue
+                # Parse yes price
+                raw_prices = m.get("outcomePrices", "0.5,0.5")
+                yes_price = 0.5
+                if isinstance(raw_prices, str):
+                    cleaned = raw_prices.strip().strip("[]")
+                    parts = [p.strip().strip('"').strip("'") for p in cleaned.split(",")]
+                    if parts:
+                        try:
+                            yes_price = float(parts[0])
+                        except (ValueError, IndexError):
+                            yes_price = 0.5
+
+                # Parse token IDs
+                tokens = m.get("clobTokenIds", "") or ""
+                token_id = ""
+                if isinstance(tokens, str) and tokens:
+                    try:
+                        parsed = json.loads(tokens)
+                        if isinstance(parsed, list) and parsed:
+                            token_id = str(parsed[0])
+                    except (json.JSONDecodeError, TypeError):
+                        pass
+
+                cid = m.get("conditionId", "") or m.get("condition_id", "")
+                thesis_prob = self.thesis_probability(stage, yes_price)
+                edge = thesis_prob - yes_price
+                if edge <= 0:
+                    continue
+
+                opportunities.append(ThesisMarketMatch(
+                    stage=stage,
+                    stage_description=THESIS_STAGES[stage]["description"],
+                    market_question=question,
+                    condition_id=cid,
+                    outcome="YES",
+                    market_price=yes_price,
+                    thesis_multiplier=thesis_prob / max(yes_price, 0.001),
+                    thesis_probability=thesis_prob,
+                    edge=edge,
+                    token_id=token_id,
+                    volume_24h=float(m.get("volume24hr", 0) or m.get("volume_24hr", 0) or 0),
+                    liquidity=float(m.get("liquidity", 0) or 0),
+                ))
+
+            opportunities.sort(key=lambda x: x.edge, reverse=True)
+            self.matches = opportunities
+            logger.info("War Room scan: %d thesis matches from Gamma API", len(opportunities))
+        except Exception as e:
+            logger.error("War Room scan error: %s", e)
+        finally:
+            if self._session and not self._session.closed:
+                await self._session.close()
+                self._session = None
+        return opportunities
 
     def set_pressure_level(self, level: float):
         """Update the pressure cooker level (0.0 to 1.0)."""

@@ -11,6 +11,7 @@ Automated completion of all critical AAC system gaps:
 
 EXECUTION DATE: February 6, 2026
 """
+from __future__ import annotations
 
 import asyncio
 import json
@@ -430,7 +431,13 @@ class OrderSimulator:
         # Simulate fill probability
         if random.random() < self.slippage_model['fill_probability']:
             # Execute the order
-            current_price = await self._get_simulated_price(order.symbol)
+            try:
+                current_price = await self._get_simulated_price(order.symbol)
+            except RuntimeError:
+                order.status = 'cancelled'
+                if order.order_id in self.pending_orders:
+                    del self.pending_orders[order.order_id]
+                return
 
             # Apply market impact
             if order.side == 'buy':
@@ -462,25 +469,20 @@ class OrderSimulator:
             del self.pending_orders[order.order_id]
 
     async def _get_simulated_price(self, symbol: str) -> float:
-        """Get simulated current price for symbol"""
-        # Simple price simulation - in real implementation, this would
-        # come from market data feeds
-        base_prices = {
-            'SPY': 450.0,
-            'QQQ': 380.0,
-            'IWM': 180.0,
-            'AAPL': 180.0,
-            'GOOGL': 140.0,
-            'MSFT': 380.0,
-            'TSLA': 220.0,
-            'NVDA': 450.0
-        }
+        """Get the current market price for *symbol* from the live yfinance feed.
 
-        base_price = base_prices.get(symbol, 100.0)
-
-        # Add some random variation
-        variation = random.uniform(-0.02, 0.02)  # ±2%
-        return base_price * (1 + variation)
+        Raises RuntimeError (Sprint 58) if the feed returns no data, so the
+        caller can cancel the simulated order rather than fill at a fake price.
+        """
+        from shared.market_data_feeds import get_market_data_feed  # noqa: PLC0415
+        feed = await get_market_data_feed()
+        data = await feed.get_latest_price(symbol)
+        if data is None or data.price is None:
+            raise RuntimeError(
+                f"Sprint 58: no real price available for {symbol!r} — "
+                "cannot fill simulated order at fabricated price."
+            )
+        return float(data.price)
 
     async def get_order_status(self, order_id: str) -> Optional[SimulatedOrder]:
         """Get order status"""

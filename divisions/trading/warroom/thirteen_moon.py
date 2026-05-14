@@ -1751,13 +1751,6 @@ CRYPTO_DOCTRINE: Dict[str, Any] = {
             "edge_target_bps": 25,
             "script": "strategies/run_crypto_arb.py",
         },
-        "metalx_arb": {
-            "name": "Metal X ↔ CEX Arbitrage",
-            "status": "MONITORING",
-            "pairs": ["BTC/XMD", "ETH/XMD", "XPR/XMD"],
-            "edge": "Zero-fee DEX vs CEX maker/taker fee asymmetry",
-            "script": "strategies/metalx_arb_strategy.py",
-        },
         "xmd_treasury": {
             "name": "XMD Stablecoin Treasury",
             "status": "MONITORING",

@@ -10,6 +10,8 @@ Usage:
     python _check_all_balances.py --json       # JSON output
     python _check_all_balances.py --update     # update doctrine after scan
 """
+from __future__ import annotations
+
 import argparse
 import asyncio
 import json

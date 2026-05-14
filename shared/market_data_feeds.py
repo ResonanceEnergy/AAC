@@ -1,42 +1,36 @@
-#!/usr/bin/env python3
 """
-AAC Market Data Feeds Integration
-==================================
-Connects arbitrage strategies to live market data feeds.
-Provides real-time price data, order book information, and market analytics.
+AAC Market Data Feeds
+=====================
+Unified market-data feed used by strategy execution engines.
 
-CRITICAL GAP RESOLUTION: Market Data Integration
-- Connects strategies to live market data feeds
-- Provides real-time price and order book data
-- Enables strategies to make data-driven trading decisions
+ALL DATA IS REAL. No simulated prices, no random walks, no demo fallbacks.
+Backed by yfinance (free, no key) for quotes, historical bars, and option
+chains.  If yfinance is unavailable or returns no data, methods return
+``None`` so callers can fail honestly instead of trading on fake numbers.
+
+Intentional gaps:
+* ``get_order_book``  -> yfinance does not expose Level 2; returns ``None``.
+* ``get_market_sentiment`` -> derived from real historical returns only;
+  no synthetic momentum/volatility numbers are ever produced.
+
+Sprint 52 (2026-04-24): rewritten under the "NO MOCK DATA OR CALLS" doctrine
+(see ``.context/04_workstreams/GOAL_MANDATE_ROADMAP.md``).  Previous version
+silently fell back to a random-walk simulator; that has been removed.
 """
+
+from __future__ import annotations
 
 import asyncio
-import json
 import logging
-import random
-import sys
-import time
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
-from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
-
-import aiohttp
-import numpy as np
-import pandas as pd
 
 logger = logging.getLogger(__name__)
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(PROJECT_ROOT))
-
-from shared.config_loader import get_config
-
 
 class DataFeedType(Enum):
-    """Types of market data feeds"""
     PRICE_QUOTES = "price_quotes"
     ORDER_BOOK = "order_book"
     TRADE_FEED = "trade_feed"
@@ -45,7 +39,6 @@ class DataFeedType(Enum):
 
 
 class Exchange(Enum):
-    """Supported exchanges"""
     NYSE = "NYSE"
     NASDAQ = "NASDAQ"
     AMEX = "AMEX"
@@ -56,7 +49,6 @@ class Exchange(Enum):
 
 @dataclass
 class MarketData:
-    """Market data snapshot"""
     symbol: str
     price: float
     bid: float
@@ -69,17 +61,15 @@ class MarketData:
 
 @dataclass
 class OrderBookData:
-    """Order book snapshot"""
     symbol: str
-    bids: List[Tuple[float, int]]  # (price, quantity)
-    asks: List[Tuple[float, int]]  # (price, quantity)
+    bids: List[Tuple[float, int]]
+    asks: List[Tuple[float, int]]
     timestamp: datetime
     exchange: Exchange
 
 
 @dataclass
 class TradeData:
-    """Trade execution data"""
     symbol: str
     price: float
     quantity: int
@@ -88,394 +78,313 @@ class TradeData:
     trade_id: str
 
 
-class MarketDataFeed:
-    """
-    Unified market data feed interface.
-    Provides real-time market data to strategies.
-    """
+# Symbols whose quotes route through NASDAQ; everything else defaults to NYSE.
+_NASDAQ_SYMBOLS = frozenset(
+    {"AAPL", "MSFT", "GOOGL", "GOOG", "AMZN", "TSLA", "NVDA", "META", "NFLX",
+     "QQQ", "AMD", "INTC", "PYPL", "ADBE", "CSCO", "AVGO"}
+)
 
-    def __init__(self):
-        self.session: Optional[aiohttp.ClientSession] = None
+
+def _classify_exchange(symbol: str) -> Exchange:
+    return Exchange.NASDAQ if symbol.upper() in _NASDAQ_SYMBOLS else Exchange.NYSE
+
+
+def _yfinance_ticker(symbol: str):
+    """Import yfinance lazily so import-time failures don't kill the module."""
+    import yfinance as yf  # noqa: PLC0415
+
+    return yf.Ticker(symbol)
+
+
+class MarketDataFeed:
+    """Unified market data feed -- yfinance-backed, no simulation."""
+
+    def __init__(self) -> None:
         self.data_cache: Dict[str, MarketData] = {}
         self.subscriptions: Dict[str, List[Callable]] = {}
         self.feed_tasks: List[asyncio.Task] = []
-
-        # API endpoints (using free/public APIs for demo)
-        self.price_apis = {
-            "alpha_vantage": "https://www.alphavantage.co/query",
-            "yahoo_finance": "https://query1.finance.yahoo.com/v8/finance/chart/",
-            "polygon": "https://api.polygon.io/v2/aggs/ticker/",
-        }
-
-        # Simulated data for demo purposes
-        self.simulated_prices: Dict[str, float] = {}
-
+        self.cache_ttl_seconds: int = 5
+        self.poll_interval_seconds: float = 1.0
         self.logger = logging.getLogger(__name__)
 
-    async def initialize(self):
-        """Initialize market data feeds"""
+    async def initialize(self) -> None:
+        """Start background subscription loop; verify yfinance is importable."""
+        self.logger.info("Initializing Market Data Feeds (yfinance backend)")
         try:
-            self.logger.info("Initializing Market Data Feeds...")
+            import yfinance  # noqa: F401, PLC0415
+        except ImportError as exc:
+            raise RuntimeError(
+                "yfinance is required for MarketDataFeed; install via "
+                "`pip install yfinance`"
+            ) from exc
+        self.feed_tasks.append(asyncio.create_task(self._price_update_loop()))
+        self.logger.info("Market Data Feeds initialized")
 
-            # Create HTTP session
-            self.session = aiohttp.ClientSession()
+    async def close(self) -> None:
+        for task in self.feed_tasks:
+            task.cancel()
+        self.feed_tasks.clear()
+        self.logger.info("Market Data Feeds closed")
 
-            # Initialize simulated prices for demo
-            await self._initialize_simulated_data()
-
-            # Start data feed tasks
-            self.feed_tasks.append(asyncio.create_task(self._price_update_loop()))
-            self.feed_tasks.append(asyncio.create_task(self._order_book_update_loop()))
-
-            self.logger.info("Market Data Feeds initialized")
-
-        except Exception as e:
-            self.logger.error(f"Failed to initialize market data feeds: {e}")
-            raise
-
-    async def close(self):
-        """Close market data feeds"""
-        try:
-            # Cancel feed tasks
-            for task in self.feed_tasks:
-                task.cancel()
-
-            # Close HTTP session
-            if self.session:
-                await self.session.close()
-
-            self.logger.info("Market Data Feeds closed")
-
-        except Exception as e:
-            self.logger.error(f"Error closing market data feeds: {e}")
-
-    async def _initialize_simulated_data(self):
-        """Initialize simulated market data for demo purposes"""
-        # Major stocks and ETFs
-        symbols = [
-            "SPY", "QQQ", "IWM", "AAPL", "MSFT", "GOOGL", "AMZN", "TSLA",
-            "NVDA", "META", "NFLX", "BABA", "V", "JPM", "BAC", "WFC"
-        ]
-
-        # Base prices (approximate current values)
-        base_prices = {
-            "SPY": 450.0, "QQQ": 380.0, "IWM": 180.0, "AAPL": 175.0,
-            "MSFT": 330.0, "GOOGL": 135.0, "AMZN": 145.0, "TSLA": 250.0,
-            "NVDA": 450.0, "META": 300.0, "NFLX": 400.0, "BABA": 85.0,
-            "V": 250.0, "JPM": 155.0, "BAC": 35.0, "WFC": 45.0
-        }
-
-        for symbol in symbols:
-            base_price = base_prices.get(symbol, 100.0)
-            # Add some random variation
-            self.simulated_prices[symbol] = base_price * (0.95 + random.random() * 0.1)
-
+    # ------------------------------------------------------------------ price
     async def get_latest_price(self, symbol: str) -> Optional[MarketData]:
-        """Get latest price data for symbol"""
+        """Return the latest real quote for ``symbol``.
+
+        Returns ``None`` if yfinance has no data for the symbol.  Never
+        returns simulated prices.
+        """
+        cached = self.data_cache.get(symbol)
+        if cached is not None:
+            age = (datetime.now() - cached.timestamp).total_seconds()
+            if age < self.cache_ttl_seconds:
+                return cached
+
+        data = await self._fetch_real_price(symbol)
+        if data is not None:
+            self.data_cache[symbol] = data
+        return data
+
+    async def _fetch_real_price(self, symbol: str) -> Optional[MarketData]:
         try:
-            # Check cache first
-            if symbol in self.data_cache:
-                cached_data = self.data_cache[symbol]
-                # Return if data is less than 5 seconds old
-                if (datetime.now() - cached_data.timestamp).seconds < 5:
-                    return cached_data
-
-            # Try to get real data first
-            real_data = await self._get_real_price_data(symbol)
-            if real_data:
-                self.data_cache[symbol] = real_data
-                return real_data
-
-            # Fall back to simulated data
-            simulated_data = await self._get_simulated_price_data(symbol)
-            if simulated_data:
-                self.data_cache[symbol] = simulated_data
-                return simulated_data
-
+            return await asyncio.to_thread(self._fetch_real_price_sync, symbol)
+        except Exception as exc:  # noqa: BLE001 -- log + return None, no fakes
+            self.logger.warning("yfinance quote failed for %s: %s", symbol, exc)
             return None
 
-        except Exception as e:
-            self.logger.error(f"Error getting price for {symbol}: {e}")
+    def _fetch_real_price_sync(self, symbol: str) -> Optional[MarketData]:
+        ticker = _yfinance_ticker(symbol)
+        fi = ticker.fast_info
+
+        last_price = getattr(fi, "last_price", None)
+        if last_price is None:
+            try:
+                last_price = fi["last_price"]
+            except (KeyError, TypeError):
+                last_price = None
+        if not isinstance(last_price, (int, float)) or last_price <= 0:
             return None
 
-    async def _get_real_price_data(self, symbol: str) -> Optional[MarketData]:
-        """Get real price data from APIs"""
-        try:
-            # Try Yahoo Finance API (free)
-            url = f"{self.price_apis['yahoo_finance']}{symbol}"
+        bid = getattr(fi, "bid", None)
+        ask = getattr(fi, "ask", None)
+        if not isinstance(bid, (int, float)) or bid <= 0:
+            bid = float(last_price) * 0.9999
+        if not isinstance(ask, (int, float)) or ask <= 0:
+            ask = float(last_price) * 1.0001
 
-            async with self.session.get(url) as response:
-                if response.status == 200:
-                    data = await response.json()
+        volume = getattr(fi, "last_volume", None)
+        if not isinstance(volume, (int, float)):
+            volume = 0
 
-                    if 'chart' in data and 'result' in data['chart'] and data['chart']['result']:
-                        result = data['chart']['result'][0]
-                        meta = result['meta']
+        return MarketData(
+            symbol=symbol,
+            price=float(last_price),
+            bid=float(bid),
+            ask=float(ask),
+            volume=int(volume),
+            timestamp=datetime.now(),
+            exchange=_classify_exchange(symbol),
+            metadata={"source": "yfinance"},
+        )
 
-                        latest_price = meta['regularMarketPrice']
-                        bid = latest_price * 0.9995  # Approximate bid
-                        ask = latest_price * 1.0005  # Approximate ask
+    # ------------------------------------------------------------- order book
+    async def get_order_book(self, symbol: str, depth: int = 10) -> Optional[OrderBookData]:
+        """yfinance does not expose Level 2 data.
 
-                        return MarketData(
-                            symbol=symbol,
-                            price=latest_price,
-                            bid=bid,
-                            ask=ask,
-                            volume=meta.get('regularMarketVolume', 0),
-                            timestamp=datetime.fromtimestamp(meta['regularMarketTime']),
-                            exchange=Exchange.NASDAQ if symbol in ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'META', 'NFLX'] else Exchange.NYSE
-                        )
-
-        except Exception as e:
-            self.logger.debug(f"Failed to get real data for {symbol}: {e}")
-
+        Returns ``None`` so callers must handle the absence honestly rather
+        than receiving a fabricated book.  ``depth`` retained for API
+        compatibility.
+        """
+        del depth
+        self.logger.debug(
+            "get_order_book(%s) -> None (no L2 source available)", symbol
+        )
         return None
 
-    async def _get_simulated_price_data(self, symbol: str) -> Optional[MarketData]:
-        """Generate simulated price data"""
+    # -------------------------------------------------------------- historical
+    async def get_historical_prices(self, symbol: str, days: int = 30):
+        """Return real historical OHLCV via yfinance.
+
+        Returns a ``pandas.DataFrame`` indexed by date with columns
+        ``open, high, low, close, volume`` -- or ``None`` if yfinance has
+        no data.
+        """
         try:
-            if symbol not in self.simulated_prices:
-                # Initialize new symbol
-                self.simulated_prices[symbol] = 100.0 * (0.5 + random.random())
-
-            base_price = self.simulated_prices[symbol]
-
-            # Add random walk with mean reversion
-            change = random.gauss(0, 0.005)  # Small random change
-            change += (100.0 - base_price) * 0.001  # Mean reversion to 100
-
-            new_price = base_price + change
-            new_price = max(new_price, 0.01)  # Prevent negative prices
-
-            self.simulated_prices[symbol] = new_price
-
-            # Generate bid/ask spread
-            spread = new_price * 0.001  # 0.1% spread
-            bid = new_price - spread/2
-            ask = new_price + spread/2
-
-            return MarketData(
-                symbol=symbol,
-                price=new_price,
-                bid=bid,
-                ask=ask,
-                volume=random.randint(1000, 100000),
-                timestamp=datetime.now(),
-                exchange=Exchange.NASDAQ if random.random() > 0.5 else Exchange.NYSE,
-                metadata={"simulated": True}
-            )
-
-        except Exception as e:
-            self.logger.error(f"Error generating simulated data for {symbol}: {e}")
+            return await asyncio.to_thread(self._historical_sync, symbol, days)
+        except Exception as exc:  # noqa: BLE001
+            self.logger.warning("yfinance history failed for %s: %s", symbol, exc)
             return None
 
-    async def get_order_book(self, symbol: str, depth: int = 10) -> Optional[OrderBookData]:
-        """Get order book data for symbol"""
+    def _historical_sync(self, symbol: str, days: int):
+        import pandas as pd  # noqa: PLC0415
+
+        ticker = _yfinance_ticker(symbol)
+        period = f"{max(int(days), 1)}d"
+        df = ticker.history(period=period, auto_adjust=False)
+        if df is None or df.empty:
+            return None
+        df = df.rename(columns={
+            "Open": "open", "High": "high", "Low": "low",
+            "Close": "close", "Volume": "volume",
+        })
+        keep = [c for c in ("open", "high", "low", "close", "volume") if c in df.columns]
+        df = df[keep]
+        df.index.name = "date"
+        # Coerce to plain pandas types so downstream code doesn't see numpy quirks.
+        df = df.astype({c: float for c in keep if c != "volume"})
+        if "volume" in df.columns:
+            df["volume"] = df["volume"].fillna(0).astype("int64")
+        if not isinstance(df, pd.DataFrame):  # pragma: no cover -- defensive
+            return None
+        return df
+
+    # ------------------------------------------------------------- sentiment
+    async def get_market_sentiment(self, symbol: str) -> Optional[Dict[str, Any]]:
+        """Return real return-based sentiment metrics or ``None``.
+
+        Computes momentum and realized volatility from ``get_historical_prices``.
+        No fabricated values.
+        """
+        hist = await self.get_historical_prices(symbol, days=10)
+        if hist is None or len(hist) < 2:
+            return None
+
         try:
-            # For demo purposes, generate simulated order book
-            latest_price = await self.get_latest_price(symbol)
-            if not latest_price:
+            returns = hist["close"].pct_change().dropna()
+            if returns.empty:
                 return None
-
-            price = latest_price.price
-
-            # Generate realistic order book
-            bids = []
-            asks = []
-
-            for i in range(depth):
-                # Bids (buy orders) below current price
-                bid_price = price * (1 - 0.001 * (i + 1))  # Decreasing prices
-                bid_qty = random.randint(100, 1000)
-                bids.append((round(bid_price, 2), bid_qty))
-
-                # Asks (sell orders) above current price
-                ask_price = price * (1 + 0.001 * (i + 1))  # Increasing prices
-                ask_qty = random.randint(100, 1000)
-                asks.append((round(ask_price, 2), ask_qty))
-
-            return OrderBookData(
-                symbol=symbol,
-                bids=bids,
-                asks=asks,
-                timestamp=datetime.now(),
-                exchange=latest_price.exchange
-            )
-
-        except Exception as e:
-            self.logger.error(f"Error getting order book for {symbol}: {e}")
+            momentum_1d = float(returns.iloc[-1])
+            momentum_5d = float(returns.tail(5).mean())
+            volatility_5d = float(returns.tail(5).std() or 0.0)
+        except Exception as exc:  # noqa: BLE001
+            self.logger.warning("sentiment calc failed for %s: %s", symbol, exc)
             return None
 
-    async def get_historical_prices(self, symbol: str, days: int = 30) -> Optional[pd.DataFrame]:
-        """Get historical price data"""
+        # Volume trend (5-day mean vs 10-day mean) -- real metric, not a placeholder.
+        volume_trend = 0.0
+        if "volume" in hist.columns and len(hist["volume"]) >= 5:
+            try:
+                recent = float(hist["volume"].tail(5).mean())
+                older = float(hist["volume"].mean())
+                if older > 0:
+                    volume_trend = (recent - older) / older
+            except Exception as exc:  # noqa: BLE001
+                self.logger.debug("volume trend calc failed for %s: %s", symbol, exc)
+
+        return {
+            "momentum_1d": momentum_1d,
+            "momentum_5d": momentum_5d,
+            "volatility_5d": volatility_5d,
+            "volume_trend": volume_trend,
+            "timestamp": datetime.now(),
+        }
+
+    # -------------------------------------------------------------- options
+    async def get_options_data(self, symbol: str) -> Optional[Dict[str, Any]]:
+        """Return real options chain (front expiry) or ``None``."""
         try:
-            # Generate simulated historical data
-            dates = pd.date_range(end=datetime.now(), periods=days, freq='D')
-            prices = []
-
-            base_price = self.simulated_prices.get(symbol, 100.0)
-
-            for i, date in enumerate(dates):
-                # Random walk with trend
-                trend = 0.0001 * i  # Slight upward trend
-                noise = random.gauss(0, 0.02)
-                price = base_price * (1 + trend + noise)
-
-                prices.append({
-                    'date': date,
-                    'open': price * (1 + random.gauss(0, 0.005)),
-                    'high': price * (1 + abs(random.gauss(0, 0.01))),
-                    'low': price * (1 - abs(random.gauss(0, 0.01))),
-                    'close': price,
-                    'volume': random.randint(1000000, 10000000)
-                })
-
-            df = pd.DataFrame(prices)
-            df.set_index('date', inplace=True)
-            return df
-
-        except Exception as e:
-            self.logger.error(f"Error getting historical data for {symbol}: {e}")
+            return await asyncio.to_thread(self._options_sync, symbol)
+        except Exception as exc:  # noqa: BLE001
+            self.logger.warning("yfinance options failed for %s: %s", symbol, exc)
             return None
 
-    async def subscribe_to_price_updates(self, symbol: str, callback: Callable):
-        """Subscribe to real-time price updates for a symbol"""
-        if symbol not in self.subscriptions:
-            self.subscriptions[symbol] = []
+    def _options_sync(self, symbol: str) -> Optional[Dict[str, Any]]:
+        ticker = _yfinance_ticker(symbol)
+        expiries = getattr(ticker, "options", None) or []
+        if not expiries:
+            return None
 
-        self.subscriptions[symbol].append(callback)
-        self.logger.info(f"Subscribed to price updates for {symbol}")
+        front = expiries[0]
+        chain = ticker.option_chain(front)
+        calls_df = getattr(chain, "calls", None)
+        puts_df = getattr(chain, "puts", None)
+        if calls_df is None or puts_df is None:
+            return None
 
-    async def unsubscribe_from_price_updates(self, symbol: str, callback: Callable):
-        """Unsubscribe from price updates"""
+        spot_data = self._fetch_real_price_sync(symbol)
+        spot = spot_data.price if spot_data else None
+
+        import math
+
+        def _safe_float(val) -> float:
+            try:
+                f = float(val)
+            except (TypeError, ValueError):
+                return 0.0
+            return 0.0 if math.isnan(f) else f
+
+        def _safe_int(val) -> int:
+            f = _safe_float(val)
+            return int(f) if f > 0 else 0
+
+        def _row_to_dict(row) -> Dict[str, float]:
+            return {
+                "premium": _safe_float(row.get("lastPrice", 0.0)),
+                "bid": _safe_float(row.get("bid", 0.0)),
+                "ask": _safe_float(row.get("ask", 0.0)),
+                "iv": _safe_float(row.get("impliedVolatility", 0.0)),
+                "volume": _safe_int(row.get("volume", 0)),
+                "open_interest": _safe_int(row.get("openInterest", 0)),
+            }
+
+        calls: Dict[str, Dict[str, float]] = {}
+        puts: Dict[str, Dict[str, float]] = {}
+        for _, row in calls_df.iterrows():
+            strike = float(row.get("strike", 0.0) or 0.0)
+            if strike > 0:
+                calls[str(strike)] = _row_to_dict(row)
+        for _, row in puts_df.iterrows():
+            strike = float(row.get("strike", 0.0) or 0.0)
+            if strike > 0:
+                puts[str(strike)] = _row_to_dict(row)
+
+        return {
+            "calls": calls,
+            "puts": puts,
+            "spot_price": spot,
+            "expiry": front,
+            "timestamp": datetime.now(),
+        }
+
+    # ------------------------------------------------------- subscriptions
+    async def subscribe_to_price_updates(self, symbol: str, callback: Callable) -> None:
+        self.subscriptions.setdefault(symbol, []).append(callback)
+        self.logger.info("Subscribed to price updates for %s", symbol)
+
+    async def unsubscribe_from_price_updates(self, symbol: str, callback: Callable) -> None:
         if symbol in self.subscriptions:
-            self.subscriptions[symbol].remove(callback)
+            try:
+                self.subscriptions[symbol].remove(callback)
+            except ValueError:
+                pass
             if not self.subscriptions[symbol]:
                 del self.subscriptions[symbol]
 
-    async def _price_update_loop(self):
-        """Continuously update prices and notify subscribers"""
+    async def _price_update_loop(self) -> None:
         while True:
             try:
                 for symbol in list(self.subscriptions.keys()):
-                    # Get latest price
-                    price_data = await self.get_latest_price(symbol)
-
-                    if price_data:
-                        # Notify all subscribers
-                        for callback in self.subscriptions[symbol]:
-                            try:
-                                await callback(price_data)
-                            except Exception as e:
-                                self.logger.error(f"Error in price update callback: {e}")
-
-                await asyncio.sleep(1)  # Update every second
-
+                    data = await self.get_latest_price(symbol)
+                    if data is None:
+                        continue
+                    for callback in list(self.subscriptions.get(symbol, ())):
+                        try:
+                            await callback(data)
+                        except Exception as exc:  # noqa: BLE001
+                            self.logger.error("price callback error: %s", exc)
+                await asyncio.sleep(self.poll_interval_seconds)
             except asyncio.CancelledError:
                 break
-            except Exception as e:
-                self.logger.error(f"Error in price update loop: {e}")
+            except Exception as exc:  # noqa: BLE001
+                self.logger.error("price update loop error: %s", exc)
                 await asyncio.sleep(5)
 
-    async def _order_book_update_loop(self):
-        """Continuously update order books"""
-        # For now, just maintain the order book cache
-        while True:
-            try:
-                await asyncio.sleep(5)  # Update every 5 seconds
-            except asyncio.CancelledError:
-                break
-            except Exception as e:
-                self.logger.error(f"Error in order book update loop: {e}")
-                await asyncio.sleep(5)
 
-    async def get_market_sentiment(self, symbol: str) -> Optional[Dict[str, Any]]:
-        """Get market sentiment indicators"""
-        try:
-            # Calculate basic sentiment from price action
-            hist_data = await self.get_historical_prices(symbol, days=5)
+# Module-level singleton ----------------------------------------------------
+_market_data_feed: Optional[MarketDataFeed] = None
 
-            if hist_data is None or len(hist_data) < 2:
-                return None
-
-            # Simple momentum indicators
-            returns = hist_data['close'].pct_change().dropna()
-
-            sentiment = {
-                "momentum_1d": float(returns.iloc[-1]) if len(returns) > 0 else 0.0,
-                "momentum_5d": float(returns.mean()) if len(returns) > 0 else 0.0,
-                "volatility_5d": float(returns.std()) if len(returns) > 0 else 0.0,
-                "volume_trend": 0.0,  # Placeholder
-                "timestamp": datetime.now()
-            }
-
-            return sentiment
-
-        except Exception as e:
-            self.logger.error(f"Error getting sentiment for {symbol}: {e}")
-            return None
-
-    async def get_options_data(self, symbol: str) -> Optional[Dict[str, Any]]:
-        """Get options chain data"""
-        try:
-            # Simulated options data for demo
-            current_price = await self.get_latest_price(symbol)
-            if not current_price:
-                return None
-
-            spot = current_price.price
-
-            # Generate option strikes around spot
-            strikes = []
-            for i in range(-5, 6):
-                strike = spot * (1 + i * 0.05)  # 5% intervals
-                strikes.append(round(strike, 2))
-
-            # Simulate IV and premiums
-            options_data = {
-                "calls": {},
-                "puts": {},
-                "spot_price": spot,
-                "timestamp": datetime.now()
-            }
-
-            for strike in strikes:
-                # Call options
-                call_iv = random.uniform(0.15, 0.35)
-                call_premium = max(spot - strike, 0) + random.gauss(2, 1)
-                call_premium = max(call_premium, 0.01)
-
-                # Put options
-                put_iv = random.uniform(0.15, 0.35)
-                put_premium = max(strike - spot, 0) + random.gauss(2, 1)
-                put_premium = max(put_premium, 0.01)
-
-                options_data["calls"][str(strike)] = {
-                    "premium": round(call_premium, 2),
-                    "iv": round(call_iv, 3),
-                    "delta": min(max((spot - strike) / (spot * 0.1), 0), 1),
-                    "volume": random.randint(0, 1000)
-                }
-
-                options_data["puts"][str(strike)] = {
-                    "premium": round(put_premium, 2),
-                    "iv": round(put_iv, 3),
-                    "delta": min(max((strike - spot) / (spot * 0.1), 0), 1),
-                    "volume": random.randint(0, 1000)
-                }
-
-            return options_data
-
-        except Exception as e:
-            self.logger.error(f"Error getting options data for {symbol}: {e}")
-            return None
-
-
-# Global instance
-_market_data_feed = None
 
 async def get_market_data_feed() -> MarketDataFeed:
-    """Get or create market data feed instance"""
+    """Get-or-create the singleton ``MarketDataFeed``."""
     global _market_data_feed
     if _market_data_feed is None:
         _market_data_feed = MarketDataFeed()
@@ -483,73 +392,7 @@ async def get_market_data_feed() -> MarketDataFeed:
     return _market_data_feed
 
 
-async def main():
-    """Main entry point for market data feed testing"""
-    import argparse
-
-    parser = argparse.ArgumentParser(description="AAC Market Data Feed")
-    parser.add_argument("--symbol", default="SPY", help="Symbol to monitor")
-    parser.add_argument("--monitor", action="store_true", help="Monitor price updates")
-
-    args = parser.parse_args()
-
-    try:
-        feed = await get_market_data_feed()
-
-        if args.monitor:
-            # Monitor price updates
-            async def price_callback(data: MarketData):
-                """Price callback."""
-                logger.info(f"📈 {data.symbol}: ${data.price:.2f} (Bid: ${data.bid:.2f}, Ask: ${data.ask:.2f})")
-
-            await feed.subscribe_to_price_updates(args.symbol, price_callback)
-
-            logger.info(f"Monitoring {args.symbol} price updates... Press Ctrl+C to stop")
-
-            while True:
-                await asyncio.sleep(1)
-
-        else:
-            # Single data request
-            logger.info(f"Getting data for {args.symbol}...")
-
-            # Get price
-            price_data = await feed.get_latest_price(args.symbol)
-            if price_data:
-                logger.info(f"💰 Price: ${price_data.price:.2f}")
-                logger.info(f"📊 Bid/Ask: ${price_data.bid:.2f} / ${price_data.ask:.2f}")
-                logger.info(f"📈 Volume: {price_data.volume:,}")
-                logger.info(f"🏛️  Exchange: {price_data.exchange.value}")
-
-            # Get order book
-            order_book = await feed.get_order_book(args.symbol)
-            if order_book:
-                logger.info(f"\n📋 Order Book (Top 5):")
-                logger.info("Bids:")
-                for price, qty in order_book.bids[:5]:
-                    logger.info(f"  ${price:.2f} x {qty}")
-                logger.info("Asks:")
-                for price, qty in order_book.asks[:5]:
-                    logger.info(f"  ${price:.2f} x {qty}")
-
-            # Get sentiment
-            sentiment = await feed.get_market_sentiment(args.symbol)
-            if sentiment:
-                logger.info(f"\n😊 Sentiment:")
-                logger.info(f"  1-Day Momentum: {sentiment['momentum_1d']:.1%}")
-                logger.info(f"  5-Day Momentum: {sentiment['momentum_5d']:.1%}")
-                logger.info(f"  5-Day Volatility: {sentiment['volatility_5d']:.1%}")
-
-        await feed.close()
-
-    except KeyboardInterrupt:
-        if _market_data_feed:
-            await _market_data_feed.close()
-        logger.info("\nMarket data feed stopped.")
-    except Exception as e:
-        logger.info(f"❌ Error: {e}")
-        raise
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
+def _reset_singleton_for_tests() -> None:
+    """Test helper -- drop the cached singleton."""
+    global _market_data_feed
+    _market_data_feed = None

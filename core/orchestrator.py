@@ -5,6 +5,8 @@ AAC 2100 Orchestrator - Complete System Reconstruction
 Quantum-enhanced orchestrator with full insight integration.
 Implements: sense → decide → act → reconcile cycle
 """
+from __future__ import annotations
+
 from __future__ import (
     annotations,  # defer annotation evaluation — fixes forward-reference NameErrors
 )
@@ -556,6 +558,9 @@ class AAC2100Orchestrator:
 
         # Checkpoint path
         self._checkpoint_path = get_project_path('data', 'aac2100_orchestrator_checkpoint.json')
+
+        # War Room signal cache (Sprint 1 — populated by war_room_scan())
+        self.last_war_room_signals: list = []
 
         # Background task references
         self._auto_execute_task: Optional[asyncio.Task] = None
@@ -1199,11 +1204,77 @@ class AAC2100Orchestrator:
         # Update positions
         await self.execution_engine.update_positions(prices)
 
+    async def war_room_scan(self) -> None:
+        """Run War Room + Vol Premium signal generators; inject into the aggregator.
+
+        Sprint 6: both strategies are run in the same thread executor, combined
+        via ``signal_aggregator.aggregate()``, and cached on
+        ``self.last_war_room_signals`` for status/API endpoints.
+        """
+        try:
+            from strategies.signal_generator import generate_signals  # noqa: PLC0415
+            from strategies.vol_premium_signals import generate_vol_premium_signals  # noqa: PLC0415
+            from strategies.signal_aggregator import aggregate  # noqa: PLC0415
+            from shared.signal import Direction
+
+            # Run both sync generators off the event loop
+            loop = asyncio.get_event_loop()
+            wr_signals = await loop.run_in_executor(
+                None, lambda: generate_signals(live=True, run_mc=False)
+            )
+            vp_signals = await loop.run_in_executor(
+                None, lambda: generate_vol_premium_signals(fetch_iv=True)
+            )
+
+            # Merge: War Room weighted 0.60, Vol Premium weighted 0.40
+            aggregated = aggregate([(wr_signals, 0.60), (vp_signals, 0.40)])
+            signals = [a.signal for a in aggregated]
+            self.last_war_room_signals = signals
+
+            self.logger.info(
+                "Combined scan: war_room=%d vol_premium=%d merged=%d",
+                len(wr_signals), len(vp_signals), len(signals),
+            )
+
+            for sig in signals:
+                # Map TradeSignal.Direction → QuantumSignal direction string
+                direction_map = {
+                    Direction.LONG: "long",
+                    Direction.LONG_CALL: "long",
+                    Direction.LONG_PUT: "short",
+                    Direction.SHORT: "short",
+                    Direction.FLAT: "neutral",
+                }
+                qs = QuantumSignal(
+                    signal_id=f"wr_{sig.ticker}_{sig.generated_at}",
+                    source_agent="war_room_engine",
+                    theater="war_room",
+                    signal_type=sig.direction.value,
+                    symbol=sig.ticker,
+                    direction=direction_map.get(sig.direction, "neutral"),
+                    strength=sig.confidence,
+                    confidence=sig.confidence,
+                    quantum_advantage=1.0,
+                    cross_temporal_score=0.5,
+                    entry_price=sig.entry if sig.entry > 0 else None,
+                    stop_loss=sig.stop if sig.stop > 0 else None,
+                    take_profit=sig.target if sig.target > 0 else None,
+                    metadata={"regime": sig.regime, "size": sig.size, "notes": sig.notes},
+                )
+                self.signal_aggregator.add_signal(qs)
+
+            self.metrics["signals_generated"] += len(signals)
+        except Exception as exc:
+            self.logger.debug("War Room scan error: %s", exc)
+
     async def scan_loop(self):
         """Main scanning loop"""
         while not self._shutdown_event.is_set():
             if self.state == OrchestratorState.RUNNING:
                 try:
+                    # War Room primary signal pass
+                    await self.war_room_scan()
+
                     # Scan all theaters
                     for theater in ["theater_b", "theater_c", "theater_d"]:
                         await self.run_agent_scan(theater)
@@ -1794,14 +1865,14 @@ class AAC2100Orchestrator:
                     spy_tick = await self.data_aggregator.get_latest_price("SPY")
                     if spy_tick:
                         snapshot["spy_price"] = spy_tick.price if hasattr(spy_tick, "price") else float(spy_tick)
-                except Exception:
-                    pass
+                except Exception as exc:
+                    self.logger.debug("SPY price fetch failed: %s", exc)
                 try:
                     vix_tick = await self.data_aggregator.get_latest_price("^VIX")
                     if vix_tick:
                         snapshot["vix"] = vix_tick.price if hasattr(vix_tick, "price") else float(vix_tick)
-                except Exception:
-                    pass
+                except Exception as exc:
+                    self.logger.debug("VIX price fetch failed: %s", exc)
 
                 # Evaluate all strategies
                 recs = advisor.evaluate_all(snapshot)
@@ -1864,8 +1935,8 @@ class AAC2100Orchestrator:
                         "ncl.sync.v1.bank.doctrine_state",
                         doctrine.get_doctrine_state(),
                     )
-                except ImportError:
-                    pass
+                except ImportError as exc:
+                    self.logger.debug("Doctrine state relay skipped — strategic_doctrine not available: %s", exc)
 
             except Exception as exc:
                 self.logger.debug("Relay heartbeat error: %s", exc)
@@ -1903,8 +1974,8 @@ class AAC2100Orchestrator:
                     if vix_tick:
                         vix_val = vix_tick.price if hasattr(vix_tick, "price") else float(vix_tick)
                         volatility = min(1.0, vix_val / 60.0)  # VIX 60 = 1.0 extreme
-                except Exception:
-                    pass
+                except Exception as exc:
+                    self.logger.debug("VIX terrain fetch failed: %s", exc)
 
                 # Assess terrain
                 terrain = engine.assess_terrain(

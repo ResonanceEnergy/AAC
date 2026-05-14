@@ -74,13 +74,17 @@ class WalkForwardResult:
     def to_dict(self) -> dict[str, Any]:
         return {
             "window_mode": self.window_mode,
+            "train_window": self.train_window,
+            "test_window": self.test_window,
             "total_folds": self.total_folds,
             "oos_total_return": round(self.oos_total_return, 4),
             "oos_sharpe": round(self.oos_sharpe, 4),
             "oos_max_drawdown": round(self.oos_max_drawdown, 4),
             "oos_win_rate": round(self.oos_win_rate, 4),
+            "oos_avg_profit_factor": round(self.oos_avg_profit_factor, 4),
             "consistency_ratio": round(self.consistency_ratio, 4),
             "sharpe_std": round(self.sharpe_std, 4),
+            "return_std": round(self.return_std, 4),
         }
 
 

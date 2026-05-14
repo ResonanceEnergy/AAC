@@ -12,6 +12,7 @@ This bridge enables:
 - Risk modeling with intelligence insights
 - Financial reporting with research context
 """
+from __future__ import annotations
 
 import asyncio
 import logging
@@ -259,7 +260,7 @@ class IntelligenceAccountingBridge:
                 "status": "processing"
             }
 
-            # Perform analysis based on type (placeholder logic)
+            # Route to a real analytics implementation for the requested study.
             if analysis_type == "market_prediction":
                 result = await self._analyze_market_prediction(parameters)
             elif analysis_type == "risk_factor_analysis":
@@ -267,7 +268,10 @@ class IntelligenceAccountingBridge:
             elif analysis_type == "performance_forecast":
                 result = await self._forecast_performance(parameters)
             else:
-                result = {"summary": f"Analysis completed for type: {analysis_type}"}
+                raise NotImplementedError(
+                    f"Sprint 57: unsupported research analysis type {analysis_type!r}. "
+                    "A real analytics implementation must be wired before this bridge can emit results."
+                )
 
             # Update analytics status
             self.active_analytics[request_id]["status"] = "completed"
@@ -277,72 +281,40 @@ class IntelligenceAccountingBridge:
             return result
 
         except Exception as e:
+            if request_id in self.active_analytics:
+                self.active_analytics[request_id]["status"] = "failed"
+                self.active_analytics[request_id]["error"] = str(e)
+                self.active_analytics[request_id]["end_time"] = datetime.now()
             logger.error(f"Error performing research analytics: {e}")
             return None
 
     async def _analyze_market_prediction(self, parameters: Dict) -> Dict:
         """Analyze market predictions."""
-        return {
-            "summary": "Market prediction analysis completed",
-            "confidence": 0.78,
-            "predictions": ["uptrend", "volatility_increase"],
-            "time_horizon": "1_week"
-        }
+        raise NotImplementedError(
+            "Sprint 57: market prediction analytics requires a real model and validated market dataset. "
+            "The canned prediction payload was removed."
+        )
 
     async def _analyze_risk_factors(self, parameters: Dict) -> Dict:
         """Analyze risk factors."""
-        return {
-            "summary": "Risk factor analysis completed",
-            "key_factors": ["market_volatility", "liquidity_risk", "counterparty_risk"],
-            "risk_scores": {"market_volatility": 0.65, "liquidity_risk": 0.45, "counterparty_risk": 0.32}
-        }
+        raise NotImplementedError(
+            "Sprint 57: risk factor analytics requires a real factor model and portfolio exposures. "
+            "The canned risk scores were removed."
+        )
 
     async def _forecast_performance(self, parameters: Dict) -> Dict:
         """Forecast performance."""
-        return {
-            "summary": "Performance forecast completed",
-            "expected_return": 0.085,
-            "volatility": 0.12,
-            "sharpe_ratio": 1.45,
-            "confidence_interval": [0.05, 0.125]
-        }
+        raise NotImplementedError(
+            "Sprint 57: performance forecasting requires a real return model and historical inputs. "
+            "The canned return, volatility, and Sharpe payload was removed."
+        )
 
     async def _perform_performance_attribution(self, portfolio_id: str, time_period: str, factors: List) -> Optional[Dict]:
         """Perform performance attribution analysis."""
-        try:
-            attribution_result = {
-                "portfolio_id": portfolio_id,
-                "time_period": time_period,
-                "total_return": 0.072,
-                "attribution": {}
-            }
-
-            # Calculate factor-weighted attribution
-            _seed = abs(hash((portfolio_id, time_period))) % (2**31)
-            _rng = __import__('random').Random(_seed + int(datetime.now().timestamp()) // 3600)
-            total_return = 0.072
-            remaining_return = total_return
-            n_factors = len(factors)
-
-            for i, factor in enumerate(factors):
-                # Distribute return across factors with variation
-                if i < n_factors - 1:
-                    factor_weight = round(1.0 / n_factors + _rng.uniform(-0.1, 0.1), 3)
-                    contribution = round(remaining_return * factor_weight, 4)
-                else:
-                    contribution = round(remaining_return / n_factors, 4)
-
-                attribution_result["attribution"][factor] = {
-                    "contribution": contribution,
-                    "weight": round(factor_weight if i < n_factors - 1 else 1.0 / n_factors, 3),
-                    "specific_return": round(contribution / max(factor_weight if i < n_factors - 1 else 1.0 / n_factors, 0.01), 4)
-                }
-
-            return attribution_result
-
-        except Exception as e:
-            logger.error(f"Error performing performance attribution: {e}")
-            return None
+        raise NotImplementedError(
+            "Sprint 57: performance attribution requires real portfolio return series and factor exposures. "
+            "The synthetic attribution allocator was removed."
+        )
 
     async def _update_risk_model(self, model_id: str, intelligence_insights: Dict) -> bool:
         """Update risk model with intelligence insights."""

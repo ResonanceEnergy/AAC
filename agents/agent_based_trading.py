@@ -15,6 +15,7 @@ CONTEST RULES:
 
 EXECUTION DATE: February 6, 2026
 """
+from __future__ import annotations
 
 import asyncio
 import json
@@ -196,17 +197,20 @@ class TradingAgent:
         if signal.direction == 'buy' and trade_value + total_fees > self.portfolio_value:
             return {'status': 'failed', 'reason': f'Insufficient capital: need ${trade_value + total_fees:.2f}, have ${self.portfolio_value:.2f}'}
 
-        # Simulate trade execution with realistic outcomes
-        success_chance = signal.confidence * 0.8  # Some slippage
-        trade_successful = random.random() < success_chance
-
-        pnl = 0.0
-        if trade_successful:
-            # Realistic P&L based on expected return with some noise
-            pnl = signal.expected_return * trade_value * (0.8 + random.random() * 0.4)  # 80%-120% of expected
-        else:
-            # Loss trade
-            pnl = -abs(signal.expected_return) * trade_value * (0.5 + random.random() * 0.5)  # 50%-100% loss
+        # Sprint 53: previous implementation simulated fills with random.random()
+        # and faked P&L from `expected_return * trade_value * uniform_noise`.
+        # That is exactly the kind of fake data the "NO MOCK DATA OR CALLS"
+        # doctrine prohibits, especially because this method was reachable from
+        # `core.aac_master_launcher._launch_strategy_agents` and would log
+        # fictional contest standings as if they were real.  The contest cannot
+        # complete without a real broker fill source, so fail loudly.
+        raise NotImplementedError(
+            "AgentContestOrchestrator.execute_trade requires a real exchange "
+            "connector (IBKR/Moomoo/etc).  The simulated random-walk fill path "
+            "was removed in Sprint 53 (doctrine: NO MOCK DATA OR CALLS)."
+        )
+        # The dead code below is preserved for reference only -- unreachable.
+        pnl = 0.0  # noqa: F841
 
         # Update portfolio
         if signal.direction == 'buy':
@@ -455,9 +459,16 @@ class AgentContestOrchestrator:
             for agent in innovation_agents:
                 await self.intelligence_router.add_innovation_agent(agent)
 
-            # Add mock intelligence sources
-            await self.intelligence_router.add_intelligence_source('BigBrainIntelligence', MockIntelligenceSource())
-            await self.intelligence_router.add_intelligence_source('CryptoIntelligence', MockIntelligenceSource())
+            # NO MOCK SOURCES (Sprint 52/53: doctrine "NO MOCK DATA OR CALLS").
+            # Real BigBrainIntelligence/CryptoIntelligence integrations are not
+            # wired as live services yet, so the contest runs with zero injected
+            # intelligence until they exist.  Operator is warned so silent
+            # degradation is impossible.
+            logger.warning(
+                "AgentContestOrchestrator: no live intelligence sources wired "
+                "(BigBrainIntelligence and CryptoIntelligence services not running). "
+                "Contest will execute without injected intelligence."
+            )
 
             self.status = 'active'
             self.contest_start_time = datetime.now()
@@ -559,24 +570,11 @@ class AgentContestOrchestrator:
         return report
 
 
-class MockIntelligenceSource:
-    """Mock intelligence source for testing"""
-
-    async def get_intelligence(self) -> List[IntelligenceData]:
-        """Generate mock intelligence data"""
-        intelligence_types = ['volatility_update', 'sentiment_analysis', 'correlation_data', 'market_regime']
-
-        intelligence = []
-        for intel_type in intelligence_types:
-            if random.random() < 0.7:  # 70% chance of generating each type
-                data = IntelligenceData(
-                    data_type=intel_type,
-                    content={'source': 'mock', 'data': f'sample_{intel_type}_data'},
-                    confidence=random.uniform(0.6, 0.95)
-                )
-                intelligence.append(data)
-
-        return intelligence
+# Sprint 53: MockIntelligenceSource was removed (doctrine: NO MOCK DATA OR CALLS).
+# When real BigBrainIntelligence/CryptoIntelligence services are wired they should
+# implement an `async def get_intelligence(self) -> List[IntelligenceData]` method
+# and be passed to `IntelligenceRouter.add_intelligence_source(name, instance)`
+# in `AgentContestOrchestrator.initialize_contest`.
 
 
 # Setup logging

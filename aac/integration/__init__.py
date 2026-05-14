@@ -1,4 +1,6 @@
 """AAC Integration Module - Cross-Department Coordination."""
+from __future__ import annotations
+
 from .cross_department_engine import (
     BakeoffIntegration,
     BigBrainIntelligenceAdapter,

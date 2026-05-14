@@ -4,6 +4,7 @@ TradingExecution - Core Trading Engine
 ======================================
 Main orchestrator for trade execution across multiple exchanges.
 """
+from __future__ import annotations
 
 import asyncio
 import logging
@@ -38,7 +39,6 @@ try:
     from TradingExecution.exchange_connectors.kraken_connector import KrakenConnector
     from TradingExecution.exchange_connectors.moomoo_connector import MoomooConnector
     from TradingExecution.exchange_connectors.ndax_connector import NDAXConnector
-    from TradingExecution.exchange_connectors.noxi_rise_connector import NoxiRiseConnector
     CONNECTORS_AVAILABLE = True
 except ImportError:
     CONNECTORS_AVAILABLE = False
@@ -172,31 +172,6 @@ class TradingEngine:
             except Exception as e:
                 self.logger.error(f"Failed to connect to {exchange_name}: {e}")
                 results[exchange_name] = False
-
-        # Handle Noxi Rise / MT5 (not in get_enabled_exchanges — uses separate mt5_* config fields)
-        if CONNECTORS_AVAILABLE and not self.dry_run:
-            mt5_path = getattr(self.config, 'mt5_path', '')
-            mt5_login = getattr(self.config, 'mt5_login', 0)
-            if mt5_path and mt5_login:
-                try:
-                    self.logger.info("Connecting to noxi_rise (MT5)...")
-                    connector = NoxiRiseConnector(
-                        mt5_path=mt5_path,
-                        login=mt5_login,
-                        password=getattr(self.config, 'mt5_password', ''),
-                        server=getattr(self.config, 'mt5_server', 'NoxiRise-Live'),
-                    )
-                    connected = await connector.connect()
-                    if connected:
-                        self.exchange_connections['noxi_rise'] = connector
-                        results['noxi_rise'] = True
-                        self.logger.info("Connected to noxi_rise (MT5)")
-                    else:
-                        results['noxi_rise'] = False
-                        self.logger.error("Failed to connect to noxi_rise (MT5)")
-                except Exception as e:
-                    self.logger.error(f"Failed to connect to noxi_rise: {e}")
-                    results['noxi_rise'] = False
 
         return results
 

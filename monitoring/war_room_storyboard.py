@@ -266,7 +266,11 @@ if _live_ts:
     else:
         st.warning(f"\u26a0\ufe0f Live data is {_age_min / 60:.1f} hours stale -- click 'Fetch Live Data' to refresh")
 else:
-    st.warning("\u26a0\ufe0f Using hardcoded spot prices (Apr 9). Click '\u26a1 Fetch Live Data' in sidebar to get real-time data.")
+    st.info(
+        "\U0001f4be Using spot-price cache (yfinance-backed via "
+        "`strategies/war_room_engine.get_spot_prices`). Click '\u26a1 Fetch "
+        "Live Data' in the sidebar to refresh prices and indicators now."
+    )
 
 # ============================================================================
 # ACT 1: THE SITUATION (Current State)

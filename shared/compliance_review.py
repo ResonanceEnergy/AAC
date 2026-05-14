@@ -4,6 +4,7 @@ Compliance Review & Regulatory Validation System
 ===============================================
 Final regulatory compliance checks and validation for production deployment.
 """
+from __future__ import annotations
 
 import asyncio
 import hashlib
@@ -447,7 +448,18 @@ class ComplianceReviewSystem:
         try:
             from shared.risk_disclosure import risk_disclosure_framework
             # Check if risk disclosure framework is operational
-            summary = risk_disclosure_framework.get_disclosure_summary()
+            raw_summary = risk_disclosure_framework.get_disclosure_summary()
+            summary_data: Any
+            if asyncio.iscoroutine(raw_summary):
+                summary_data = await raw_summary
+            else:
+                summary_data = raw_summary
+
+            if not isinstance(summary_data, dict):
+                self.logger.error("Invalid risk disclosure summary payload")
+                return False
+
+            summary: dict[str, Any] = summary_data
 
             if summary.get("total_disclosures", 0) == 0:
                 self.logger.error("No risk disclosures configured")

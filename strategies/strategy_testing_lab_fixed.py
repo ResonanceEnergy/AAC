@@ -13,6 +13,7 @@ Features:
 - Plug-and-play strategy testing
 - Real-world transition planning
 """
+from __future__ import annotations
 
 import argparse
 import asyncio
@@ -96,6 +97,10 @@ class StrategyTestingLab:
         self.experiments: Dict[str, LabExperiment] = {}
         self.results_history: List[Dict] = []
         self.strategy_loader = None
+        # Pre-initialize so callers don't AttributeError when the CSV
+        # (50_arbitrage_strategies.csv) is missing -- _load_strategy_configs
+        # only assigned this inside the CSV-exists branch.
+        self.strategy_configs: Dict[str, Dict[str, Any]] = {}
         self.initialized = False
 
     async def initialize(self):
@@ -191,87 +196,36 @@ class StrategyTestingLab:
 
     async def run_strategy_simulation(self, strategy_id: str, timeframe: str = "1M",
                                     n_simulations: int = 1000) -> Dict[str, Any]:
-        """Run ARB currency simulation for a strategy"""
-        self.logger.info(f"Running ARB simulation for {strategy_id} over {timeframe}")
+        """Run ARB currency simulation for a strategy.
 
+        Sprint 54 (NO MOCK DATA OR CALLS doctrine): the previous version always
+        delegated to _run_mock_simulation. Even when config['implemented'] was
+        True the implemented branch fell through to the mock path on the very
+        next line. _run_mock_simulation generated np.random.RandomState(42)
+        returns from a 3-strategy lookup table of {mean, std, win_rate} (s26,
+        s10, s11) plus a default for every other strategy, then assembled
+        trade history, sharpe, drawdown, and win_rate from those fake returns.
+        The whole pipeline of perform_comprehensive_analysis ->
+        _perform_single_analysis -> run_strategy_simulation -> downstream
+        metrics ran on this fake data.
+
+        A real implementation must load the strategy module from strategies/
+        and run it against a real historical-bar source (yfinance / IBKR /
+        data lake) with real position sizing and real trade-by-trade P&L.
+        Until that exists this method fails loudly.
+        """
         if strategy_id not in self.strategy_configs:
             raise ValueError(f"Strategy {strategy_id} not found")
-
-        config = self.strategy_configs[strategy_id]
-        if not config['implemented']:
-            self.logger.warning(f"Strategy {strategy_id} not implemented, using mock simulation")
-            return await self._run_mock_simulation(strategy_id, timeframe, n_simulations)
-
-        # Real simulation would load and run the strategy
-        # For now, return mock results
-        return await self._run_mock_simulation(strategy_id, timeframe, n_simulations)
-
-    async def _run_mock_simulation(self, strategy_id: str, timeframe: str, n_simulations: int) -> Dict[str, Any]:
-        """Run mock simulation with realistic ARB returns"""
-        # Simulate realistic arbitrage returns based on strategy type
-        base_returns = {
-            's26': {'mean': 0.12, 'std': 0.08, 'win_rate': 0.65},  # Weekly seasonality
-            's10': {'mean': 0.08, 'std': 0.06, 'win_rate': 0.70},  # Turn-of-month
-            's11': {'mean': 0.15, 'std': 0.12, 'win_rate': 0.55},  # Jump reversion
-        }
-
-        strategy_returns = base_returns.get(strategy_id, {'mean': 0.10, 'std': 0.10, 'win_rate': 0.60})
-
-        # Generate simulation results with fixed seed for reproducibility
-        _rng = np.random.RandomState(42)
-
-        daily_returns = _rng.normal(
-            strategy_returns['mean'] / 252,  # Daily mean
-            strategy_returns['std'] / np.sqrt(252),  # Daily std
-            n_simulations
+        raise NotImplementedError(
+            f"run_strategy_simulation({strategy_id!r}, {timeframe!r}) requires "
+            "a real backtest engine wired to historical bar data. The "
+            "_run_mock_simulation fake-returns path was removed in Sprint 54."
         )
 
-        # Calculate cumulative returns
-        cumulative_returns = np.cumprod(1 + daily_returns) - 1
-
-        # Calculate metrics
-        final_return = cumulative_returns[-1]
-        annualized_return = (1 + final_return) ** (252 / n_simulations) - 1
-        volatility = np.std(daily_returns) * np.sqrt(252)
-        sharpe_ratio = (annualized_return - 0.02) / volatility if volatility > 0 else 0
-        max_drawdown = self._calculate_max_drawdown(daily_returns)
-
-        # Generate trade history
-        trade_history = []
-        balance = 1000.0
-        for i, ret in enumerate(daily_returns):
-            trade_value = balance * 0.1  # 10% position size
-            pnl = trade_value * ret
-            balance += pnl
-
-            trade_history.append({
-                'trade_id': f"T{i+1}",
-                'date': (datetime.now() - timedelta(days=n_simulations-i)).date(),
-                'return': ret,
-                'pnl': pnl,
-                'balance': balance
-            })
-
-        results = {
-            'strategy_id': strategy_id,
-            'strategy_name': self.strategy_configs[strategy_id]['name'],
-            'timeframe': timeframe,
-            'n_simulations': n_simulations,
-            'initial_balance': 1000.0,
-            'final_balance': balance,
-            'total_return': final_return,
-            'total_return_pct': final_return * 100,
-            'annualized_return': annualized_return,
-            'volatility': volatility,
-            'sharpe_ratio': sharpe_ratio,
-            'max_drawdown': max_drawdown,
-            'win_rate': strategy_returns['win_rate'],
-            'trade_history': trade_history,
-            'currency': 'ARB',
-            'simulation_date': datetime.now().isoformat()
-        }
-
-        return results
+    # Sprint 54: _run_mock_simulation deleted (doctrine: NO MOCK DATA OR CALLS).
+    # Was: 80-line function generating np.random.RandomState(42) returns from a
+    # 3-strategy lookup table of fake mean/std/win_rate values, then fabricating
+    # trade history, sharpe, drawdown, and win_rate from those fake returns.
 
     def _calculate_max_drawdown(self, returns: np.ndarray) -> float:
         """Calculate maximum drawdown from returns"""

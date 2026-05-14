@@ -340,6 +340,24 @@ tr:hover td { background: var(--surface2); }
     </div>
 </div>
 
+<!-- Row 9: OpenClaw Gateway -->
+<div class="grid-full">
+    <div class="card" id="card-openclaw">
+        <h2>&#129408; OpenClaw Gateway <span id="openclaw-status-badge" style="font-size:12px; margin-left:8px;"></span></h2>
+        <div style="display:flex; gap:32px; flex-wrap:wrap; margin-top:6px;">
+            <div>
+                <div class="stat-row"><span class="stat-key">Gateway</span><span class="stat-val" id="openclaw-url">—</span></div>
+                <div class="stat-row"><span class="stat-key">AZ SUPREME</span><span class="stat-val" id="openclaw-agent-status">—</span></div>
+                <div class="stat-row"><span class="stat-key">Skills</span><span class="stat-val" id="openclaw-skill-count">—</span></div>
+            </div>
+            <div>
+                <div style="font-size:11px; color:var(--dim); margin-bottom:4px;">Skill Preview</div>
+                <div id="openclaw-skill-preview" style="font-size:11px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="status-bar">
     <span><span class="pulse" id="heartbeat"></span> <span id="last-updated">Waiting for data…</span></span>
     <span id="refresh-countdown">Next refresh in 30s</span>
@@ -816,6 +834,21 @@ function renderPolymarket(d) {
     }
 }
 
+function renderOpenClaw(d) {
+    if (!d) return;
+    const up = d.gateway_up;
+    $('openclaw-status-badge').innerHTML = up
+        ? '<span style="color:var(--green);">&#9679; CONNECTED</span>'
+        : '<span style="color:var(--red);">&#9679; OFFLINE</span>';
+    $('openclaw-url').textContent = d.gateway_url || '—';
+    $('openclaw-agent-status').innerHTML = up
+        ? '<span style="color:var(--green);">Active</span>'
+        : '<span style="color:var(--dim);">Not connected — run: launch.py openclaw</span>';
+    $('openclaw-skill-count').textContent = d.skill_count ? `${d.skill_count} skills registered` : '—';
+    const preview = (d.skill_preview || []);
+    $('openclaw-skill-preview').textContent = preview.length ? preview.join(', ') + (d.skill_count > 5 ? ` … +${d.skill_count - 5} more` : '') : '—';
+}
+
 function renderBackbone(d) {
     if (!d || d.error) return;
     const mods = d.modules || [];
@@ -901,6 +934,7 @@ function renderAll(data) {
     renderPnl(data.pnl);
     renderTradeLog(data.trade_log);
     renderBackbone(data.backbone);
+    renderOpenClaw(data.openclaw);
     $('last-updated').textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
 }
 

@@ -3,6 +3,8 @@ conftest.py — root-level pytest configuration for AAC
 Adds all top-level module paths to sys.path so tests can import
 any package without installing the project.
 """
+from __future__ import annotations
+
 import os
 import sys
 from pathlib import Path

@@ -226,7 +226,7 @@ class TestYouTubePipeline:
             "councils.youtube.division.process_video",
             return_value=fake_entry,
         ):
-            signals = asyncio.get_event_loop().run_until_complete(div.scan())
+            signals = asyncio.run(div.scan())
 
         assert len(signals) >= 1
         assert signals[0].signal_type.value == "intel_update"
@@ -317,7 +317,7 @@ class TestXaiPipeline:
             "councils.xai.division.run_xai_council",
             return_value=fake_entry,
         ):
-            signals = asyncio.get_event_loop().run_until_complete(div.scan())
+            signals = asyncio.run(div.scan())
 
         assert len(signals) >= 1
         assert signals[0].signal_type.value == "intel_update"
@@ -411,7 +411,7 @@ class TestPolymarketPipeline:
             new_callable=AsyncMock,
             return_value=fake_entry,
         ):
-            signals = asyncio.get_event_loop().run_until_complete(div.scan())
+            signals = asyncio.run(div.scan())
 
         # Should produce at least 1 signal (market summary)
         assert len(signals) >= 1
@@ -505,7 +505,7 @@ class TestCryptoPipeline:
             new_callable=AsyncMock,
             return_value=fake_entry,
         ):
-            signals = asyncio.get_event_loop().run_until_complete(div.scan())
+            signals = asyncio.run(div.scan())
 
         assert len(signals) >= 1
         assert signals[0].source_division == "crypto_council"
@@ -664,7 +664,7 @@ class TestWarRoomBridge:
         ), patch(
             "strategies.war_room_council_feeds.persist_council_snapshot",
         ):
-            result = asyncio.get_event_loop().run_until_complete(
+            result = asyncio.run(
                 fetch_and_apply_council_intel()
             )
 

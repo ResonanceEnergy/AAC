@@ -13,6 +13,7 @@ Features:
 - System resource monitoring
 - Trading activity monitoring
 """
+from __future__ import annotations
 
 import asyncio
 import json
@@ -204,7 +205,7 @@ class ContinuousMonitoringService:
 
         # Log health status
         overall_health = self._determine_overall_health(health_status)
-        self.logger.info(f"🏥 Health Check: {overall_health}")
+        self.logger.info(f"Health Check: {overall_health}")
 
         # Store health data for monitoring
         self._latest_health = health_status

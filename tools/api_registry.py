@@ -9,6 +9,7 @@ Run:  python tools/api_registry.py
       python tools/api_registry.py --json
       python tools/api_registry.py --missing
 """
+from __future__ import annotations
 
 import argparse
 import json
@@ -383,6 +384,21 @@ REGISTRY: list[dict[str, Any]] = [
         "cost": "FREE",
         "notes": "Trading alerts in Slack channel.",
         "priority": "LOW",
+    },
+
+    # ── PREDICTION MARKETS ──────────────────────
+    {
+        "env_var": "POLYMARKET_PRIVATE_KEY",
+        "name": "Polymarket (CLOB)",
+        "website": "https://polymarket.com",
+        "signup": "https://docs.polymarket.com/#getting-started",
+        "category": "Prediction Markets",
+        "cost": "Free — no API key; wallet private key required. 2% fee on winnings.",
+        "notes": "Decentralised prediction markets on Polygon (chain 137). "
+                 "Uses py-clob-client. SDK: pip install py-clob-client. "
+                 "Gamma API (free, no key): https://gamma-api.polymarket.com. "
+                 "AAC has $535.73 USDC wallet ACTIVE. active_scanner.py + war_room_poly.py + polymc.py.",
+        "priority": "HIGH",
     },
 
     # ── BLOCKCHAIN / WEB3 ───────────────────────

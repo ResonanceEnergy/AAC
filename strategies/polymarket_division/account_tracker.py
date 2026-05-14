@@ -243,6 +243,9 @@ class PolymarketAccountTracker:
 
     def get_open_orders(self) -> List[Dict[str, Any]]:
         """Get all open orders from CLOB API."""
+        # Gap #12: skip when no creds -- avoids 401 spam at every dashboard refresh.
+        if not os.getenv("POLYMARKET_API_KEY") or not os.getenv("POLYMARKET_API_SECRET"):
+            return []
         client = self._get_clob_client()
         if not client:
             return []

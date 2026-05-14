@@ -17,6 +17,7 @@ From BARREN WUFFET Insights (721-810):
   - Hash ribbon buy signal has 100% historical accuracy after miner capitulation
   - Crypto market hours matter: Asian session vs US session behavior differs
 """
+from __future__ import annotations
 
 import logging
 import math
@@ -590,7 +591,7 @@ if __name__ == "__main__":
     logger.info(f"  Signal: {fr.signal}")
     logger.info(f"  Carry Trade: {fr.carry_trade_viable}")
     for n in fr.notes:
-        print(f"  → {n}")
+        logger.info(f"  → {n}")
 
     # Open Interest
     oi = OpenInterestAnalyzer.analyze(
@@ -607,7 +608,7 @@ if __name__ == "__main__":
     logger.info(f"  L/S Ratio: {oi.long_short_ratio}")
     logger.info(f"  Divergence: {oi.divergence_type}")
     for n in oi.notes:
-        print(f"  → {n}")
+        logger.info(f"  → {n}")
 
     # Liquidation Cascade
     liq = LiquidationCascadeDetector.analyze_event(
@@ -626,7 +627,7 @@ if __name__ == "__main__":
     logger.info(f"  Cascade: {liq.is_cascade}")
     logger.info(f"  Recovery Prob: {liq.recovery_probability}%")
     for n in liq.notes:
-        print(f"  → {n}")
+        logger.info(f"  → {n}")
 
     # Dominance
     dom = DominanceRotationAnalyzer.analyze(
@@ -640,4 +641,4 @@ if __name__ == "__main__":
     logger.info(f"  Alt Season Index: {dom.alt_season_index}/100")
     logger.info(f"  Rotation: {dom.rotation_targets}")
     for n in dom.notes:
-        print(f"  → {n}")
+        logger.info(f"  → {n}")

@@ -36,6 +36,7 @@ Architecture:
     │    data/war_engine/mandate_*.json (existing)      │
     └───────────────────────────────────────────────────┘
 """
+from __future__ import annotations
 
 import asyncio
 import json
@@ -47,10 +48,13 @@ from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+import structlog
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 logger = logging.getLogger("WarRoomAuto")
+_log = structlog.get_logger()
 
 
 # ════════════════════════════════════════════════════════════════════════
@@ -305,8 +309,8 @@ class WarRoomAutoEngine:
             try:
                 from strategies.ninety_day_war_room import log_intel_update
                 log_intel_update("Auto-update: 11-feed refresh completed", {})
-            except Exception:
-                pass
+            except Exception as e:
+                _log.warning("ninety_day_war_room_log_intel_failed", error=str(e))
 
             logger.info("WAR ROOM AUTO: live feeds refreshed successfully")
         except Exception as e:
@@ -466,8 +470,8 @@ class WarRoomAutoEngine:
             try:
                 from config.account_balances import Balances
                 state["portfolio_usd"] = Balances.total_portfolio_usd()
-            except Exception:
-                pass
+            except Exception as e:
+                _log.warning("account_balances_import_failed", error=str(e))
             newly_triggered = check_milestones(state)
             if newly_triggered:
                 save_milestone_state()
@@ -482,8 +486,8 @@ class WarRoomAutoEngine:
                     from strategies.ninety_day_war_room import log_intel_update
                     names = ", ".join(str(m) for m in newly_triggered)
                     log_intel_update(f"Auto: Milestones triggered: {names}", {})
-                except Exception:
-                    pass
+                except Exception as e:
+                    _log.warning("ninety_day_war_room_log_milestone_failed", error=str(e))
         except Exception as e:
             logger.warning("WAR ROOM AUTO: milestone check failed: %s", e)
 

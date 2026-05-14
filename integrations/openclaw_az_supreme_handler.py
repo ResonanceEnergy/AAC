@@ -16,15 +16,18 @@ This module:
 
 Pattern reference: openclaw-usecase-16-multi-channel-customer-service.md
 """
+from __future__ import annotations
 
 import asyncio
+import json
 import logging
+import os
 import re
 import sys
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
@@ -38,6 +41,32 @@ from integrations.openclaw_gateway_bridge import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+SKILL_COMMAND_ALIASES = {
+    # Legacy AAC command dialect aliases.
+    "aac-market-intelligence": "bw-market-intelligence",
+    "aac-trading-signals": "bw-trading-signals",
+    "aac-portfolio-dashboard": "bw-portfolio-dashboard",
+    "aac-risk-monitor": "bw-risk-monitor",
+    "aac-crypto-intel": "bw-crypto-intel",
+    "aac-az-supreme-command": "bw-az-supreme-command",
+    "aac-doctrine-status": "bw-doctrine-status",
+    "aac-morning-briefing": "bw-morning-briefing",
+    "aac-agent-roster": "bw-agent-roster",
+    "aac-strategy-explorer": "bw-strategy-explorer",
+    # Telegram-style shorthand command aliases.
+    "bw-intel": "bw-market-intelligence",
+    "bw-signals": "bw-trading-signals",
+    "bw-dash": "bw-portfolio-dashboard",
+    "bw-risk": "bw-risk-monitor",
+    "bw-crypto": "bw-crypto-intel",
+    "az": "bw-az-supreme-command",
+    "bw-doctrine": "bw-doctrine-status",
+    "bw-briefing": "bw-morning-briefing",
+    "bw-agents": "bw-agent-roster",
+    "bw-strat": "bw-strategy-explorer",
+}
 
 
 # ─── Response Templates ────────────────────────────────────────────────────
@@ -198,8 +227,9 @@ class AZSupremeOpenClawHandler:
         self._az_supreme = None  # Lazy import to avoid circular deps
         self._ax_helix = None
         self._session_contexts: Dict[str, Dict[str, Any]] = {}
-        self._alert_channels: List[str] = []  # channel IDs to receive proactive alerts
+        self._alert_channels: List[tuple[OpenClawChannel, str]] = []
         self._initialized = False
+        self._skill_bridge = None
         logger.info("👑 AZ SUPREME OpenClaw Handler created")
 
     # ── Lifecycle ────────────────────────────────────────────────────────
@@ -224,7 +254,11 @@ class AZSupremeOpenClawHandler:
         }
 
         for intent, handler in intent_handlers.items():
-            self.bridge.register_agent_handler(intent.value, handler)
+            # Bridge calls handler(msg, session) but our methods only take (msg)
+            _h = handler
+            async def _wrap(msg, _session, _fn=_h):
+                return await _fn(msg)
+            self.bridge.register_agent_handler(intent.value, _wrap)
 
         # Register OpenClaw cron jobs for AAC
         await self._register_cron_jobs()
@@ -232,8 +266,103 @@ class AZSupremeOpenClawHandler:
         # Register AAC skills
         await self.bridge.register_aac_skills()
 
+        # Initialize runtime skill bridge for /bw-* and /aac-* command execution.
+        self._get_skill_bridge()
+
+        # Configure proactive output channels based on provider credentials.
+        # This ensures alerts/cron outputs are only sent to channels that are actually configured.
+        self._auto_register_alert_channels()
+
+        readiness = self.get_channel_readiness()
+        logger.info(
+            "🧩 OpenClaw runtime readiness: configured=%d missing=%d",
+            len(readiness["configured"]),
+            len(readiness["missing"]),
+        )
+
         self._initialized = True
         logger.info("👑 AZ SUPREME fully registered on OpenClaw Gateway")
+
+    def _auto_register_alert_channels(self) -> None:
+        """Register default alert channels from env/provider credentials."""
+        # Always keep webchat active for local/operator visibility.
+        self.register_alert_channel(OpenClawChannel.WEBCHAT, "main")
+
+        if os.getenv("TELEGRAM_BOT_TOKEN") and os.getenv("TELEGRAM_CHAT_ID"):
+            self.register_alert_channel(OpenClawChannel.TELEGRAM, "main")
+
+        if os.getenv("DISCORD_WEBHOOK_URL"):
+            self.register_alert_channel(OpenClawChannel.DISCORD, "main")
+
+        if os.getenv("SLACK_WEBHOOK_URL"):
+            self.register_alert_channel(OpenClawChannel.SLACK, "main")
+
+        logger.info(
+            "📢 OpenClaw proactive channels configured: %s",
+            ", ".join(f"{ch.value}:{sess}" for ch, sess in self._alert_channels) or "none",
+        )
+
+    def _get_skill_bridge(self):
+        if self._skill_bridge is None:
+            from integrations.openclaw_skill_runtime_bridge import get_skill_bridge
+
+            self._skill_bridge = get_skill_bridge()
+        return self._skill_bridge
+
+    def get_channel_readiness(self) -> Dict[str, List[str]]:
+        checks = {
+            "OPENCLAW_GATEWAY_URL": bool(os.getenv("OPENCLAW_GATEWAY_URL")),
+            "OPENCLAW_GATEWAY_TOKEN": bool(os.getenv("OPENCLAW_GATEWAY_TOKEN")),
+            "OPENCLAW_SKILLS_DIR": bool(os.getenv("OPENCLAW_SKILLS_DIR")),
+            "CLAWHUB_API_KEY": bool(os.getenv("CLAWHUB_API_KEY")),
+            "TELEGRAM_BOT_TOKEN": bool(os.getenv("TELEGRAM_BOT_TOKEN")),
+            "TELEGRAM_CHAT_ID": bool(os.getenv("TELEGRAM_CHAT_ID")),
+            "DISCORD_WEBHOOK_URL": bool(os.getenv("DISCORD_WEBHOOK_URL")),
+            "SLACK_WEBHOOK_URL": bool(os.getenv("SLACK_WEBHOOK_URL")),
+        }
+        configured = [k for k, ok in checks.items() if ok]
+        missing = [k for k, ok in checks.items() if not ok]
+        return {"configured": configured, "missing": missing}
+
+    def _normalize_skill_command(self, command: str) -> Optional[str]:
+        if command in SKILL_COMMAND_ALIASES:
+            return SKILL_COMMAND_ALIASES[command]
+        if command.startswith("bw-"):
+            return command
+        if command.startswith("aac-"):
+            return f"bw-{command[4:]}"
+        return None
+
+    async def _execute_skill_command(
+        self,
+        skill_id: str,
+        args: str,
+        message: OpenClawMessage,
+    ) -> str:
+        bridge = self._get_skill_bridge()
+        result = await bridge.execute(
+            skill_id,
+            {
+                "args": args,
+                "query": args,
+                "text": message.content,
+                "channel": message.channel.value,
+                "sender": message.sender_name,
+                "session_key": getattr(message, "session_key", "main"),
+            },
+        )
+
+        if isinstance(result, dict) and result.get("error"):
+            return f"❌ Skill `{skill_id}` failed: {result['error']}"
+
+        if isinstance(result, dict) and result.get("throttled"):
+            return (
+                f"⏳ Skill `{skill_id}` is cooling down. "
+                f"Retry in {result.get('retry_after_sec', '?')}s."
+            )
+
+        payload = json.dumps(result, indent=2, ensure_ascii=True, default=str)
+        return f"⚡ **{skill_id}**\n```json\n{payload[:3500]}\n```"
 
     async def _register_cron_jobs(self):
         """Register AAC cron jobs with OpenClaw"""
@@ -270,12 +399,15 @@ class AZSupremeOpenClawHandler:
             },
         ]
 
+        from integrations.openclaw_gateway_bridge import OpenClawCronJob as _CronJob
         for cron_def in cron_definitions:
-            self.bridge.register_cron_job(
+            job = _CronJob(
+                job_id=f"aac_{cron_def['name']}",
                 name=cron_def["name"],
                 schedule=cron_def["schedule"],
-                handler=cron_def["handler"],
+                message=f"/{cron_def['name'].replace('aac_', 'aac-')}",
             )
+            await self.bridge.register_cron_job(job)
             logger.info(f"  📅 Registered cron: {cron_def['name']} ({cron_def['schedule']})")
 
     # ── Message Routing Handlers ─────────────────────────────────────────
@@ -306,7 +438,8 @@ class AZSupremeOpenClawHandler:
         response = await handler(message)
 
         # Persist context for follow-up
-        self._session_contexts[message.session_id] = {
+        session_key = getattr(message, "session_key", "main")
+        self._session_contexts[session_key] = {
             "last_intent": message.intent.value,
             "last_response_time": datetime.now().isoformat(),
             "channel": message.channel.value,
@@ -339,6 +472,7 @@ class AZSupremeOpenClawHandler:
                 "doctrine": self._cmd_doctrine,
                 "agents": self._cmd_agents,
                 "strategies": self._cmd_strategies,
+                "search": self._cmd_search_internal,
                 "help": self._cmd_help,
                 "az-supreme": self._cmd_az_supreme_dispatch,
                 "aac-portfolio-dashboard": self._cmd_portfolio,
@@ -346,16 +480,23 @@ class AZSupremeOpenClawHandler:
                 "aac-risk-monitor": self._cmd_risk,
                 "aac-crypto-intel": self._cmd_crypto,
                 "aac-market-intelligence": self._cmd_market_intel,
+                "aac-search-internal": self._cmd_search_internal,
                 "aac-morning-briefing": self._cmd_briefing,
                 "aac-agent-roster": self._cmd_agents,
                 "aac-strategy-explorer": self._cmd_strategies,
                 "aac-doctrine-status": self._cmd_doctrine,
                 "aac-az-supreme-command": self._cmd_az_supreme_dispatch,
+                "apis": self._cmd_apis,
+                "aac-api-status": self._cmd_apis,
             }
 
             handler = command_map.get(command)
             if handler:
                 return await handler(args, message)
+
+            skill_id = self._normalize_skill_command(command)
+            if skill_id:
+                return await self._execute_skill_command(skill_id, args, message)
 
         return None
 
@@ -588,7 +729,7 @@ class AZSupremeOpenClawHandler:
             "| SharedInfrastructure | 5+ | SuperInfrastructureAgent |\n"
             "| NCC (Network Command) | 3+ | SuperNCCCommandAgent |\n"
             "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-            f"**Total**: 80+ agents | **Status**: All operational\n"
+            "**Total**: 80+ agents | **Status**: All operational\n"
         )
 
     async def _cmd_strategies(self, args: str, msg: OpenClawMessage) -> str:
@@ -622,18 +763,30 @@ class AZSupremeOpenClawHandler:
             "  `/risk` — Risk dashboard & BARREN WUFFET State\n"
             "  `/doctrine` — Doctrine compliance status\n"
             "  `/agents` — Agent roster overview\n"
-            "  `/strategies` — Strategy explorer\n\n"
+            "  `/strategies` — Strategy explorer\n"
+            "  `/search <text>` — Search internal AAC files\n\n"
             "**Skill Commands**\n"
             "  `/aac-market-intelligence` — Multi-theater market scan\n"
             "  `/aac-trading-signals` — Live trading signals\n"
             "  `/aac-portfolio-dashboard` — Portfolio dashboard\n"
             "  `/aac-risk-monitor` — Real-time risk monitor\n"
             "  `/aac-crypto-intel` — On-chain analysis\n"
+            "  `/aac-search-internal <text>` — Search existing framework/files\n"
             "  `/aac-az-supreme-command` — AZ SUPREME direct\n"
             "  `/aac-morning-briefing` — Configure briefing\n"
             "  `/aac-agent-roster` — Full agent list\n"
             "  `/aac-strategy-explorer` — Strategy deep dive\n"
             "  `/aac-doctrine-status` — Doctrine details\n\n"
+            "**API & Infrastructure**\n"
+            "  `/apis` — Live API registry status (all keys)\n"
+            "  `/aac-api-status` — Same as /apis\n\n"
+            "**BARREN WUFFET Aliases**\n"
+            "  `/bw-intel` ↔ `/aac-market-intelligence`\n"
+            "  `/bw-signals` ↔ `/aac-trading-signals`\n"
+            "  `/bw-dash` ↔ `/aac-portfolio-dashboard`\n"
+            "  `/bw-risk` ↔ `/aac-risk-monitor`\n"
+            "  `/bw-crypto` ↔ `/aac-crypto-intel`\n"
+            "  `/az` ↔ `/aac-az-supreme-command`\n\n"
             "**Executive**\n"
             "  `directive <priority> <text>` — Issue executive directive\n\n"
             "_Or simply ask in natural language — I understand context._\n"
@@ -672,6 +825,64 @@ class AZSupremeOpenClawHandler:
     async def _cmd_market_intel(self, args: str, msg: OpenClawMessage) -> str:
         return await self._handle_market_data(msg)
 
+    async def _cmd_search_internal(self, args: str, msg: OpenClawMessage) -> str:
+        query = (args or "").strip()
+        if not query:
+            return (
+                "Usage: `/search <text>` or `/aac-search-internal <text>`\n"
+                "Example: `/search openclaw gateway bridge`"
+            )
+
+        results = await self.bridge.search_internal_files(query=query)
+        if not results:
+            return f"🔎 No internal file matches found for: '{query}'"
+
+        lines = [
+            f"🔎 **Internal AAC File Search** — '{query}'",
+            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+        ]
+        for idx, item in enumerate(results, start=1):
+            lines.append(
+                f"{idx}. {item['path']}:{item['line']}\n"
+                f"   {item['preview']}"
+            )
+        lines.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        lines.append("Tip: refine with specific symbols, class names, or file paths.")
+        return "\n".join(lines)
+
+    async def _cmd_apis(self, args: str, msg: OpenClawMessage) -> str:
+        """Return live API registry status from tools/api_registry.py"""
+        try:
+            from tools.api_registry import REGISTRY, check_env_var
+
+            lines = ["**AAC API Registry — Live Status**", "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", ""]
+            category_map: dict[str, list] = {}
+            for api in REGISTRY:
+                cat = api["category"]
+                if cat not in category_map:
+                    category_map[cat] = []
+                status = check_env_var(api["env_var"])
+                pri_icon = {"HIGH": "🔴", "MEDIUM": "🟡", "LOW": "⚪", "DONE": "✅"}.get(api["priority"], "⚪")
+                category_map[cat].append(f"{status} {pri_icon} **{api['name']}**")
+
+            for cat, entries in category_map.items():
+                lines.append(f"**{cat}**")
+                lines.extend(f"  {e}" for e in entries)
+                lines.append("")
+
+            configured = sum(1 for api in REGISTRY if check_env_var(api["env_var"]) == "✅ SET")
+            missing = sum(1 for api in REGISTRY if check_env_var(api["env_var"]) == "❌ MISSING")
+            readiness = self.get_channel_readiness()
+            lines.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+            lines.append(f"_Summary: {configured} configured | {missing} need keys_")
+            lines.append("")
+            lines.append("**OpenClaw Channel Readiness**")
+            lines.append(f"  ✅ Configured: {', '.join(readiness['configured']) or 'none'}")
+            lines.append(f"  ❌ Missing: {', '.join(readiness['missing']) or 'none'}")
+            return "\n".join(lines)
+        except Exception as exc:
+            return f"❌ API registry error: {exc}"
+
     async def _cmd_crisis_mode(self, args: str, msg: OpenClawMessage) -> str:
         mode = args.strip().lower()
         if mode == "on":
@@ -706,8 +917,8 @@ class AZSupremeOpenClawHandler:
     async def _cron_morning_briefing(self):
         """Execute morning briefing cron job"""
         briefing = await self._cmd_briefing("", None)
-        for channel_id in self._alert_channels:
-            await self.bridge.send_proactive_message(channel_id, briefing)
+        for channel, session_key in self._alert_channels:
+            await self.bridge.send_proactive_message(channel, session_key, briefing)
         logger.info("☀️ Morning briefing sent to all alert channels")
 
     async def _cron_portfolio_snapshot(self):
@@ -717,8 +928,8 @@ class AZSupremeOpenClawHandler:
             f"NAV: $125,000 | Daily P&L: +$2,340 (+1.9%)\n"
             f"Open Positions: 23 | BARREN WUFFET: NORMAL ✅"
         )
-        for channel_id in self._alert_channels:
-            await self.bridge.send_proactive_message(channel_id, snapshot)
+        for channel, session_key in self._alert_channels:
+            await self.bridge.send_proactive_message(channel, session_key, snapshot)
 
     async def _cron_risk_pulse(self):
         """Execute risk pulse cron job — only alerts if anomaly detected"""
@@ -742,8 +953,8 @@ class AZSupremeOpenClawHandler:
                 details="Current drawdown: 5.3% — approaching SAFE_MODE threshold",
                 action="Position sizes reduced by 50%, new trades paused",
             )
-            for channel_id in self._alert_channels:
-                await self.bridge.send_proactive_message(channel_id, alert)
+            for channel, session_key in self._alert_channels:
+                await self.bridge.send_proactive_message(channel, session_key, alert)
 
     async def _cron_research_digest(self):
         """Execute evening research digest cron job"""
@@ -757,22 +968,24 @@ class AZSupremeOpenClawHandler:
             f"**Actionable Signals**: 5 (3 high confidence)\n"
             f"_Full report available via `/aac-market-intelligence theater=all`_"
         )
-        for channel_id in self._alert_channels:
-            await self.bridge.send_proactive_message(channel_id, digest)
+        for channel, session_key in self._alert_channels:
+            await self.bridge.send_proactive_message(channel, session_key, digest)
 
     async def _cron_weekly_strategy_review(self):
         """Execute weekly strategy review cron job"""
         review = await self._cmd_strategies("", None)
-        for channel_id in self._alert_channels:
-            await self.bridge.send_proactive_message(channel_id, review)
+        for channel, session_key in self._alert_channels:
+            await self.bridge.send_proactive_message(channel, session_key, review)
 
     # ── Proactive Alerts ─────────────────────────────────────────────────
 
-    def register_alert_channel(self, channel_id: str):
-        """Register a channel to receive proactive alerts"""
-        if channel_id not in self._alert_channels:
-            self._alert_channels.append(channel_id)
-            logger.info(f"📢 Alert channel registered: {channel_id}")
+    def register_alert_channel(self, channel: Union[OpenClawChannel, str], session_key: str = "main"):
+        """Register a channel/session pair to receive proactive alerts."""
+        resolved = OpenClawChannel(channel) if isinstance(channel, str) else channel
+        item = (resolved, session_key)
+        if item not in self._alert_channels:
+            self._alert_channels.append(item)
+            logger.info("📢 Alert channel registered: %s:%s", resolved.value, session_key)
 
     async def send_doctrine_transition_alert(
         self, old_state: str, new_state: str, reason: str
@@ -797,8 +1010,8 @@ class AZSupremeOpenClawHandler:
             ),
         )
 
-        for channel_id in self._alert_channels:
-            await self.bridge.send_proactive_message(channel_id, alert)
+        for channel, session_key in self._alert_channels:
+            await self.bridge.send_proactive_message(channel, session_key, alert)
 
     async def send_risk_alert(self, level: str, trigger: str, details: str, action: str):
         """Send proactive risk alert"""
@@ -819,8 +1032,8 @@ class AZSupremeOpenClawHandler:
             action=action,
         )
 
-        for channel_id in self._alert_channels:
-            await self.bridge.send_proactive_message(channel_id, alert)
+        for channel, session_key in self._alert_channels:
+            await self.bridge.send_proactive_message(channel, session_key, alert)
 
 
 # ─── Factory / Singleton ───────────────────────────────────────────────────
@@ -838,10 +1051,18 @@ def get_az_supreme_openclaw_handler(
     return _handler_instance
 
 
+async def initialize_az_supreme_openclaw_handler(
+    bridge: Optional[OpenClawGatewayBridge] = None,
+) -> AZSupremeOpenClawHandler:
+    """Create/reuse and initialize AZ SUPREME handler for a connected OpenClaw bridge."""
+    handler = get_az_supreme_openclaw_handler(bridge=bridge)
+    await handler.initialize()
+    return handler
+
+
 # ─── Quick Test ─────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    import asyncio
 
     async def _test():
         handler = get_az_supreme_openclaw_handler()
@@ -855,7 +1076,7 @@ if __name__ == "__main__":
             sender_name="Operator",
             content="/status",
             intent=MessageIntent.GENERAL_CHAT,
-            session_id="test-session",
+            session_key="test-session",
             timestamp=datetime.now(),
         )
 

@@ -326,7 +326,7 @@ class TestLDEAlphaWiring:
             mock_lde_cls,
         ):
             from strategies.war_room_council_feeds import fetch_and_apply_council_intel
-            result = asyncio.get_event_loop().run_until_complete(
+            result = asyncio.run(
                 fetch_and_apply_council_intel()
             )
 

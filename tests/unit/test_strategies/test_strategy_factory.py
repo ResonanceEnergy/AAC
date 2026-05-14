@@ -1,4 +1,6 @@
 """Unit tests for strategies.strategy_implementation_factory — StrategyImplementationFactory."""
+from __future__ import annotations
+
 from unittest.mock import MagicMock
 
 import pytest

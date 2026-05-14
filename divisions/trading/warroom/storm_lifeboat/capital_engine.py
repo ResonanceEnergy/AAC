@@ -1,3 +1,6 @@
+import structlog
+
+_log = structlog.get_logger()
 """
 Storm Lifeboat Capital Engine — Gold–Oil–Silver See-Saw
 =========================================================

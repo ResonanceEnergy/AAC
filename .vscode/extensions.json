@@ -1,10 +1,27 @@
 {
   "recommendations": [
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    "charliermarsh.ruff",
+    "github.copilot",
+    "github.copilot-chat",
+    "github.vscode-github-actions",
+    "github.vscode-pull-request-github",
+    "tamasfe.even-better-toml",
+    "redhat.vscode-yaml",
     "eamodio.gitlens",
     "gruntfuggly.todo-tree",
     "usernamehw.errorlens",
     "yzhang.markdown-all-in-one",
     "davidanson.vscode-markdownlint",
-    "alefragnani.bookmarks"
+    "alefragnani.bookmarks",
+    "editorconfig.editorconfig"
+  ],
+  "unwantedRecommendations": [
+    "ms-python.flake8",
+    "ms-python.pylint",
+    "ms-python.isort",
+    "ms-python.black-formatter",
+    "ms-python.mypy-type-checker"
   ]
 }

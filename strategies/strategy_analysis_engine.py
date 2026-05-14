@@ -5,6 +5,7 @@ Strategy Analysis & Prediction Engine
 Advanced analysis, prediction, and interpretation tools for arbitrage strategies.
 Provides comprehensive insights and mastery capabilities.
 """
+from __future__ import annotations
 
 import argparse
 import asyncio
@@ -100,36 +101,28 @@ class StrategyAnalysisEngine:
         self.logger.info("[OK] Analysis engine initialized")
 
     async def _initialize_prediction_models(self):
-        """Initialize or load prediction models"""
+        """Initialize prediction models.
+
+        Sprint 54 (NO MOCK DATA OR CALLS doctrine): the previous version called
+        ``_create_mock_model('return'/'volatility'/'sharpe'/'regime')`` which
+        returned a dict with ``'model': None`` and a fixed ``'accuracy': 0.75``.
+        These were not real models -- they were placeholder dicts that the EMA
+        path in ``_analyze_predictive`` then used to fabricate "predictions"
+        with a confidence value derived from a hardcoded baseline accuracy.
+
+        Until real trained models exist on disk under ``PROJECT_ROOT/models``
+        we leave ``self.prediction_models`` empty.  ``_analyze_predictive``
+        already guards on ``if model:`` so it will produce an empty
+        ``metric_predictions`` dict (honest absence) instead of fake numbers.
+        """
         model_dir = PROJECT_ROOT / "models"
         model_dir.mkdir(exist_ok=True)
-
-        # For now, create mock models - in production, these would be trained on historical data
-        self.prediction_models = {
-            'return_predictor': self._create_mock_model('return'),
-            'volatility_predictor': self._create_mock_model('volatility'),
-            'sharpe_predictor': self._create_mock_model('sharpe'),
-            'regime_classifier': self._create_mock_model('regime')
-        }
-
-    def _create_mock_model(self, model_type: str):
-        """Create baseline prediction model with EMA weights"""
-        feature_sets = {
-            'return': ['market_volatility', 'momentum', 'mean_reversion', 'volume_trend'],
-            'volatility': ['realized_vol', 'implied_vol', 'vol_of_vol', 'garch_forecast'],
-            'sharpe': ['excess_return', 'tracking_error', 'downside_dev', 'skew'],
-            'regime': ['trend_strength', 'vol_regime', 'breadth', 'correlation_cluster']
-        }
-        return {
-            'type': model_type,
-            'model': None,
-            'features': feature_sets.get(model_type, ['market_volatility', 'interest_rates', 'economic_indicators']),
-            'accuracy': 0.75,
-            'ema_alpha': 0.1,
-            'lookback_periods': 60,
-            'last_prediction': None,
-            'prediction_count': 0
-        }
+        self.prediction_models = {}
+        self.logger.warning(
+            "_initialize_prediction_models: no trained models loaded -- "
+            "prediction_models is empty.  Predictive analysis will return "
+            "empty metric_predictions until real models are trained."
+        )
 
     async def perform_comprehensive_analysis(self, strategy_ids: List[str],
                                           analysis_types: List[AnalysisType],
@@ -447,41 +440,22 @@ class StrategyAnalysisEngine:
         }
 
     async def _analyze_market_regime(self, sim_results: Dict) -> Dict[str, Any]:
-        """Analyze performance across market regimes"""
-        # Mock regime analysis
-        regimes = ['bull_market', 'bear_market', 'high_volatility', 'low_volatility', 'neutral']
+        """Analyze performance across market regimes.
 
-        regime_performance = {}
-        for regime in regimes:
-            # Generate regime-specific performance
-            base_return = sim_results['total_return_pct']
-            regime_modifier = {
-                'bull_market': 1.2,
-                'bear_market': 0.8,
-                'high_volatility': 0.9,
-                'low_volatility': 1.1,
-                'neutral': 1.0
-            }
-
-            regime_return = base_return * regime_modifier[regime]
-            regime_volatility = sim_results['volatility'] * (1.5 if 'volatility' in regime else 0.8)
-
-            regime_performance[regime] = {
-                'expected_return': regime_return,
-                'expected_volatility': regime_volatility,
-                'sharpe_ratio': regime_return / regime_volatility if regime_volatility > 0 else 0,
-                'suitability_score': max(0, min(100, (regime_return / max(regime_volatility, 0.01)) * 20 + 50))
-            }
-
-        best_regime = max(regime_performance.items(), key=lambda x: x[1]['sharpe_ratio'])
-
-        return {
-            'regime_performance': regime_performance,
-            'best_regime': best_regime[0],
-            'worst_regime': min(regime_performance.items(), key=lambda x: x[1]['sharpe_ratio'])[0],
-            'regime_adaptability': len([r for r in regime_performance.values() if r['sharpe_ratio'] > 1.0]) / len(regimes),
-            'current_regime_prediction': 'neutral'  # Mock current regime
-        }
+        Sprint 54: previous version returned a fully fabricated payload --
+        scaled the strategy's single ``total_return_pct`` by hardcoded
+        regime multipliers (1.2/0.8/0.9/1.1/1.0) and tagged the current
+        regime as ``'neutral'`` in every call.  Removed under the
+        "NO MOCK DATA OR CALLS" doctrine.  A real implementation requires
+        a market-regime classifier trained on historical data plus
+        per-regime backtest splits of the strategy's actual trades.
+        """
+        raise NotImplementedError(
+            "_analyze_market_regime requires (a) a real market-regime "
+            "classifier and (b) per-regime backtest splits of the "
+            "strategy's actual trade history.  The hardcoded 1.2/0.8/0.9/"
+            "1.1/1.0 regime multipliers were removed in Sprint 54."
+        )
 
     def _generate_comparative_insights(self, strategy_analyses: Dict) -> Dict[str, Any]:
         """Generate comparative insights across strategies"""

@@ -4,6 +4,8 @@ Financial Infrastructure Integration
 Integrates the AAC financial subsystems (money monitor, helix, accounting)
 into a unified financial infrastructure.
 """
+from __future__ import annotations
+
 import logging
 from datetime import datetime
 from typing import Any, Dict, Optional

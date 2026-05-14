@@ -58,7 +58,7 @@ AI-powered algorithmic trading platform. Part of Resonance Energy's NCC quad (NC
 | **Polygon** | LIMITED | `.env` POLYGON_API_KEY | Free tier: NO options snapshots (403). Needs $79/mo |
 | **IBKR** | WORKING | Port 7496 live, TWS | Account U24346218. 8 live put trades executed |
 | **Moomoo** | WORKING | OpenD, FUTUCA | Real mode, $365.15 USD, trade PIN=069420 |
-| **NDAX** | LIQUIDATED | `.env` | Sold all crypto. Connector uses ccxt (login+password+uid) |
+| **NDAX** | ACTIVE (zero positions) | `.env` NDAX_API_KEY | Account live, keys configured. XRP+ETH sold Mar 2026, CAD cash remains. Connector uses ccxt (login+password+uid) |
 | **Tradier** | NOT CONFIGURED | — | No key |
 | **NewsAPI** | WORKING | `.env` NEWSAPI_KEY | Headlines |
 | **X/Twitter** | BROKEN | `.env` X_BEARER_TOKEN | HTTP 402 — needs paid tier |

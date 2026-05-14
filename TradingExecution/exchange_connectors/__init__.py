@@ -3,6 +3,7 @@ Exchange Connectors Package
 ===========================
 Unified interface for multiple cryptocurrency and traditional exchanges.
 """
+from __future__ import annotations
 
 from .base_connector import BaseExchangeConnector, ExchangeError
 from .coinbase_connector import CoinbaseConnector
@@ -15,7 +16,6 @@ except (ImportError, RuntimeError):
 from .metalx_connector import MetalXConnector
 from .moomoo_connector import MoomooConnector
 from .ndax_connector import NDAXConnector
-from .noxi_rise_connector import NoxiRiseConnector
 
 try:
     from .snaptrade_connector import SnapTradeConnector
@@ -29,7 +29,6 @@ __all__ = [
     'KrakenConnector',
     'IBKRConnector',
     'MoomooConnector',
-    'NoxiRiseConnector',
     'MetalXConnector',
     'SnapTradeConnector',
 ]

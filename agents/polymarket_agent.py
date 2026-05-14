@@ -19,6 +19,7 @@ Trading (order placement / cancellation) requires the official
 Docs: https://docs.polymarket.com/
 SDK:  https://github.com/Polymarket/py-clob-client
 """
+from __future__ import annotations
 
 import asyncio
 import json
@@ -96,6 +97,7 @@ class PolymarketMarket:
     volume: float = 0.0
     liquidity: float = 0.0
     active: bool = True
+    end_date: str = ""
 
     @classmethod
     def from_api(cls, data: Dict[str, Any]) -> "PolymarketMarket":
@@ -148,6 +150,7 @@ class PolymarketMarket:
             volume=float(data.get("volume", 0) or 0),
             liquidity=float(data.get("liquidity", 0) or 0),
             active=data.get("active", True),
+            end_date=data.get("endDate", "") or data.get("end_date", ""),
         )
 
 
@@ -267,13 +270,14 @@ class PolymarketAgent:
 
     async def get_active_markets(self, limit: int = 100,
                                   offset: int = 0,
-                                  order: str = "volume") -> List[PolymarketMarket]:
-        """Fetch active markets from Gamma API, sorted by volume by default."""
+                                  order: str = "volume",
+                                  ascending: bool = False) -> List[PolymarketMarket]:
+        """Fetch active markets from Gamma API, sorted by `order` (default volume desc)."""
         data = await self._get(f"{GAMMA_API}/markets", params={
             "active": "true",
             "closed": "false",
             "order": order,
-            "ascending": "false",
+            "ascending": "true" if ascending else "false",
             "limit": limit,
             "offset": offset,
         })

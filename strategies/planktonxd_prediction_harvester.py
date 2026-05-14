@@ -27,6 +27,7 @@ Core Insight: "Buying lottery tickets where the math is on your side."
   — Cost: a few dollars. Payoff: thousands on rare tail events.
   — Certainty > Odds: high-probability small profits PLUS cheap tail hedges.
 """
+from __future__ import annotations
 
 import logging
 import random
@@ -325,45 +326,226 @@ class PlanktonXDPredictionHarvester(BaseArbitrageStrategy):
 
     # ─── Live Polymarket Feed ─────────────────────────────────────────
 
-    async def fetch_polymarket_markets(self, limit: int = 200) -> List['PredictionMarket']:
+    async def fetch_polymarket_markets(self, limit: int = 200, offset: int = 0, order: str = "volume") -> List['PredictionMarket']:
         """
         Pull active markets from Polymarket via PolymarketAgent and
         convert them into PredictionMarket objects that the scanner
         understands.  Updates self.scanned_markets in-place.
+
+        order: Gamma sort key. "volume" (default) returns the highest-volume
+        markets first; "endDate" with ascending=true (handled in agent) is
+        flipped here by passing order="endDate_asc" to surface near-resolution
+        markets where deep-OTM mispricings are richest.
         """
         agent = PolymarketAgent()
         try:
-            raw_markets = await agent.get_active_markets(limit=limit)
+            if order == "endDate_asc":
+                raw_markets = await agent.get_active_markets(limit=limit, offset=offset, order="endDate", ascending=True)
+            else:
+                raw_markets = await agent.get_active_markets(limit=limit, offset=offset, order=order)
         finally:
             await agent.close()
 
         TAG_CATEGORY_MAP = {
+            # Crypto
             "crypto": MarketCategory.CRYPTO_PRICE,
             "bitcoin": MarketCategory.CRYPTO_PRICE,
+            "btc": MarketCategory.CRYPTO_PRICE,
             "ethereum": MarketCategory.CRYPTO_PRICE,
+            "eth ": MarketCategory.CRYPTO_PRICE,
+            "solana": MarketCategory.CRYPTO_PRICE,
+            "sol ": MarketCategory.CRYPTO_PRICE,
+            "xrp": MarketCategory.CRYPTO_PRICE,
+            "doge": MarketCategory.CRYPTO_PRICE,
+            "altcoin": MarketCategory.CRYPTO_PRICE,
+            "stablecoin": MarketCategory.CRYPTO_PRICE,
+            "memecoin": MarketCategory.CRYPTO_PRICE,
+            # Politics
             "politics": MarketCategory.POLITICS,
-            "elections": MarketCategory.POLITICS,
+            "election": MarketCategory.POLITICS,
+            "president": MarketCategory.POLITICS,
+            "trump": MarketCategory.POLITICS,
+            "biden": MarketCategory.POLITICS,
+            "harris": MarketCategory.POLITICS,
+            "putin": MarketCategory.POLITICS,
+            "zelensky": MarketCategory.POLITICS,
+            "zelenskyy": MarketCategory.POLITICS,
+            "netanyahu": MarketCategory.POLITICS,
+            "ukraine": MarketCategory.POLITICS,
+            "russia": MarketCategory.POLITICS,
+            "israel": MarketCategory.POLITICS,
+            "gaza": MarketCategory.POLITICS,
+            "iran": MarketCategory.POLITICS,
+            "china": MarketCategory.POLITICS,
+            "taiwan": MarketCategory.POLITICS,
+            "north korea": MarketCategory.POLITICS,
+            "kim jong": MarketCategory.POLITICS,
+            "senate": MarketCategory.POLITICS,
+            "congress": MarketCategory.POLITICS,
+            "house": MarketCategory.POLITICS,
+            "supreme court": MarketCategory.POLITICS,
+            "scotus": MarketCategory.POLITICS,
+            "governor": MarketCategory.POLITICS,
+            "mayor": MarketCategory.POLITICS,
+            "primary": MarketCategory.POLITICS,
+            "vote": MarketCategory.POLITICS,
+            "ballot": MarketCategory.POLITICS,
+            "war": MarketCategory.POLITICS,
+            "ceasefire": MarketCategory.POLITICS,
+            "treaty": MarketCategory.POLITICS,
+            "sanction": MarketCategory.POLITICS,
+            "tariff": MarketCategory.POLITICS,
+            # Sports — leagues
             "sports": MarketCategory.SPORTS,
             "nba": MarketCategory.SPORTS,
             "nfl": MarketCategory.SPORTS,
             "mlb": MarketCategory.SPORTS,
+            "nhl": MarketCategory.SPORTS,
+            "ncaa": MarketCategory.SPORTS,
+            "epl": MarketCategory.SPORTS,
+            "uefa": MarketCategory.SPORTS,
+            "champions league": MarketCategory.SPORTS,
+            "fifa": MarketCategory.SPORTS,
+            "world cup": MarketCategory.SPORTS,
+            "premier league": MarketCategory.SPORTS,
+            "la liga": MarketCategory.SPORTS,
+            "serie a": MarketCategory.SPORTS,
+            "bundesliga": MarketCategory.SPORTS,
+            "f1": MarketCategory.SPORTS,
+            "formula 1": MarketCategory.SPORTS,
+            "formula one": MarketCategory.SPORTS,
+            "ufc": MarketCategory.SPORTS,
+            "boxing": MarketCategory.SPORTS,
+            "tennis": MarketCategory.SPORTS,
+            "atp": MarketCategory.SPORTS,
+            "wta": MarketCategory.SPORTS,
+            "wimbledon": MarketCategory.SPORTS,
+            "olympics": MarketCategory.SPORTS,
+            "stanley cup": MarketCategory.SPORTS,
+            "super bowl": MarketCategory.SPORTS,
+            "world series": MarketCategory.SPORTS,
+            "lokomotiv": MarketCategory.SPORTS,
+            "fk ": MarketCategory.SPORTS,
+            "fc ": MarketCategory.SPORTS,
+            "vs ": MarketCategory.SPORTS,
+            "vs.": MarketCategory.SPORTS,
+            "match": MarketCategory.SPORTS,
+            "goal": MarketCategory.SPORTS,
+            "score": MarketCategory.SPORTS,
+            # Esports
             "esports": MarketCategory.ESPORTS,
+            "league of legends": MarketCategory.ESPORTS,
+            "dota": MarketCategory.ESPORTS,
+            "csgo": MarketCategory.ESPORTS,
+            "cs2": MarketCategory.ESPORTS,
+            "valorant": MarketCategory.ESPORTS,
+            "starcraft": MarketCategory.ESPORTS,
+            # Weather
             "weather": MarketCategory.WEATHER,
+            "hurricane": MarketCategory.WEATHER,
+            "typhoon": MarketCategory.WEATHER,
+            "tornado": MarketCategory.WEATHER,
+            "snowfall": MarketCategory.WEATHER,
+            "temperature": MarketCategory.WEATHER,
+            "rainfall": MarketCategory.WEATHER,
+            # Economics
             "economics": MarketCategory.ECONOMICS,
-            "fed": MarketCategory.ECONOMICS,
+            "fed ": MarketCategory.ECONOMICS,
+            "federal reserve": MarketCategory.ECONOMICS,
+            "fomc": MarketCategory.ECONOMICS,
+            "rate cut": MarketCategory.ECONOMICS,
+            "rate hike": MarketCategory.ECONOMICS,
+            "inflation": MarketCategory.ECONOMICS,
+            "cpi": MarketCategory.ECONOMICS,
+            "ppi": MarketCategory.ECONOMICS,
+            "gdp": MarketCategory.ECONOMICS,
+            "unemployment": MarketCategory.ECONOMICS,
+            "jobs report": MarketCategory.ECONOMICS,
+            "nonfarm": MarketCategory.ECONOMICS,
+            "recession": MarketCategory.ECONOMICS,
+            "s&p": MarketCategory.ECONOMICS,
+            "nasdaq": MarketCategory.ECONOMICS,
+            "dow ": MarketCategory.ECONOMICS,
+            "stock market": MarketCategory.ECONOMICS,
+            "oil price": MarketCategory.ECONOMICS,
+            "wti": MarketCategory.ECONOMICS,
+            "brent": MarketCategory.ECONOMICS,
+            "gold price": MarketCategory.ECONOMICS,
+            # Entertainment
             "entertainment": MarketCategory.ENTERTAINMENT,
+            "oscar": MarketCategory.ENTERTAINMENT,
+            "academy award": MarketCategory.ENTERTAINMENT,
+            "grammy": MarketCategory.ENTERTAINMENT,
+            "emmy": MarketCategory.ENTERTAINMENT,
+            "billboard": MarketCategory.ENTERTAINMENT,
+            "box office": MarketCategory.ENTERTAINMENT,
+            "movie": MarketCategory.ENTERTAINMENT,
+            "film": MarketCategory.ENTERTAINMENT,
+            "netflix": MarketCategory.ENTERTAINMENT,
+            "disney": MarketCategory.ENTERTAINMENT,
+            "song of the year": MarketCategory.ENTERTAINMENT,
+            "taylor swift": MarketCategory.ENTERTAINMENT,
+            "celebrity": MarketCategory.ENTERTAINMENT,
+            # Science / Tech
             "science": MarketCategory.SCIENCE,
+            "spacex": MarketCategory.SCIENCE,
+            "nasa": MarketCategory.SCIENCE,
+            "rocket": MarketCategory.SCIENCE,
+            "launch": MarketCategory.SCIENCE,
+            "ai ": MarketCategory.SCIENCE,
+            "openai": MarketCategory.SCIENCE,
+            "gpt": MarketCategory.SCIENCE,
+            "agi": MarketCategory.SCIENCE,
+            "vaccine": MarketCategory.SCIENCE,
+            "covid": MarketCategory.SCIENCE,
+            "pandemic": MarketCategory.SCIENCE,
+            "asteroid": MarketCategory.SCIENCE,
         }
 
         converted: List[PredictionMarket] = []
+        # FIX #6 (5/1): iterate keywords by descending length AND check word
+        # boundaries. The old impl scanned dict-insertion order with bare
+        # substring matching, so "Pete Hegseth enter Iran" got tagged CRYPTO
+        # because some short crypto keyword (e.g. "eth ", "ai ") substring-hit
+        # before "iran" was reached. Longest match wins, with whole-word
+        # checks against space-padded text to kill substring false positives.
+        _SORTED_TAGS = sorted(
+            TAG_CATEGORY_MAP.items(), key=lambda kv: -len(kv[0])
+        )
         for pm in raw_markets:
             # Infer category from question keywords
             q_lower = pm.question.lower()
-            category = MarketCategory.CRYPTO_PRICE  # default
-            for keyword, cat in TAG_CATEGORY_MAP.items():
-                if keyword in q_lower:
+            q_padded = f" {q_lower} "
+            category = MarketCategory.SCIENCE  # default catch-all (was CRYPTO_PRICE)
+            for keyword, cat in _SORTED_TAGS:
+                # Whole-word check: keyword surrounded by non-letter chars.
+                # The map already encodes some keywords with trailing spaces
+                # (e.g. "eth ", "sol ") -- those still work because space is
+                # a non-letter.
+                kw_padded = keyword if keyword.endswith(" ") else f"{keyword} "
+                kw_lead = f" {kw_padded.lstrip()}" if not keyword.startswith(" ") else kw_padded
+                if kw_lead in q_padded or f" {keyword.strip()} " in q_padded:
                     category = cat
                     break
+
+            # Parse Gamma endDate (ISO-8601 UTC, e.g. "2026-05-02T12:00:00Z") into
+            # a naive local datetime so hours_to_resolution() math stays consistent
+            # with datetime.now() (also naive local).
+            resolution_time: Optional[datetime] = None
+            end_date_raw = getattr(pm, 'end_date', '') or ''
+            if end_date_raw:
+                try:
+                    iso = end_date_raw.replace('Z', '+00:00')
+                    dt_utc = datetime.fromisoformat(iso)
+                    if dt_utc.tzinfo is not None:
+                        # Convert to local naive (datetime.now() is naive local)
+                        from datetime import timezone
+                        dt_local = dt_utc.astimezone().replace(tzinfo=None)
+                        resolution_time = dt_local
+                    else:
+                        resolution_time = dt_utc
+                except (ValueError, TypeError):
+                    resolution_time = None
 
             mkt = PredictionMarket(
                 market_id=pm.condition_id or pm.slug,
@@ -373,6 +555,7 @@ class PlanktonXDPredictionHarvester(BaseArbitrageStrategy):
                 prices={"Yes": pm.yes_price, "No": pm.no_price},
                 volume_24h=pm.volume,
                 liquidity=pm.liquidity,
+                resolution_time=resolution_time,
                 source="polymarket",
                 yes_token_id=getattr(pm, 'yes_token_id', '') or '',
                 no_token_id=getattr(pm, 'no_token_id', '') or '',

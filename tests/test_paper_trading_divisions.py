@@ -293,7 +293,7 @@ class TestPolymarketPaperDivision:
 
     def test_scan_no_intel(self):
         div = PolymarketPaperDivision(starting_balance=5_000.0, persist=False)
-        signals = asyncio.get_event_loop().run_until_complete(div.scan())
+        signals = asyncio.run(div.scan())
         assert signals == []
 
     def test_consume_polymarket_intel(self):
@@ -313,7 +313,7 @@ class TestPolymarketPaperDivision:
                 "arb_opportunities": [],
             },
         )
-        asyncio.get_event_loop().run_until_complete(div.consume_signal(signal))
+        asyncio.run(div.consume_signal(signal))
         assert div._latest_intel.get("type") == "polymarket_scan"
 
     def test_scan_with_intel(self):
@@ -327,7 +327,7 @@ class TestPolymarketPaperDivision:
             ],
             "arb_opportunities": [],
         }
-        signals = asyncio.get_event_loop().run_until_complete(div.scan())
+        signals = asyncio.run(div.scan())
         assert isinstance(signals, list)
         # Should produce at least a TRADE_SIGNAL after cycle
         if signals:
@@ -342,12 +342,12 @@ class TestPolymarketPaperDivision:
             timestamp=datetime.now(timezone.utc),
             data={"type": "crypto_scan", "btc_price": 50_000},
         )
-        asyncio.get_event_loop().run_until_complete(div.consume_signal(signal))
+        asyncio.run(div.consume_signal(signal))
         assert div._latest_intel == {}
 
     def test_report_structure(self):
         div = PolymarketPaperDivision(starting_balance=5_000.0, persist=False)
-        report = asyncio.get_event_loop().run_until_complete(div.report())
+        report = asyncio.run(div.report())
         assert report["division"] == "polymarket_paper"
         assert "account" in report
         assert "strategies" in report
@@ -369,7 +369,7 @@ class TestCryptoPaperDivision:
 
     def test_scan_no_intel(self):
         div = CryptoPaperDivision(starting_balance=5_000.0, persist=False)
-        signals = asyncio.get_event_loop().run_until_complete(div.scan())
+        signals = asyncio.run(div.scan())
         assert signals == []
 
     def test_consume_crypto_intel(self):
@@ -390,7 +390,7 @@ class TestCryptoPaperDivision:
                 "losers": [],
             },
         )
-        asyncio.get_event_loop().run_until_complete(div.consume_signal(signal))
+        asyncio.run(div.consume_signal(signal))
         assert div._latest_intel.get("type") == "crypto_scan"
 
     def test_scan_with_intel(self):
@@ -406,7 +406,7 @@ class TestCryptoPaperDivision:
                 {"coin_id": "cardano", "price": 0.45, "change_24h": -4.2, "volume_24h": 800_000},
             ],
         }
-        signals = asyncio.get_event_loop().run_until_complete(div.scan())
+        signals = asyncio.run(div.scan())
         assert isinstance(signals, list)
         if signals:
             assert signals[0].signal_type == SignalType.TRADE_SIGNAL
@@ -420,12 +420,12 @@ class TestCryptoPaperDivision:
             timestamp=datetime.now(timezone.utc),
             data={"type": "polymarket_scan", "total_markets": 42},
         )
-        asyncio.get_event_loop().run_until_complete(div.consume_signal(signal))
+        asyncio.run(div.consume_signal(signal))
         assert div._latest_intel == {}
 
     def test_report_structure(self):
         div = CryptoPaperDivision(starting_balance=5_000.0, persist=False)
-        report = asyncio.get_event_loop().run_until_complete(div.report())
+        report = asyncio.run(div.report())
         assert report["division"] == "crypto_paper"
         assert "account" in report
         assert "strategies" in report

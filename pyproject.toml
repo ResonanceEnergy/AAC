@@ -213,16 +213,7 @@ python_version = "3.9"
 ignore_missing_imports = true
 exclude = [".venv/", "archive/", "version_control/", "aac/aac069/"]
 
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-asyncio_mode = "auto"
-markers = [
-    "live: requires live API credentials",
-    "integration: requires external service",
-    "slow: runtime > 5s",
-    "paper: paper-trading mode",
-    "exchange: requires exchange API",
-]
+# pytest config lives in pytest.ini (single source of truth)
 
 [tool.bandit]
 exclude_dirs = [".venv", "archive", "tests", "docs", "build"]

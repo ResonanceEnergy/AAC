@@ -12,6 +12,7 @@ This bridge enables:
 - System intelligence and anomaly detection
 - Resource optimization recommendations
 """
+from __future__ import annotations
 
 import asyncio
 import logging
@@ -258,28 +259,29 @@ class IntelligenceInfrastructureBridge:
     async def _perform_system_analysis(self, system_component: str, analysis_type: str, metrics: Dict) -> Optional[Dict]:
         """Perform system intelligence analysis."""
         try:
+            if analysis_type == "performance_analysis":
+                insights = await self._analyze_performance(metrics)
+            elif analysis_type == "capacity_planning":
+                insights = await self._analyze_capacity(metrics)
+            elif analysis_type == "failure_prediction":
+                insights = await self._predict_failures(metrics)
+            else:
+                raise NotImplementedError(
+                    f"Sprint 57: unsupported system analysis type {analysis_type!r}. "
+                    "A real analysis pipeline must be wired before this bridge can emit results."
+                )
+
             analysis_result = {
                 "component": system_component,
                 "analysis_type": analysis_type,
                 "timestamp": datetime.now(),
-                "insights": []
+                "insights": insights,
             }
 
-            # Generate insights based on analysis type
-            if analysis_type == "performance_analysis":
-                analysis_result["insights"] = await self._analyze_performance(metrics)
-            elif analysis_type == "capacity_planning":
-                analysis_result["insights"] = await self._analyze_capacity(metrics)
-            elif analysis_type == "failure_prediction":
-                analysis_result["insights"] = await self._predict_failures(metrics)
-            else:
-                analysis_result["insights"] = ["General system health analysis completed"]
-
-            # Store analysis result
             self.system_models[system_component] = {
                 "last_analysis": datetime.now(),
                 "analysis_type": analysis_type,
-                "result": analysis_result
+                "result": analysis_result,
             }
 
             return analysis_result
@@ -290,145 +292,45 @@ class IntelligenceInfrastructureBridge:
 
     async def _analyze_performance(self, metrics: Dict) -> List[str]:
         """Analyze system performance."""
-        return [
-            "CPU utilization trending upward - consider scaling",
-            "Memory usage within normal parameters",
-            "Network latency slightly elevated but acceptable"
-        ]
+        raise NotImplementedError(
+            "Sprint 57: performance analysis requires a real infrastructure telemetry model. "
+            "The hardcoded insight list was removed."
+        )
 
     async def _analyze_capacity(self, metrics: Dict) -> List[str]:
         """Analyze system capacity."""
-        return [
-            "Current capacity utilization at 75% - monitor closely",
-            "Peak capacity reached during market hours",
-            "Recommend capacity increase by 20% for high volatility periods"
-        ]
+        raise NotImplementedError(
+            "Sprint 57: capacity planning requires real utilization and scaling data. "
+            "The hardcoded recommendation list was removed."
+        )
 
     async def _predict_failures(self, metrics: Dict) -> List[str]:
         """Predict potential failures."""
-        return [
-            "Disk I/O showing early warning signs - schedule maintenance",
-            "Network connectivity stable but monitor for spikes",
-            "No immediate failure risks detected"
-        ]
+        raise NotImplementedError(
+            "Sprint 57: failure prediction requires a real predictive model over infrastructure metrics. "
+            "The canned failure warnings were removed."
+        )
 
     async def _perform_predictive_monitoring(self, component_id: str, prediction_horizon: str, metrics_history: List) -> Optional[Dict]:
         """Perform predictive monitoring."""
-        try:
-            # Simple prediction logic (placeholder)
-            risk_level = "low"
-            predictions = []
-
-            # Analyze metrics history for patterns
-            if len(metrics_history) > 10:
-                # Check for trending issues
-                recent_avg = sum(metrics_history[-5:]) / 5
-                overall_avg = sum(metrics_history) / len(metrics_history)
-
-                if recent_avg > overall_avg * 1.2:
-                    risk_level = "medium"
-                    predictions.append("Resource usage trending upward")
-                if recent_avg > overall_avg * 1.5:
-                    risk_level = "high"
-                    predictions.append("Critical resource threshold approaching")
-
-            prediction_result = {
-                "component_id": component_id,
-                "prediction_horizon": prediction_horizon,
-                "risk_level": risk_level,
-                "predictions": predictions,
-                "confidence": 0.85
-            }
-
-            return prediction_result
-
-        except Exception as e:
-            logger.error(f"Error performing predictive monitoring: {e}")
-            return None
+        raise NotImplementedError(
+            "Sprint 57: predictive monitoring requires a real model-backed forecast over historical metrics. "
+            "The placeholder risk scoring and fixed confidence were removed."
+        )
 
     async def _perform_anomaly_detection(self, data_stream: str, algorithm: str, sensitivity: float) -> Optional[Dict]:
         """Perform anomaly detection."""
-        try:
-            # Store anomaly detector
-            detector_id = f"detector_{data_stream}_{int(datetime.now().timestamp())}"
-            self.anomaly_detectors[detector_id] = {
-                "data_stream": data_stream,
-                "algorithm": algorithm,
-                "sensitivity": sensitivity,
-                "created_at": datetime.now()
-            }
-
-            # Deterministic anomaly detection based on data stream + sensitivity
-            _seed = abs(hash((data_stream, algorithm))) % (2**31)
-            _rng = __import__('random').Random(_seed + int(datetime.now().timestamp()) // 120)
-            detection_threshold = 1.0 - sensitivity  # Higher sensitivity = lower threshold
-            raw_scores = [round(_rng.uniform(0.3, 1.0), 3) for _ in range(5)]
-            anomaly_scores = [s for s in raw_scores if s > (0.6 + detection_threshold * 0.3)]
-            anomalies_detected = len(anomaly_scores)
-
-            result = {
-                "data_stream": data_stream,
-                "algorithm": algorithm,
-                "sensitivity": sensitivity,
-                "anomalies_detected": anomalies_detected,
-                "anomaly_scores": sorted(anomaly_scores, reverse=True),
-                "detection_timestamp": datetime.now()
-            }
-
-            return result
-
-        except Exception as e:
-            logger.error(f"Error performing anomaly detection: {e}")
-            return None
+        raise NotImplementedError(
+            "Sprint 57: anomaly detection requires a real detector over a live data stream. "
+            "The synthetic score generator was removed."
+        )
 
     async def _perform_resource_optimization(self, resource_type: str, current_usage: Dict, constraints: Dict) -> Optional[Dict]:
         """Perform resource optimization."""
-        try:
-            recommendations = []
-
-            # Generate optimization recommendations based on resource type
-            if resource_type == "cpu":
-                if current_usage.get("utilization", 0) > 80:
-                    recommendations.append("Consider horizontal scaling for CPU-intensive workloads")
-                    recommendations.append("Optimize query performance to reduce CPU usage")
-            elif resource_type == "memory":
-                if current_usage.get("utilization", 0) > 85:
-                    recommendations.append("Implement memory caching strategies")
-                    recommendations.append("Review memory leak patterns in application code")
-            elif resource_type == "storage":
-                if current_usage.get("utilization", 0) > 90:
-                    recommendations.append("Implement data archiving strategy")
-                    recommendations.append("Consider storage tier optimization")
-
-            # Calculate estimated savings from utilization metrics
-            utilization = current_usage.get("utilization", 0)
-            if utilization > 90:
-                savings_low, savings_high = 20, 35
-            elif utilization > 70:
-                savings_low, savings_high = 10, 25
-            else:
-                savings_low, savings_high = 5, 15
-
-            optimization_result = {
-                "resource_type": resource_type,
-                "current_utilization": utilization,
-                "recommendations": recommendations,
-                "estimated_savings": f"{savings_low}-{savings_high}%",
-                "implementation_complexity": "high" if utilization > 85 else "medium" if utilization > 60 else "low"
-            }
-
-            # Store recommendation
-            self.optimization_recommendations.append({
-                "resource_type": resource_type,
-                "recommendations": recommendations,
-                "timestamp": datetime.now()
-            })
-
-            return optimization_result
-
-        except Exception as e:
-            logger.error(f"Error performing resource optimization: {e}")
-            return None
+        raise NotImplementedError(
+            "Sprint 57: resource optimization requires real cost, capacity, and constraint models. "
+            "The rule-of-thumb savings estimator was removed."
+        )
 
     async def get_bridge_health(self) -> Dict[str, Any]:
         """Get bridge health status."""

@@ -1,11 +1,22 @@
 # Current State
 
-Date: 2026-04-09
+Date: 2026-04-22
 Repo: AAC
 Branch: `main`
 Workspace: `c:\dev\AAC_fresh`
-Python: 3.12 via `.venv\Scripts\python.exe`
+Python: 3.10.6 via `.venv\Scripts\python.exe`
 Version: 3.6.0 (pyproject.toml)
+
+## Sprint Progress
+
+- ✅ Sprint 0: Cleanup & Foundation
+- ✅ Sprint 1: Signal Pipeline — `strategies/signal_generator.py`, `shared/signal.py`
+- ✅ Sprint 2: Execution Path
+- ✅ Sprint 3: Risk & Roll Discipline
+- ✅ Sprint 4: P&L Tracking — `CentralAccounting/pnl_tracker.py` (31 tests)
+- ✅ Sprint 5: Monitoring — `monitoring/health_monitor.py` (34 tests; suite: 2613)
+- ✅ Sprint 6: Second Strategy — `strategies/vol_premium_signals.py`, `strategies/signal_aggregator.py`, `strategies/simple_backtest.py`, `core/orchestrator.py` war_room_scan() wired dual-strategy (44 tests; suite: 2661)
+- ✅ Sprint 7: Automation & Scheduling — `core/market_scheduler.py` (55 tests; suite: 2718)
 
 ## Operational Summary
 

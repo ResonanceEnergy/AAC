@@ -30,6 +30,8 @@ Architecture
 """
 from __future__ import annotations
 
+from __future__ import annotations
+
 import asyncio
 import logging
 import re
@@ -480,6 +482,20 @@ async def _noop(params: dict[str, Any]) -> dict[str, Any]:
     return {"status": "skill_registered", "note": "Runtime handler pending"}
 
 
+AGENT_FALLBACK_HANDLER = {
+    SkillAgent.AZ_SUPREME: _enterprise_status,
+    SkillAgent.AX_HELIX: _enterprise_status,
+    SkillAgent.BIGBRAIN: _market_intel,
+    SkillAgent.TRADING: _flow_analysis,
+    SkillAgent.RISK: _risk_check,
+    SkillAgent.ACCOUNTING: _portfolio_status,
+    SkillAgent.CRYPTO: _crypto_prices,
+    SkillAgent.INFRA: _live_scan,
+    SkillAgent.DOCTRINE: _regime_evaluate,
+    SkillAgent.WAR_ROOM: _live_scan,
+}
+
+
 # ─── Skill Registry ────────────────────────────────────────────────────────
 # Maps every skill_id to its binding.  Skills are grouped by agent + cadence
 # so the bridge can schedule them correctly.
@@ -643,6 +659,28 @@ class SkillRuntimeBridge:
     def __init__(self) -> None:
         self._registry = dict(_REGISTRY)
         self._execution_log: list[dict[str, Any]] = []
+        self._fallback_wrapped = 0
+        self._wrap_noop_bindings()
+
+    def _build_fallback_handler(self, binding: SkillBinding):
+        fallback = AGENT_FALLBACK_HANDLER.get(binding.agent, _enterprise_status)
+
+        async def _wrapped(params: dict[str, Any]) -> dict[str, Any]:
+            result = await fallback(params)
+            if isinstance(result, dict):
+                result.setdefault("fallback", True)
+                result.setdefault("fallback_skill", binding.skill_id)
+                result.setdefault("fallback_note", binding.description)
+            return result
+
+        setattr(_wrapped, "_aac_fallback", True)
+        return _wrapped
+
+    def _wrap_noop_bindings(self) -> None:
+        for binding in self._registry.values():
+            if binding.handler is _noop:
+                binding.handler = self._build_fallback_handler(binding)
+                self._fallback_wrapped += 1
 
     # ── Public API ──────────────────────────────────────────────────────
 
@@ -764,10 +802,16 @@ class SkillRuntimeBridge:
         """Summary statistics."""
         bindings = list(self._registry.values())
         wired = sum(1 for b in bindings if b.handler is not _noop)
+        fallback_wrapped = sum(
+            1
+            for b in bindings
+            if bool(getattr(b.handler, "_aac_fallback", False))
+        )
         return {
             "total_skills": len(bindings),
             "wired_to_runtime": wired,
             "pending_noop": len(bindings) - wired,
+            "fallback_wrapped": fallback_wrapped,
             "by_agent": {
                 a.value: sum(1 for b in bindings if b.agent == a)
                 for a in SkillAgent

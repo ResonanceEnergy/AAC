@@ -44,6 +44,7 @@ Protocol:
     9. REPORT:    Status update to OpenClaw/logs every cycle
     10. SCHEDULE: Manage cron-like periodic tasks
 """
+from __future__ import annotations
 
 import asyncio
 import json
@@ -511,12 +512,16 @@ class AutonomousEngine:
                 OpenClawCronJob,
                 OpenClawGatewayBridge,
             )
+            from integrations.openclaw_az_supreme_handler import initialize_az_supreme_openclaw_handler
             gateway_url = os.getenv("OPENCLAW_GATEWAY_URL", "ws://127.0.0.1:18789")
             self._openclaw = OpenClawGatewayBridge(gateway_url=gateway_url)
             connected = await self._openclaw.connect()
             if connected:
                 self.components["openclaw"].record_success()
                 logger.info(f"OpenClaw Gateway LIVE at {gateway_url}")
+
+                await initialize_az_supreme_openclaw_handler(bridge=self._openclaw)
+                logger.info("AZ SUPREME handlers registered on OpenClaw")
 
                 # Register daily cron jobs per SOUL.md doctrine
                 morning_briefing = OpenClawCronJob(
@@ -702,9 +707,34 @@ class AutonomousEngine:
                     f"components={healthy}/{total} healthy | "
                     f"errors={self.error_count}"
                 )
+                self._write_heartbeat_state(uptime, healthy, total)
             except Exception as e:
                 logger.exception("Unexpected error: %s", e)
             await asyncio.sleep(self.HEARTBEAT_INTERVAL)
+
+    def _write_heartbeat_state(self, uptime, healthy: int, total: int) -> None:
+        """Persist current liveness to data/autonomous_state.json (read by dashboards)."""
+        try:
+            state_path = Path(__file__).resolve().parent.parent / "data" / "autonomous_state.json"
+            state_path.parent.mkdir(parents=True, exist_ok=True)
+            payload = {
+                "pid": os.getpid(),
+                "running": self.running,
+                "started_at": self.start_time.isoformat() if self.start_time else None,
+                "heartbeat_at": datetime.now(timezone.utc).isoformat(),
+                "uptime_seconds": uptime.total_seconds(),
+                "cycle_count": self.cycle_count,
+                "error_count": self.error_count,
+                "doctrine_state": self.doctrine.state.value,
+                "doctrine_reason": getattr(self.doctrine, "transition_reason", ""),
+                "components_healthy": healthy,
+                "components_total": total,
+                "tasks_registered": len(self.tasks),
+                "last_report_at": self.last_report.isoformat() if self.last_report else None,
+            }
+            state_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+        except Exception as exc:  # noqa: BLE001
+            logger.debug(f"heartbeat_state_write_failed: {exc}")
 
     # ── Scheduler ─────────────────────────────────────────────────────
 

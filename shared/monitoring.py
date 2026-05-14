@@ -4,6 +4,7 @@ System Monitoring & Health Checks
 =================================
 Production monitoring, health checks, and alerting for ACC system.
 """
+from __future__ import annotations
 
 import asyncio
 import json
@@ -761,16 +762,12 @@ async def health_check() -> Dict:
 
 async def initialize_monitoring():
     """Initialize the monitoring system"""
-    service = get_monitoring_service()
-    # Any initialization logic here
-    pass
+    get_monitoring_service()
 
 
 async def shutdown_monitoring():
     """Shutdown the monitoring system"""
-    service = get_monitoring_service()
-    # Any shutdown logic here
-    pass
+    get_monitoring_service()
 
 
 # CLI for testing

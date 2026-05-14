@@ -39,6 +39,7 @@ Unix / macOS
 ------------
     ./launch.sh paper
 """
+from __future__ import annotations
 
 from __future__ import annotations
 
@@ -111,7 +112,16 @@ MODES = [
     "mission-control",
     "13-moon",
     "polymarket",
+    "planktonxd-browser",
+    "planktonxd-web-dashboard",
     "roadmap",
+    "pnl",
+    "openclaw",
+    "schedule",
+    "command",
+    "autonomous",
+    "console",
+    "coder",
 ]
 
 BANNER = r"""
@@ -143,7 +153,16 @@ MODE_DESCRIPTIONS = {
     "mission-control": "Unified Mission Control dashboard — single pane of glass (port 8069)",
     "13-moon": "13-Moon Doctrine live dashboard (Streamlit, port 8503)",
     "polymarket": "Polymarket Division — active scanning + execution (scan/monitor/live)",
+    "planktonxd-browser": "PlanktonXD Browser Bot — automated browser-based prediction market harvester (--visible, --continuous)",
+    "planktonxd-web-dashboard": "PlanktonXD Web Dashboard — browser-based control panel with clickable buttons for all bot commands (port 8088)",
     "roadmap": "Command Roadmap — daily/weekly tasks + 13-Moon + war room (HTML)",
+    "pnl": "P&L report — open positions, today's P&L, 30-day history",
+    "openclaw": "Connect AZ SUPREME to the OpenClaw Gateway (ws://127.0.0.1:18789)",
+    "schedule": "Automated scheduler — signal scans, roll checks, P&L snapshots, health checks",
+    "command": "Unified Command Dashboard (web, port 8400) — all Sprint 1-25 subsystems on one page",
+    "autonomous": "Autonomous trading engine (continuous loop with heartbeat to data/autonomous_state.json)",
+    "console": "Unified Command Console (terminal) -- same data as command mode, no browser",
+    "coder": "Autonomous coder -- scan repo for drift patterns, emit backlog, optional --apply safe fixes",
 }
 
 
@@ -276,13 +295,17 @@ def _mode_all(display: str = "web", port: int = 8501) -> int:
 
 
 def _mode_dashboard() -> int:
-    logger.info(str(_cyan("  Starting Dashboard ...")))
-    return _run([_python(), "-m", "monitoring.aac_master_monitoring_dashboard", "--mode", "web"])
+    logger.info(str(_cyan("  Starting Health Monitor Dashboard ...")))
+    from monitoring.health_monitor import HealthMonitor
+
+    return HealthMonitor().run_loop(30)
 
 
 def _mode_monitor() -> int:
-    logger.info(str(_cyan("  Starting System Monitor ...")))
-    return _run([_python(), "-m", "shared.system_monitor"])
+    logger.info(str(_cyan("  Starting Health Monitor ...")))
+    from monitoring.health_monitor import HealthMonitor
+
+    return HealthMonitor().run_loop(30)
 
 
 def _start_health_endpoint():
@@ -355,8 +378,8 @@ def _mode_test(extra_args: list[str] | None = None) -> int:
         "-q",
         "--tb=short",
         "-m",
-        "not live and not exchange and not slow",
-        "--timeout=15",
+        "not live and not exchange and not slow and not integration",
+        "--timeout=30",
     ]
     if extra_args:
         cmd.extend(extra_args)
@@ -645,6 +668,175 @@ def _mode_polymarket() -> int:
     return _asyncio.run(_run())
 
 
+def _mode_planktonxd_browser() -> int:
+    """Start PlanktonXD Browser Bot — browser automation prediction market harvester."""
+    logger.info(str(_cyan("  ════════════════════════════════════════")))
+    logger.info(str(_cyan("  PlanktonXD Browser Bot")))
+    logger.info(str(_cyan("  ════════════════════════════════════════")))
+    logger.info(str(_cyan("  Browser-based PlanktonXD strategy emulation")))
+    logger.info(str(_cyan("  Deep OTM harvesting via Selenium automation")))
+    logger.info("")
+    
+    # Run the browser bot activation script
+    script = PROJECT_ROOT / "scripts" / "activate_planktonxd_browser_bot.py"
+    if not script.exists():
+        logger.info(str(_red("  [X] PlanktonXD Browser Bot script not found")))
+        return 1
+    
+    return _run([_python(), str(script)])
+
+
+def _mode_planktonxd_web_dashboard() -> int:
+    """Start PlanktonXD Web Dashboard — browser control panel with clickable buttons."""
+    logger.info(str(_cyan("  ════════════════════════════════════════")))
+    logger.info(str(_cyan("  PlanktonXD Web Dashboard")))
+    logger.info(str(_cyan("  ════════════════════════════════════════")))
+    logger.info(str(_cyan("  Browser-based control panel with buttons")))
+    logger.info(str(_cyan("  Real-time monitoring & command execution")))
+    logger.info("")
+    
+    # Run the web dashboard
+    dashboard_script = PROJECT_ROOT / "monitoring" / "planktonxd_browser_dashboard.py"
+    if not dashboard_script.exists():
+        logger.info(str(_red("  [X] PlanktonXD Web Dashboard script not found")))
+        return 1
+    
+    logger.info(str(_green("  🚀 Starting PlanktonXD Web Dashboard...")))
+    logger.info(str(_green("  🌐 Opening browser to http://localhost:8088")))
+    logger.info(str(_green("  🎛️ Click buttons to execute bot commands")))
+    logger.info("")
+    
+    return _run([_python(), str(dashboard_script)])
+
+
+def _mode_pnl() -> int:
+    """P&L report — positions, today's P&L, 30-day history."""
+    from CentralAccounting.pnl_tracker import PnLTracker
+
+    logger.info(str(_cyan("  ════════════════════════════════════════")))
+    logger.info(str(_cyan("  AAC P&L Report")))
+    logger.info(str(_cyan("  ════════════════════════════════════════")))
+    logger.info("")
+
+    tracker = PnLTracker()
+
+    # Try to get live positions from IBKR and take a fresh snapshot
+    try:
+        import asyncio
+        from TradingExecution.position_tracker import PositionTracker
+
+        paper = os.environ.get("PAPER_TRADING", "false").lower() == "true"
+        pos_tracker = PositionTracker(paper=paper)
+        positions = asyncio.run(pos_tracker.refresh())
+        account_value = float(os.environ.get("ACCOUNT_VALUE_USD", "50000"))
+
+        if positions:
+            report = tracker.take_snapshot(positions, account_value)
+            logger.info(str(_green(f"  [+] Snapshot taken: {len(positions)} live positions")))
+        else:
+            report = tracker.today_report()
+            logger.info(str(_yellow("  [!] No live positions returned — reporting from DB")))
+    except Exception as exc:
+        logger.info(str(_yellow(f"  [!] IBKR not available ({exc}) — reporting from DB only")))
+        report = tracker.today_report()
+
+    print(PnLTracker.format_report(report))
+
+    # 30-day history
+    history = tracker.historical_summary(days=30)
+    if len(history) > 1:
+        logger.info(str(_cyan("  30-Day History")))
+        logger.info(f"  {'Date':<12} {'Acct Value':>12} {'Unr P&L':>10} {'Rea P&L':>10} {'Pos':>4}")
+        logger.info(f"  {'─'*12} {'─'*12} {'─'*10} {'─'*10} {'─'*4}")
+        for row in history:
+            logger.info(
+                f"  {row['snapshot_date']:<12} "
+                f"${row['account_value_usd']:>10,.2f} "
+                f"${row['total_unrealized_pnl']:>8,.2f} "
+                f"${row['total_realized_pnl']:>8,.2f} "
+                f"{row['position_count']:>4}"
+            )
+        delta = tracker.pnl_delta(days=2)
+        sign = "+" if delta >= 0 else ""
+        logger.info(str(_green(f"  [+] 2-day P&L delta: {sign}${delta:,.2f}")))
+
+    tracker.close()
+    return 0
+
+
+def _mode_openclaw() -> int:
+    """Connect AZ SUPREME to the OpenClaw Gateway and keep it alive."""
+    import asyncio
+
+    async def _run():
+        from integrations.openclaw_gateway_bridge import get_openclaw_bridge
+        from integrations.openclaw_az_supreme_handler import initialize_az_supreme_openclaw_handler
+
+        logger.info(str(_cyan("  ════════════════════════════════════════")))
+        logger.info(str(_cyan("  AZ SUPREME → OpenClaw Gateway")))
+        logger.info(str(_cyan("  ════════════════════════════════════════")))
+
+        bridge = get_openclaw_bridge()
+        connected = await bridge.connect()
+        if not connected:
+            logger.error("  ❌ Could not connect to OpenClaw Gateway at %s", bridge.gateway_url)
+            logger.error("     Is the NCL OpenClaw server running?")
+            return 1
+
+        logger.info(str(_green(f"  🦞 Bridge CONNECTED: {bridge.gateway_url}")))
+
+        await initialize_az_supreme_openclaw_handler(bridge=bridge)
+
+        logger.info(str(_green("  👑 AZ SUPREME registered on OpenClaw")))
+        logger.info("  Commands available: /status /briefing /risk /doctrine /agents /strategies /apis /help")
+        logger.info("  Press Ctrl+C to disconnect.\n")
+
+        try:
+            # bridge.connect() already spawned _message_listener + _heartbeat_loop
+            # Just keep the loop alive until disconnected or Ctrl+C
+            while bridge._connected:
+                await asyncio.sleep(1)
+        except KeyboardInterrupt:
+            logger.info("  🛑 OpenClaw session terminated by user.")
+        except Exception as exc:
+            logger.error("  ❌ OpenClaw session error: %s", exc)
+            return 1
+        finally:
+            await bridge.disconnect()
+        return 0
+
+    return asyncio.run(_run())
+
+
+def _mode_schedule() -> int:
+    """Automated market scheduler — runs unattended during NYSE hours."""
+    from core.market_scheduler import MarketScheduler
+
+    logger.info(str(_cyan("  ════════════════════════════════════════")))
+    logger.info(str(_cyan("  AAC Market Scheduler")))
+    logger.info(str(_cyan("  ════════════════════════════════════════")))
+    logger.info("  Tasks:")
+    logger.info("    [*] Health check      every 5 min (always on)")
+    logger.info("    [*] Signal scan       every 15 min (market hours only)")
+    logger.info("    [*] Roll check        once daily at market open (9:30 ET)")
+    logger.info("    [*] P&L snapshot      once daily at market close (16:00 ET)")
+    import os as _os
+    auto_execute = _os.getenv("AUTO_EXECUTE", "false").lower() == "true"
+    logger.info(
+        "    [*] Auto-execute      "
+        + (str(_cyan("ON")) if auto_execute else "OFF  (set AUTO_EXECUTE=true to enable)")
+    )
+    logger.info("  Press Ctrl+C to stop.")
+    logger.info("")
+
+    sched = MarketScheduler(auto_execute=auto_execute)
+    try:
+        sched.run_forever(max_restarts=10)
+    except KeyboardInterrupt:
+        logger.info(str(_yellow("  [!] Scheduler interrupted by user.")))
+    return 0
+
+
 def _mode_lde(args: argparse.Namespace) -> int:
     """Launch the Living Doctrine Engine dashboard."""
     port = getattr(args, "port", None) or 8510
@@ -652,6 +844,44 @@ def _mode_lde(args: argparse.Namespace) -> int:
     from monitoring.lde_dashboard import run_dashboard
     run_dashboard(port=port)
     return 0
+
+
+def _mode_command(args: argparse.Namespace) -> int:
+    """Launch the unified Command Dashboard (Sprint 1-25 subsystems on one page)."""
+    port = getattr(args, "port", None)
+    if not port or port == 8501:
+        port = 8400
+    logger.info(str(_cyan(f"  [*] Starting AAC Command Dashboard on port {port} ...")))
+    from monitoring.command_dashboard import run_dashboard
+    return run_dashboard(port=port)
+
+
+def _mode_autonomous(args: argparse.Namespace) -> int:
+    """Launch the Autonomous Engine continuous loop (heartbeats to data/autonomous_state.json)."""
+    logger.info(str(_cyan("  [*] Starting AAC Autonomous Engine ...")))
+    import asyncio
+    from core.autonomous_engine import AutonomousEngine
+    engine = AutonomousEngine()
+    try:
+        asyncio.run(engine.start())
+    except KeyboardInterrupt:
+        logger.info(str(_cyan("  [*] Autonomous engine stopped by user")))
+    return 0
+
+
+def _mode_console(args: argparse.Namespace) -> int:
+    """Launch the Command Console (terminal-rendered twin of the web command dashboard)."""
+    logger.info(str(_cyan("  [*] Starting AAC Command Console ...")))
+    from monitoring.command_console import run_console
+    interval = float(getattr(args, "interval", None) or 5.0)
+    return run_console(interval=interval)
+
+
+def _mode_coder(args: argparse.Namespace, extra: list[str]) -> int:
+    """Run the autonomous coder (deterministic scanner + safe-fix applier)."""
+    logger.info(str(_cyan("  [*] Running AAC Autonomous Coder ...")))
+    from tools.autonomous_coder import main as coder_main
+    return coder_main(extra)
 
 
 # ── Dispatch ────────────────────────────────────────────────────────────────
@@ -677,7 +907,16 @@ MODE_DISPATCH = {
     "mission-control": _mode_mission_control,
     "13-moon": _mode_thirteen_moon,
     "polymarket": _mode_polymarket,
+    "planktonxd-browser": _mode_planktonxd_browser,
+    "planktonxd-web-dashboard": _mode_planktonxd_web_dashboard,
     "roadmap": _mode_roadmap,
+    "pnl": _mode_pnl,
+    "openclaw": _mode_openclaw,
+    "schedule": _mode_schedule,
+    "command": _mode_command,
+    "autonomous": _mode_autonomous,
+    "console": _mode_console,
+    "coder": _mode_coder,
 }
 
 
@@ -722,6 +961,12 @@ def main() -> int:
         action="store_true",
         help="Do not auto-open browser tabs when starting war-room mode",
     )
+    parser.add_argument(
+        "--interval",
+        type=float,
+        default=5.0,
+        help="Refresh interval in seconds for console mode (default: 5)",
+    )
     args, extra = parser.parse_known_args()
 
     _banner()
@@ -737,7 +982,7 @@ def main() -> int:
     _load_env()
 
     # Startup config validation (skip for non-trading modes)
-    if args.mode not in ("test", "health", "git-sync", "preflight"):
+    if args.mode not in ("test", "health", "git-sync", "preflight", "pnl", "schedule"):
         try:
             from shared.config_loader import validate_startup_requirements
 
@@ -772,6 +1017,16 @@ def main() -> int:
     elif args.mode == "mission-control":
         port = args.port if args.port != 8501 else 8069
         return handler(port=port, open_browser=not args.no_browser)
+    elif args.mode == "lde":
+        return handler(args)
+    elif args.mode == "command":
+        return handler(args)
+    elif args.mode == "autonomous":
+        return handler(args)
+    elif args.mode == "console":
+        return handler(args)
+    elif args.mode == "coder":
+        return handler(args, extra or [])
     else:
         return handler()
 

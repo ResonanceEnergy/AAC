@@ -22,6 +22,7 @@ Configuration via .env:
     IBKR_ACCOUNT=DU1234567
     IBKR_PAPER=true
 """
+from __future__ import annotations
 
 import asyncio
 import logging
@@ -711,7 +712,7 @@ class IBKRConnector(BaseExchangeConnector):
             result = []
 
             for item in items:
-                result.append({
+                entry: Dict[str, Any] = {
                     'symbol': item.contract.symbol,
                     'sec_type': item.contract.secType,
                     'exchange': item.contract.exchange,
@@ -722,7 +723,14 @@ class IBKRConnector(BaseExchangeConnector):
                     'market_value': item.marketValue or 0.0,
                     'unrealized_pnl': item.unrealizedPNL or 0.0,
                     'realized_pnl': item.realizedPNL or 0.0,
-                })
+                }
+                # Enrich options contracts with expiry / strike / right
+                if item.contract.secType == 'OPT':
+                    entry['expiry'] = getattr(item.contract, 'lastTradeDateOrContractMonth', None)
+                    entry['strike'] = getattr(item.contract, 'strike', None)
+                    entry['right'] = getattr(item.contract, 'right', None)  # 'C' or 'P'
+                    entry['multiplier'] = getattr(item.contract, 'multiplier', '100')
+                result.append(entry)
 
             return result
 

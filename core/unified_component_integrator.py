@@ -29,6 +29,7 @@
 ║      status = uci.get_integration_status()                                  ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 """
+from __future__ import annotations
 
 from __future__ import annotations
 
@@ -42,12 +43,15 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
+import structlog
+
 # ── Project root ──────────────────────────────────────────────────────
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 logger = logging.getLogger("AAC.UnifiedIntegrator")
+_log = structlog.get_logger()
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -595,11 +599,11 @@ class UnifiedComponentIntegrator:
                 ("Options Strategy Engine", "strategies.options_strategy_engine", "OptionsStrategyEngine"),
                 ("Cross-Asset Seesaw", "strategies.cross_asset_seesaw", "CrossAssetSeesawEngine"),
                 ("Golden Ratio Finance", "strategies.golden_ratio_finance", "FibonacciCalculator"),
-                ("MetalX Arbitrage", "strategies.metalx_arb_strategy", "MetalXArbStrategy"),
                 ("Worldwide Arbitrage", "strategies.worldwide_arbitrage_strategy", "WorldwideArbitrageStrategy"),
                 ("War Room Engine", "strategies.war_room_engine", "WarRoomEngine"),
                 ("Market Forecaster", "strategies.market_forecaster_runner", "MarketForecasterRunner"),
                 ("PlanktonXD Harvester", "strategies.planktonxd_prediction_harvester", "PlanktonXDPredictionHarvester"),
+                ("PlanktonXD Browser Bot", "agents.planktonxd_browser_bot", "PlanktonXDBrowserBot"),
                 # ── 7 ACTIVE STRATEGIES (War Room Doctrine) ──────────
                 ("Storm Lifeboat Capital", "strategies.storm_lifeboat.capital_engine", "LifeboatCapitalEngine"),
                 ("Matrix Maximizer", "strategies.matrix_maximizer", "MatrixMaximizer"),
@@ -888,26 +892,26 @@ class UnifiedComponentIntegrator:
         if self._bridge_orchestrator and hasattr(self._bridge_orchestrator, "shutdown"):
             try:
                 await self._bridge_orchestrator.shutdown()
-            except Exception:
-                pass
+            except Exception as e:
+                _log.warning("bridge_orchestrator_shutdown_failed", error=str(e))
 
         if self._ncc_master_adapter and hasattr(self._ncc_master_adapter, "stop"):
             try:
                 self._ncc_master_adapter.stop()
-            except Exception:
-                pass
+            except Exception as e:
+                _log.warning("ncc_master_adapter_stop_failed", error=str(e))
 
         if self._ncc_bridge and hasattr(self._ncc_bridge, "stop"):
             try:
                 self._ncc_bridge.stop()
-            except Exception:
-                pass
+            except Exception as e:
+                _log.warning("ncc_bridge_stop_failed", error=str(e))
 
         if self._strategy_exec_engine and hasattr(self._strategy_exec_engine, "shutdown"):
             try:
                 await self._strategy_exec_engine.shutdown()
-            except Exception:
-                pass
+            except Exception as e:
+                _log.warning("strategy_exec_engine_shutdown_failed", error=str(e))
 
         logger.info("Unified Component Integrator shutdown complete")
 

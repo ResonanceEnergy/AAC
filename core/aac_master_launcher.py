@@ -20,9 +20,13 @@ Usage:
     python aac_master_launcher.py --dashboard-only   # Dashboard only
     python aac_master_launcher.py --service-only     # Monitoring service only
 """
+from __future__ import annotations
 
 import argparse
 import asyncio
+import importlib
+import inspect
+import io
 import logging
 import signal
 import sys
@@ -36,6 +40,12 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 # Ensure logs dir exists before FileHandler
 (PROJECT_ROOT / 'logs').mkdir(exist_ok=True)
+
+# Force UTF-8 console streams on Windows to avoid emoji logging crashes.
+if hasattr(sys.stdout, "buffer") and (sys.stdout.encoding or "").lower() != "utf-8":
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+if hasattr(sys.stderr, "buffer") and (sys.stderr.encoding or "").lower() != "utf-8":
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
 
 # Configure logging
 logging.basicConfig(
@@ -153,15 +163,26 @@ class AACMasterLauncher:
         logger.info("🤖 Phase 2: Launching Department Agents")
 
         try:
-            # Initialize department super agents
-            from shared.department_super_agents import initialize_all_department_super_agents
-            agent_result = await initialize_all_department_super_agents()
+            # Optional legacy aggregate module (may not exist in trimmed installs).
+            init_fn = None
+            if importlib.util.find_spec("shared.department_super_agents") is not None:
+                from shared.department_super_agents import initialize_all_department_super_agents
 
-            self.status.agents = True
-            self.status.agents_active = agent_result.get('total_count', 0)
-            self.status.departments_connected = agent_result.get('departments_covered', 0)
+                init_fn = initialize_all_department_super_agents
 
-            logger.info(f"✅ Department agents launched: {self.status.agents_active} agents across {self.status.departments_connected} departments")
+            if init_fn is not None:
+                agent_result = await init_fn()
+                self.status.agents_active = agent_result.get('total_count', 0)
+                self.status.departments_connected = agent_result.get('departments_covered', 0)
+                logger.info(
+                    f"✅ Department agents launched: {self.status.agents_active} "
+                    f"agents across {self.status.departments_connected} departments"
+                )
+            else:
+                logger.info(
+                    "Department super-agent aggregate module not found; "
+                    "continuing with direct agent initializers"
+                )
 
             # Launch BigBrainIntelligence agents
             await self._launch_bigbrain_agents()
@@ -172,10 +193,12 @@ class AACMasterLauncher:
             # Launch strategy agents
             await self._launch_strategy_agents()
 
+            self.status.agents = True
+
         except Exception as e:
             self.status.errors.append(f"Agent launch failed: {e}")
-            logger.error(f"❌ Department agents launch failed: {e}")
-            raise
+            logger.warning(f"⚠️ Department agents launch degraded: {e}")
+            self.status.agents = False
 
     async def _launch_bigbrain_agents(self):
         """Launch BigBrainIntelligence research agents"""
@@ -205,31 +228,22 @@ class AACMasterLauncher:
             logger.warning(f"Executive agents launch issue (non-fatal): {e}")
 
     async def _launch_strategy_agents(self):
-        """Launch strategy trading agents (49 strategies × 2 agents = 98 agents)"""
-        try:
-            from agents.agent_based_trading import AgentContestOrchestrator
-            from strategies.strategy_agent_master_mapping import get_strategy_agent_mapper
+        """Strategy trading agents — DISABLED in Sprint 53.
 
-            # Initialize strategy agent orchestrator
-            self.strategy_orchestrator = AgentContestOrchestrator()
-            await self.strategy_orchestrator.initialize_contest()
-
-            # Get strategy-agent mapping for validation
-            mapper = get_strategy_agent_mapper()
-            validation = mapper.validate_assignments()
-
-            strategy_count = validation.get('total_strategies', 0)
-            agent_count = validation.get('total_agents', 0)
-
-            logger.info(f"✅ Strategy agents launched: {agent_count} agents for {strategy_count} strategies")
-
-            # Update status
-            self.status.strategy_agents_active = agent_count
-            self.status.strategies_covered = strategy_count
-
-        except Exception as e:
-            logger.warning(f"Strategy agents launch issue: {e}")
-            self.status.errors.append(f"Strategy agents failed: {e}")
+        Previously called ``AgentContestOrchestrator.initialize_contest()`` which
+        wired ``MockIntelligenceSource`` into the live system and used
+        ``random.random()`` to fabricate fills.  Per the "NO MOCK DATA OR CALLS"
+        doctrine this no longer runs in the master launcher.  When real
+        strategy-agent execution exists it must use a live broker connector
+        (IBKR/Moomoo) — wire it back in here at that point.
+        """
+        logger.info(
+            "_launch_strategy_agents: skipped (Sprint 53 doctrine — no fake-fill "
+            "contest in production launcher).  Real strategy-agent execution "
+            "pending live broker wiring."
+        )
+        self.status.strategy_agents_active = 0
+        self.status.strategies_covered = 0
 
     async def _launch_trading_systems(self):
         """Launch trading execution systems"""
@@ -237,10 +251,17 @@ class AACMasterLauncher:
 
         try:
             from core.orchestrator import AAC2100Orchestrator
-            self.trading_system = AAC2100Orchestrator(
-                paper_mode=(self.mode == 'paper'),
-                dry_run=(self.mode == 'dry-run'),
-            )
+
+            # Older launcher code passed paper_mode/dry_run, but newer
+            # AAC2100Orchestrator signatures may not accept those kwargs.
+            ctor_params = inspect.signature(AAC2100Orchestrator.__init__).parameters
+            kwargs: Dict[str, Any] = {}
+            if "paper_mode" in ctor_params:
+                kwargs["paper_mode"] = (self.mode == 'paper')
+            if "dry_run" in ctor_params:
+                kwargs["dry_run"] = (self.mode == 'dry-run')
+
+            self.trading_system = AAC2100Orchestrator(**kwargs)
 
             await self.trading_system.initialize()
 
@@ -362,11 +383,16 @@ class AACMasterLauncher:
                 OpenClawCronJob,
                 OpenClawGatewayBridge,
             )
+            from integrations.openclaw_az_supreme_handler import initialize_az_supreme_openclaw_handler
             gateway_url = _os.getenv("OPENCLAW_GATEWAY_URL", "ws://127.0.0.1:18789")
             self._openclaw = OpenClawGatewayBridge(gateway_url=gateway_url)
             connected = await self._openclaw.connect()
             if connected:
                 logger.info(f"🦞 OpenClaw Gateway LIVE at {gateway_url}")
+
+                await initialize_az_supreme_openclaw_handler(bridge=self._openclaw)
+                logger.info("👑 AZ SUPREME handlers registered on OpenClaw")
+
                 # Register daily cron jobs
                 morning = OpenClawCronJob(
                     job_id="morning_briefing",
@@ -443,13 +469,18 @@ class AACMasterLauncher:
             shutdown_tasks.append(self._shutdown_monitoring())
 
         if self.trading_system:
-            shutdown_tasks.append(self.trading_system.stop())
+            stop_result = self.trading_system.stop()
+            if inspect.isawaitable(stop_result):
+                shutdown_tasks.append(stop_result)
 
         if self.doctrine_orchestrator:
-            shutdown_tasks.append(self.doctrine_orchestrator.stop_monitoring())
+            stop_result = self.doctrine_orchestrator.stop_monitoring()
+            if inspect.isawaitable(stop_result):
+                shutdown_tasks.append(stop_result)
 
         # Wait for all shutdowns
-        await asyncio.gather(*shutdown_tasks, return_exceptions=True)
+        if shutdown_tasks:
+            await asyncio.gather(*shutdown_tasks, return_exceptions=True)
 
     async def _shutdown_monitoring(self):
         """Shutdown monitoring systems"""

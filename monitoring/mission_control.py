@@ -550,9 +550,9 @@ def collect_tasks() -> dict:
                 "interval": _format_interval(td["interval"]),
                 "group": "war_room",
             })
-    except Exception:
-        pass
-
+    except Exception as exc:  # noqa: BLE001
+        _log = __import__('structlog').get_logger() if '_log' not in dir() else _log
+        _log.warning('suppressed_exception', error=str(exc))
     # Thirteen Moon tasks — pull from actual registry
     tm_tasks = []
     try:
@@ -564,9 +564,9 @@ def collect_tasks() -> dict:
                 "interval": _format_interval(td["interval"]),
                 "group": "moon",
             })
-    except Exception:
-        pass
-
+    except Exception as exc:  # noqa: BLE001
+        _log = __import__('structlog').get_logger() if '_log' not in dir() else _log
+        _log.warning('suppressed_exception', error=str(exc))
     all_tasks = core_tasks + wr_tasks + tm_tasks
     result = {"tasks": all_tasks, "engine_status": "configured", "total": len(all_tasks)}
     _set_cached("tasks", result)
@@ -1065,7 +1065,51 @@ def collect_trade_log() -> dict:
     return result
 
 
+def collect_openclaw() -> dict:
+    """OpenClaw gateway + AZ SUPREME connection status."""
+    cached = _get_cached("openclaw")
+    if cached is not None:
+        return cached
+
+    import socket as _socket
+
+    gateway_url = os.environ.get("OPENCLAW_GATEWAY_URL", "ws://127.0.0.1:18789")
+    host, port = "127.0.0.1", 18789
+    try:
+        stripped = gateway_url.replace("ws://", "").replace("wss://", "")
+        h, p = stripped.rsplit(":", 1)
+        host, port = h, int(p)
+    except Exception as exc:  # noqa: BLE001
+        _log = __import__('structlog').get_logger() if '_log' not in dir() else _log
+        _log.warning('suppressed_exception', error=str(exc))
+    gateway_up = False
+    try:
+        with _socket.create_connection((host, port), timeout=1):
+            gateway_up = True
+    except OSError:
+        gateway_up = False
+
+    skill_count = 0
+    skill_names: list[str] = []
+    try:
+        from integrations.openclaw_barren_wuffet_skills import get_skill_count, get_skill_names
+        skill_count = get_skill_count()
+        skill_names = get_skill_names()[:5]
+    except Exception as exc:  # noqa: BLE001
+        _log = __import__('structlog').get_logger() if '_log' not in dir() else _log
+        _log.warning('suppressed_exception', error=str(exc))
+    result = {
+        "gateway_url": gateway_url,
+        "gateway_up": gateway_up,
+        "skill_count": skill_count,
+        "skill_preview": skill_names,
+    }
+    _set_cached("openclaw", result)
+    return result
+
+
 def collect_backbone() -> dict:
+    """shared/ backbone health — key module import status + stats."""
     """shared/ backbone health — key module import status + stats."""
     cached = _get_cached("backbone")
     if cached is not None:
@@ -1133,6 +1177,7 @@ def api_all():
         "api_feeds": _safe(collect_api_feeds, "api_feeds"),
         "polymarket": _safe(collect_polymarket, "polymarket"),
         "scenarios": _safe(collect_scenarios, "scenarios"),
+        "openclaw": _safe(collect_openclaw, "openclaw"),
         "backbone": _safe(collect_backbone, "backbone"),
         "pnl": _safe(collect_pnl, "pnl"),
         "trade_log": _safe(collect_trade_log, "trade_log"),
@@ -1171,6 +1216,11 @@ def api_health():
 @app.get("/api/daily_tasks")
 def api_daily_tasks():
     return JSONResponse(_safe(collect_daily_tasks, "daily_tasks"))
+
+
+@app.get("/api/openclaw")
+def api_openclaw():
+    return JSONResponse(_safe(collect_openclaw, "openclaw"))
 
 
 @app.get("/", response_class=HTMLResponse)

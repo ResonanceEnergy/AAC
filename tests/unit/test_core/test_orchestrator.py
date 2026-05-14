@@ -1,4 +1,6 @@
 """Unit tests for core.orchestrator — QuantumSignal and QuantumSignalAggregator."""
+from __future__ import annotations
+
 from datetime import datetime, timedelta
 
 import pytest

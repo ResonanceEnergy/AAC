@@ -1,3 +1,6 @@
+import structlog
+
+_log = structlog.get_logger()
 """
 Storm Lifeboat Matrix — Live Data Feed
 =========================================

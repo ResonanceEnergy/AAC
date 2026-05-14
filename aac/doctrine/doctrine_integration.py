@@ -19,6 +19,7 @@ Integration Points:
 - SharedInfrastructure: Security, incident management
 - Matrix Monitor C2: Dashboard uptime, panel coverage, pillar connectivity
 """
+from __future__ import annotations
 
 import asyncio
 import json
@@ -483,8 +484,8 @@ class MatrixMonitorDoctrineAdapter:
                     AACMasterMonitoringDashboard,
                 )
                 self._dashboard = AACMasterMonitoringDashboard()
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.warning("Monitoring dashboard init failed: %s", exc)
         return self._dashboard
 
     async def get_metrics(self) -> Dict[str, float]:

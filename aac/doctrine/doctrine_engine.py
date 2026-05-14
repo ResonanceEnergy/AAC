@@ -25,6 +25,7 @@ Doctrine Packs:
 11. Future Financial Doctrine — FFD (CentralAccounting)
 12. Matrix Monitor Command & Control (SharedInfrastructure)
 """
+from __future__ import annotations
 
 import argparse
 import asyncio
@@ -291,8 +292,8 @@ class DoctrineEngine:
                 low = float(parts[0].strip())
                 high = float(parts[1].strip())
                 return low <= value <= high
-        except (ValueError, IndexError):
-            pass
+        except (ValueError, IndexError) as exc:
+            logger.debug("Threshold parse failed for '%s': %s", threshold_str, exc)
         return False
 
     def _create_violation_from_metric(self, metric: MetricValue) -> None:
@@ -468,7 +469,6 @@ class DoctrineEngine:
 
         except Exception as e:
             logger.warning(f"Failed to evaluate trigger '{trigger_str}': {e}")
-            pass
         return False
 
     def _state_severity(self, state: BarrenWuffetState) -> int:

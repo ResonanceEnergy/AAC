@@ -4,6 +4,7 @@ BigBrain Intelligence - Research Agents Collection
 ==================================================
 Complete implementation of all Theater research agents.
 """
+from __future__ import annotations
 
 import asyncio
 import json
@@ -1039,35 +1040,10 @@ class APIScannerAgent(BaseResearchAgent):
         except Exception as e:
             self.logger.error(f"CoinGecko global API error: {e}")
 
-        # Add mock signals for testing when APIs are unavailable
-        if not signals:
-            signals.extend([
-                {
-                    'title': 'Mock API Signal: Exchange Maintenance',
-                    'description': 'Detected potential exchange maintenance window based on historical patterns.',
-                    'confidence': 0.6,
-                    'urgency': 'low',
-                    'data': {
-                        'exchange': 'MockExchange',
-                        'maintenance_window': '02:00-04:00 UTC',
-                        'historical_pattern': True,
-                    },
-                    'source': 'pattern_analysis',
-                },
-                {
-                    'title': 'Mock API Signal: New Token Launch',
-                    'description': 'Potential new token launch detected in development phase.',
-                    'confidence': 0.5,
-                    'urgency': 'medium',
-                    'data': {
-                        'token_symbol': 'MOCK',
-                        'launch_platform': 'MockDEX',
-                        'development_stage': 'testnet',
-                    },
-                    'source': 'github_monitoring',
-                },
-            ])
-
+        # Sprint 53: previous version injected fake "Mock API Signal: Exchange
+        # Maintenance" / "New Token Launch" payloads when the real APIs returned
+        # nothing.  Removed under the "NO MOCK DATA OR CALLS" doctrine -- empty
+        # signal list is the honest result when no real signals fire.
         return signals
 
 

@@ -164,7 +164,26 @@ class ActiveScanner:
     def _get_plankton(self):
         if self._plankton is None:
             from strategies.planktonxd_prediction_harvester import PlanktonXDPredictionHarvester
-            self._plankton = PlanktonXDPredictionHarvester()
+            from shared.strategy_framework import StrategyConfig
+            from shared.communication import CommunicationFramework
+            from shared.audit_logger import AuditLogger
+            config = StrategyConfig(
+                strategy_id="planktonxd",
+                name="PlanktonXD Harvester",
+                strategy_type="prediction_market",
+                edge_source="deep_otm_mispricing",
+                time_horizon="intraday",
+                complexity="high",
+                data_requirements=["polymarket_prices"],
+                execution_requirements=["clob_api"],
+                risk_envelope={"max_bet": 25, "max_daily": 200},
+                cross_department_dependencies={},
+            )
+            self._plankton = PlanktonXDPredictionHarvester(
+                config=config,
+                communication=CommunicationFramework(),
+                audit_logger=AuditLogger(enable_db_logging=False),
+            )
         return self._plankton
 
     # ── Daily bet counter ───────────────────────────────────────────────
@@ -276,21 +295,19 @@ class ActiveScanner:
             matches = await wr.scan()
             for match in matches:
                 # War Room returns ThesisMarketMatch objects
-                if match.adjusted_probability > 0 and match.market_price < 0.15:
-                    edge = match.adjusted_probability - match.market_price
+                if match.thesis_probability > 0 and match.market_price < 0.15:
+                    edge = match.thesis_probability - match.market_price
                     if edge >= MIN_EDGE_THRESHOLD:
-                        # Get token_id from the market data
-                        token_id = match.market.get("clobTokenIds", [""])[0] if isinstance(match.market, dict) else ""
                         results.append(ScanResult(
                             strategy="war_room",
-                            market_id=str(match.market_id),
-                            market_title=match.market_title,
-                            token_id=token_id,
+                            market_id=str(match.condition_id),
+                            market_title=match.market_question,
+                            token_id=match.token_id,
                             side="BUY",
                             price=match.market_price,
                             estimated_edge=round(edge, 4),
                             size_usd=min(MAX_POSITION_SIZE_USD, 10.0),  # Conservative for thesis bets
-                            rationale=f"Thesis: {match.thesis_stage}, pressure-adjusted prob: {match.adjusted_probability:.1%}",
+                            rationale=f"Thesis: {match.stage}, pressure-adjusted prob: {match.thesis_probability:.1%}",
                         ))
             _log.info("war_room_scan_complete", opportunities=len(results))
         except Exception as e:
@@ -306,23 +323,23 @@ class ActiveScanner:
             markets = await pmc.scan_top_markets(limit=50, max_pages=3)
             for market in markets:
                 # Run MC simulation for markets with good volume
-                if market.volume > 50000 and 0.05 < market.best_bid < 0.40:
+                if market.volume > 50000 and 0.05 < market.yes_price < 0.40:
                     mc = pmc.run_monte_carlo(
-                        prob=market.best_bid,
-                        entry_price=market.best_bid,
+                        prob=market.yes_price,
+                        entry_price=market.yes_price,
                         bet_size=MAX_POSITION_SIZE_USD,
                     )
                     if mc.get("ev", 0) > 0 and mc.get("sharpe", 0) > 0.3:
                         edge = mc["ev"] / MAX_POSITION_SIZE_USD
                         if edge >= MIN_EDGE_THRESHOLD:
-                            token_id = market.token_id if hasattr(market, "token_id") else ""
+                            token_id = market.yes_token_id if hasattr(market, "yes_token_id") else ""
                             results.append(ScanResult(
                                 strategy="polymc",
                                 market_id=str(market.condition_id) if hasattr(market, "condition_id") else "",
                                 market_title=market.question if hasattr(market, "question") else str(market),
                                 token_id=token_id,
                                 side="BUY",
-                                price=market.best_bid,
+                                price=market.yes_price,
                                 estimated_edge=round(edge, 4),
                                 size_usd=MAX_POSITION_SIZE_USD,
                                 rationale=f"MC EV: ${mc['ev']:.2f}, Sharpe: {mc['sharpe']:.2f}, VaR5%: ${mc.get('var_5', 0):.2f}",
@@ -337,20 +354,25 @@ class ActiveScanner:
         results = []
         try:
             plank = self._get_plankton()
-            opps = await plank.scan_for_opportunities()
-            for opp in opps:
-                if hasattr(opp, "estimated_edge") and opp.estimated_edge >= MIN_EDGE_THRESHOLD:
-                    token_id = opp.token_id if hasattr(opp, "token_id") else ""
+            # Fetch markets if not already populated
+            if not plank.scanned_markets:
+                await plank.fetch_polymarket_markets(limit=200)
+            markets = list(plank.scanned_markets.values())
+            # scan_for_opportunities is sync and takes a market list
+            opps = plank.scan_for_opportunities(markets)
+            for market, bet_type, outcome, edge in opps:
+                if edge >= MIN_EDGE_THRESHOLD:
+                    price = market.prices.get(outcome, 0.0) if outcome else 0.0
                     results.append(ScanResult(
                         strategy="planktonxd",
-                        market_id=opp.market_id if hasattr(opp, "market_id") else "",
-                        market_title=opp.question if hasattr(opp, "question") else str(opp),
-                        token_id=token_id,
+                        market_id=market.market_id,
+                        market_title=market.question,
+                        token_id=market.yes_token_id if outcome == "Yes" else market.no_token_id,
                         side="BUY",
-                        price=opp.price if hasattr(opp, "price") else 0.0,
-                        estimated_edge=round(opp.estimated_edge, 4),
-                        size_usd=min(MAX_POSITION_SIZE_USD, opp.bet_size if hasattr(opp, "bet_size") else 5.0),
-                        rationale=f"PlanktonXD {opp.bet_type if hasattr(opp, 'bet_type') else 'deep_otm'}: {opp.category if hasattr(opp, 'category') else 'unknown'}",
+                        price=price,
+                        estimated_edge=round(edge, 4),
+                        size_usd=min(MAX_POSITION_SIZE_USD, 10.0),
+                        rationale=f"PlanktonXD {bet_type.value}: {market.category.value}",
                     ))
             _log.info("plankton_scan_complete", opportunities=len(results))
         except Exception as e:

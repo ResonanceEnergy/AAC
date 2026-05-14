@@ -11,10 +11,12 @@ Validates:
   - ClawHub skill search
   - Deprecated openclaw_skills.py emits warning
 """
+from __future__ import annotations
 
 import asyncio
 import warnings
 from pathlib import Path
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -167,18 +169,24 @@ def test_intent_to_agent_mapping():
 
 
 @pytest.mark.asyncio
-async def test_gateway_bridge_connect_mock():
-    """Bridge connects in mock mode when websockets is not available."""
+async def test_gateway_bridge_connect_raises_without_websockets():
+    """Sprint 55: bridge raises ImportError instead of silently entering MOCK mode.
+
+    Previously, when ``websockets`` was unavailable, ``connect()`` logged a
+    warning and returned True with ``_connected=True`` -- so every subsequent
+    send was silently dropped.  Per the NO MOCK DATA OR CALLS doctrine, missing
+    websockets must be a hard error so the operator installs the dependency or
+    explicitly disables the bridge.
+    """
     from integrations.openclaw_gateway_bridge import OpenClawGatewayBridge
     bridge = OpenClawGatewayBridge()
-    # Force mock mode by hiding websockets
     import sys
     ws_mod = sys.modules.get('websockets')
     sys.modules['websockets'] = None
     try:
-        result = await bridge.connect()
-        assert result is True
-        assert bridge._connected is True
+        with pytest.raises(ImportError, match="Sprint 55"):
+            await bridge.connect()
+        assert bridge._connected is False
     finally:
         if ws_mod is not None:
             sys.modules['websockets'] = ws_mod
@@ -233,6 +241,19 @@ async def test_clawhub_search_from_bridge():
         assert "name" in results[0]
 
 
+@pytest.mark.asyncio
+async def test_bridge_internal_file_search_finds_openclaw_file():
+    """Bridge can search existing AAC files for a query string."""
+    from integrations.openclaw_gateway_bridge import OpenClawGatewayBridge
+
+    bridge = OpenClawGatewayBridge()
+    results = await bridge.search_internal_files("class OpenClawGatewayBridge")
+
+    assert isinstance(results, list)
+    assert len(results) > 0
+    assert any(r["path"].endswith("integrations/openclaw_gateway_bridge.py") for r in results)
+
+
 # ─── AZ Supreme Handler ─────────────────────────────────────────────────
 
 def test_az_supreme_handler_creation():
@@ -261,6 +282,27 @@ def test_az_supreme_briefing_data_defaults():
     assert "date" in data
     assert "btc_price" in data
     assert "doctrine_state" in data
+
+
+@pytest.mark.asyncio
+async def test_az_supreme_search_command_uses_bridge_results():
+    """/search command returns formatted results from bridge search."""
+    from integrations.openclaw_az_supreme_handler import AZSupremeOpenClawHandler
+
+    handler = AZSupremeOpenClawHandler()
+    handler.bridge.search_internal_files = AsyncMock(
+        return_value=[
+            {
+                "path": "integrations/openclaw_gateway_bridge.py",
+                "line": 1,
+                "preview": "OpenClaw Gateway Bridge for AAC",
+            }
+        ]
+    )
+
+    response = await handler._cmd_search_internal("openclaw bridge", None)
+    assert "Internal AAC File Search" in response
+    assert "integrations/openclaw_gateway_bridge.py:1" in response
 
 
 # ─── Skill Definitions ──────────────────────────────────────────────────

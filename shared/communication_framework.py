@@ -2,8 +2,18 @@
 Communication Framework
 =======================
 
-Mock implementation for inter-agent communication.
+In-process inter-agent message bus.
+
+Sprint 55 (NO MOCK DATA OR CALLS doctrine): the previous header described this
+as a "Mock implementation" and labelled the class / ``_deliver_message`` as
+mock.  Those labels were stale -- the implementation IS the production
+implementation: an in-memory pub/sub queue with explicit subscribe / send /
+broadcast / get.  It is intentionally in-process (single Python interpreter,
+no network).  When cross-process messaging is needed the bus must be replaced
+with a real transport (Redis pub/sub, Kafka, or the OpenClaw WebSocket bridge
+in ``integrations/openclaw_gateway_bridge.py``).
 """
+from __future__ import annotations
 
 import asyncio
 import logging
@@ -23,7 +33,7 @@ class Message:
     priority: str = "normal"
 
 class CommunicationFramework:
-    """Mock communication framework for inter-agent messaging"""
+    """In-process inter-agent message bus (single-interpreter pub/sub)."""
 
     def __init__(self):
         self.messages = []
@@ -103,10 +113,20 @@ class CommunicationFramework:
         return agent_messages
 
     async def _deliver_message(self, message: Message):
-        """Deliver message to recipient (mock implementation)"""
-        # In a real implementation, this would handle actual delivery
-        # For now, just log the delivery
-        logger.info(f"📨 Delivered message from {message.sender} to {message.recipient}: {message.message_type}")
+        """Deliver message to recipient.
+
+        For the in-process bus, "delivery" means appending to ``self.messages``
+        (already done by ``send_message``) and logging.  Subscribers retrieve
+        their messages with ``get_messages_for_agent``.  When this module is
+        replaced with a real transport (Redis / Kafka / OpenClaw) this hook is
+        where the network publish would live.
+        """
+        logger.info(
+            "Delivered message from %s to %s: %s",
+            message.sender,
+            message.recipient,
+            message.message_type,
+        )
 
     async def get_agent_status(self, agent_id: str) -> Dict[str, Any]:
         """Get status of an agent"""

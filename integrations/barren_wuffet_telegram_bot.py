@@ -13,6 +13,7 @@ Architecture:
     Telegram → Bot API → BarrenWuffetTelegramBot → OpenClaw Router
         → Skill Handler → AAC Agent → Response → Telegram
 """
+from __future__ import annotations
 
 import asyncio
 import json
@@ -89,6 +90,17 @@ COMMAND_ROUTES: Dict[str, str] = {
     "/bw-briefing": "bw-morning-briefing",
     "/bw-agents": "bw-agent-roster",
     "/bw-strat": "bw-strategy-explorer",
+    # Compatibility aliases for legacy /aac command surface.
+    "/aac-market-intelligence": "bw-market-intelligence",
+    "/aac-trading-signals": "bw-trading-signals",
+    "/aac-portfolio-dashboard": "bw-portfolio-dashboard",
+    "/aac-risk-monitor": "bw-risk-monitor",
+    "/aac-crypto-intel": "bw-crypto-intel",
+    "/aac-az-supreme-command": "bw-az-supreme-command",
+    "/aac-doctrine-status": "bw-doctrine-status",
+    "/aac-morning-briefing": "bw-morning-briefing",
+    "/aac-agent-roster": "bw-agent-roster",
+    "/aac-strategy-explorer": "bw-strategy-explorer",
     # Trading & Markets
     "/bw-arb": "bw-digital-arbitrage",
     "/bw-scan": "bw-arbitrage-scanner",

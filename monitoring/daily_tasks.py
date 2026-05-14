@@ -338,9 +338,9 @@ class DailyTaskAggregator:
                         action_required="Tighten stops. Review hedges.",
                         task_id=f"wr_regime_{self.target_date}",
                     ))
-            except Exception:
-                pass
-
+            except Exception as exc:  # noqa: BLE001
+                _log = __import__('structlog').get_logger() if '_log' not in dir() else _log
+                _log.warning('suppressed_exception', error=str(exc))
             # Daily mandate
             try:
                 mandate = engine.get_mandate()
@@ -356,9 +356,9 @@ class DailyTaskAggregator:
                         action_required="Execute daily mandate.",
                         task_id=f"wr_mandate_{self.target_date}",
                     ))
-            except Exception:
-                pass
-
+            except Exception as exc:  # noqa: BLE001
+                _log = __import__('structlog').get_logger() if '_log' not in dir() else _log
+                _log.warning('suppressed_exception', error=str(exc))
         except ImportError:
             _log.debug("daily_tasks_war_room_unavailable")
         except Exception as e:

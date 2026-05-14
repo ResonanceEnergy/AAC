@@ -25,6 +25,7 @@ Key Features:
 
 Reference: https://docs.openclaw.ai/concepts/architecture
 """
+from __future__ import annotations
 
 import asyncio
 import hashlib
@@ -32,6 +33,7 @@ import json
 import logging
 import os
 import random
+import re
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
@@ -277,16 +279,24 @@ class OpenClawGatewayBridge:
     # ── Connection Management ──
 
     async def connect(self) -> bool:
-        """Establish WebSocket connection to OpenClaw Gateway"""
+        """Establish WebSocket connection to OpenClaw Gateway.
+
+        Sprint 55 (NO MOCK DATA OR CALLS doctrine): previously, when the
+        ``websockets`` package was missing, this method logged a warning and
+        returned True with ``self._connected = True`` -- so callers thought
+        they were connected and would silently no-op every send.  We now raise
+        ``ImportError`` loudly so the operator must install the dependency or
+        explicitly disable the bridge.
+        """
         try:
             import websockets
-        except ImportError:
-            logger.warning(
-                "websockets not installed — OpenClaw bridge running in MOCK mode. "
-                "Install with: pip install websockets"
-            )
-            self._connected = True
-            return True
+        except ImportError as exc:
+            self._connected = False
+            raise ImportError(
+                "OpenClaw Gateway Bridge requires the 'websockets' package. "
+                "Install with: pip install websockets.  The previous silent "
+                "MOCK mode was removed in Sprint 55."
+            ) from exc
 
         try:
             headers = {}
@@ -421,6 +431,10 @@ class OpenClawGatewayBridge:
 
         handler = self._agent_handlers.get(agent_id)
 
+        if not handler:
+            # Handlers may be keyed by intent value instead of agent name
+            handler = self._agent_handlers.get(message.intent.value)
+
         if handler:
             try:
                 response = await handler(message, session)
@@ -488,7 +502,12 @@ class OpenClawGatewayBridge:
         if self._ws and self._connected:
             await self._ws.send(json.dumps(payload))
         else:
-            logger.info(f"[MOCK SEND → {original_msg.channel.value}] {response[:200]}")
+            # Sprint 55: previously logged "[MOCK SEND ...]" and silently dropped.
+            raise RuntimeError(
+                f"OpenClaw bridge not connected -- cannot send response on "
+                f"channel {original_msg.channel.value}. Call connect() first "
+                "(Sprint 55 removed the silent MOCK SEND fallback)."
+            )
 
     async def send_proactive_message(
         self,
@@ -516,7 +535,11 @@ class OpenClawGatewayBridge:
         if self._ws and self._connected:
             await self._ws.send(json.dumps(payload))
         else:
-            logger.info(f"[PROACTIVE → {channel.value}] {content[:200]}")
+            # Sprint 55: previously logged "[PROACTIVE ...]" and silently dropped.
+            raise RuntimeError(
+                f"OpenClaw bridge not connected -- cannot send proactive "
+                f"message on channel {channel.value}. Call connect() first."
+            )
 
     # ── Agent Registration ──
 
@@ -547,6 +570,14 @@ class OpenClawGatewayBridge:
 
         if self._ws and self._connected:
             await self._ws.send(json.dumps(payload))
+        else:
+            # Sprint 55: previously silently logged "Registered cron job" without
+            # publishing.  A registered job that never reaches the gateway will
+            # never fire, so fail loudly instead.
+            raise RuntimeError(
+                f"OpenClaw bridge not connected -- cannot register cron job "
+                f"{job.job_id!r}. Call connect() first."
+            )
 
         logger.info(f"📅 Registered cron job: {job.name} ({job.schedule})")
         return True
@@ -817,6 +848,56 @@ class OpenClawGatewayBridge:
         except Exception as e:
             logger.warning(f"ClawHub search from bridge failed: {e}")
             return []
+
+    async def search_internal_files(
+        self,
+        query: str,
+        include_patterns: Optional[List[str]] = None,
+        max_results: int = 12,
+    ) -> List[Dict[str, Any]]:
+        """Search AAC workspace files for text matches.
+
+        This enables OpenClaw commands to discover existing framework/files
+        before creating new implementations.
+        """
+        if not query or not query.strip():
+            return []
+
+        patterns = include_patterns or ["**/*.py", "**/*.md", "**/*.yaml", "**/*.yml", "**/*.toml"]
+        results: List[Dict[str, Any]] = []
+        lowered = query.lower()
+        root = Path(__file__).resolve().parent.parent
+
+        skip_dirs = {".git", ".venv", "__pycache__", "node_modules", "_archive"}
+
+        def _is_skipped(path: Path) -> bool:
+            return any(part in skip_dirs for part in path.parts)
+
+        for pattern in patterns:
+            for path in root.glob(pattern):
+                if len(results) >= max_results:
+                    return results
+                if not path.is_file() or _is_skipped(path):
+                    continue
+                try:
+                    text = path.read_text(encoding="utf-8", errors="ignore")
+                except OSError:
+                    continue
+
+                lines = text.splitlines()
+                for idx, line in enumerate(lines, start=1):
+                    hay = line.lower()
+                    if lowered in hay or all(tok in hay for tok in lowered.split() if tok):
+                        results.append(
+                            {
+                                "path": str(path.relative_to(root)).replace("\\", "/"),
+                                "line": idx,
+                                "preview": re.sub(r"\s+", " ", line).strip()[:180],
+                            }
+                        )
+                        break
+
+        return results
 
 
 # ─── Singleton Access ──────────────────────────────────────────────────────

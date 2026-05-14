@@ -1,3 +1,6 @@
+import structlog
+
+_log = structlog.get_logger()
 """
 Pre-Market Scanner — 9:15 AM ET Daily Options Intelligence
 =============================================================

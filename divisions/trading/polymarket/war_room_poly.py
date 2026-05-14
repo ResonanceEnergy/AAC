@@ -27,10 +27,13 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
+import structlog
+
 if hasattr(sys.stdout, "buffer") and sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
 logger = logging.getLogger(__name__)
+_log = structlog.get_logger()
 
 # Pressure cooker thesis stages and their Polymarket keyword mappings
 THESIS_STAGES = {
@@ -199,8 +202,8 @@ class WarRoomPoly:
                 [m.__dict__ if hasattr(m, '__dict__') else m for m in self.matches]
             )
             _tq_hub.save_all()
-        except Exception:
-            pass
+        except Exception as e:
+            _log.warning("turboquant_integration_failed", error=str(e))
 
         return self.matches
 

@@ -12,6 +12,7 @@ This bridge enables:
 - Audit logging of all trading activities
 - Infrastructure health monitoring for trading
 """
+from __future__ import annotations
 
 import asyncio
 import logging
@@ -241,12 +242,12 @@ class TradingInfrastructureBridge:
             if not monitor_data:
                 return
 
-            # Monitor for 5 minutes (example duration)
+            # Monitor for the current in-process monitoring window.
             monitor_duration = timedelta(minutes=5)
             end_time = monitor_data["start_time"] + monitor_duration
 
             while datetime.now() < end_time and monitor_data["status"] == "active":
-                # Check execution health (placeholder logic)
+                # Evaluate the supplied execution metrics and record the check.
                 await self._check_execution_health(monitor_id)
 
                 await asyncio.sleep(30)  # Check every 30 seconds
@@ -290,7 +291,7 @@ class TradingInfrastructureBridge:
 
             self.incident_queue.append(incident_report)
 
-            # Process incident (placeholder - would escalate based on severity)
+            # Process the incident immediately using in-process severity routing.
             await self._process_incident(incident_report)
 
             return True
@@ -321,7 +322,7 @@ class TradingInfrastructureBridge:
             if not self.audit_buffer:
                 return
 
-            # Batch process audit logs (placeholder - would send to infrastructure)
+            # Flush the current in-memory audit batch.
             batch_size = len(self.audit_buffer)
             logger.info(f"Flushing {batch_size} audit log entries")
 

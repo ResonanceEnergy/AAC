@@ -20,6 +20,7 @@ Hooks into:
     - core/autonomous_engine.py (registered as scheduled task)
     - integrations/barren_wuffet_telegram_bot.py (delivery)
 """
+from __future__ import annotations
 
 import asyncio
 import logging
@@ -33,12 +34,15 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+import structlog
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from shared.config_loader import get_config
 
 logger = logging.getLogger("DailyRecommendation")
+_log = structlog.get_logger()
 
 
 # ════════════════════════════════════════════════════════════════════════
@@ -833,8 +837,8 @@ class DailyRecommendationEngine:
         if self._coingecko and hasattr(self._coingecko, "disconnect"):
             try:
                 await self._coingecko.disconnect()
-            except Exception:
-                pass
+            except Exception as e:
+                _log.warning("coingecko_disconnect_failed", error=str(e))
 
 
 # ════════════════════════════════════════════════════════════════════════

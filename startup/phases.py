@@ -152,11 +152,14 @@ def phase_openclaw() -> bool:
             OpenClawCronJob,
             OpenClawGatewayBridge,
         )
+        from integrations.openclaw_az_supreme_handler import initialize_az_supreme_openclaw_handler
         gateway_url = os.environ.get("OPENCLAW_GATEWAY_URL", "ws://127.0.0.1:18789")
         bridge = OpenClawGatewayBridge(gateway_url=gateway_url)
         connected = asyncio.run(bridge.connect())
         if connected:
+            asyncio.run(initialize_az_supreme_openclaw_handler(bridge=bridge))
             logger.info(f"  [+] OpenClaw Gateway LIVE at {gateway_url}")
+            logger.info("  [+] AZ SUPREME handlers registered")
             return True
         else:
             logger.warning("  [!] OpenClaw Gateway connect() returned False")

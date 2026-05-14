@@ -88,6 +88,7 @@ class CorrelationTracker:
         self.contagion_z_threshold = contagion_z_threshold
         self.absorption_warning = absorption_warning
         self._history: Optional[pd.DataFrame] = None
+        self.last_snapshot: Optional[CorrelationSnapshot] = None  # Sprint 26 — cached for gate checks
 
     # ── Public API ─────────────────────────────────────────────────────────
 
@@ -140,6 +141,7 @@ class CorrelationTracker:
             eff_n=round(eff_n, 1),
             n_alerts=len(alerts),
         )
+        self.last_snapshot = snap  # Sprint 26 — cache for AutoTrader gate
         return snap
 
     def get_ewm_covariance(self, prices: pd.DataFrame) -> pd.DataFrame:

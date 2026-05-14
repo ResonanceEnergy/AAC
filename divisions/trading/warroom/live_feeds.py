@@ -26,7 +26,10 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
+import structlog
+
 logger = logging.getLogger("WarRoomLiveFeeds")
+_log = structlog.get_logger()
 
 
 # ============================================================================
@@ -741,8 +744,8 @@ async def fetch_ibkr_data(result: LiveFeedResult) -> None:
         if connector:
             try:
                 await connector.disconnect()
-            except Exception:
-                pass
+            except Exception as disconnect_error:
+                _log.warning("ibkr_disconnect_failed", error=str(disconnect_error))
 
 
 # ============================================================================
