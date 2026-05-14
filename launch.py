@@ -52,6 +52,14 @@ if sys.stdout is None:
 if sys.stderr is None:
     sys.stderr = open(os.devnull, "w")  # noqa: SIM115
 
+# Windows cp1252 console can't encode ANSI escapes / unicode glyphs we emit.
+# Force UTF-8 on stdout/stderr so logger.info() doesn't crash on color codes.
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[attr-defined]
+    except (AttributeError, ValueError):
+        pass
+
 import argparse
 import logging
 import subprocess
