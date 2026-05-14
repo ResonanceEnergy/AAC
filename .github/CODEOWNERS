@@ -1,0 +1,15 @@
+# AAC code owners — Resonance Energy Corp
+# Required for PR review hints. Solo-dev convention.
+
+* @gripandripphdd
+
+# Trading-critical paths require explicit ack
+/TradingExecution/  @gripandripphdd
+/strategies/        @gripandripphdd
+/core/              @gripandripphdd
+/aac/               @gripandripphdd
+
+# Doctrine + agent rules
+/.github/           @gripandripphdd
+/AGENTS.md          @gripandripphdd
+/.context/          @gripandripphdd
