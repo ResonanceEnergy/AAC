@@ -1,0 +1,50 @@
+# config/watchlist.yaml — AAC canonical ticker universe
+#
+# Tiers:
+#   vol_premium  — scanned by vol_premium_signals.py (IV/HV > 1.20 → LONG_PUT)
+#   war_room     — per-regime signal rules used by signal_generator.py
+#                  Sub-keys match regime names: CRISIS, ELEVATED, WATCH, CALM
+#
+# Rules:
+#   - Add tickers here; no code changes required to change the scan universe.
+#   - vol_premium tickers must have liquid options chains (yfinance must work).
+#   - war_room tickers are (ticker, direction, asset_class, size, stop_pct, target_pct).
+#     direction values: LONG_PUT, LONG, SHORT, FLAT
+#     asset_class values: OPTION, ETF, EQUITY, CRYPTO
+#
+# IMPORTANT: Keep sizes in each regime summing to ≤ 0.50 (50 % of account).
+# The RiskConfig.max_total_exposure_pct = 0.80 is the hard ceiling enforced at
+# execution time; these YAML sizes are the desired allocation, not a bypass.
+
+# ── Vol Premium universe ──────────────────────────────────────────────────────
+vol_premium:
+  - SPY    # S&P 500 — primary broad-market proxy
+  - QQQ    # Nasdaq 100 — tech/growth
+  - IWM    # Russell 2000 — small-cap stress canary
+  - HYG    # iShares High Yield Corporate Bond
+  - JNK    # SPDR High Yield Bond — second credit proxy
+  - XLF    # Financial Select SPDR — bank stress
+  - KRE    # Regional Banking ETF — regional bank canary
+
+# ── War Room regime universe ──────────────────────────────────────────────────
+war_room:
+  CRISIS:
+    - [SPY, LONG_PUT, OPTION, 0.08, 0.30, 0.00]
+    - [QQQ, LONG_PUT, OPTION, 0.05, 0.30, 0.00]
+    - [HYG, LONG_PUT, OPTION, 0.05, 0.20, 0.00]
+    - [JNK, LONG_PUT, OPTION, 0.05, 0.20, 0.00]
+    - [GDX, LONG,     ETF,    0.08, 0.12, 0.25]
+    - [GLD, LONG,     ETF,    0.05, 0.10, 0.20]
+    - [XLF, LONG_PUT, OPTION, 0.04, 0.25, 0.00]
+
+  ELEVATED:
+    - [SPY, LONG_PUT, OPTION, 0.05, 0.25, 0.00]
+    - [GDX, LONG,     ETF,    0.06, 0.12, 0.20]
+    - [GLD, LONG,     ETF,    0.04, 0.10, 0.15]
+    - [HYG, LONG_PUT, OPTION, 0.03, 0.20, 0.00]
+
+  WATCH:
+    - [GLD, LONG, ETF, 0.03, 0.08, 0.12]
+    - [GDX, LONG, ETF, 0.02, 0.10, 0.15]
+
+  CALM: []  # hold cash in calm regimes

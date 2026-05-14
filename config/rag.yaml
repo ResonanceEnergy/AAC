@@ -1,0 +1,86 @@
+# config/rag.yaml — AAC RAG indexer configuration
+#
+# Local RAG over the AAC codebase using Ollama (embeddings + generation)
+# and LanceDB (vector store, no server required).
+
+embeddings:
+  provider: ollama
+  model: nomic-embed-text
+  dim: 768
+  endpoint: http://localhost:11434
+
+generation:
+  provider: ollama
+  model: qwen2.5-coder:7b
+  endpoint: http://localhost:11434
+
+storage:
+  lancedb_path: data/rag_index
+  table_name: aac_chunks
+  cache_path: data/rag_cache
+
+# What to index
+include:
+  # Source code
+  - "aac/**/*.py"
+  - "core/**/*.py"
+  - "shared/**/*.py"
+  - "strategies/**/*.py"
+  - "TradingExecution/**/*.py"
+  - "integrations/**/*.py"
+  - "BigBrainIntelligence/**/*.py"
+  - "CryptoIntelligence/**/*.py"
+  - "CentralAccounting/**/*.py"
+  - "monitoring/**/*.py"
+  - "agents/**/*.py"
+  - "trading/**/*.py"
+  - "tools/**/*.py"
+  - "scripts/**/*.py"
+  - "tests/**/*.py"
+  # Configs / doctrine
+  - "config/**/*.yaml"
+  - "config/**/*.yml"
+  - "aac/**/*.yaml"
+  - "pyproject.toml"
+  # Docs
+  - "docs/**/*.md"
+  - ".context/**/*.md"
+  - ".github/**/*.md"
+  - "AGENTS.md"
+  - "README.md"
+  - "CHANGELOG.md"
+  - "CONTRIBUTING.md"
+
+# What to skip
+exclude:
+  - "**/_archive/**"
+  - "**/_scratch/**"
+  - "**/archive/**"
+  - "**/.venv/**"
+  - "**/node_modules/**"
+  - "**/__pycache__/**"
+  - "**/.pytest_cache/**"
+  - "**/.mypy_cache/**"
+  - "**/build/**"
+  - "**/dist/**"
+  - "**/*.egg-info/**"
+  - "**/data/**"
+  - "**/logs/**"
+  - "**/aac/aac069/**"
+  - "**/aac/NCC/**"
+
+# Chunking
+chunking:
+  # Code files: char-based sliding window (covers function-spanning queries)
+  code_chunk_chars: 1500
+  code_overlap_chars: 200
+  # Markdown: split on H1/H2 headers, fall back to char windows for big sections
+  doc_max_chars: 2000
+  doc_overlap_chars: 150
+
+# Retrieval
+retrieval:
+  k_vector: 12 # vector top-k
+  k_bm25: 8 # BM25 top-k
+  k_final: 8 # after merge / re-rank
+  # Optional kind filter per query: code | doc | config (None = all)
