@@ -1,7 +1,7 @@
 # AAC Living Status Dashboard
 
-> **Last updated:** 2026-04-22
-> **Updated by:** Sprint 6 complete — vol_premium_signals.py, signal_aggregator.py, simple_backtest.py, war_room_scan() wired to dual-strategy. 44 new tests. Suite: 2661 passed.
+> **Last updated:** 2026-05-14
+> **Updated by:** GitHub cleanup — 9 thematic commits pushed `837e95304..9060ed200`. Worktree clean. Pytest baseline jumped 2661 → **4908 passed** (3 failures, env-dependent). New core/* modules verified wired via `market_scheduler` → `launch.py`. RAG smoke test added.
 > **Update this file** after every significant change. This is the single source of truth for what works.
 
 ---
@@ -11,7 +11,7 @@
 | Component | Status | Notes |
 |---|---|---|
 | **IBKR Connector** | LIVE | Port 7497, account U24346218. 15 active positions (5 calls + 10 puts). Net liq CAD $20,079.57. |
-| **Moomoo Connector** | DEGRADED | OpenD running but API port 11111 NOT listening. Dummy credentials in OpenD.xml. Needs auth fix + restart. |
+| **Moomoo Connector** | DEGRADED | OpenD relaunched 2026-05-14 (PID 19612) but API port 11111 still requires real login in OpenD.xml. Dummy credentials persist. |
 | **yfinance** | WORKING | Free, primary options chain source |
 | **CoinGecko** | DEGRADED | Pro key expired → free tier (10 req/min). Prices work. |
 | **Unusual Whales** | PARTIAL | Client wired via `UNUSUAL_WHALES_API_KEY_FILE`. Token in `secrets/unusual_whales_api_key.txt` returned HTTP 401 on probe — REPLACE with valid token. Endpoint paths fixed (`/insider/transactions`, `/news/headlines`). Tier-1 methods added: `get_market_tide`, `get_spot_gex`, `get_greeks`, `get_interpolated_iv`, `get_net_prem_ticks`. |
@@ -27,7 +27,7 @@
 | **Bakeoff Engine** | WORKING | Gate progression (SPEC→SCALE), composite scoring, YAML configs (metric_canon, policy, checklists) created. |
 | **Web Dashboard** | WORKING | `launch.py dashboard` |
 | **CI Pipeline** | WORKING | `.github/workflows/ci.yml` |
-| **Pytest Suite** | WORKING | **2661 passed**, 16 skipped, 1 xfailed, 0 failed (2026-04-22 — Sprint 6 complete) |
+| **Pytest Suite** | WORKING | **4908 passed**, 25 skipped, 1 xfailed, **3 failed** (2026-05-14). Failures: `tests/test_account_equity_feed.py::TestPnlSnapshotWiring` (3 cases) — `_account_value_feed.get_source()` returns `"default"` when TWS offline, triggering drawdown skip. Mock fix needed. |
 | **WSB Sentiment Feed** | WORKING | TradeStie API wired into `war_room_live_feeds.fetch_all_live_data()` — free, no auth, top-50 WSB stocks, 15-min updates |
 | **Circuit Breaker** | NEW | `shared/circuit_breaker.py` — clean CLOSED/OPEN/HALF_OPEN state machine extracted from dead quantum wrapper |
 | **Codebase Audit** | COMPLETE | 398 archive/scratch files categorised (2026-04-20). 4 critical missing imports restored. 10 sci-fi dead files identified. |
@@ -35,6 +35,10 @@
 | **Signal Aggregator** | NEW | `strategies/signal_aggregator.py` — weighted merge (0.60/0.40), agreement boost +0.05, max confidence 0.95 |
 | **Simple Backtest** | NEW | `strategies/simple_backtest.py` — 90-day win-rate comparison, 3 strategy proxies, fully offline |
 | **Dual-Strategy Scan** | NEW | `core/orchestrator.py` `war_room_scan()` runs both strategies concurrently, aggregates signals |
+| **Market Scheduler** | NEW (wired) | `core/market_scheduler.py` orchestrates auto_trader, eod_reporter, execution_throttle, order_monitor, position_reconciler. Imported by `launch.py`. Confirmed 2026-05-14. |
+| **AAC RAG** | NEW | `shared/aac_rag/` (LanceDB + Ollama qwen2.5-coder:7b). `python -m shared.aac_rag {reindex|query|ask}`. Smoke test: `tests/test_aac_rag_smoke.py` (3/3 pass). |
+| **AAC Calendar** | NEW | `shared/aac_calendar/` aggregator package |
+| **AAC Agents** | NEW | `shared/aac_agents/` runtime + tools + history |
 
 ## What's Broken
 
@@ -163,7 +167,9 @@
 | **Codebase Consolidation** | **DONE** | 100+ files archived/deleted. SharedInfrastructure removed. _scratch 87→29. strategies 99→86. Empty stub dirs purged (api-gateway, market-data). Balance scanner relocated to scripts/. |
 | Architecture Rework v3.3 | **ALL PHASES COMPLETE (1-7)** | Strategy Advisor loop, NCL Relay heartbeat, Doctrine Terrain routing, Monitor panels — all wired into orchestrator |
 | Moomoo Options Approval | WAITING | Applied ~Mar 15, still pending |
-| **Moomoo OpenD Auth Fix** | BLOCKED | OpenD running but API port 11111 not listening. Dummy credentials in OpenD.xml. User must update + restart. |
+| **Moomoo OpenD Auth Fix** | BLOCKED | OpenD relaunched 2026-05-14 (PID 19612). Port 11111 still down — dummy creds in OpenD.xml. User must update + restart. |
+| **GitHub Cleanup (May 14)** | DONE | 488 stale changes → 9 thematic commits pushed: gitignore noise, `__future__` sweep (239 files), substantive rollup (91 files), repo hygiene, configs, core/trading/shared infra, strategies, planktonxd, monitoring+tests. |
+| **`test_account_equity_feed` Fix** | TODO | 3 failing tests need `_account_value_feed.get_source()` mocked to `"env"` or `"ibkr"` so drawdown update isn't skipped when TWS offline. |
 
 ## Known Test Issues
 

@@ -213,6 +213,11 @@ class TestPnlSnapshotWiring:
         sched._run_eod_report = MagicMock()
         sched._run_reconciliation = MagicMock()
         sched._run_drawdown_update = MagicMock()
+        # Sprint 18 gate: drawdown update only runs when source is "ibkr" or "env".
+        # Mock the feed to look like a real env-sourced value so the gate passes.
+        sched._account_value_feed = MagicMock()
+        sched._account_value_feed.get.return_value = float(env_account_value)
+        sched._account_value_feed.get_source.return_value = "env"
         return sched
 
     def test_drawdown_update_called_in_pnl_snapshot(self):
@@ -246,6 +251,9 @@ class TestPnlSnapshotWiring:
         sched._run_eod_report = MagicMock()
         sched._run_reconciliation = MagicMock()
         sched._run_drawdown_update = MagicMock()
+        sched._account_value_feed = MagicMock()
+        sched._account_value_feed.get.return_value = 50_000.0
+        sched._account_value_feed.get_source.return_value = "env"
         sched.run_pnl_snapshot()
         sched._run_drawdown_update.assert_called_once()
 
@@ -257,6 +265,9 @@ class TestPnlSnapshotWiring:
         sched._run_eod_report = MagicMock()
         sched._run_reconciliation = MagicMock()
         sched._run_drawdown_update = MagicMock(side_effect=RuntimeError("drawdown exploded"))
+        sched._account_value_feed = MagicMock()
+        sched._account_value_feed.get.return_value = 50_000.0
+        sched._account_value_feed.get_source.return_value = "env"
         result = sched.run_pnl_snapshot()
         # Should still return — the exception from _run_drawdown_update propagates
         # unless we verify it's caught.  This test confirms no crash.
