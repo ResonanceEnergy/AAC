@@ -14,7 +14,8 @@ Usage
 
 Modes
 -----
-    dashboard   Dash monitoring dashboard (web UI)
+    dashboard   AAC Streamlit dashboard (web UI on :8501)
+    healthmon   Terminal health monitor loop
     monitor     System monitor (terminal)
     paper       Paper trading engine
     core        Core orchestrator
@@ -104,6 +105,7 @@ MODES = [
     "api",
     "dashboard",
     "deploy",
+    "healthmon",
     "lde",
     "matrix",
     "monitor",
@@ -144,8 +146,9 @@ BANNER = r"""
 MODE_DESCRIPTIONS = {
     "all": "Full startup: preflight -> gateways -> matrix monitor -> paper engine",
     "api": "Start FastAPI/uvicorn API server",
-    "dashboard": "Dash monitoring dashboard (web UI)",
+    "dashboard": "AAC Streamlit dashboard (web UI on :8501)",
     "deploy": "Run production deployment with config validation",
+    "healthmon": "Terminal health monitor loop (no web UI)",
     "matrix": "Matrix Monitor dashboard (--display terminal|web|dash)",
     "monitor": "System monitor (terminal)",
     "paper": "Paper trading engine",
@@ -302,8 +305,17 @@ def _mode_all(display: str = "web", port: int = 8501) -> int:
     return full_startup(display=display, port=port)
 
 
-def _mode_dashboard() -> int:
-    logger.info(str(_cyan("  Starting Health Monitor Dashboard ...")))
+def _mode_dashboard(port: int = 8501) -> int:
+    """Launch the AAC Streamlit dashboard (web UI)."""
+    logger.info(str(_cyan(f"  Starting AAC Streamlit Dashboard on :{port} ...")))
+    from startup.matrix_monitor import launch_web
+
+    return launch_web(port=port)
+
+
+def _mode_healthmon() -> int:
+    """Terminal-only health monitor loop (legacy ``dashboard`` mode)."""
+    logger.info(str(_cyan("  Starting Terminal Health Monitor ...")))
     from monitoring.health_monitor import HealthMonitor
 
     return HealthMonitor().run_loop(30)
@@ -899,6 +911,7 @@ MODE_DISPATCH = {
     "api": _mode_api,
     "dashboard": _mode_dashboard,
     "deploy": _mode_deploy,
+    "healthmon": _mode_healthmon,
     "lde": _mode_lde,
     "matrix": _mode_matrix,
     "monitor": _mode_monitor,

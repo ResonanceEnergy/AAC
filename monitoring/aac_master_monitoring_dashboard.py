@@ -4527,14 +4527,10 @@ if __name__ == "__main__":
 
 # Backward-compatible re-exports for external consumers — lazy to avoid hard dep at import time
 def __getattr__(name):  # noqa: E302
-    _streamlit_exports = {
-        "AACStreamlitDashboard",
-        "generate_copilot_response",
-        "play_audio_response",
-        "run_streamlit_dashboard",
-    }
-    if name in _streamlit_exports:
-        return locals()[name]
+    if name in {"AACStreamlitDashboard", "run_streamlit_dashboard"}:
+        from monitoring import streamlit_dashboard
+
+        return getattr(streamlit_dashboard, name)
     if name == "AACDashDashboard":
         from monitoring.dash_dashboard import AACDashDashboard  # noqa: E402
 
