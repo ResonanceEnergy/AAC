@@ -1,0 +1,303 @@
+# PlanktonXD Monitoring & Alerting
+# Prometheus metrics, Grafana dashboards, and alert rules
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: planktonxd-monitor
+  namespace: aac-production
+  labels:
+    app: planktonxd-monitor
+spec:
+  ports:
+  - port: 3000
+    targetPort: 3000
+    name: grafana
+  - port: 9090
+    targetPort: 9090
+    name: prometheus
+  selector:
+    app: planktonxd-monitor
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: planktonxd-monitor
+  namespace: aac-production
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: planktonxd-monitor
+  template:
+    metadata:
+      labels:
+        app: planktonxd-monitor
+    spec:
+      containers:
+      - name: prometheus
+        image: prom/prometheus:latest
+        ports:
+        - containerPort: 9090
+        volumeMounts:
+        - name: prometheus-config
+          mountPath: /etc/prometheus
+        args:
+        - '--config.file=/etc/prometheus/prometheus.yml'
+        - '--storage.tsdb.path=/prometheus/'
+        - '--web.console.libraries=/etc/prometheus/console_libraries'
+        - '--web.console.templates=/etc/prometheus/consoles'
+        - '--storage.tsdb.retention.time=168h'
+        - '--web.enable-lifecycle'
+        - '--web.enable-admin-api'
+      
+      - name: grafana
+        image: grafana/grafana:latest
+        ports:
+        - containerPort: 3000
+        env:
+        - name: GF_SECURITY_ADMIN_PASSWORD
+          value: "planktonxd123"
+        volumeMounts:
+        - name: grafana-dashboards
+          mountPath: /var/lib/grafana/dashboards
+        - name: grafana-config
+          mountPath: /etc/grafana/provisioning
+
+      volumes:
+      - name: prometheus-config
+        configMap:
+          name: prometheus-config
+      - name: grafana-dashboards
+        configMap:
+          name: grafana-dashboards
+      - name: grafana-config
+        configMap:
+          name: grafana-config
+
+---
+# Prometheus configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  namespace: aac-production
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+    
+    rule_files:
+    - "/etc/prometheus/alert_rules.yml"
+    
+    alerting:
+      alertmanagers:
+      - static_configs:
+        - targets:
+          - alertmanager:9093
+    
+    scrape_configs:
+    - job_name: 'planktonxd-scanner'
+      static_configs:
+      - targets: ['planktonxd-scanner:8091']
+      metrics_path: '/metrics'
+      scrape_interval: 30s
+    
+    - job_name: 'kubernetes-pods'
+      kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+          - aac-production
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+
+  alert_rules.yml: |
+    groups:
+    - name: planktonxd-alerts
+      rules:
+      - alert: PlanktonXDScannerDown
+        expr: up{job="planktonxd-scanner"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "PlanktonXD Scanner is down"
+          description: "Scanner has been down for more than 2 minutes"
+      
+      - alert: NoOpportunitiesFound
+        expr: planktonxd_opportunities_count == 0
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: "No opportunities found for 30 minutes"
+          description: "Scanner may be misconfigured or markets are stale"
+      
+      - alert: HighErrorRate
+        expr: rate(planktonxd_errors_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error rate in PlanktonXD scanner"
+          description: "Error rate is {{ $value }} errors per second"
+      
+      - alert: LowAccountBalance
+        expr: planktonxd_account_balance < 100
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low account balance"
+          description: "Account balance is ${{ $value }}"
+      
+      - alert: HighMemoryUsage
+        expr: container_memory_usage_bytes{pod=~"planktonxd-scanner.*"} / container_spec_memory_limit_bytes > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage in PlanktonXD scanner"
+          description: "Memory usage is {{ $value | humanizePercentage }}"
+
+---
+# Grafana dashboard configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards
+  namespace: aac-production
+data:
+  planktonxd-dashboard.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "PlanktonXD Live Scanner",
+        "tags": ["trading", "polymarket", "planktonxd"],
+        "timezone": "utc",
+        "panels": [
+          {
+            "title": "Opportunities Found",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "planktonxd_opportunities_count",
+                "legendFormat": "Current Opportunities"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "color": {"mode": "thresholds"},
+                "thresholds": {
+                  "steps": [
+                    {"color": "red", "value": 0},
+                    {"color": "yellow", "value": 3}, 
+                    {"color": "green", "value": 10}
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "title": "Account Balance",
+            "type": "stat", 
+            "targets": [
+              {
+                "expr": "planktonxd_account_balance",
+                "legendFormat": "Balance USD"
+              }
+            ]
+          },
+          {
+            "title": "Daily P&L",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "planktonxd_daily_pnl", 
+                "legendFormat": "Daily P&L"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "color": {"mode": "thresholds"},
+                "thresholds": {
+                  "steps": [
+                    {"color": "red", "value": -50},
+                    {"color": "yellow", "value": 0},
+                    {"color": "green", "value": 20}
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "title": "Scan Performance",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "rate(planktonxd_scans_total[5m])",
+                "legendFormat": "Scans per second"
+              },
+              {
+                "expr": "planktonxd_scan_duration_seconds",
+                "legendFormat": "Scan duration"
+              }
+            ]
+          },
+          {
+            "title": "Top Opportunities by Category", 
+            "type": "piechart",
+            "targets": [
+              {
+                "expr": "planktonxd_opportunities_by_category",
+                "legendFormat": "{{category}}"
+              }
+            ]
+          },
+          {
+            "title": "Error Rate",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "rate(planktonxd_errors_total[5m])",
+                "legendFormat": "Errors per second"
+              }
+            ]
+          }
+        ],
+        "time": {"from": "now-6h", "to": "now"},
+        "refresh": "30s"
+      }
+    }
+
+---
+# Grafana provisioning config
+apiVersion: v1  
+kind: ConfigMap
+metadata:
+  name: grafana-config
+  namespace: aac-production
+data:
+  datasource.yml: |
+    apiVersion: 1
+    datasources:
+    - name: Prometheus
+      type: prometheus
+      access: proxy
+      url: http://localhost:9090
+      isDefault: true
+  
+  dashboard.yml: |
+    apiVersion: 1
+    providers:
+    - name: 'planktonxd'
+      orgId: 1
+      folder: 'PlanktonXD'
+      type: file
+      options:
+        path: /var/lib/grafana/dashboards

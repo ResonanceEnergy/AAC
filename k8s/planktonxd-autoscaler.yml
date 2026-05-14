@@ -1,0 +1,238 @@
+# PlanktonXD Auto-Scaler Configuration
+# Automatically scales scanner based on market activity and performance
+
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: planktonxd-hpa
+  namespace: aac-production
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: planktonxd-scanner
+  minReplicas: 1
+  maxReplicas: 10
+  metrics:
+  # Scale based on CPU usage
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+
+  # Scale based on memory usage
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+
+  # Scale based on custom metrics (opportunities found)
+  - type: Pods
+    pods:
+      metric:
+        name: planktonxd_opportunities_per_second
+      target:
+        type: AverageValue
+        averageValue: "0.1"  # Scale up if finding < 0.1 opportunities/second
+
+  # Scale based on request rate
+  - type: Object
+    object:
+      metric:
+        name: nginx_ingress_controller_requests_per_second
+      describedObject:
+        apiVersion: v1
+        kind: Service
+        name: planktonxd-scanner
+      target:
+        type: Value
+        value: "10"  # Scale up if > 10 requests/second
+
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 60
+      - type: Pods
+        value: 2
+        periodSeconds: 60
+      selectPolicy: Max
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 60
+      selectPolicy: Min
+
+---
+# Vertical Pod Autoscaler (Optional - for resource optimization)
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: planktonxd-vpa
+  namespace: aac-production
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: planktonxd-scanner
+  updatePolicy:
+    updateMode: "Auto"  # Automatically apply recommendations
+  resourcePolicy:
+    containerPolicies:
+    - containerName: planktonxd-scanner
+      minAllowed:
+        cpu: 50m
+        memory: 128Mi
+      maxAllowed:
+        cpu: 2000m
+        memory: 2Gi
+      controlledResources: ["cpu", "memory"]
+
+---
+# Pod Disruption Budget (Ensure minimum availability during updates)
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: planktonxd-pdb
+  namespace: aac-production
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: planktonxd-scanner
+
+---
+# KEDA ScaledObject for advanced autoscaling
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: planktonxd-keda-scaler
+  namespace: aac-production
+spec:
+  scaleTargetRef:
+    name: planktonxd-scanner
+  pollingInterval: 30
+  cooldownPeriod: 300
+  idleReplicaCount: 1
+  minReplicaCount: 1
+  maxReplicaCount: 5
+  triggers:
+  # Scale based on Prometheus metrics
+  - type: prometheus
+    metadata:
+      serverAddress: http://prometheus:9090
+      metricName: planktonxd_opportunities_count
+      threshold: '5'
+      query: planktonxd_opportunities_count
+
+  # Scale based on market activity (time-based)
+  - type: cron
+    metadata:
+      timezone: UTC
+      start: "0 9 * * 1-5"   # Scale up at 9 AM weekdays (US market open)
+      end: "0 16 * * 1-5"    # Scale down at 4 PM weekdays (US market close)
+      desiredReplicas: "3"
+
+  # Scale down during weekends
+  - type: cron
+    metadata:
+      timezone: UTC
+      start: "0 22 * * 5"    # Friday 10 PM
+      end: "0 6 * * 1"       # Monday 6 AM
+      desiredReplicas: "1"
+
+  # Scale based on HTTP request rate
+  - type: prometheus
+    metadata:
+      serverAddress: http://prometheus:9090
+      metricName: http_requests_per_second
+      threshold: '10'
+      query: rate(http_requests_total{job="planktonxd-scanner"}[1m])
+
+---
+# Custom Resource Definition for PlanktonXD-specific scaling
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: planktonxdscalers.trading.aac.resonance.energy
+spec:
+  group: trading.aac.resonance.energy
+  versions:
+  - name: v1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            type: object
+            properties:
+              marketConditions:
+                type: object
+                properties:
+                  volatilityThreshold:
+                    type: number
+                    minimum: 0
+                    maximum: 1
+                  volumeThreshold:
+                    type: number
+                    minimum: 0
+                  opportunityThreshold:
+                    type: integer
+                    minimum: 0
+              scalingRules:
+                type: object
+                properties:
+                  highVolatility:
+                    type: integer
+                    minimum: 1
+                    maximum: 10
+                  lowOpportunities:
+                    type: integer
+                    minimum: 1
+                    maximum: 10
+                  nightMode:
+                    type: integer
+                    minimum: 0
+                    maximum: 3
+          status:
+            type: object
+            properties:
+              currentReplicas:
+                type: integer
+              recommendedReplicas:
+                type: integer
+              lastScaleTime:
+                type: string
+                format: date-time
+  scope: Namespaced
+  names:
+    plural: planktonxdscalers
+    singular: planktonxdscaler
+    kind: PlanktonXDScaler
+
+---
+# Instance of custom scaler
+apiVersion: trading.aac.resonance.energy/v1
+kind: PlanktonXDScaler
+metadata:
+  name: planktonxd-market-scaler
+  namespace: aac-production
+spec:
+  marketConditions:
+    volatilityThreshold: 0.15      # Scale up if market volatility > 15%
+    volumeThreshold: 1000000       # Scale up if daily volume > $1M
+    opportunityThreshold: 3        # Scale up if opportunities < 3
+  scalingRules:
+    highVolatility: 4              # Use 4 replicas during high volatility
+    lowOpportunities: 3            # Use 3 replicas when opportunities are scarce
+    nightMode: 1                   # Use 1 replica during night hours

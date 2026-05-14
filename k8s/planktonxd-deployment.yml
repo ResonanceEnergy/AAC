@@ -1,0 +1,207 @@
+# PlanktonXD Scanner Kubernetes Deployment
+# Autonomous 24/7 prediction market scanning
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: planktonxd-scanner
+  namespace: aac-production
+  labels:
+    app: planktonxd-scanner
+    component: trading-bot
+    tier: production
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: planktonxd-scanner
+  template:
+    metadata:
+      labels:
+        app: planktonxd-scanner
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8091"
+        prometheus.io/path: "/metrics"
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+      - name: planktonxd-scanner
+        image: ghcr.io/resonanceenergy/aac-planktonxd:${IMAGE_TAG}
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8091
+          name: http
+          protocol: TCP
+        env:
+        - name: AAC_ENV
+          value: "production"
+        - name: PAPER_TRADING
+          value: "false"
+        - name: LIVE_TRADING_ENABLED
+          value: "true"
+        - name: DRY_RUN
+          value: "false"
+        - name: POLYMARKET_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: polymarket-credentials
+              key: api-key
+        - name: POLYMARKET_PRIVATE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: polymarket-credentials
+              key: private-key
+        - name: POLYMARKET_CHAIN_ID
+          value: "137"
+        - name: DISCORD_WEBHOOK_URL
+          valueFrom:
+            secretKeyRef:
+              name: notification-secrets
+              key: discord-webhook
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8091
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8091
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 2
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        volumeMounts:
+        - name: scanner-logs
+          mountPath: /app/logs
+        - name: scanner-data
+          mountPath: /app/data
+      volumes:
+      - name: scanner-logs
+        emptyDir: {}
+      - name: scanner-data
+        persistentVolumeClaim:
+          claimName: planktonxd-data
+      nodeSelector:
+        workload-type: "trading-bots"
+      tolerations:
+      - key: "trading-workload"
+        operator: "Equal"
+        value: "true"
+        effect: "NoSchedule"
+
+---
+# Service for PlanktonXD Scanner
+apiVersion: v1
+kind: Service
+metadata:
+  name: planktonxd-scanner
+  namespace: aac-production
+  labels:
+    app: planktonxd-scanner
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 8091
+    protocol: TCP
+    name: http
+  selector:
+    app: planktonxd-scanner
+
+---
+# Persistent Volume Claim for data storage
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: planktonxd-data
+  namespace: aac-production
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: fast-ssd
+
+---
+# ConfigMap for scanner configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: planktonxd-config
+  namespace: aac-production
+data:
+  scanner-config.json: |
+    {
+      "scan_interval_seconds": 300,
+      "max_opportunities": 50,
+      "min_edge_threshold": 0.005,
+      "max_bet_usd": 25.0,
+      "max_bankroll_percentage_per_market": 0.02,
+      "categories": [
+        "crypto", "politics", "sports", "esports", 
+        "weather", "economics", "entertainment", "science"
+      ],
+      "price_range": {
+        "min": 0.001,
+        "max": 0.03
+      },
+      "risk_limits": {
+        "max_daily_loss": 100.0,
+        "max_positions": 500,
+        "emergency_stop_loss_percentage": 0.05
+      }
+    }
+
+---
+# Network Policy for security
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: planktonxd-scanner-netpol
+  namespace: aac-production
+spec:
+  podSelector:
+    matchLabels:
+      app: planktonxd-scanner
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring
+    - podSelector:
+        matchLabels:
+          app: prometheus
+    ports:
+    - protocol: TCP
+      port: 8091
+  egress:
+  - to: []  # Allow all outbound (needed for Polymarket API)
+    ports:
+    - protocol: TCP
+      port: 443
+    - protocol: TCP
+      port: 80

@@ -1,0 +1,88 @@
+# PlanktonXD Live Scanner Container
+# Optimized for autonomous 24/7 prediction market scanning
+
+FROM python:3.11-slim
+
+# Container metadata
+LABEL org.opencontainers.image.title="AAC PlanktonXD Scanner"
+LABEL org.opencontainers.image.description="Autonomous prediction market scanner based on PlanktonXD strategy"
+LABEL org.opencontainers.image.source="https://github.com/ResonanceEnergy/AAC"
+
+# System dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    wget \
+    jq \
+    procps \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create app user (security best practice)
+RUN groupadd -r aac && useradd -r -g aac aac
+
+# Set working directory
+WORKDIR /app
+
+# Copy requirements first (for better Docker layer caching)
+COPY requirements*.txt pyproject.toml ./
+
+# Install Python dependencies
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir uvicorn[standard] gunicorn
+
+# Copy application code
+COPY . .
+
+# Create necessary directories
+RUN mkdir -p /app/logs /app/data /app/_scratch && \
+    chown -R aac:aac /app
+
+# Switch to app user
+USER aac
+
+# Environment variables
+ENV PYTHONPATH=/app
+ENV PYTHONUNBUFFERED=1
+ENV AAC_ENV=production
+ENV PAPER_TRADING=false
+ENV LIVE_TRADING_ENABLED=true
+ENV DRY_RUN=false
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:8091/health || exit 1
+
+# Expose port
+EXPOSE 8091
+
+# Create startup script for better process management
+RUN echo '#!/bin/bash\n\
+set -e\n\
+echo "🦐 Starting PlanktonXD Live Scanner..."\n\
+echo "Environment: $AAC_ENV"\n\
+echo "Trading Mode: $([ "$DRY_RUN" = "true" ] && echo "DRY RUN" || echo "LIVE TRADING")"\n\
+echo "Dashboard: http://0.0.0.0:8091"\n\
+echo "========================================"\n\
+\n\
+# Start the scanner with proper signal handling\n\
+exec python -u _scratch/planktonxd_enhanced_dashboard.py\n\
+' > /app/start-scanner.sh && chmod +x /app/start-scanner.sh
+
+# Alternative: Use gunicorn for production
+RUN echo '#!/bin/bash\n\
+set -e\n\
+echo "🦐 Starting PlanktonXD Production Server..."\n\
+exec gunicorn _scratch.planktonxd_enhanced_dashboard:app \\\n\
+    --bind 0.0.0.0:8091 \\\n\
+    --workers 2 \\\n\
+    --worker-class uvicorn.workers.UvicornWorker \\\n\
+    --timeout 300 \\\n\
+    --keep-alive 60 \\\n\
+    --max-requests 1000 \\\n\
+    --preload \\\n\
+    --access-logfile - \\\n\
+    --error-logfile -\n\
+' > /app/start-production.sh && chmod +x /app/start-production.sh
+
+# Default command (can be overridden)
+CMD ["./start-scanner.sh"]
