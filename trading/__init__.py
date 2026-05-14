@@ -1,4 +1,5 @@
 """trading — Trading execution, order management, and exchange integrations."""
+from __future__ import annotations
 
 __all__ = [
     'advanced_arbitrage_integration',

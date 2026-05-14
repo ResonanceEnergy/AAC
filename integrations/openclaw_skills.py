@@ -30,6 +30,7 @@ Skills Generated:
 
 Reference: https://docs.openclaw.ai/tools/skills
 """
+from __future__ import annotations
 
 import json
 import logging

@@ -7,6 +7,7 @@ Aggregates data from 60+ exchanges and provides unified interface.
 
 This system enables real-time strategy execution with live data.
 """
+from __future__ import annotations
 
 import asyncio
 import json

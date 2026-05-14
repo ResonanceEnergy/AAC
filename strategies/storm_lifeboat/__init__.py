@@ -9,5 +9,6 @@ see-saw capital rotation.
 Live data feeds: Polygon, FRED, Unusual Whales, Finnhub, Fear & Greed,
 Google Trends, IBKR, and Moomoo.
 """
+from __future__ import annotations
 
 __version__ = "9.1.0"

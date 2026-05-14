@@ -28,6 +28,7 @@ Live API feeds accepted:
   - Price data from Finnhub or IBKR via prices dict
   - Regime state from RegimeEngine.evaluate()
 """
+from __future__ import annotations
 
 from __future__ import annotations
 

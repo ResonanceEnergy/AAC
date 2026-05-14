@@ -4,6 +4,7 @@ ACC Test Suite
 ==============
 Comprehensive tests for all components.
 """
+from __future__ import annotations
 
 import asyncio
 from datetime import datetime, timedelta

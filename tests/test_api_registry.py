@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Tests for secret-aware API registry status checks."""
+from __future__ import annotations
 
 from tools import api_registry
 

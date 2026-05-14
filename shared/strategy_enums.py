@@ -4,6 +4,7 @@ Shared Strategy Enums
 Canonical definitions for strategy-related enums used across
 strategies/ and trading/ modules. Extracted to avoid circular imports.
 """
+from __future__ import annotations
 
 from enum import Enum
 

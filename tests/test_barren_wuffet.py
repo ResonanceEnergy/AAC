@@ -1,4 +1,5 @@
 """Tests for BARREN WUFFET State Machine transitions in the Doctrine orchestrator."""
+from __future__ import annotations
 
 import pytest
 

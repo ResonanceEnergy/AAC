@@ -1,4 +1,5 @@
 """Tests for CryptoIntelligence/mev_protection_system.py — MEV detection."""
+from __future__ import annotations
 
 import pytest
 

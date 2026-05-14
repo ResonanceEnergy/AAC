@@ -12,6 +12,7 @@ This bridge enables:
 - Venue failover coordination
 - Intelligence data pipeline monitoring
 """
+from __future__ import annotations
 
 import asyncio
 import logging

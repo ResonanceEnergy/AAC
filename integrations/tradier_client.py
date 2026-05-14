@@ -10,6 +10,7 @@ API: https://documentation.tradier.com/
 Requires:
     - TRADIER_API_KEY in .env (free sandbox at https://developer.tradier.com/)
 """
+from __future__ import annotations
 
 import logging
 import os

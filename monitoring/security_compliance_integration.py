@@ -4,6 +4,7 @@ Security Compliance Integration
 ==============================
 Integrates security framework with compliance system for Phase 1 completion.
 """
+from __future__ import annotations
 
 import asyncio
 import logging

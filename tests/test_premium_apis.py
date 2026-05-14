@@ -4,6 +4,7 @@ Test Premium Market Data APIs
 =============================
 Test script to verify premium API connections work correctly.
 """
+from __future__ import annotations
 
 import asyncio
 from pathlib import Path

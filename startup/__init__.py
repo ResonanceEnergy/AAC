@@ -16,6 +16,7 @@ New unified modes added by this package:
   - ``all``     — Full startup: gateways → pre-flight → paper engine → matrix monitor
   - ``preflight`` — Quick pre-flight validation (env, imports, config)
 """
+from __future__ import annotations
 
 __all__ = [
     "gateways",

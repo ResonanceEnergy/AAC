@@ -1,4 +1,5 @@
 """Tests for health-status reporting across Financial, Crypto, and Research engines."""
+from __future__ import annotations
 
 import asyncio
 

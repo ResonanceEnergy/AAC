@@ -22,6 +22,7 @@ Configuration via .env:
     PLAID_SECRET=                # Optional: Plaid secret
     PLAID_ENV=sandbox            # sandbox | development | production
 """
+from __future__ import annotations
 
 import json
 import logging

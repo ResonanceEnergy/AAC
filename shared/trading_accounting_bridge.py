@@ -12,6 +12,7 @@ This bridge enables:
 - Position reconciliation and discrepancy alerts
 - Capital allocation and utilization monitoring
 """
+from __future__ import annotations
 
 import asyncio
 import logging

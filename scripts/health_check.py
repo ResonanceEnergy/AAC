@@ -9,6 +9,7 @@ Usage:
     # or via Makefile:
     make health
 """
+from __future__ import annotations
 
 import importlib
 import logging

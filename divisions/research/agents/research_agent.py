@@ -5,6 +5,7 @@ BigBrain Intelligence - Research Agent Module
 Provides unified interface for research agent operations.
 Used by bridge services for cross-department communication.
 """
+from __future__ import annotations
 
 import asyncio
 import logging

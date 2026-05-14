@@ -31,6 +31,7 @@ One-shot query:
     recs = model.get_recommendations()        # List[PositionRecommendation]
     state = model.get_sentiment_state()       # SentimentState as dict
 """
+from __future__ import annotations
 
 from __future__ import annotations
 

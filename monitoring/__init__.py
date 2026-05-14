@@ -7,6 +7,7 @@ workings of the organisation and make changes as necessary.
 
 Doctrine Pack 12 tracks the health of the Matrix Monitor itself.
 """
+from __future__ import annotations
 
 __all__ = [
     'aac_master_monitoring_dashboard',

@@ -11,6 +11,7 @@ CRITICAL GAP RESOLUTION: Strategy Execution Logic
 - Connects strategies to live market data feeds
 - Generates orders from strategy signals
 """
+from __future__ import annotations
 
 import asyncio
 import json

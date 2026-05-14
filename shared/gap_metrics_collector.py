@@ -6,6 +6,7 @@ Gap Metrics Collector
 Collects and computes all gap-related metrics defined in the strategy department matrix.
 Implements gap detection, classification, and analysis for arbitrage opportunities.
 """
+from __future__ import annotations
 
 import asyncio
 import logging

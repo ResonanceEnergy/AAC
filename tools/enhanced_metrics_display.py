@@ -6,6 +6,7 @@ AAC Enhanced Metrics Display System
 Professional metrics dashboard with real-time data visualization,
 comprehensive system health monitoring, and executive-level reporting.
 """
+from __future__ import annotations
 
 import asyncio
 import json

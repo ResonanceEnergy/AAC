@@ -10,6 +10,7 @@ API: https://finnhub.io/docs/api
 Requires:
     - FINNHUB_API_KEY in .env (free tier: 60 req/min at https://finnhub.io/)
 """
+from __future__ import annotations
 
 import logging
 import os

@@ -6,6 +6,7 @@ AAC Agent-Based Trading Integration
 Integration layer between the agent-based trading contest and AAC infrastructure.
 Connects trading agents to live market data, security systems, and audit logging.
 """
+from __future__ import annotations
 
 import asyncio
 import json

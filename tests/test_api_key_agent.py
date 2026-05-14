@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Tests for API Key Provisioning Agent"""
+from __future__ import annotations
 
 import asyncio
 import os

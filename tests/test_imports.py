@@ -2,6 +2,7 @@
 """
 Simple test script for master agent imports
 """
+from __future__ import annotations
 
 from pathlib import Path
 

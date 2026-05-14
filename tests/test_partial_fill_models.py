@@ -3,6 +3,7 @@
 Test Partial Fill Models Implementation
 Tests for Models A, B, C, D in the AAC Bake-Off Operating Standard
 """
+from __future__ import annotations
 
 import asyncio
 import logging

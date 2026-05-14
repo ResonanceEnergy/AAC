@@ -4,6 +4,7 @@ Trading Execution Engine
 ========================
 Real order execution, position management, and risk controls.
 """
+from __future__ import annotations
 
 import asyncio
 import json

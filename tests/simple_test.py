@@ -4,6 +4,7 @@ Simple Market Data Test
 =======================
 Basic test of the market data connector system.
 """
+from __future__ import annotations
 
 import asyncio
 import logging

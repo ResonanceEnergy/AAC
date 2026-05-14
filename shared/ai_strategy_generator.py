@@ -4,6 +4,7 @@ AI Strategy Generation Engine
 ============================
 Machine learning-powered arbitrage strategy discovery and generation.
 """
+from __future__ import annotations
 
 import asyncio
 import json

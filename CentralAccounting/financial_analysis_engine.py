@@ -10,6 +10,7 @@ Core engine for CentralAccounting department providing:
 
 Integrates with Doctrine Packs 1 (Risk) & 8 (Metrics).
 """
+from __future__ import annotations
 
 import asyncio
 import json

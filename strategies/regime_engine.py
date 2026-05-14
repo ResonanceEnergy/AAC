@@ -30,6 +30,7 @@ Live-API inputs accepted:
   - Fear & Greed Index: sentiment
   - Any dict of {signal_key: float} can be injected manually
 """
+from __future__ import annotations
 
 from __future__ import annotations
 

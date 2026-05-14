@@ -12,6 +12,7 @@ Usage:
     python scripts/activate_planktonxd.py --simulate     # run Monte Carlo sim
     python scripts/activate_planktonxd.py --scan-only    # just scan Polymarket
 """
+from __future__ import annotations
 
 import asyncio
 import io

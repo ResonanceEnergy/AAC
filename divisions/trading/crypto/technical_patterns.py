@@ -17,6 +17,7 @@ From BARREN WUFFET Insights (721-810):
   - Hash ribbon buy signal has 100% historical accuracy after miner capitulation
   - Crypto market hours matter: Asian session vs US session behavior differs
 """
+from __future__ import annotations
 
 import logging
 import math

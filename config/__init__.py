@@ -1,4 +1,5 @@
 """AAC Configuration Package — System-wide configuration management."""
+from __future__ import annotations
 
 import os
 from pathlib import Path

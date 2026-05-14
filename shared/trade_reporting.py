@@ -4,6 +4,7 @@ Trade Reporting & Regulatory Compliance System
 ==============================================
 Automated trade logging, regulatory reporting, and trade reconstruction for compliance.
 """
+from __future__ import annotations
 
 import asyncio
 import csv

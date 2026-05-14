@@ -4,6 +4,7 @@ Test Market Data Connectors
 ===========================
 Quick test to verify market data connectors are working.
 """
+from __future__ import annotations
 
 import asyncio
 from pathlib import Path

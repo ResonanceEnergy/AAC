@@ -15,6 +15,7 @@ Key Integrations:
 
 Resources: https://algotrading101.com/learn/
 """
+from __future__ import annotations
 
 import json
 import logging

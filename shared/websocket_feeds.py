@@ -4,6 +4,7 @@ WebSocket Price Feed Manager
 ============================
 Real-time price feeds via WebSocket connections to exchanges.
 """
+from __future__ import annotations
 
 import asyncio
 import json

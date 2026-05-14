@@ -4,6 +4,7 @@ Advanced Security Framework
 ==========================
 Multi-factor authentication, encryption, RBAC, and API security for production deployment.
 """
+from __future__ import annotations
 
 import asyncio
 import base64

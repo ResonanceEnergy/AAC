@@ -11,6 +11,7 @@ Monitors the global monetary transition across three tracks:
 Integrates with the existing DoctrineEngine as a department adapter
 following the same pattern as CryptoIntelligenceDoctrineAdapter.
 """
+from __future__ import annotations
 
 import asyncio
 import logging

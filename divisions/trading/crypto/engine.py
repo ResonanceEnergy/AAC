@@ -10,6 +10,7 @@ Core engine for CryptoIntelligence department providing:
 
 Integrates with Doctrine Pack 6 (Counterparty Scoring + Venue Health).
 """
+from __future__ import annotations
 
 import asyncio
 import json

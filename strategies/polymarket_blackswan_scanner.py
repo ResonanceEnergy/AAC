@@ -20,6 +20,7 @@ Usage:
     python strategies/polymarket_blackswan_scanner.py --thesis     # thesis-aligned only
     python strategies/polymarket_blackswan_scanner.py --json       # JSON output
 """
+from __future__ import annotations
 
 import asyncio
 import json

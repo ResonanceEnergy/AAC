@@ -4,6 +4,7 @@ Capital Management & Adequacy System
 ====================================
 Real-time capital tracking, regulatory compliance, and risk management for production deployment.
 """
+from __future__ import annotations
 
 import asyncio
 import json

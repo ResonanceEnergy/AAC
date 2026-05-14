@@ -3,6 +3,7 @@ Tests for MATRIX MAXIMIZER — Geopolitical Bear Options Engine
 ==============================================================
 Covers all 7 modules: core, monte_carlo, greeks, scanner, risk, bridge, runner.
 """
+from __future__ import annotations
 
 import json
 import math

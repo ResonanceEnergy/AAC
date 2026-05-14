@@ -18,6 +18,7 @@ Usage:
     # Check safety state
     state = engine.evaluate_safety_state()
 """
+from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field

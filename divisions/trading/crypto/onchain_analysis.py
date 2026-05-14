@@ -15,6 +15,7 @@ From BARREN WUFFET Insights (601-640):
   - NVT Signal (smoothed) crossing above 150 = overvaluation warning
   - Coin days destroyed spikes = long-dormant whales moving
 """
+from __future__ import annotations
 
 import logging
 import math

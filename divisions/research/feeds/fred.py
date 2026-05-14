@@ -11,6 +11,7 @@ No API key required for basic use (optional for higher limits).
 Requires:
     - FRED_API_KEY in .env (optional — free at https://fred.stlouisfed.org/docs/api/api_key.html)
 """
+from __future__ import annotations
 
 import logging
 import os

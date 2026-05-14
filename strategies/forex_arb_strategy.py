@@ -17,6 +17,7 @@ Pairs monitored:
   - UYU corridor: USD/UYU, EUR/UYU, BRL/UYU
   - Crosses: EUR/GBP, EUR/JPY, GBP/JPY, EUR/CHF
 """
+from __future__ import annotations
 
 import logging
 from datetime import datetime, timedelta

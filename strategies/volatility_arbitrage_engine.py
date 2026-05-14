@@ -10,6 +10,7 @@ From BARREN WUFFET Insights 456-535:
   - Skew extremes (risk reversals) revert faster than ATM vol
   - Vol-of-vol (VVIX) predicts VIX regime changes 1-3 days early
 """
+from __future__ import annotations
 
 import logging
 import math

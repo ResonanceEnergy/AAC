@@ -5,6 +5,7 @@ AAC Strategy Implementation Framework
 Framework for implementing executable arbitrage strategies from CSV definitions.
 Converts strategy configurations into real-time trading algorithms.
 """
+from __future__ import annotations
 
 import asyncio
 import logging

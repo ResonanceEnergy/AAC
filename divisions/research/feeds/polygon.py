@@ -10,6 +10,7 @@ API: https://polygon.io/docs
 Requires:
     - POLYGON_API_KEY in .env
 """
+from __future__ import annotations
 
 import logging
 import sys

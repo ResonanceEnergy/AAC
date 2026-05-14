@@ -17,6 +17,7 @@ Usage:
     engine = get_ffd_engine()
     report = engine.get_status_report()
 """
+from __future__ import annotations
 
 from .ffd_engine import (
     FFD_DOCTRINE_PACK,

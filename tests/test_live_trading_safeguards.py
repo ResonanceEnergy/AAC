@@ -4,6 +4,7 @@ Live Trading Safeguards Integration Tests
 =========================================
 Comprehensive testing for the live trading safety system.
 """
+from __future__ import annotations
 
 import asyncio
 import json

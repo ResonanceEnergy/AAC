@@ -28,6 +28,7 @@ Division Structure:
     division_activator.py — CLI to activate, monitor, and report on all 3
     active_scanner.py     — Unified live trading engine (scan/monitor/live)
 """
+from __future__ import annotations
 
 from typing import Any, Dict, List
 

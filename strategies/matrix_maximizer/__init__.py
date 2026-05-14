@@ -34,6 +34,7 @@ Usage:
     mm = MatrixMaximizer()
     result = mm.run_full_cycle()
 """
+from __future__ import annotations
 
 from strategies.matrix_maximizer.bridge import PillarBridge
 from strategies.matrix_maximizer.core import (

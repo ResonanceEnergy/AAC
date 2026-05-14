@@ -14,6 +14,7 @@ This client:
 
 Knightsbridge FX Reference: https://www.knightsbridgefx.com
 """
+from __future__ import annotations
 
 import asyncio
 import logging

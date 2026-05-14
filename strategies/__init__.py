@@ -1,4 +1,5 @@
 """strategies — Trading strategy implementations and execution engines."""
+from __future__ import annotations
 
 __all__ = [
     'strategy_execution_engine',

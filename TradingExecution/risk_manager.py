@@ -4,6 +4,7 @@ TradingExecution - Risk Manager
 ===============================
 Pre-trade and portfolio-level risk management.
 """
+from __future__ import annotations
 
 import logging
 import sys

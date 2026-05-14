@@ -20,6 +20,7 @@ Usage:
     # Standalone:
     python -m integrations.ncc_master_adapter
 """
+from __future__ import annotations
 
 import asyncio
 import json

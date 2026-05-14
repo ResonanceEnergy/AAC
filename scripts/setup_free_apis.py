@@ -3,6 +3,7 @@
 Free Worldwide API Quick Setup for AAC
 Helps you configure the best free worldwide APIs for arbitrage trading.
 """
+from __future__ import annotations
 
 import logging
 import os

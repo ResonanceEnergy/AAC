@@ -27,6 +27,7 @@ Live API feeds:
     COINGECKO_PRO_API_KEY — BTC/ETH prices, dominance, market data
     (Fear & Greed: free, no key)
 """
+from __future__ import annotations
 
 from __future__ import annotations
 

@@ -1,4 +1,5 @@
 """tools — Analysis, audit, metrics, and operational readiness tools."""
+from __future__ import annotations
 
 __all__ = [
     'enhanced_metrics_display',

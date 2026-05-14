@@ -1,4 +1,5 @@
 """Tests for shared/production_safeguards.py — circuit breaker + rate limiter."""
+from __future__ import annotations
 
 import asyncio
 import time

@@ -4,6 +4,7 @@ CryptoIntelligence Department — BARREN WUFFET
 
 Core crypto analysis, venue health monitoring, and scam detection.
 """
+from __future__ import annotations
 
 from .crypto_intelligence_engine import CryptoIntelligenceEngine
 

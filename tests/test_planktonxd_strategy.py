@@ -4,6 +4,7 @@ Tests for PlanktonXD Prediction Market Harvester Strategy
 Validates the core logic, risk controls, and simulation engine
 for the planktonXD emulation strategy (Strategy #51).
 """
+from __future__ import annotations
 
 import asyncio
 from datetime import datetime, timedelta

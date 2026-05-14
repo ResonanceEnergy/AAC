@@ -16,6 +16,7 @@ From BARREN WUFFET Insights (641-685):
   - Delta-neutral strategies reduce IL but cap upside
   - Yield layering (base + bribe + boost) creates complexity risk
 """
+from __future__ import annotations
 
 import logging
 import math

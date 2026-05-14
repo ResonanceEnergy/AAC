@@ -13,6 +13,7 @@ This bridge enables:
 - Withdrawal risk signals triggering research alerts
 - Cross-validation of intelligence sources
 """
+from __future__ import annotations
 
 import asyncio
 import json

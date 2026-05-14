@@ -11,6 +11,7 @@ Automated monitoring and incident creation for doctrine compliance:
 
 This automation ensures compliance with doctrine pack failure modes.
 """
+from __future__ import annotations
 
 import asyncio
 import json

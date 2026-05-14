@@ -2,6 +2,7 @@
 """
 Tests for scripts/health_check.py — fast, no external services required.
 """
+from __future__ import annotations
 
 import importlib
 import sys

@@ -3,6 +3,7 @@
 Tests for monitoring subsystem — covers the master dashboard,
 continuous monitoring service, and security dashboard.
 """
+from __future__ import annotations
 
 import asyncio
 import os

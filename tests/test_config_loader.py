@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Focused tests for secret-aware config loading."""
+from __future__ import annotations
 
 from pathlib import Path
 

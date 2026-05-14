@@ -24,6 +24,7 @@ Bridge Types:
 - CA ↔ SI: Audit compliance, financial reporting, risk aggregation
 - CI ↔ SI: Security monitoring, venue health tracking, incident response
 """
+from __future__ import annotations
 
 import asyncio
 import json

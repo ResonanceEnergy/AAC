@@ -15,6 +15,7 @@ From BARREN WUFFET Insights 456-510:
   - Calendar spreads (sell event week, buy post-event) exploit crush
   - Iron condors inside the expected move have ~70% win rate but negative skew
 """
+from __future__ import annotations
 
 import logging
 import math

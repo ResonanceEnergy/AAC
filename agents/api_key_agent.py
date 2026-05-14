@@ -29,6 +29,7 @@ CLI:
     python agents/api_key_agent.py --missing
     python agents/api_key_agent.py --add FRED_API_KEY=your_key_here
 """
+from __future__ import annotations
 
 import asyncio
 import logging

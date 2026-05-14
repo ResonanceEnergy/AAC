@@ -8,6 +8,7 @@ Zero gas fees, on-chain CLOB, compliance-first DEX.
 Implements BaseExchangeConnector for unified AAC trading pipeline.
 API: https://api.dex.docs.metalx.com/reference
 """
+from __future__ import annotations
 
 import asyncio
 import logging

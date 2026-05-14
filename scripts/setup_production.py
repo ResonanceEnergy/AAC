@@ -11,6 +11,7 @@ This script will:
 4. Configure monitoring (Prometheus/Grafana)
 5. Implement production safeguards (rate limiting, circuit breakers)
 """
+from __future__ import annotations
 
 import json
 import logging

@@ -5,6 +5,7 @@ Strategy Integration Module
 Integrates strategy execution engine with trading execution system.
 Converts strategy signals into executable orders.
 """
+from __future__ import annotations
 
 import asyncio
 import logging

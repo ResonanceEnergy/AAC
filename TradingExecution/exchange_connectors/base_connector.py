@@ -4,6 +4,7 @@ Base Exchange Connector
 =======================
 Abstract base class defining the unified exchange interface.
 """
+from __future__ import annotations
 
 import asyncio
 import logging

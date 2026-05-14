@@ -5,6 +5,7 @@ Covers: data_feeds, intelligence, execution, advanced_strategies,
         alerts, scheduler, backtester, dashboard, chatbot,
         and enhanced risk methods.
 """
+from __future__ import annotations
 
 import json
 import math

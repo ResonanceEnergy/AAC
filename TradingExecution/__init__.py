@@ -3,6 +3,7 @@ TradingExecution - Core Trading Engine
 =======================================
 Order execution, position management, and exchange connectivity.
 """
+from __future__ import annotations
 
 try:
     from .trading_engine import TradingEngine

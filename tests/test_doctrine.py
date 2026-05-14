@@ -3,6 +3,7 @@
 Validates state machine, metric evaluation, compliance reporting,
 and violation tracking without external YAML dependencies.
 """
+from __future__ import annotations
 
 from datetime import datetime
 from pathlib import Path

@@ -4,6 +4,7 @@ Paper Trading Integration Tests
 ===============================
 Comprehensive testing for the paper trading environment.
 """
+from __future__ import annotations
 
 import asyncio
 import time

@@ -16,6 +16,7 @@ Usage:
     python strategies/black_swan_pressure_cooker.py --update       # Log new observation
     python strategies/black_swan_pressure_cooker.py --score-only   # Quick score
 """
+from __future__ import annotations
 
 import json
 import logging

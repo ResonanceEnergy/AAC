@@ -12,6 +12,7 @@ This bridge enables:
 - Strategy performance attribution
 - Real-time signal processing and validation
 """
+from __future__ import annotations
 
 import asyncio
 import logging

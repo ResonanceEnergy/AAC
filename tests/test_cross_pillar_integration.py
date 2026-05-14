@@ -11,6 +11,7 @@ Tests:
     5. NCC Master Adapter → directive handling
     6. Pillar Matrix Federation → collect_all returns structured data
 """
+from __future__ import annotations
 
 import asyncio
 import json

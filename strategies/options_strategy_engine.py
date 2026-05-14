@@ -8,6 +8,7 @@ Strategies: Iron Condor, Iron Butterfly, Straddle/Strangle, Butterfly,
 Calendar, Diagonal, Collar, Covered Call, Wheel, PMCC, Jade Lizard,
 Broken Wing Butterfly, Christmas Tree, Ratio Spreads, Box Spread, etc.
 """
+from __future__ import annotations
 
 import logging
 import math

@@ -4,6 +4,7 @@ Market Data Integration for AAC Strategies
 ==========================================
 Integrates the comprehensive market data system with arbitrage strategies.
 """
+from __future__ import annotations
 
 import asyncio
 import logging

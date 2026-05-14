@@ -4,6 +4,7 @@ Symbol Classifier — Single Source of Truth
 Determines whether a symbol is crypto or equity and which exchange routes it.
 All other modules import from here instead of maintaining their own sets.
 """
+from __future__ import annotations
 
 # ── Crypto base assets (traded on NDAX / Binance / CoinGecko) ──
 CRYPTO_SYMBOLS = frozenset({

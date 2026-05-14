@@ -4,6 +4,7 @@ Central Accounting Database Schema and Migrations
 =================================================
 SQLite database schema for transactions, positions, and P&L tracking.
 """
+from __future__ import annotations
 
 import asyncio
 import logging

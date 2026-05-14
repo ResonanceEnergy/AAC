@@ -12,6 +12,7 @@ This bridge enables:
 - Withdrawal coordination and settlement
 - Real-time venue health and capacity monitoring
 """
+from __future__ import annotations
 
 import asyncio
 import logging

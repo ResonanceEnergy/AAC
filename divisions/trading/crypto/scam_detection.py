@@ -11,6 +11,7 @@ Implements FrankenClaw-style pattern matching for crypto scams:
 
 Part of BARREN WUFFET's defensive intelligence layer.
 """
+from __future__ import annotations
 
 import logging
 import re

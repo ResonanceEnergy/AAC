@@ -5,6 +5,7 @@ HTTP Health Server
 Simple HTTP server for health checks and metrics endpoints.
 Designed for Kubernetes/Docker health probes and monitoring.
 """
+from __future__ import annotations
 
 import asyncio
 import json

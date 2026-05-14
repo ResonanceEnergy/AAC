@@ -16,6 +16,7 @@ SECURITY FEATURES:
 
 EXECUTION DATE: February 6, 2026
 """
+from __future__ import annotations
 
 import asyncio
 import hashlib

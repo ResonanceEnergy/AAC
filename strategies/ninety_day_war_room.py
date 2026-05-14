@@ -32,6 +32,7 @@ Usage:
   python -m strategies.ninety_day_war_room --calendar          # Macro event calendar
   python -m strategies.ninety_day_war_room --range 2026-04-01 2026-04-14  # Date range view
 """
+from __future__ import annotations
 
 import io
 import json

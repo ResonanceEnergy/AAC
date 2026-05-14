@@ -4,6 +4,7 @@ Kraken Exchange Connector
 =========================
 Implementation of the exchange connector for Kraken.
 """
+from __future__ import annotations
 
 import asyncio
 import logging

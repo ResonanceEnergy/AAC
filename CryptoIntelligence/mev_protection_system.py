@@ -16,6 +16,7 @@ From BARREN WUFFET Insights (686-720):
   - Slippage tolerance >1% on AMMs invites sandwich attacks
   - Time-weighted average pricing (TWAP) reduces manipulation
 """
+from __future__ import annotations
 
 import hashlib
 import logging

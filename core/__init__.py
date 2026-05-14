@@ -3,6 +3,7 @@
 Imports are guarded so that missing optional dependencies (shared infra,
 monitoring, etc.) don't prevent the core package from loading at all.
 """
+from __future__ import annotations
 
 import logging as _logging
 

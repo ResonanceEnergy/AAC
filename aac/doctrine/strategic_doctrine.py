@@ -21,6 +21,7 @@ and override strategic doctrine in real time.
 Doctrine Pack  9: "Strategic Warfare" (Art of War / Sun Tzu)
 Doctrine Pack 10: "Power Dynamics" (48 Laws of Power / Greene)
 """
+from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field

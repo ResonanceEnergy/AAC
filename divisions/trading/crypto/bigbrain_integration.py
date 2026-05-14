@@ -5,6 +5,7 @@ Crypto-BigBrain Intelligence Integration
 Bridge module connecting CryptoIntelligence analysis with BigBrain research agents.
 Enables cross-system intelligence sharing and coordinated opportunity detection.
 """
+from __future__ import annotations
 
 import asyncio
 import json

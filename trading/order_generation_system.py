@@ -11,6 +11,7 @@ CRITICAL GAP RESOLUTION: Order Generation
 - Routes orders to appropriate execution engines
 - Enables strategies to place actual trades
 """
+from __future__ import annotations
 
 import asyncio
 import json

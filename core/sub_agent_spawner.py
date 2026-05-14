@@ -12,6 +12,7 @@ Features:
 - Result aggregation with deduplication
 - Error isolation (one failure doesn't kill the batch)
 """
+from __future__ import annotations
 
 import asyncio
 import logging

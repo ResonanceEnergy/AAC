@@ -5,6 +5,7 @@ AAC Polygon.io API Key Verification
 
 Quick test to verify the Polygon.io API key is working correctly.
 """
+from __future__ import annotations
 
 import os
 

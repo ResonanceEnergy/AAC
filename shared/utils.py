@@ -3,6 +3,7 @@ Shared Utilities
 ================
 Common utility functions for retry logic, error handling, rate limiting, etc.
 """
+from __future__ import annotations
 
 import asyncio
 import functools

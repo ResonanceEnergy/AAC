@@ -5,6 +5,7 @@ Smoke tests — verify every tracked .py file compiles without syntax errors.
 This catches broken string literals, invalid identifiers, Unicode corruption,
 and other issues that slip past linters but break ``import`` / ``exec``.
 """
+from __future__ import annotations
 
 import ast
 import os

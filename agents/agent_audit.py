@@ -6,6 +6,7 @@ AAC Agent Audit - Comprehensive Review of Research Agents
 This script provides a complete audit of all research agents in the AAC system,
 detailing their roles, responsibilities, and value propositions.
 """
+from __future__ import annotations
 
 import asyncio
 import logging

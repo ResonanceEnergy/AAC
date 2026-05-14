@@ -13,6 +13,7 @@ Features:
 - Test coverage improvement
 - Code formatting and linting
 """
+from __future__ import annotations
 
 import ast
 import asyncio

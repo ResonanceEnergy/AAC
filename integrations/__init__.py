@@ -1,4 +1,5 @@
 """AAC Integrations Package — OpenClaw, Telegram Bot, Exchange Connectors."""
+from __future__ import annotations
 
 # Lazy imports to avoid heavy dependency loading at package level
 

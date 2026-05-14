@@ -16,6 +16,7 @@ AUDIT RESULTS:
 
 All gaps have been identified and resolved.
 """
+from __future__ import annotations
 
 import json
 import logging

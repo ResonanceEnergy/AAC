@@ -4,6 +4,7 @@ Security Framework Integration Test
 ===================================
 Comprehensive testing of all security components for production readiness.
 """
+from __future__ import annotations
 
 import asyncio
 import os

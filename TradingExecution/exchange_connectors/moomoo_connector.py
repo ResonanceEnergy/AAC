@@ -24,6 +24,7 @@ Configuration via .env:
     MOOMOO_TRADE_PASSWORD=       # Required for live trading unlock
     MOOMOO_ENABLED=true          # Tier 1 alongside IBKR
 """
+from __future__ import annotations
 
 import asyncio
 import logging

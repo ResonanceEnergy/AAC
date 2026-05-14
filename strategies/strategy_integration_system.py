@@ -7,6 +7,7 @@ paper trading environment for safe testing and deployment.
 
 This system bridges the gap between strategy definitions and executable trading.
 """
+from __future__ import annotations
 
 import asyncio
 import importlib

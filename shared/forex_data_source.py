@@ -6,6 +6,7 @@ BaseDataSource implementation for live FX rate feeds.
 Integrates with the Knightsbridge FX client to provide
 real-time forex MarketTick data into AAC's DataAggregator.
 """
+from __future__ import annotations
 
 import asyncio
 import logging

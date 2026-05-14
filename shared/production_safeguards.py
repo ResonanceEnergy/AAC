@@ -4,6 +4,7 @@ Production Safeguards Module
 Implements rate limiting, circuit breakers, and other production safety measures
 for AAC 2100 live trading operations.
 """
+from __future__ import annotations
 
 import asyncio
 import logging

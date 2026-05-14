@@ -5,6 +5,7 @@ Coinbase Exchange Connector
 Implementation of the exchange connector for Coinbase (Advanced Trade API).
 Note: Updated from deprecated coinbasepro to coinbase exchange ID.
 """
+from __future__ import annotations
 
 import asyncio
 import logging

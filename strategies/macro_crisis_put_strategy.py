@@ -25,6 +25,7 @@ Targets: SPY, QQQ, IWM, XLF (financials), HYG (high yield credit),
 
 Execution: IBKR via TWS API (options-enabled connector)
 """
+from __future__ import annotations
 
 import asyncio
 import logging

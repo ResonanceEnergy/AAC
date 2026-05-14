@@ -5,6 +5,7 @@ Strategy Metrics Dashboard & Deep Dive Analyzer
 Comprehensive metrics display and deep file analysis system for arbitrage strategies.
 Provides real-time monitoring, deep dives, and actionable insights.
 """
+from __future__ import annotations
 
 import asyncio
 import json

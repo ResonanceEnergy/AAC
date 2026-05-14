@@ -12,6 +12,7 @@ Predefined trading mode configurations for different strategies:
 
 Each preset overrides default parameters in the orchestrator.
 """
+from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum

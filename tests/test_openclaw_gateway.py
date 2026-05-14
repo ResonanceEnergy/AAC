@@ -4,6 +4,7 @@ OpenClaw Gateway Bridge Tests
 Verifies the AAC ↔ OpenClaw WebSocket bridge initializes correctly,
 handles sessions, classifies intents, and routes messages.
 """
+from __future__ import annotations
 
 from unittest.mock import AsyncMock, MagicMock, patch
 

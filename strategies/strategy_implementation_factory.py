@@ -8,6 +8,7 @@ Converts all 50 strategy configurations into real-time trading algorithms.
 This factory implements the critical gap: converting defined strategies into
 executable trading logic connected to live market data.
 """
+from __future__ import annotations
 
 import asyncio
 import importlib

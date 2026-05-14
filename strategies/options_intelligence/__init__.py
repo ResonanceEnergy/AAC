@@ -15,6 +15,7 @@ Modules:
     pipeline          — Orchestrator for all intelligence modules
     premarket_scanner — 9:15 AM ET Mon-Fri automated scan & notify
 """
+from __future__ import annotations
 
 from strategies.options_intelligence.ai_scorer import (
     AITradeScorer,

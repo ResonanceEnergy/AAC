@@ -44,6 +44,7 @@ CLI Usage:
     python -m strategies.matrix_maximizer.runner --backtest 90
     python -m strategies.matrix_maximizer.runner --schedule
 """
+from __future__ import annotations
 
 from __future__ import annotations
 

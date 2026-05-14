@@ -37,6 +37,7 @@ Architecture:
     │    data/war_engine/mandate_*.json (existing)      │
     └───────────────────────────────────────────────────┘
 """
+from __future__ import annotations
 
 import asyncio
 import json

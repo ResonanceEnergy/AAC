@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Validate Unusual Whales integration using the configured API key."""
+from __future__ import annotations
 
 import asyncio
 import logging

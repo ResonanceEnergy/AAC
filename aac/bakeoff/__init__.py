@@ -3,6 +3,7 @@ AAC Bake-Off Module
 ===================
 Strategy validation, gate progression, and safety state management.
 """
+from __future__ import annotations
 
 from .engine import (
     BakeoffEngine,

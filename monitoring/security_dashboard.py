@@ -4,6 +4,7 @@ Security Status Dashboard
 ========================
 Real-time security monitoring and status reporting for production deployment.
 """
+from __future__ import annotations
 
 import asyncio
 import logging

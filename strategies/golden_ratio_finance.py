@@ -15,6 +15,7 @@ Features:
 
 Referenced in: aac/doctrine/RESEARCH.md § Dan Winter & Golden Ratio Finance
 """
+from __future__ import annotations
 
 import logging
 import math

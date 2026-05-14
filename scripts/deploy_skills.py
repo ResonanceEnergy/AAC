@@ -9,6 +9,7 @@ Usage:
     python -m scripts.deploy_skills --dir ./skills  # Deploy to custom directory
     python -m scripts.deploy_skills --dry-run       # Preview without writing
 """
+from __future__ import annotations
 
 import argparse
 import logging

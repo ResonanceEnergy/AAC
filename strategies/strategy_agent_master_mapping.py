@@ -10,6 +10,7 @@ Each strategy gets exactly 2 agents:
 
 This file serves as the central registry for all strategy-agent assignments.
 """
+from __future__ import annotations
 
 import json
 from datetime import datetime

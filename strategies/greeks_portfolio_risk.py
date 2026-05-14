@@ -12,6 +12,7 @@ From BARREN WUFFET Insights 536-570 (Risk Management & Greeks Mastery):
   - Vega correlation across positions can create hidden risk
   - Second-order Greeks (vanna, charm) drive P/L in trending markets
 """
+from __future__ import annotations
 
 import logging
 import math

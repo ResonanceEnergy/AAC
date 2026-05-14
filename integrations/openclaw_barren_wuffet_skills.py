@@ -125,6 +125,7 @@ Skills (93 total):
 Reference: https://docs.openclaw.ai/tools/skills
 Telegram: @barrenwuffet069bot
 """
+from __future__ import annotations
 
 import json
 import logging

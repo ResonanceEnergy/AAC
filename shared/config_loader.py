@@ -4,6 +4,7 @@ Accelerated Arbitrage Corp - Configuration Loader
 Centralized configuration management using environment variables.
 Loads from .env file and provides typed access to all config values.
 """
+from __future__ import annotations
 
 import logging
 import os

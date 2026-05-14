@@ -5,6 +5,7 @@ Live Trading Environment
 Complete end-to-end live trading system integrating all AAC components.
 Provides production-ready trading with comprehensive monitoring, compliance, and safety controls.
 """
+from __future__ import annotations
 
 import asyncio
 import json

@@ -1,4 +1,5 @@
 """AAC Doctrine Package - Doctrine analysis and application engine."""
+from __future__ import annotations
 
 from .doctrine_engine import (
     DOCTRINE_PACKS,

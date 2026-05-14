@@ -46,6 +46,7 @@ Display Modes:
 - DASH: Plotly Dash analytics dashboard
 - API: REST API for external integrations
 """
+from __future__ import annotations
 
 import asyncio
 import json

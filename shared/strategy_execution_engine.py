@@ -5,6 +5,7 @@ Strategy Execution Engine
 Loads and executes arbitrage strategies from CSV definitions.
 Converts strategy configurations into real-time trading algorithms.
 """
+from __future__ import annotations
 
 import asyncio
 import csv

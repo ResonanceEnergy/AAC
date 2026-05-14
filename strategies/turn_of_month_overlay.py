@@ -11,6 +11,7 @@ Key Components:
 - Futures-based implementation for capital efficiency
 - Risk management and position sizing
 """
+from __future__ import annotations
 
 import asyncio
 import logging

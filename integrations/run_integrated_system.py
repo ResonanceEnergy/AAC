@@ -18,6 +18,7 @@ Usage:
 New unified launcher:
     python aac_master_launcher.py --doctrine-only
 """
+from __future__ import annotations
 
 import argparse
 import asyncio

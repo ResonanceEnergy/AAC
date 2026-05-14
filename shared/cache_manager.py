@@ -4,6 +4,7 @@ Redis Cache Manager
 ===================
 Caching layer for market data, agent findings, and session state.
 """
+from __future__ import annotations
 
 import asyncio
 import json

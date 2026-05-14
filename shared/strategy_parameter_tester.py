@@ -4,6 +4,7 @@ Strategy Parameter Testing & R&D Engine
 ======================================
 Advanced parameter optimization, grid search, and strategy R&D capabilities.
 """
+from __future__ import annotations
 
 import asyncio
 import itertools

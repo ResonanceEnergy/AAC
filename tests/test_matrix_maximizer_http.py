@@ -7,6 +7,7 @@ Covers:
   - Intelligence ← DataFeedManager wiring via runner
   - Intelligence _enrich_from_feeds integration
 """
+from __future__ import annotations
 
 import json
 import ssl

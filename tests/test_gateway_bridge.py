@@ -3,6 +3,7 @@
 Validates message parsing, intent classification, session management,
 and skill routing without making real API calls.
 """
+from __future__ import annotations
 
 from datetime import datetime
 from pathlib import Path

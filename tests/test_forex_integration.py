@@ -12,6 +12,7 @@ Covers:
   - Config fields for FX
   - Strategy mapping registration
 """
+from __future__ import annotations
 
 import asyncio
 from unittest.mock import AsyncMock, MagicMock

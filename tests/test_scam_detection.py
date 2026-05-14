@@ -1,4 +1,5 @@
 """Tests for CryptoIntelligence/scam_detection.py — scam pattern detection."""
+from __future__ import annotations
 
 import pytest
 

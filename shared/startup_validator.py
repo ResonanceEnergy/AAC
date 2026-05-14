@@ -4,6 +4,7 @@ Startup Validator
 =================
 Validates configuration and credentials before system startup.
 """
+from __future__ import annotations
 
 import asyncio
 import logging

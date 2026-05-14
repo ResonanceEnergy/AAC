@@ -3,6 +3,7 @@ Accelerated Arbitrage Corp - Shared Utilities
 ==============================================
 Common utilities and configuration management for all AAC components.
 """
+from __future__ import annotations
 
 from .config_loader import (
     PROJECT_ROOT,

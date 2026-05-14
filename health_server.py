@@ -5,6 +5,7 @@ AAC Health Endpoint
 Lightweight HTTP health endpoint for external monitors.
 Runs on port 8080 by default. No external dependencies (stdlib only).
 """
+from __future__ import annotations
 
 import json
 import logging

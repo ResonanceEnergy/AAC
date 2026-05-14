@@ -6,6 +6,7 @@ Or:        .venv/Scripts/python -m pytest tests/test_smoke_imports.py -v
 This file intentionally does NOT use try/except — if an import fails,
 the test must crash with a full traceback so you can fix it immediately.
 """
+from __future__ import annotations
 
 import importlib
 

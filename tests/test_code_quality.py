@@ -1,6 +1,7 @@
 """
 Simple test for code quality improvement system
 """
+from __future__ import annotations
 
 import asyncio
 import os

@@ -4,6 +4,7 @@ Paper Trading Environment
 ========================
 Simulated trading environment for strategy validation without financial risk.
 """
+from __future__ import annotations
 
 import asyncio
 import json

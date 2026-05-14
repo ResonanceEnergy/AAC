@@ -16,6 +16,7 @@ Configuration via .env:
     NDAX_USER_ID=your_user_id
     NDAX_TESTNET=true
 """
+from __future__ import annotations
 
 import asyncio
 import logging

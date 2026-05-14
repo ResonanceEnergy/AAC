@@ -18,6 +18,7 @@ Usage:
     python -m strategies.blackswan_authority_monitor --consensus  # consensus report
     python -m strategies.blackswan_authority_monitor --json       # machine output
 """
+from __future__ import annotations
 
 import json
 import logging

@@ -4,6 +4,7 @@ shared.incident_manager — Incident tracking and escalation for AAC.
 Provides IncidentManager for recording, escalating, and resolving
 operational incidents across all departments.
 """
+from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field

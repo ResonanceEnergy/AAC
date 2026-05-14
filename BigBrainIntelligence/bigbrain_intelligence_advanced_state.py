@@ -2,6 +2,7 @@
 BigBrainIntelligence Advanced State Manager
 Implements the research factory, experimentation, and strategy retirement with AI autonomy
 """
+from __future__ import annotations
 
 import asyncio
 import json

@@ -4,6 +4,7 @@ Production Monitoring & Alerting System
 ======================================
 24/7 monitoring, health checks, and automated alerting for production deployment.
 """
+from __future__ import annotations
 
 import asyncio
 import json

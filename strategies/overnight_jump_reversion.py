@@ -12,6 +12,7 @@ Key Components:
 - Risk management and position sizing
 - Jump size filtering and confidence scoring
 """
+from __future__ import annotations
 
 import asyncio
 import logging

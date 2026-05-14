@@ -4,6 +4,7 @@ Risk Disclosure Framework
 ========================
 Standardized risk warnings, client risk profiling, and regulatory disclosure templates.
 """
+from __future__ import annotations
 
 import asyncio
 import json

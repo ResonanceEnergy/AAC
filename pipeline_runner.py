@@ -25,6 +25,7 @@ What it does:
 
 Safe to run repeatedly — it's paper trading only.
 """
+from __future__ import annotations
 
 import asyncio
 import json

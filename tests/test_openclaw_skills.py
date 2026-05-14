@@ -3,6 +3,7 @@
 Validates the 35-skill definitions, RESEARCH_INTEL data, utility functions,
 and SKILL.md generation for the BARREN WUFFET OpenClaw integration.
 """
+from __future__ import annotations
 
 from pathlib import Path
 

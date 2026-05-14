@@ -3,6 +3,7 @@
 AAC Alpha Vantage API Test Script
 Tests the Alpha Vantage API key configuration
 """
+from __future__ import annotations
 
 import os
 

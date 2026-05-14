@@ -4,6 +4,7 @@ shared.metrics_collector — System metrics collection engine.
 Provides MetricsCollector for gathering system and trading metrics,
 and get_metrics_collector() singleton accessor.
 """
+from __future__ import annotations
 
 import asyncio
 import logging

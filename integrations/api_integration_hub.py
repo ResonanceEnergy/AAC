@@ -4,6 +4,7 @@ API Integration Hub - Phase 2
 =============================
 Centralized API management for all external services required for live trading.
 """
+from __future__ import annotations
 
 import asyncio
 import json

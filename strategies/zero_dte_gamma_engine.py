@@ -12,6 +12,7 @@ From BARREN WUFFET Insights:
   - Key times: 10:00 AM (opening range), 2:00 PM (afternoon session), 3:45 PM (close)
   - GEX profile shifts intraday as 0DTE gamma dominates
 """
+from __future__ import annotations
 
 import logging
 import math

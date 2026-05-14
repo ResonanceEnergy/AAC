@@ -11,6 +11,7 @@ From BARREN WUFFET Insights 571-600:
     3. Management rules are followed mechanically
     4. Portfolio is diversified across sectors and expiries
 """
+from __future__ import annotations
 
 import logging
 import math

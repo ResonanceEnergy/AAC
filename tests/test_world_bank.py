@@ -2,6 +2,7 @@
 """
 Test World Bank API for AAC arbitrage system
 """
+from __future__ import annotations
 
 import json
 

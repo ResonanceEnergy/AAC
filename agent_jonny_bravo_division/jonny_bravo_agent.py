@@ -18,6 +18,7 @@ Research Status:
     - Jonny Bravo course curriculum: PARTIAL (needs specifics)
     - See RESEARCH.md Section 9 for details
 """
+from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field

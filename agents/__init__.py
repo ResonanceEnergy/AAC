@@ -1,4 +1,5 @@
 """agents — Agent-based trading and orchestration modules."""
+from __future__ import annotations
 
 __all__ = [
     'aac_agent_consolidation',

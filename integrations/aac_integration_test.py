@@ -7,6 +7,7 @@ Validates all components work together for revenue generation.
 
 This test suite ensures the $100K+/day revenue potential is achievable.
 """
+from __future__ import annotations
 
 import asyncio
 import logging

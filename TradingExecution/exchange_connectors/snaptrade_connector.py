@@ -15,6 +15,7 @@ SnapTrade Setup:
 Requirements:
     pip install snaptrade-python-sdk
 """
+from __future__ import annotations
 
 import asyncio
 import logging

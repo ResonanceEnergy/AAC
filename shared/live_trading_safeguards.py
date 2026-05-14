@@ -4,6 +4,7 @@ Live Trading Safeguards
 ======================
 Comprehensive risk management and safety controls for live trading.
 """
+from __future__ import annotations
 
 import ast
 import asyncio

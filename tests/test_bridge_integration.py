@@ -3,6 +3,7 @@
 Bridge System Integration Test
 Tests all 10 department bridge pairs for complete cross-department communication
 """
+from __future__ import annotations
 
 import asyncio
 import os

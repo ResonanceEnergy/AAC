@@ -7,6 +7,7 @@ Handles market data, order submission, account balances, and trade history.
 
 API Documentation: https://api.dex.docs.metalx.com/reference
 """
+from __future__ import annotations
 
 import asyncio
 import logging

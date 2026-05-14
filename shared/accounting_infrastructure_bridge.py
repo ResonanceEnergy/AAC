@@ -12,6 +12,7 @@ This bridge enables:
 - Infrastructure support for accounting operations
 - Backup and recovery coordination for financial data
 """
+from __future__ import annotations
 
 import asyncio
 import logging

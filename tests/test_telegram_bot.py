@@ -3,6 +3,7 @@
 Validates command routing, message parsing, NL intent detection,
 memory storage, and response generation without making real API calls.
 """
+from __future__ import annotations
 
 from datetime import datetime
 from pathlib import Path

@@ -4,6 +4,7 @@ shared.alert_manager — Alert routing and deduplication for AAC.
 Provides AlertManager for creating, routing, deduplicating, and
 acknowledging operational alerts across all departments.
 """
+from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field

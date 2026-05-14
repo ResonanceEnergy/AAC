@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Tests for Google Trends rate-limit handling."""
+from __future__ import annotations
 
 import sys
 from pathlib import Path

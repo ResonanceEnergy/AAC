@@ -4,6 +4,7 @@ shared.health_checker — System health checking for AAC.
 Provides HealthChecker for running component health checks,
 aggregating status, and reporting system-wide health.
 """
+from __future__ import annotations
 
 import logging
 import time

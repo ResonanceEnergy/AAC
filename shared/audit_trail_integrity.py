@@ -4,6 +4,7 @@ Audit Trail Integrity System
 ============================
 Immutable audit trails with cryptographic integrity, chain of custody verification, and compliance reporting.
 """
+from __future__ import annotations
 
 import asyncio
 import hashlib

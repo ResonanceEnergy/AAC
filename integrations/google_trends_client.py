@@ -10,6 +10,7 @@ No API key required — uses public Google Trends data.
 Requires:
     - pip install pytrends
 """
+from __future__ import annotations
 
 import logging
 import random

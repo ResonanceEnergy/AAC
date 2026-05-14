@@ -18,6 +18,7 @@ This agent:
   4. Tracks governance outcomes for post-mortem analysis
   5. Alerts on proposals affecting AAC's trading operations
 """
+from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field

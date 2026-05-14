@@ -4,6 +4,7 @@ Tests for IBKR Exchange Connector
 ==================================
 Unit tests with ib_insync fully mocked — no TWS/Gateway required.
 """
+from __future__ import annotations
 
 import sys
 from datetime import datetime

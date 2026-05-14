@@ -4,6 +4,7 @@ Production Deployment System
 ===========================
 Gradual rollout system for safe production deployment with limited capital and single strategies.
 """
+from __future__ import annotations
 
 import asyncio
 import json

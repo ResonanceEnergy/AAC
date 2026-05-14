@@ -6,6 +6,7 @@ Data Sources → Research Agents → Orchestrator → Execution Engine
 
 Run with: python -m pytest tests/integration_test.py -v -s
 """
+from __future__ import annotations
 
 import asyncio
 import os

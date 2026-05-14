@@ -3,6 +3,7 @@ Tests for Options Intelligence Engine
 =======================================
 Tests all 5 modules + the integration pipeline.
 """
+from __future__ import annotations
 
 import json
 import sys

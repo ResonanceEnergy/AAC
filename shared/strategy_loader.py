@@ -4,6 +4,7 @@ Strategy Loader and Validator
 Loads and validates arbitrage strategies from CSV configuration.
 Provides automated strategy checking and integration with the execution engine.
 """
+from __future__ import annotations
 
 import asyncio
 import csv

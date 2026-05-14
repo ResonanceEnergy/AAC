@@ -5,6 +5,7 @@ Secrets Manager
 Secure handling of API keys and sensitive configuration.
 Uses Fernet symmetric encryption for secrets at rest.
 """
+from __future__ import annotations
 
 import base64
 import hashlib

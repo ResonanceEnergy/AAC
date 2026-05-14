@@ -4,6 +4,7 @@ Real-Time Data Sources
 ======================
 WebSocket and API clients for live market data.
 """
+from __future__ import annotations
 
 import asyncio
 import json

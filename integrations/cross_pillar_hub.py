@@ -11,6 +11,7 @@ Integration Points:
 
 Communication: HTTP REST + file-based state sharing for local dev.
 """
+from __future__ import annotations
 
 import asyncio
 import json

@@ -14,6 +14,7 @@ From BARREN WUFFET Insights (601-640, 811-850):
   - Wallet clustering can identify entity-level flows
   - Token unlocks (VC/team vesting) create predictable sell pressure
 """
+from __future__ import annotations
 
 import hashlib
 import logging

@@ -49,6 +49,7 @@ Modules:
     geo_plan        — Panama/Paraguay base-of-operations task tracker
     runner          — CLI entry point
 """
+from __future__ import annotations
 
 __version__ = "1.0.0"
 __phase__ = "LIFE_BOAT"   # Updated to ROCKET_SHIP on ignition
