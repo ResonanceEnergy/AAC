@@ -1,7 +1,7 @@
 # AAC Living Status Dashboard
 
-> **Last updated:** 2026-04-09 (Wednesday)
-> **Updated by:** Live IBKR data pull — 15 positions confirmed (10 new: SLV/TSLA/XLE calls, OBDC puts). Net liq CAD $20,079.57. VIX 20.88. Port confirmed 7497.
+> **Last updated:** 2026-04-22
+> **Updated by:** Sprint 6 complete — vol_premium_signals.py, signal_aggregator.py, simple_backtest.py, war_room_scan() wired to dual-strategy. 44 new tests. Suite: 2661 passed.
 > **Update this file** after every significant change. This is the single source of truth for what works.
 
 ---
@@ -14,7 +14,7 @@
 | **Moomoo Connector** | DEGRADED | OpenD running but API port 11111 NOT listening. Dummy credentials in OpenD.xml. Needs auth fix + restart. |
 | **yfinance** | WORKING | Free, primary options chain source |
 | **CoinGecko** | DEGRADED | Pro key expired → free tier (10 req/min). Prices work. |
-| **Unusual Whales** | WORKING | Key valid, connection works. Field parsing FIXED (2026-03-31). |
+| **Unusual Whales** | PARTIAL | Client wired via `UNUSUAL_WHALES_API_KEY_FILE`. Token in `secrets/unusual_whales_api_key.txt` returned HTTP 401 on probe — REPLACE with valid token. Endpoint paths fixed (`/insider/transactions`, `/news/headlines`). Tier-1 methods added: `get_market_tide`, `get_spot_gex`, `get_greeks`, `get_interpolated_iv`, `get_net_prem_ticks`. |
 | **FRED** | WORKING | VIX fallback, macro data |
 | **Finnhub** | WORKING | Quotes, news |
 | **NewsAPI** | WORKING | Headlines |
@@ -27,7 +27,14 @@
 | **Bakeoff Engine** | WORKING | Gate progression (SPEC→SCALE), composite scoring, YAML configs (metric_canon, policy, checklists) created. |
 | **Web Dashboard** | WORKING | `launch.py dashboard` |
 | **CI Pipeline** | WORKING | `.github/workflows/ci.yml` |
-| **Pytest Suite** | WORKING | **1928+ passed**, 0 failed (2026-04-08 — live feeds + paper trading tests) |
+| **Pytest Suite** | WORKING | **2661 passed**, 16 skipped, 1 xfailed, 0 failed (2026-04-22 — Sprint 6 complete) |
+| **WSB Sentiment Feed** | WORKING | TradeStie API wired into `war_room_live_feeds.fetch_all_live_data()` — free, no auth, top-50 WSB stocks, 15-min updates |
+| **Circuit Breaker** | NEW | `shared/circuit_breaker.py` — clean CLOSED/OPEN/HALF_OPEN state machine extracted from dead quantum wrapper |
+| **Codebase Audit** | COMPLETE | 398 archive/scratch files categorised (2026-04-20). 4 critical missing imports restored. 10 sci-fi dead files identified. |
+| **Vol Premium Strategy** | NEW | `strategies/vol_premium_signals.py` — VRP thesis, LONG_PUT when IV/HV > 1.20, confidence 0.50–0.90, size 3–8% |
+| **Signal Aggregator** | NEW | `strategies/signal_aggregator.py` — weighted merge (0.60/0.40), agreement boost +0.05, max confidence 0.95 |
+| **Simple Backtest** | NEW | `strategies/simple_backtest.py` — 90-day win-rate comparison, 3 strategy proxies, fully offline |
+| **Dual-Strategy Scan** | NEW | `core/orchestrator.py` `war_room_scan()` runs both strategies concurrently, aggregates signals |
 
 ## What's Broken
 
@@ -36,7 +43,7 @@
 | **CoinGecko Pro** | Key expired, returns 403 | LOW | Auto-downgrades to free tier. Works fine for now. |
 | **Polygon Options** | Free tier: 403 on snapshots | LOW | Needs $79/mo upgrade. Not blocking. |
 | **X/Twitter API** | HTTP 402 | LOW | Needs paid tier. Graceful fallback to 0.5. |
-| **NDAX** | LIQUIDATED | NONE | All crypto sold. Connector exists but unused. |
+| **NDAX** | ACTIVE (zero positions, account open) | LOW | XRP+ETH sold Mar 2026 ($4,492 CAD). Account open, NDAX_API_KEY/SECRET/USER_ID in .env, TESTNET=false. Connector ready. Wired back into docs 2026-04-20. Re-enter BTC/CAD on next doctrine signal. |
 
 ## Active Positions (Real Money) — Updated Apr 9 (IBKR live-verified)
 

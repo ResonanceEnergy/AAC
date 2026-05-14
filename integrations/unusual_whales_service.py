@@ -6,11 +6,44 @@ import asyncio
 import logging
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timedelta
+from pathlib import Path
 from typing import Any, Dict, List, Optional
+
+import aiohttp
 
 from integrations.unusual_whales_client import DarkPoolTrade, OptionsFlow, UnusualWhalesClient
 
 logger = logging.getLogger("UnusualWhalesService")
+
+# Per-ticker fetches are 2 calls each (IV + GEX); UW free tier is 120 req/min.
+# Cap watchlist size to stay well under the limit even with 5-min refresh.
+_MAX_WATCHLIST_TICKERS = 5
+_DEFAULT_WATCHLIST: List[str] = ["SPY", "QQQ", "IWM"]
+_WATCHLIST_PATH = Path(__file__).resolve().parent.parent / "config" / "watchlist.yaml"
+
+
+def _load_watchlist() -> List[str]:
+    """Load up to ``_MAX_WATCHLIST_TICKERS`` tickers from ``config/watchlist.yaml``.
+
+    Falls back to ``_DEFAULT_WATCHLIST`` if the file is missing, malformed, or
+    PyYAML is not installed. Read-only; never raises.
+    """
+    if not _WATCHLIST_PATH.exists():
+        return list(_DEFAULT_WATCHLIST)
+    try:
+        import yaml  # type: ignore[import-untyped]
+    except ImportError:
+        return list(_DEFAULT_WATCHLIST)
+    try:
+        with _WATCHLIST_PATH.open("r", encoding="utf-8") as handle:
+            data = yaml.safe_load(handle) or {}
+    except (OSError, yaml.YAMLError):
+        return list(_DEFAULT_WATCHLIST)
+    raw = data.get("vol_premium") if isinstance(data, dict) else None
+    if not isinstance(raw, list):
+        return list(_DEFAULT_WATCHLIST)
+    tickers = [str(t).strip().upper() for t in raw if isinstance(t, str) and t.strip()]
+    return tickers[:_MAX_WATCHLIST_TICKERS] if tickers else list(_DEFAULT_WATCHLIST)
 
 
 @dataclass
@@ -27,6 +60,11 @@ class UnusualWhalesSnapshot:
     dark_pool_notional: float = 0.0
     congress_trade_count: int = 0
     top_flow_tickers: List[str] = field(default_factory=list)
+    market_tide_latest: Optional[Dict[str, Any]] = None
+    market_tide_net_call_premium: float = 0.0
+    market_tide_net_put_premium: float = 0.0
+    iv_ranks: Dict[str, float] = field(default_factory=dict)
+    gex_walls: Dict[str, List[Dict[str, Any]]] = field(default_factory=dict)
     error: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
@@ -39,6 +77,7 @@ class UnusualWhalesSnapshotService:
     def __init__(self, refresh_ttl_seconds: int = 300):
         self.refresh_ttl = timedelta(seconds=refresh_ttl_seconds)
         self._client = UnusualWhalesClient()
+        self._watchlist = _load_watchlist()
         self._snapshot = UnusualWhalesSnapshot(
             status="unconfigured" if not self._client.endpoint.enabled else "stale",
             as_of=datetime.now().isoformat(),
@@ -84,7 +123,18 @@ class UnusualWhalesSnapshotService:
             dark_pool = await self._client.get_dark_pool(limit=25)
             congress = await self._client.get_congress_trades(limit=25)
 
-            return self._build_snapshot(summary, flow, dark_pool, congress)
+            tide_series = await self._safe_market_tide()
+            iv_ranks, gex_walls = await self._safe_per_ticker_fetch(self._watchlist)
+
+            return self._build_snapshot(
+                summary,
+                flow,
+                dark_pool,
+                congress,
+                tide_series,
+                iv_ranks,
+                gex_walls,
+            )
         except Exception as exc:
             logger.error("Unusual Whales snapshot refresh failed: %s", exc)
             return UnusualWhalesSnapshot(
@@ -94,12 +144,78 @@ class UnusualWhalesSnapshotService:
                 error=str(exc),
             )
 
+    async def _safe_market_tide(self) -> List[Dict[str, Any]]:
+        """Fetch market-wide tide series; return [] on transport failure."""
+        try:
+            return await self._client.get_market_tide()
+        except (aiohttp.ClientError, asyncio.TimeoutError) as exc:
+            logger.warning("market_tide fetch failed: %s", exc)
+            return []
+
+    async def _safe_per_ticker_fetch(
+        self, tickers: List[str]
+    ) -> tuple[Dict[str, float], Dict[str, List[Dict[str, Any]]]]:
+        """Fetch IV rank + top GEX walls per ticker. Each call isolated."""
+        iv_ranks: Dict[str, float] = {}
+        gex_walls: Dict[str, List[Dict[str, Any]]] = {}
+        for ticker in tickers[:_MAX_WATCHLIST_TICKERS]:
+            try:
+                iv_payload = await self._client.get_interpolated_iv(ticker)
+            except (aiohttp.ClientError, asyncio.TimeoutError) as exc:
+                logger.warning("interpolated_iv(%s) failed: %s", ticker, exc)
+                iv_payload = {}
+            rank = self._extract_float(
+                iv_payload, ["iv_rank", "iv_percentile", "ivRank", "ivPercentile"]
+            )
+            if rank > 0:
+                iv_ranks[ticker] = rank
+
+            try:
+                gex_rows = await self._client.get_spot_gex(ticker)
+            except (aiohttp.ClientError, asyncio.TimeoutError) as exc:
+                logger.warning("spot_gex(%s) failed: %s", ticker, exc)
+                gex_rows = []
+            walls = self._top_gex_walls(gex_rows, top_n=3)
+            if walls:
+                gex_walls[ticker] = walls
+        return iv_ranks, gex_walls
+
+    @staticmethod
+    def _top_gex_walls(
+        rows: List[Dict[str, Any]], top_n: int = 3
+    ) -> List[Dict[str, Any]]:
+        """Return the top-N strikes by absolute total gamma magnitude."""
+        if not rows:
+            return []
+
+        def _abs_gamma(row: Dict[str, Any]) -> float:
+            for key in ("gamma", "total_gamma", "net_gamma"):
+                value = row.get(key)
+                if value in (None, ""):
+                    continue
+                try:
+                    return abs(float(value))
+                except (TypeError, ValueError):
+                    continue
+            call_g = row.get("call_gamma") or 0
+            put_g = row.get("put_gamma") or 0
+            try:
+                return abs(float(call_g)) + abs(float(put_g))
+            except (TypeError, ValueError):
+                return 0.0
+
+        ranked = sorted(rows, key=_abs_gamma, reverse=True)
+        return ranked[:top_n]
+
     def _build_snapshot(
         self,
         summary: Dict[str, Any],
         flow: List[OptionsFlow],
         dark_pool: List[DarkPoolTrade],
         congress: List[Dict[str, Any]],
+        tide_series: List[Dict[str, Any]],
+        iv_ranks: Dict[str, float],
+        gex_walls: Dict[str, List[Dict[str, Any]]],
     ) -> UnusualWhalesSnapshot:
         top_flow_tickers = sorted(
             {item.ticker for item in flow if item.ticker},
@@ -125,6 +241,22 @@ class UnusualWhalesSnapshotService:
             elif put_call_ratio < 0.9:
                 market_tone = "bullish"
 
+        tide_latest: Optional[Dict[str, Any]] = tide_series[-1] if tide_series else None
+        tide_call_prem = (
+            self._extract_float(
+                tide_latest, ["net_call_premium", "netCallPremium", "call_premium"]
+            )
+            if tide_latest
+            else 0.0
+        )
+        tide_put_prem = (
+            self._extract_float(
+                tide_latest, ["net_put_premium", "netPutPremium", "put_premium"]
+            )
+            if tide_latest
+            else 0.0
+        )
+
         return UnusualWhalesSnapshot(
             status="healthy",
             as_of=datetime.now().isoformat(),
@@ -137,6 +269,11 @@ class UnusualWhalesSnapshotService:
             dark_pool_notional=sum(item.notional for item in dark_pool),
             congress_trade_count=len(congress),
             top_flow_tickers=top_flow_tickers,
+            market_tide_latest=tide_latest,
+            market_tide_net_call_premium=tide_call_prem,
+            market_tide_net_put_premium=tide_put_prem,
+            iv_ranks=iv_ranks,
+            gex_walls=gex_walls,
         )
 
     @staticmethod

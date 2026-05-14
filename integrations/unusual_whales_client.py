@@ -259,8 +259,14 @@ class UnusualWhalesClient(APIClient):
         return data if isinstance(data, list) else []
 
     async def get_insider_transactions(self, limit: int = 50) -> List[Dict[str, Any]]:
-        """Get recent insider buy/sell transactions."""
-        url = f"{self.BASE_URL}/insider/recent-trades"
+        """Get recent insider buy/sell transactions.
+
+        NOTE: Finnhub also exposes insider transactions via
+        ``integrations.finnhub_client.FinnhubClient.get_insider_transactions``.
+        Prefer Finnhub for ticker-scoped queries; use this UW endpoint for the
+        firehose of recent market-wide insider activity.
+        """
+        url = f"{self.BASE_URL}/insider/transactions"
         params = {'limit': str(limit)}
         response = await self._make_request("GET", url, params=params)
         if not response.success:
@@ -271,9 +277,15 @@ class UnusualWhalesClient(APIClient):
         return data[:limit] if isinstance(data, list) else []
 
     async def get_news_headlines(self, ticker: str = "SPY", limit: int = 50) -> List[Dict[str, Any]]:
-        """Get financial news headlines for a ticker."""
-        url = f"{self.BASE_URL}/news/{ticker}"
-        params = {'limit': str(limit)}
+        """Get financial news headlines (optionally filtered to a ticker).
+
+        NOTE: Finnhub already supplies company + general news via
+        ``FinnhubClient.get_company_news`` / ``get_news``. Prefer Finnhub for
+        primary news; use this UW endpoint when you specifically want UW's
+        flow-tagged news stream.
+        """
+        url = f"{self.BASE_URL}/news/headlines"
+        params = {'limit': str(limit), 'ticker_symbol': ticker}
         response = await self._make_request("GET", url, params=params)
         if not response.success:
             return []
@@ -289,6 +301,89 @@ class UnusualWhalesClient(APIClient):
         if not response.success:
             return {}
         return response.data if isinstance(response.data, dict) else {}
+
+    # ------------------------------------------------------------------
+    # Tier-1 endpoints unique to UW (no overlap with Finnhub/FRED/yfinance)
+    # ------------------------------------------------------------------
+
+    async def get_market_tide(self, interval_5m: bool = False) -> List[Dict[str, Any]]:
+        """Market-wide net call/put premium time series (sentiment).
+
+        Endpoint: ``/api/market/market-tide``. Use for regime detection;
+        complements VIX/FRED macro by reacting in real time to options flow.
+        """
+        url = f"{self.BASE_URL}/market/market-tide"
+        params = {'interval_5m': 'true' if interval_5m else 'false'}
+        response = await self._make_request("GET", url, params=params)
+        if not response.success:
+            self.logger.error(f"Failed to get market tide: {response.error}")
+            return []
+        data = response.data
+        if isinstance(data, dict):
+            return data.get('data', []) or []
+        return data if isinstance(data, list) else []
+
+    async def get_spot_gex(self, ticker: str) -> List[Dict[str, Any]]:
+        """Spot Gamma Exposure (GEX) by strike for a ticker.
+
+        Endpoint: ``/api/stock/{ticker}/spot-exposures/strike``. Returns the
+        per-strike dealer gamma profile — critical for put-strike selection
+        (sell at positive-GEX walls, avoid short puts below negative-GEX zones).
+        """
+        url = f"{self.BASE_URL}/stock/{ticker}/spot-exposures/strike"
+        response = await self._make_request("GET", url)
+        if not response.success:
+            self.logger.error(f"Failed to get spot GEX for {ticker}: {response.error}")
+            return []
+        data = response.data
+        if isinstance(data, dict):
+            return data.get('data', []) or []
+        return data if isinstance(data, list) else []
+
+    async def get_greeks(self, ticker: str) -> List[Dict[str, Any]]:
+        """Per-strike Greeks (delta/gamma/vega/theta) for a ticker.
+
+        Endpoint: ``/api/stock/{ticker}/greeks``. Replaces local Black-Scholes
+        recomputation; use for roll-down decisions and theta-budget tracking.
+        """
+        url = f"{self.BASE_URL}/stock/{ticker}/greeks"
+        response = await self._make_request("GET", url)
+        if not response.success:
+            self.logger.error(f"Failed to get greeks for {ticker}: {response.error}")
+            return []
+        data = response.data
+        if isinstance(data, dict):
+            return data.get('data', []) or []
+        return data if isinstance(data, list) else []
+
+    async def get_interpolated_iv(self, ticker: str) -> Dict[str, Any]:
+        """Interpolated IV term structure + percentile rank for a ticker.
+
+        Endpoint: ``/api/stock/{ticker}/interpolated-iv``. The single best
+        entry gate for short-put strategies (require IV rank > 40 etc).
+        """
+        url = f"{self.BASE_URL}/stock/{ticker}/interpolated-iv"
+        response = await self._make_request("GET", url)
+        if not response.success:
+            self.logger.error(f"Failed to get interpolated IV for {ticker}: {response.error}")
+            return {}
+        return response.data if isinstance(response.data, dict) else {}
+
+    async def get_net_prem_ticks(self, ticker: str) -> List[Dict[str, Any]]:
+        """Per-ticker net premium tick stream (intraday sentiment).
+
+        Endpoint: ``/api/stock/{ticker}/net-prem-ticks``. Use to detect
+        intraday sentiment flips on currently-held names.
+        """
+        url = f"{self.BASE_URL}/stock/{ticker}/net-prem-ticks"
+        response = await self._make_request("GET", url)
+        if not response.success:
+            self.logger.error(f"Failed to get net premium ticks for {ticker}: {response.error}")
+            return []
+        data = response.data
+        if isinstance(data, dict):
+            return data.get('data', []) or []
+        return data if isinstance(data, list) else []
 
     async def get_flow_alerts(self, limit: int = 50) -> List[Dict[str, Any]]:
         """Get latest options flow alerts (unusual activity) as raw dicts.

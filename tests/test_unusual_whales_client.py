@@ -207,23 +207,25 @@ class TestEndpointURLs:
 
     @pytest.mark.asyncio
     async def test_insider_transactions_url(self, uw_client: UnusualWhalesClient) -> None:
-        """get_insider_transactions → /insider/recent-trades"""
+        """get_insider_transactions → /insider/transactions (canonical per UW skill.md)"""
         with patch.object(uw_client, "_make_request", new_callable=AsyncMock) as mock_req:
             mock_req.return_value = APIResponse(success=True, data=[], status_code=200)
             await uw_client.get_insider_transactions(limit=10)
 
         url = mock_req.call_args[0][1]
-        assert url == f"{self.BASE}/insider/recent-trades"
+        assert url == f"{self.BASE}/insider/transactions"
 
     @pytest.mark.asyncio
     async def test_news_headlines_url(self, uw_client: UnusualWhalesClient) -> None:
-        """get_news_headlines → /news/{ticker}"""
+        """get_news_headlines → /news/headlines?ticker_symbol=... (canonical per UW skill.md)"""
         with patch.object(uw_client, "_make_request", new_callable=AsyncMock) as mock_req:
             mock_req.return_value = APIResponse(success=True, data=[], status_code=200)
             await uw_client.get_news_headlines(ticker="AAPL", limit=10)
 
         url = mock_req.call_args[0][1]
-        assert url == f"{self.BASE}/news/AAPL"
+        params = mock_req.call_args.kwargs.get("params", {})
+        assert url == f"{self.BASE}/news/headlines"
+        assert params.get("ticker_symbol") == "AAPL"
 
     @pytest.mark.asyncio
     async def test_etf_flow_url(self, uw_client: UnusualWhalesClient) -> None:
@@ -252,15 +254,16 @@ class TestEndpointURLs:
         source = inspect.getsource(UnusualWhalesClient)
         broken_urls = [
             "/stock/flow-recent",
-            "/market/market-tide",
             "/stock/{ticker}/info",
             "/market/spike",
             "/market/sector-etfs",
-            "/insider/transactions",
-            "/news/headlines",
+            "/insider/recent-trades",
             "/stock/{ticker}/max-pain",
             "/news/market-wide",
             "/etf/sectors",
+            "/options/flow",
+            "/api/v1/",
+            "/api/v2/",
         ]
         for bad_url in broken_urls:
             assert bad_url not in source, f"Hallucinated URL still in source: {bad_url}"
@@ -446,3 +449,65 @@ class TestConsumerIntegration:
         # Must NOT contain old broken URLs
         for bad_url in ("/stock/flow", "/api/darkpool\"", "/congress/trading"):
             assert bad_url not in source, f"Stale URL still in http_health.py: {bad_url}"
+
+
+# ---------------------------------------------------------------------------
+# Tier-1 endpoints (Market Tide, GEX, Greeks, IV, Net Premium Ticks)
+# ---------------------------------------------------------------------------
+
+class TestTier1Endpoints:
+    """URL + payload validation for the Tier-1 UW endpoints unique to UW."""
+
+    BASE = "https://api.unusualwhales.com/api"
+
+    @pytest.mark.asyncio
+    async def test_market_tide_url(self, uw_client: UnusualWhalesClient) -> None:
+        with patch.object(uw_client, "_make_request", new_callable=AsyncMock) as mock_req:
+            mock_req.return_value = APIResponse(success=True, data={"data": []}, status_code=200)
+            await uw_client.get_market_tide()
+        url = mock_req.call_args[0][1]
+        params = mock_req.call_args.kwargs.get("params", {})
+        assert url == f"{self.BASE}/market/market-tide"
+        assert params.get("interval_5m") == "false"
+
+    @pytest.mark.asyncio
+    async def test_spot_gex_url(self, uw_client: UnusualWhalesClient) -> None:
+        with patch.object(uw_client, "_make_request", new_callable=AsyncMock) as mock_req:
+            mock_req.return_value = APIResponse(success=True, data={"data": []}, status_code=200)
+            await uw_client.get_spot_gex("RIVN")
+        url = mock_req.call_args[0][1]
+        assert url == f"{self.BASE}/stock/RIVN/spot-exposures/strike"
+
+    @pytest.mark.asyncio
+    async def test_greeks_url(self, uw_client: UnusualWhalesClient) -> None:
+        with patch.object(uw_client, "_make_request", new_callable=AsyncMock) as mock_req:
+            mock_req.return_value = APIResponse(success=True, data={"data": []}, status_code=200)
+            await uw_client.get_greeks("AAPL")
+        url = mock_req.call_args[0][1]
+        assert url == f"{self.BASE}/stock/AAPL/greeks"
+
+    @pytest.mark.asyncio
+    async def test_interpolated_iv_url(self, uw_client: UnusualWhalesClient) -> None:
+        with patch.object(uw_client, "_make_request", new_callable=AsyncMock) as mock_req:
+            mock_req.return_value = APIResponse(success=True, data={}, status_code=200)
+            await uw_client.get_interpolated_iv("SPY")
+        url = mock_req.call_args[0][1]
+        assert url == f"{self.BASE}/stock/SPY/interpolated-iv"
+
+    @pytest.mark.asyncio
+    async def test_net_prem_ticks_url(self, uw_client: UnusualWhalesClient) -> None:
+        with patch.object(uw_client, "_make_request", new_callable=AsyncMock) as mock_req:
+            mock_req.return_value = APIResponse(success=True, data={"data": []}, status_code=200)
+            await uw_client.get_net_prem_ticks("KRE")
+        url = mock_req.call_args[0][1]
+        assert url == f"{self.BASE}/stock/KRE/net-prem-ticks"
+
+    @pytest.mark.asyncio
+    async def test_tier1_returns_empty_on_error(self, uw_client: UnusualWhalesClient) -> None:
+        with patch.object(uw_client, "_make_request", new_callable=AsyncMock) as mock_req:
+            mock_req.return_value = APIResponse(success=False, error="HTTP 500", status_code=500)
+            assert await uw_client.get_market_tide() == []
+            assert await uw_client.get_spot_gex("X") == []
+            assert await uw_client.get_greeks("X") == []
+            assert await uw_client.get_interpolated_iv("X") == {}
+            assert await uw_client.get_net_prem_ticks("X") == []

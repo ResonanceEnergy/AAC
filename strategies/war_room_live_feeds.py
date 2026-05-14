@@ -55,6 +55,12 @@ class LiveFeedResult:
     dark_pool_notional: float = 0.0
     congress_trades: int = 0
     top_flow_tickers: List[str] = field(default_factory=list)
+    # Unusual Whales Tier-1 extensions (market tide, IV ranks, GEX walls)
+    market_tide_latest: Optional[Dict[str, Any]] = None
+    market_tide_net_call_premium: float = 0.0
+    market_tide_net_put_premium: float = 0.0
+    iv_ranks: Dict[str, float] = field(default_factory=dict)
+    gex_walls: Dict[str, List[Dict[str, Any]]] = field(default_factory=dict)
     # MetaMask on-chain balances
     metamask_matic: Optional[float] = None
     metamask_usdc_polygon: Optional[float] = None
@@ -107,6 +113,9 @@ class LiveFeedResult:
     # Alpha engine intelligence (from council + doctrine combined)
     alpha_signal: Optional[float] = None
     alpha_weights: Dict[str, float] = field(default_factory=dict)
+    # WSB sentiment (TradeStie — free, no auth)
+    wsb_sentiment_score: Optional[float] = None   # -1.0 to 1.0
+    wsb_top_tickers: List[str] = field(default_factory=list)
     # Errors (non-fatal -- partial data is still useful)
     errors: List[str] = field(default_factory=list)
 
@@ -136,6 +145,8 @@ class LiveFeedResult:
             parts.append(f"{len(self.ibkr_positions)} pos")
         if self.ibkr_vix:
             parts.append(f"VIX:{self.ibkr_vix:.1f}")
+        if self.wsb_sentiment_score is not None:
+            parts.append(f"WSB:{self.wsb_sentiment_score:+.2f}")
         if self.errors:
             parts.append(f"({len(self.errors)} errors)")
         return " | ".join(parts) if parts else "No data fetched"
@@ -180,6 +191,63 @@ def _compute_defi_tvl_change(current_defi_cap: float) -> float:
 
 # ── BDC basket for NAV discount + non-accrual proxy ─────────────────────
 _BDC_BASKET = ["ARCC", "MAIN", "FSK", "OBDC"]
+
+
+# ============================================================================
+# WSB SENTIMENT — TradeStie (free, no auth, top-50 WSB stocks)
+# ============================================================================
+
+_TRADESTIE_URL = "https://api.tradestie.com/v1/apps/reddit"
+
+
+async def fetch_wsb_sentiment(result: LiveFeedResult) -> None:
+    """Fetch WallStreetBets sentiment from TradeStie (free, no API key required).
+
+    Returns top-50 WSB-discussed stocks with sentiment scores.
+    Rate limit: 20 req/min. Updates every 15 minutes on their end.
+    """
+    import json
+    import urllib.request
+
+    try:
+        req = urllib.request.Request(
+            _TRADESTIE_URL,
+            headers={"User-Agent": "AAC-WarRoom/1.0"},
+            method="GET",
+        )
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+
+        if not isinstance(data, list) or not data:
+            result.errors.append("WSB: empty response from TradeStie")
+            return
+
+        # Each item: {ticker, sentiment, no_of_comments}
+        scores: list[float] = []
+        tickers: list[str] = []
+        for item in data[:50]:
+            sentiment = item.get("sentiment") or item.get("sentiment_score") or 0.0
+            ticker = item.get("ticker") or ""
+            comments = item.get("no_of_comments") or 0
+            if ticker:
+                # Weight by comment volume for the aggregate
+                weight = max(1, comments)
+                scores.extend([float(sentiment)] * min(weight, 50))
+                tickers.append(ticker)
+
+        if scores:
+            # Aggregate: mean of weighted scores, clamped to [-1, 1]
+            agg = sum(scores) / len(scores)
+            result.wsb_sentiment_score = round(max(-1.0, min(1.0, agg)), 3)
+        result.wsb_top_tickers = tickers[:10]
+        logger.info(
+            "WSB sentiment: %.3f | top tickers: %s",
+            result.wsb_sentiment_score or 0.0,
+            ", ".join(result.wsb_top_tickers[:5]),
+        )
+    except Exception as exc:
+        result.errors.append(f"WSB sentiment error: {exc}")
+        logger.debug("WSB fetch failed: %s", exc)
 
 
 async def fetch_bdc_data(result: LiveFeedResult) -> None:
@@ -324,6 +392,11 @@ async def fetch_unusual_whales_data(result: LiveFeedResult) -> None:
             result.dark_pool_notional = snapshot.get("dark_pool_notional", 0.0)
             result.congress_trades = snapshot.get("congress_trade_count", 0)
             result.top_flow_tickers = snapshot.get("top_flow_tickers", [])
+            result.market_tide_latest = snapshot.get("market_tide_latest")
+            result.market_tide_net_call_premium = snapshot.get("market_tide_net_call_premium", 0.0)
+            result.market_tide_net_put_premium = snapshot.get("market_tide_net_put_premium", 0.0)
+            result.iv_ranks = snapshot.get("iv_ranks", {}) or {}
+            result.gex_walls = snapshot.get("gex_walls", {}) or {}
             logger.info("Unusual Whales: P/C=%.2f Tone=%s Flow=%d DarkPool=%d Congress=%d",
                         result.put_call_ratio, result.market_tone,
                         result.options_flow_signals, result.dark_pool_trades,
@@ -878,6 +951,7 @@ async def fetch_all_live_data() -> LiveFeedResult:
         fetch_x_sentiment(result),          # Now uses council X (Grok-powered)
         fetch_vix_fred(result),
         fetch_bdc_data(result),
+        fetch_wsb_sentiment(result),        # TradeStie WSB — free, no auth
         return_exceptions=True,
     )
 
