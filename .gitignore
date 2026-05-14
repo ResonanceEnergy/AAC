@@ -269,3 +269,21 @@ scripts/_admin_fix_log.txt
 test_phase0.txt
 test_results.txt
 val_out.txt
+
+# ===========================================
+# RUN-LOG NOISE AT REPO ROOT (added 2026-05-14)
+# ===========================================
+pytest_*.txt
+launch_dash*.txt
+health_check.txt
+diagnostic_check.py
+
+# ===========================================
+# COUNCIL OUTPUTS — runtime state, not source
+# ===========================================
+councils/*/output/
+
+# ===========================================
+# REPORT TEXT FILES
+# ===========================================
+reports/*.txt
