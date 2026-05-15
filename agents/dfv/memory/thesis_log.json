@@ -1,72 +1,125 @@
 {
   "ARCC": {
-    "author": "DFV",
+    "author": "GROK",
     "catalysts": [
-      "Already expired 2026-04-17"
+      "Q2 2026 dividend ex-date 2026-06-15",
+      "Fed rate decision window 2026-05-28"
     ],
-    "conviction": 0,
+    "conviction": 3,
     "created": "2026-05-15T20:11:44+00:00",
-    "horizon": "closed",
-    "invalidation": "Position already closed at expiry.",
-    "revision": 1,
+    "horizon": "through 2026-06-18",
+    "invalidation": "Exit all if ARCC closes above 20.50 for 3 sessions",
+    "revision": 3,
     "sizing": {
-      "contracts": 1,
-      "max_pct_book": 0.0
+      "max_pct_book": 0.03
     },
     "symbol": "ARCC",
     "target": {
-      "realized_pnl": -15,
-      "status": "expired_worthless"
+      "alignment_check": "Thesis uses MC median S_T 18.9441 / P05 17.1861 plus 15-Jun dividend ex-date and 28-May Fed window to justify holding the OTM put ladder as low-cost downside buffer.",
+      "exit_ladder": {
+        "profit_take_1": "S_T <=17.20, peel 50% of contracts",
+        "profit_take_2": "S_T <=16.50, peel remaining 50%",
+        "stop": "ARCC >20.50 close 100%",
+        "time_stop": "close at 21 DTE if not 25% ITM"
+      },
+      "price": 17.5,
+      "rationale": "MC P25 level where hedge pays 2x+",
+      "verdict": "hold"
     },
-    "thesis": "CLOSED. ARCC $17P 2026-04-17 expired worthless. Original thesis: macro tail-risk hedge / credit-spread widening expectation that did not materialize within the contract window. Premium lost ~$15. Lesson: bought protection without a defined exit/roll trigger; theta beat realized vol.",
-    "updated": "2026-05-15T20:11:44+00:00"
+    "thesis": "Long 10x 16P Apr26 + 5x 15P Jun26 at total debit 340 USD functions as cheap tail protection. MC 20k paths give median S_T 18.9441, P05 17.1861 and P(profit) 0.0006, confirming low premium cost while still capturing any break below 17.50 ahead of 15-Jun Q2 ex-date (0.48 dividend, high/bullish) and 28-May Fed window. Stable 10.14% yield and 0.194 realized vol keep skew attractive; position hedges credit-spread or rate-hike shocks without capping upside to 20.75 PT.",
+    "updated": "2026-05-15T23:33:50+00:00"
   },
   "BKLN": {
-    "author": "DFV",
+    "author": "GROK",
     "catalysts": [
-      "Jun FOMC",
-      "Q2 default-rate prints (S&P / Moody's)"
+      "2026-06-05 US NFP",
+      "2026-06-10 US CPI",
+      "2026-06-17 FOMC decision"
     ],
-    "conviction": 2,
+    "conviction": 3,
     "created": "2026-05-15T20:11:44+00:00",
-    "horizon": "34 DTE",
-    "invalidation": "Close if BKLN > $21.00 sustained 2 sessions. Hard time-stop = 21 DTE (2026-05-28).",
-    "revision": 1,
+    "horizon": "34 days",
+    "invalidation": "Exit if BKLN closes above 22.00 for 2 sessions or SOFR futures price in 0 cuts by Dec 2026",
+    "revision": 3,
     "sizing": {
-      "contracts": 3,
-      "max_pct_book": 0.5
+      "max_pct_book": 0.03
     },
     "symbol": "BKLN",
     "target": {
-      "expiry": "2026-06-18",
-      "instrument": "BKLN $20P 2026-06-18",
-      "strike": 20
+      "alignment_check": "Thesis built on 17 Jun FOMC + 5/10 Jun data releases plus MC P(profit)=0.3016 and P95 P&L +607.95 tail",
+      "exit_ladder": {
+        "profit_take_1": "P&L +200, peel 1 contract",
+        "profit_take_2": "P&L +450, peel 1 contract",
+        "stop": "BKLN >22.50 or premium <0.05, close all",
+        "time_stop": "close at 5 DTE if not 25% ITM"
+      },
+      "price": 1.85,
+      "rationale": "MC P75 path to 21.98 plus vol expansion into FOMC",
+      "verdict": "hold"
     },
-    "thesis": "Senior loan ETF (floating-rate leveraged loans). Hedge against leveraged-credit dislocation if Fed pivots dovish (kills floating-rate appeal) or default cycle accelerates. Near ATM. 3 contracts.",
-    "updated": "2026-05-15T20:11:44+00:00"
+    "thesis": "Long 3x 20-strike Jun18 puts positioned for vol spike and downside from 17 Jun FOMC decision plus 5 Jun NFP/10 Jun CPI cluster. MC 20k GBM paths give P(profit)=0.3016 with P95 P&L +607.95 vs median -119.1, driven by P05 tail to 17.58. Elevated 4.9% default rate and 400k put flow support breach below 19.31; SOFR curve pricing 1-2 cuts adds NAV pressure. Thesis holds through 18 Jun expiry window.",
+    "updated": "2026-05-15T23:34:10+00:00"
   },
   "EMB": {
-    "author": "DFV",
+    "author": "GROK",
     "catalysts": [
-      "Expires today 2026-05-15"
+      "2026-05-15 expiry day",
+      "10Y yield break above 4.50%"
     ],
-    "conviction": 1,
+    "conviction": 2,
     "created": "2026-05-15T20:11:44+00:00",
-    "horizon": "0 DTE",
-    "invalidation": "Already at expiry. Time-stop = today close.",
-    "revision": 1,
+    "horizon": "1 day",
+    "invalidation": "Exit immediately if EMB spot >95.50 at tomorrow open OR 10Y yield <4.35%",
+    "revision": 3,
     "sizing": {
-      "contracts": 1,
-      "max_pct_book": 0.5
+      "max_pct_book": 0.03
     },
     "symbol": "EMB",
     "target": {
-      "expiry": "2026-05-15",
-      "instrument": "EMB $90P 2026-05-15",
-      "strike": 90
+      "alignment_check": "Used 2026-05-11 macro triggers + 2026-05-15 expiry with MC median P&L -4805 and P(profit)=0.0 to justify trim",
+      "exit_ladder": {
+        "profit_take_1": "none - position OTM",
+        "profit_take_2": "none - position OTM",
+        "stop": "market sell at 0.05 or lower, close full size",
+        "time_stop": "close at expiry open if not ITM"
+      },
+      "price": 0.0,
+      "rationale": "full premium decay per MC P05-P95",
+      "verdict": "trim"
     },
-    "thesis": "EM USD-denominated debt hedge. Dollar-strength + EM credit-spread blowout play. EXPIRES TODAY -- let it die or close for residual bid.",
-    "updated": "2026-05-15T20:11:44+00:00"
+    "thesis": "MC 20000-path GBM locks 100% loss at median P&L -4805 with P(profit)=0.0 and all quantiles identical, confirming full decay of the 90-put at 1 DTE. 2026-05-11 macro triggers (10Y>4.5%, Fed shift) plus 2026-05-15 expiry create last-moment vol window, yet EMB spot 94.71 vs strike and 15.1% realized vol keep position OTM. Trim to realize tax loss before time decay finalizes.",
+    "updated": "2026-05-15T23:34:32+00:00"
+  },
+  "ETH": {
+    "author": "GROK",
+    "catalysts": [
+      "Glamsterdam mainnet window June 2026",
+      "Devnet-5 May 20 2026",
+      "BlackRock ETHB 82% monthly rewards"
+    ],
+    "conviction": 4,
+    "created": "2026-05-15T23:09:14+00:00",
+    "horizon": "through June 2026",
+    "invalidation": "Exit if ETH < 15.44 (MC P05) closes below for 2 sessions or validator queue flips back to exits",
+    "revision": 3,
+    "sizing": {
+      "max_pct_book": 0.03
+    },
+    "symbol": "ETH",
+    "target": {
+      "alignment_check": "Thesis built on Glamsterdam June 2026 event, ETF inflows streak, validator queue flip, and MC 100% P(profit) with S_T P95 28.61",
+      "exit_ladder": {
+        "profit_take_1": "ETH > 23.76 (MC P75) peel 40%",
+        "profit_take_2": "ETH > 28.61 (MC P95) peel remaining 60%",
+        "stop": "hard stop ETH < 15.44 close full position",
+        "time_stop": "close at 21 DTE if below MC median"
+      },
+      "price": 28.61,
+      "rationale": "MC P95 on Glamsterdam + ETF catalysts",
+      "verdict": "hold"
+    },
+    "thesis": "Hold long ETH equity into Glamsterdam hard fork (June 2026, EIP-7732/ePBS + 200M gas) and persistent ETF inflows (10+ day streak, BlackRock ETHA $53M daily). MC 20k paths shows P(profit)=1.0, median P&L +6.99, S_T median 20.96 (spot 21.10), P95 28.61. Validator entry>exit queue flip (first in 6mo) and Wells Fargo +63.5% ETHA holdings confirm staking/institutional floor. L1 TVL recovery post-Dencun plus Glamsterdam 78% gas cut outweigh PCE 3.5% print and ETH/BTC lag.",
+    "updated": "2026-05-15T23:34:59+00:00"
   },
   "GME": {
     "author": "DFV",
@@ -91,28 +144,35 @@
     "updated": "2026-05-15T19:36:32+00:00"
   },
   "HYG": {
-    "author": "DFV",
+    "author": "GROK",
     "catalysts": [
-      "Jun FOMC",
-      "HY OAS > +400bp print"
+      "CPI 2026-06-10",
+      "FOMC 2026-06-16",
+      "NFP 2026-06-05"
     ],
     "conviction": 2,
     "created": "2026-05-15T20:11:44+00:00",
-    "horizon": "34 DTE",
-    "invalidation": "Close if HYG > $80.50 sustained, or HY OAS tightens below 290bp. Hard time-stop = 21 DTE (2026-05-28).",
-    "revision": 1,
+    "horizon": "34 days",
+    "invalidation": "Exit if HYG closes above 82.00 for 2 sessions OR 10Y yield drops below 4.30%",
+    "revision": 3,
     "sizing": {
-      "contracts": 1,
-      "max_pct_book": 0.3
+      "max_pct_book": 0.03
     },
     "symbol": "HYG",
     "target": {
-      "expiry": "2026-06-18",
-      "instrument": "HYG $77P 2026-06-18",
-      "strike": 77
+      "alignment_check": "Thesis built on FOMC/CPI/NFP events plus MC P05=75.79 and P(profit)=0 showing asymmetric cheap tail exposure.",
+      "exit_ladder": {
+        "profit_take_1": "put >=1.80, peel 50%",
+        "profit_take_2": "put >=3.20, peel remaining 50%",
+        "stop": "HYG >82.50 or premium <0.15, close 100%",
+        "time_stop": "close at 7 DTE if not ITM"
+      },
+      "price": 2.15,
+      "rationale": "MC P25 move plus vol spike into FOMC",
+      "verdict": "hold"
     },
-    "thesis": "HY credit-spread widening hedge. $77P is ~5% OTM -- protection against a junk-bond reversal if growth slows or defaults cluster. 1 contract, small.",
-    "updated": "2026-05-15T20:11:44+00:00"
+    "thesis": "Long 77-put benefits from June cluster: CPI 6/10, NFP 6/5, FOMC 6/16-17 and PPI 6/11 can force vol spike above current 0.102 RV. MC 20k paths give P05=75.79 (only 4.2% below spot) yet P(profit)=0 and median P&L=-8005 confirm cheap premium; any hawkish dot-plot or 30Y>5.1% break pushes S_T toward P25=78.12, delivering gamma into expiry.",
+    "updated": "2026-05-15T23:35:20+00:00"
   },
   "IWM": {
     "author": "DFV",
@@ -137,71 +197,97 @@
     "updated": "2026-05-15T20:11:44+00:00"
   },
   "JNK": {
-    "author": "DFV",
+    "author": "GROK",
     "catalysts": [
-      "Already expired 2026-04-17"
+      "FOMC rate decision and press conference 2026-06-17",
+      "Employment Situation May 2026 2026-06-05",
+      "CPI May 2026 2026-06-10"
     ],
-    "conviction": 0,
+    "conviction": 2,
     "created": "2026-05-15T20:11:44+00:00",
-    "horizon": "closed",
-    "invalidation": "Position already closed at expiry.",
-    "revision": 1,
+    "horizon": "2026-06-18",
+    "invalidation": "Exit if JNK closes above 97.80 for three sessions or ICE BofA HY OAS compresses below 2.50%",
+    "revision": 3,
     "sizing": {
-      "contracts": 1,
-      "max_pct_book": 0.0
+      "max_pct_book": 0.03
     },
     "symbol": "JNK",
     "target": {
-      "realized_pnl": -33,
-      "status": "expired_worthless"
+      "alignment_check": "Thesis uses 2026-06-17 FOMC and 2026-06-05 Employment events plus MC S_T P05=92.03 and 12.39% P(profit) to justify holding the put structure.",
+      "exit_ladder": {
+        "profit_take_1": "JNK <= 92.50 peel 50% of 94-strike leg",
+        "profit_take_2": "JNK <= 91.00 peel remaining 50% of 94-strike leg",
+        "stop": "hard stop if realized loss exceeds 390 USD close entire position",
+        "time_stop": "close all at 21 DTE if not 25% ITM"
+      },
+      "price": 92.0,
+      "rationale": "MC P05 level that monetizes both strikes",
+      "verdict": "hold"
     },
-    "thesis": "CLOSED. JNK $92P 2026-04-17 expired worthless. Original thesis: macro tail-risk hedge / credit-spread widening expectation that did not materialize within the contract window. Premium lost ~$33. Lesson: bought protection without a defined exit/roll trigger; theta beat realized vol.",
-    "updated": "2026-05-15T20:11:44+00:00"
+    "thesis": "Long JNK 94/92 put structure positioned for spread widening into 2026-06-17 FOMC decision and 2026-06-05 Employment Situation print. MC 20000-path GBM shows S_T P05 at 92.03 with P&L P95 of +595.94 versus median -390, delivering 12.39% P(profit) that rises sharply on any HY OAS re-widening above 3%. Price holding below 97.80 keeps both strikes live through 2026-06-18 expiry while VIX 19 caps left-tail but does not eliminate event-driven downside.",
+    "updated": "2026-05-15T23:35:41+00:00"
   },
   "KRE": {
-    "author": "DFV",
+    "author": "GROK",
     "catalysts": [
-      "Already expired 2026-04-04"
+      "FOMC rate hold 2026-03-17",
+      "Regional bank Q1 earnings 2026-04-01",
+      "Post-expiry FOMC 2026-04-29"
     ],
-    "conviction": 0,
+    "conviction": 3,
     "created": "2026-05-15T20:11:44+00:00",
-    "horizon": "closed",
-    "invalidation": "Position already closed at expiry.",
-    "revision": 1,
+    "horizon": "2026-04-17",
+    "invalidation": "Exit if KRE >68.18 for 2 sessions or VIX/KRE RV drops below 18%",
+    "revision": 3,
     "sizing": {
-      "contracts": 1,
-      "max_pct_book": 0.0
+      "max_pct_book": 0.03
     },
     "symbol": "KRE",
     "target": {
-      "realized_pnl": -271,
-      "status": "expired_worthless"
+      "alignment_check": "Thesis built from bearish FOMC 17-18 Mar + Apr earnings events and MC median S_T 66.97 / P(profit)=0.0 confirming hedge not directional bet.",
+      "exit_ladder": {
+        "profit_take_1": "KRE <62.00 peel 50%",
+        "profit_take_2": "KRE <60.50 peel remaining 50%",
+        "stop": "KRE >68.18 close full position",
+        "time_stop": "close at 30 DTE if not 25% ITM"
+      },
+      "price": 1.6,
+      "rationale": "2x cost on 4% KRE drop into FOMC",
+      "verdict": "hold"
     },
-    "thesis": "CLOSED. KRE $58P 2026-04-04 expired worthless. Original thesis: macro tail-risk hedge / credit-spread widening expectation that did not materialize within the contract window. Premium lost ~$271. Lesson: bought protection without a defined exit/roll trigger; theta beat realized vol.",
-    "updated": "2026-05-15T20:11:44+00:00"
+    "thesis": "Hold KRE 60P 20260417 as tail-risk hedge. MC 20k GBM paths show median S_T 66.97 with P(profit)=0.0 and uniform -80 P&L, confirming current OTM status yet validating static protection value below 68.18. High/bearish FOMC hold 17-18 Mar 2026 plus Q1 regional earnings 1-15 Apr 2026 and post-expiry FOMC 29 Apr supply downside skew; RV 20.4% and bearish put flow support hedge utility despite 0% near-term ITM odds. Yield-curve flatness and ETF outflows amplify CRE exposure tail risk through expiry.",
+    "updated": "2026-05-15T23:35:58+00:00"
   },
   "LQD": {
-    "author": "DFV",
+    "author": "GROK",
     "catalysts": [
-      "Expires today 2026-05-15"
+      "2026-05-15 Industrial Production Apr 0.7% beat",
+      "2026-05-15 Empire State Manufacturing 19.6 beat",
+      "2026-05-14 Kevin Warsh Fed Chair confirmation"
     ],
-    "conviction": 1,
+    "conviction": 2,
     "created": "2026-05-15T20:11:44+00:00",
-    "horizon": "0 DTE",
-    "invalidation": "Already at expiry. Time-stop = today close.",
-    "revision": 1,
+    "horizon": "2026-05-15",
+    "invalidation": "Exit if LQD > 108.75 at any point before 2026-05-15 close",
+    "revision": 3,
     "sizing": {
-      "contracts": 1,
-      "max_pct_book": 0.5
+      "max_pct_book": 0.03
     },
     "symbol": "LQD",
     "target": {
-      "expiry": "2026-05-15",
-      "instrument": "LQD $106P 2026-05-15",
-      "strike": 106
+      "alignment_check": "Thesis built from 2026-05-15 IP/Empire beats + MC median S_T 107.8711 and P05 107.02 showing no intrinsic value without event tail",
+      "exit_ladder": {
+        "profit_take_1": "LQD < 106.50 at 10:00 ET 2026-05-15, close 100%",
+        "profit_take_2": "none",
+        "stop": "LQD > 108.75, close 100%",
+        "time_stop": "close at 16:00 ET 2026-05-15 if not ITM"
+      },
+      "price": 0.0,
+      "rationale": "full premium decay unless 2026-05-15 data tail materializes",
+      "verdict": "hold"
     },
-    "thesis": "IG corporate credit hedge. Bet on duration / credit-spread widening as the Fed holds rates higher-for-longer. EXPIRES TODAY -- let it die or close for residual bid.",
-    "updated": "2026-05-15T20:11:44+00:00"
+    "thesis": "Long LQD 106 put exp 20260515. MC 20000 paths GBM shows median S_T 107.8711 (P05 107.02) and P(profit)=0 with uniform -6305 P&L, yet 2026-05-15 high-impact bearish prints (IP +0.7% beat, Empire 19.6 beat, Capacity 76.1) plus Warsh Fed Chair confirmation can force a non-GBM tail below 106. Low 0.092 realized vol keeps baseline stable but 10Y at 4.36-4.41% and strong data reduce rate-cut odds, pressuring LQD toward strike on expiry.",
+    "updated": "2026-05-15T23:36:19+00:00"
   },
   "MAIN": {
     "author": "DFV",
@@ -226,28 +312,65 @@
     "updated": "2026-05-15T20:11:44+00:00"
   },
   "OBDC": {
-    "author": "DFV",
+    "author": "GROK",
     "catalysts": [
-      "Q2 BDC earnings late Jul / early Aug",
-      "HY OAS > +100bp move"
+      "2026-05-06 Q1 earnings miss follow-through",
+      "2026-08-05 Q2 earnings preview"
     ],
-    "conviction": 2,
+    "conviction": 3,
     "created": "2026-05-15T20:11:44+00:00",
-    "horizon": "63 DTE",
-    "invalidation": "Roll/close if OBDC > $15.50 (sustained) or HY OAS tightens below 280bp into Jun-end. Hard time-stop = 21 DTE (2026-06-26).",
-    "revision": 1,
+    "horizon": "63 days to 2026-07-17",
+    "invalidation": "Exit if OBDC closes above 13.50 for 3 sessions or NAV prints above 14.00",
+    "revision": 3,
     "sizing": {
-      "contracts": 11,
-      "max_pct_book": 1.0
+      "max_pct_book": 0.03
     },
     "symbol": "OBDC",
     "target": {
-      "expiry": "2026-07-17",
-      "instrument": "OBDC $7.5P 2026-07-17",
-      "strike": 7.5
+      "alignment_check": "Thesis uses 2026-05-06 earnings miss event plus MC P95 P&L 2773.21 and P(profit) 0.1086 keyed to NAV discount support.",
+      "exit_ladder": {
+        "profit_take_1": "S_T <10.43 peel 40% at P25 MC level",
+        "profit_take_2": "S_T <9.38 peel remaining 60% at P05 MC level",
+        "stop": "hard stop at -100% premium loss, close all",
+        "time_stop": "close at 21 DTE if not 25% ITM"
+      },
+      "price": 9.38,
+      "rationale": "MC P05 level for max put payoff",
+      "verdict": "hold"
     },
-    "thesis": "BDC credit-stress hedge. OBDC NAV is sensitive to middle-market loan defaults; $7.50 strike is ~30%+ OTM, lottery-style protection against a credit air-pocket. 11 contracts, small notional.",
-    "updated": "2026-05-15T20:11:44+00:00"
+    "thesis": "Long OBDC puts aligned to 22% NAV discount at 11.21 vs 14.41 post-2026-05-06 EPS miss and dividend cut. MC 20000 paths show P95 P&L +2773.21 despite median -1269.7 and P(profit) 0.1086, capturing tail payoff if price reaches P05 9.378. Elevated RV 0.264 and 1.13x leverage amplify downside from any non-accrual spike or spread widening through 2026-07-17. Share repurchase and 2026-05-07 CEO commentary provide temporary support but do not offset NAV floor risk below 13.50.",
+    "updated": "2026-05-15T23:36:42+00:00"
+  },
+  "OWL": {
+    "author": "GROK",
+    "catalysts": [
+      "2026-07-30 Q2 Earnings Release",
+      "2026-12-31 Year-end AUM Update",
+      "2026-10-30 Q3 Earnings"
+    ],
+    "conviction": 2,
+    "created": "2026-05-15T23:09:26+00:00",
+    "horizon": "2027 LEAPs",
+    "invalidation": "Exit if OWL closes above 11.00 for 5 sessions or FRE growth misses 10% YoY in any quarterly print",
+    "revision": 3,
+    "sizing": {
+      "max_pct_book": 0.03
+    },
+    "symbol": "OWL",
+    "target": {
+      "alignment_check": "Thesis uses MC P05=4.0455 and P(profit)=0.1168 plus 2026-07-30 earnings, 2026-12-31 AUM, and redemption-cap/SEC indicators to justify holding the puts.",
+      "exit_ladder": {
+        "profit_take_1": "OWL < 6.00, peel 50% of position",
+        "profit_take_2": "OWL < 4.50, peel remaining 50%",
+        "stop": "OWL > 11.00 close, close entire position",
+        "time_stop": "close at 60 DTE if not ITM"
+      },
+      "price": 4.5,
+      "rationale": "MC P05 level reached on redemption or SEC headline",
+      "verdict": "hold"
+    },
+    "thesis": "Long 12 Jan-2027 5.0 puts on OWL at spot 9.46. MC 20k GBM paths give P05 S_T=4.0455 (11.68% P(profit)) with median 8.73, creating asymmetric payoff if redemptions breach 5% caps or SEC FOIA probe leaks. Key supports: 2026-07-30 Q2 earnings, 2026-12-31 AUM update, and 2027-01-15 expiry. FRE +14% YoY and $300M buyback provide floor but cannot offset private-credit outflow risk priced in P05 tail.",
+    "updated": "2026-05-15T23:37:08+00:00"
   },
   "PFF": {
     "author": "DFV",
@@ -270,5 +393,159 @@
     },
     "thesis": "CLOSED. PFF $29P 2026-04-17 expired worthless. Original thesis: macro tail-risk hedge / credit-spread widening expectation that did not materialize within the contract window. Premium lost ~$17. Lesson: bought protection without a defined exit/roll trigger; theta beat realized vol.",
     "updated": "2026-05-15T20:11:44+00:00"
+  },
+  "SLV": {
+    "author": "GROK",
+    "catalysts": [
+      "2026-12-31 silver supply deficit confirmation",
+      "2026-09-15 FOMC first rate cut window",
+      "2026-Q2/Q3 Silver Institute demand update"
+    ],
+    "conviction": 3,
+    "created": "2026-05-15T22:52:25+00:00",
+    "horizon": "2027 LEAPs",
+    "invalidation": "Exit if SLV AUM outflows accelerate past YTD pace for 10 sessions OR spot closes below 48.03 (MC P25) for 3 sessions",
+    "revision": 3,
+    "sizing": {
+      "max_pct_book": 0.03
+    },
+    "symbol": "SLV",
+    "target": {
+      "alignment_check": "Thesis uses 2026-12-31 deficit event plus MC P95 134.90 tail and 0.3899 P(profit) with COMEX tightness and RV 0.539",
+      "exit_ladder": {
+        "profit_take_1": "spot >86.87 (MC P75) peel 40% of position",
+        "profit_take_2": "spot >110 peel remaining 40%",
+        "stop": "spot <48.03 close 100% of position",
+        "time_stop": "close all at 30 DTE if not 25% ITM"
+      },
+      "price": 86.87,
+      "rationale": "MC P75 level from deficit confirmation and industrial demand tail",
+      "verdict": "hold"
+    },
+    "thesis": "Long SLV calls positioned for 2026-12-31 supply deficit confirmation and 2026-Q2/Q3 Silver Institute solar/EV releases to drive physical squeeze. MC 20000 paths show median S_T 64.51 and P&L -9481 but P95 S_T 134.90 with 104795 upside P&L and 0.3899 P(profit) supported by COMEX inventories down 26% and G/S ratio 63:1 compression. Elevated RV 0.539 and heavy long-dated call flow align with P75 86.87 strike cluster capture despite ETF outflows and delayed Fed cuts.",
+    "updated": "2026-05-15T23:37:26+00:00"
+  },
+  "TSLA": {
+    "author": "GROK",
+    "catalysts": [
+      "2026-04-01 Cybercab production ramp begins",
+      "2026-06-30 Robotaxi expansion to 7 US cities",
+      "2026-01-01 Optimus Gen 3 mass production start"
+    ],
+    "conviction": 3,
+    "created": "2026-05-15T23:09:36+00:00",
+    "horizon": "2027 LEAPs",
+    "invalidation": "Exit if Robotaxi operational cities remain below 5 by 2026-09-30 OR spot closes below 300 for 5 sessions",
+    "revision": 3,
+    "sizing": {
+      "max_pct_book": 0.03
+    },
+    "symbol": "TSLA",
+    "target": {
+      "alignment_check": "Thesis built from 2026-04-01/06-30/01-01 events plus MC P(profit) 0.2429 and P95 P&L +20183.8 for asymmetric upside.",
+      "exit_ladder": {
+        "profit_take_1": "S_T>550, peel 40%",
+        "profit_take_2": "S_T>650, peel remaining 60%",
+        "stop": "spot<350 for 3 sessions, close full position",
+        "time_stop": "close at 90 DTE if not ITM"
+      },
+      "price": 600,
+      "rationale": "MC P75 515 + event-driven tail to 650-700",
+      "verdict": "hold"
+    },
+    "thesis": "Long 500C 20270115 remains aligned: MC shows 24.29% P(profit) with P95 P&L +20183.8 versus median -2041.53 loss, capturing tail from 2026-04-01 Cybercab ramp at Giga Texas, 2026-06-30 Robotaxi expansion to 7 cities, 2026-01-01 Optimus Gen 3 production, and 2026-12-31 external Optimus deployments. Leading indicators (3-city Robotaxi ops, FSD unsupervised miles, energy margins) validate autonomy scaling to 500 strike. Elevated IV supports premium retention into 2027.",
+    "updated": "2026-05-15T23:37:46+00:00"
+  },
+  "XLE": {
+    "author": "GROK",
+    "catalysts": [
+      "2026-07-01 Q2 XOM/CVX earnings",
+      "2026-12 OPEC+ compliance meetings"
+    ],
+    "conviction": 3,
+    "created": "2026-05-15T23:09:44+00:00",
+    "horizon": "2027 LEAPs",
+    "invalidation": "Exit if XLE closes below 50 for 3 sessions or Brent <90",
+    "revision": 3,
+    "sizing": {
+      "max_pct_book": 0.03
+    },
+    "symbol": "XLE",
+    "target": {
+      "alignment_check": "Q2 2026 earnings + OPEC compliance events plus MC P95 tail of 14376 used to justify hold.",
+      "exit_ladder": {
+        "profit_take_1": "XLE 70, peel 1/3",
+        "profit_take_2": "XLE 80, peel remaining 1/3",
+        "stop": "XLE 50, close all",
+        "time_stop": "close at 30 DTE if not 25% ITM"
+      },
+      "price": 75.0,
+      "rationale": "MC P75 + event gamma expansion",
+      "verdict": "hold"
+    },
+    "thesis": "Position held for 2027 LEAP gamma. MC shows 0.34 P(profit) with P95 P&L +14376 vs median -806, driven by right skew above spot 59.44. Key support from 2026-07-01 Q2 XOM/CVX earnings (high/bullish), 2026-12 OPEC+ compliance meetings, and 2027-01 EIA demand update. Brent 105-106 and 452.9M inventory draw keep call delta thesis-on; 0.265 vol keeps LEAPs cheap relative to skew. Heavy 65/60 OI confirms institutional long gamma.",
+    "updated": "2026-05-15T23:38:08+00:00"
+  },
+  "XRP": {
+    "author": "GROK",
+    "catalysts": [
+      "Senate Banking CLARITY Act markup 2026-05-14",
+      "FOMC rate decision window 2026-07-29",
+      "XRP ETF inflows to $4-8B AUM by Aug 2026"
+    ],
+    "conviction": 4,
+    "created": "2026-05-15T23:09:53+00:00",
+    "horizon": "through 2026-08-21",
+    "invalidation": "Exit if spot <13.68 (MC P25) for 5 sessions OR daily ETF inflows reverse below 10M",
+    "revision": 3,
+    "sizing": {
+      "max_pct_book": 0.03
+    },
+    "symbol": "XRP",
+    "target": {
+      "alignment_check": "Thesis built on MC median P&L 4808/P95 18186 plus high/bullish events CLARITY Act May-14, FOMC July-29 and ETF inflows validating upside to 22.98.",
+      "exit_ladder": {
+        "profit_take_1": "spot >18.42 (MC P75) peel 40% of calls",
+        "profit_take_2": "spot >22.98 (MC P95) peel remaining 60% of calls",
+        "stop": "spot <11.02 (MC P05) close entire position",
+        "time_stop": "close all at 2026-08-21 expiry if not 25% ITM"
+      },
+      "price": 22.98,
+      "rationale": "MC P95 driven by ETF AUM growth and CLARITY Act passage",
+      "verdict": "hold"
+    },
+    "thesis": "P(profit)=1.0 and median P&L 4808 (P05 3166/P95 18186) from 20k GBM paths support holding the 19/17 calls + equity into 2026-08-21 expiry. High/bullish CLARITY Act markup 2026-05-14, FOMC cuts 2026-07-29 and ongoing ETF inflows ($18.5M daily, target $4-8B AUM) plus RLUSD Japan traction drive upside capture to MC P75 18.42/P95 22.98. Goldman 13F and realized vol 0.428 confirm whale accumulation and premium retention.",
+    "updated": "2026-05-15T23:38:31+00:00"
+  },
+  "XRPT": {
+    "author": "GROK",
+    "catalysts": [
+      "2026-05-16 CLARITY Act Senate Banking markup",
+      "2026-06-02 XRP ETF monthly AUM data",
+      "2026-06-05 CLARITY Act floor vote window"
+    ],
+    "conviction": 3,
+    "created": "2026-05-15T23:10:01+00:00",
+    "horizon": "34 DTE",
+    "invalidation": "Exit if XRPT closes below 38 for 2 sessions or CLARITY Act markup delayed past 2026-05-20",
+    "revision": 3,
+    "sizing": {
+      "max_pct_book": 0.03
+    },
+    "symbol": "XRPT",
+    "target": {
+      "alignment_check": "Thesis built from 2026-05-16/06-05 CLARITY events plus MC P95 tail (+666 P&L) and 0.856 vol for event-driven upside.",
+      "exit_ladder": {
+        "profit_take_1": "S_T>58, peel 50%",
+        "profit_take_2": "S_T>66, peel remaining 50%",
+        "stop": "spot<38 close full position",
+        "time_stop": "close at 7 DTE if still OTM"
+      },
+      "price": 58,
+      "rationale": "CLARITY-driven spike to MC P75 level",
+      "verdict": "hold"
+    },
+    "thesis": "Hold XRPT 49C into 2026-06-18 expiry. CLARITY Act Senate markup 2026-05-16 and floor vote window 2026-06-05 plus ETF inflow reports 2026-05-20/06-02 provide high-bullish catalysts that align with MC P95 S_T 66.16 (P&L +666) and realized vol 0.856 tail capture. Leading indicators (ETF flows +1.325B, 78% prediction-market prob >1.50) support upside skew despite MC median S_T 42.75 and P(profit) 0.1072; position captures the 5% tail above strike.",
+    "updated": "2026-05-15T23:38:54+00:00"
   }
 }

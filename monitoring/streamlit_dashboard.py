@@ -1380,6 +1380,111 @@ def _render_briefings_tab() -> None:
     )
 
 
+def _render_dfv_tab() -> None:
+    """🐱 DFV — Roaring Kitty operator panel.
+
+    Shows: heartbeat, latest brief headline, open theses, recent decisions.
+    All read-only; the daemon (python launch.py dfv) does the writing.
+    """
+    import streamlit as st
+
+    st.subheader("🐱 DFV — Prime Operator")
+    st.caption("Keith Gill / Roaring Kitty. Seven gates. Cash is a position.")
+
+    # Heartbeat
+    try:
+        from agents.dfv.daemon import heartbeat_status  # noqa: PLC0415
+        hb = heartbeat_status() or {}
+    except Exception as exc:  # noqa: BLE001
+        hb = {"error": str(exc)}
+
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("Daemon", hb.get("status", "unknown"))
+    c2.metric("Last beat", str(hb.get("last_beat", "—"))[-8:] if hb.get("last_beat") else "—")
+    c3.metric("Briefs run", hb.get("briefs_run", "—"))
+    c4.metric("Decisions logged", hb.get("decisions_logged", "—"))
+
+    if hb.get("error"):
+        st.warning(f"Heartbeat unavailable: {hb['error']}")
+
+    st.divider()
+
+    # Latest brief
+    bdir = Path("agents/dfv/memory/briefs")
+    if bdir.exists():
+        files = sorted(bdir.glob("*.json"), reverse=True)[:1]
+        if files:
+            try:
+                latest = json.loads(files[0].read_text(encoding="utf-8"))
+                st.markdown(f"**Latest {latest.get('type', 'brief')}** — `{files[0].name}`")
+                headline = latest.get("headline") or latest.get("note") or "(no headline)"
+                st.info(headline)
+                with st.expander("Full brief JSON", expanded=False):
+                    st.code(json.dumps(latest, default=_json_default, indent=2), language="json")
+            except (OSError, json.JSONDecodeError) as exc:
+                st.error(f"Brief read failed: {exc}")
+        else:
+            st.caption("No briefs on disk yet. Run `python -m agents.dfv brief`.")
+    else:
+        st.caption("Brief directory missing. Run `python launch.py dfv` to start the daemon.")
+
+    st.divider()
+
+    # Theses + decisions side by side
+    col_t, col_d = st.columns(2)
+
+    with col_t:
+        st.markdown("### Open theses")
+        try:
+            from agents.dfv.decision_engine import DFV  # noqa: PLC0415
+            dfv = DFV()
+            theses = dfv.thesis.all()
+            invalidation_breaches: list[dict] = []
+            try:
+                from agents.dfv.routines import _detect_invalidation_breaches  # noqa: PLC0415
+                # Build a tiny payload from session portfolio if available
+                pf = st.session_state.get("__portfolio_payload__") or {}
+                invalidation_breaches = _detect_invalidation_breaches(dfv, {"portfolio": pf})
+            except Exception:  # noqa: BLE001
+                pass
+            breach_syms = {b["symbol"] for b in invalidation_breaches}
+            if not theses:
+                st.caption("No theses on file.")
+            else:
+                rows = []
+                for sym, rec in sorted(theses.items()):
+                    rows.append({
+                        "symbol": sym,
+                        "conviction": rec.get("conviction"),
+                        "horizon": rec.get("horizon"),
+                        "updated": rec.get("updated", "")[:10],
+                        "breach": "🚨" if sym in breach_syms else "",
+                    })
+                st.dataframe(rows, hide_index=True, use_container_width=True)
+                if invalidation_breaches:
+                    st.error(f"Invalidation breaches: {', '.join(b['symbol'] for b in invalidation_breaches)}")
+        except Exception as exc:  # noqa: BLE001
+            st.warning(f"Theses unavailable: {exc}")
+
+    with col_d:
+        st.markdown("### Recent decisions")
+        try:
+            from agents.dfv.decision_engine import DFV  # noqa: PLC0415
+            dfv = DFV()
+            tail = dfv.decisions.tail(5)
+            if not tail:
+                st.caption("No decisions logged yet.")
+            else:
+                for d in reversed(tail):
+                    verdict = d.get("verdict") or d.get("status") or "?"
+                    sym = d.get("symbol") or d.get("proposal", {}).get("symbol", "?")
+                    ts = str(d.get("ts", ""))[:19]
+                    icon = "✅" if str(verdict).lower() in ("pass", "approve", "approved") else "❌"
+                    st.markdown(f"{icon} **{sym}** — {verdict} _({ts})_")
+        except Exception as exc:  # noqa: BLE001
+            st.warning(f"Decisions unavailable: {exc}")
+
+
 def _render_decisions_panel() -> None:
     """Recent decisions log + manual debate trigger."""
     import streamlit as st
@@ -1529,7 +1634,8 @@ def _render(payload: dict[str, Any]) -> None:
             "🩺 Health & War Room",
             "🤖 Chat",
             "📝 Briefings",
-            "📰 Other",
+            "� DFV",
+            "�📰 Other",
         ]
     )
 
@@ -1570,6 +1676,9 @@ def _render(payload: dict[str, Any]) -> None:
         _render_briefings_tab()
 
     with pillar_tabs[9]:
+        _render_dfv_tab()
+
+    with pillar_tabs[10]:
         sub = st.tabs(["UW", "Regime / Doctrine", "Tasks", "Divisions", "Polymarket", "Scenarios", "Raw"])
         with sub[0]:
             _render_uw(payload)

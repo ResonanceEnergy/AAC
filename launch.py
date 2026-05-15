@@ -135,6 +135,7 @@ MODES = [
     "coder",
     "dfv",
     "dfv-brief",
+    "dfv-dash",
 ]
 
 BANNER = r"""
@@ -180,6 +181,7 @@ MODE_DESCRIPTIONS = {
     "coder": "Autonomous coder -- scan repo for drift patterns, emit backlog, optional --apply safe fixes",
     "dfv": "DFV / Roaring Kitty 24/7 daemon -- pre-market brief, midday, EOD, weekend DD on schedule",
     "dfv-brief": "DFV one-shot pre-market brief (prints to terminal, saves to agents/dfv/memory/briefs/)",
+    "dfv-dash": "DFV operator console -- for DFV by DFV (Streamlit on :8504, the book + seven gates + discipline ledger)",
 }
 
 
@@ -957,6 +959,25 @@ def _mode_dfv_brief() -> int:
     return 0
 
 
+def _mode_dfv_dash(port: int = 8504) -> int:
+    """DFV operator console -- for DFV by DFV. Streamlit, single screen."""
+    import subprocess
+
+    logger.info(str(_cyan("  ════════════════════════════════════════")))
+    logger.info(str(_cyan(f"  🐱 DFV Dashboard -- for DFV by DFV (port {port})")))
+    logger.info(str(_cyan("  ════════════════════════════════════════")))
+    logger.info(str(_cyan("  The book. The seven gates. The discipline ledger.")))
+    logger.info(str(_cyan("  Cash is a position. No FOMO. Ever.")))
+    logger.info("")
+    target = PROJECT_ROOT / "monitoring" / "dfv_dashboard.py"
+    cmd = [
+        sys.executable, "-m", "streamlit", "run", str(target),
+        "--server.port", str(port),
+        "--server.headless", "true",
+    ]
+    return subprocess.call(cmd)
+
+
 # ── Dispatch ────────────────────────────────────────────────────────────────
 
 MODE_DISPATCH = {
@@ -994,6 +1015,7 @@ MODE_DISPATCH = {
     "coder": _mode_coder,
     "dfv": _mode_dfv,
     "dfv-brief": _mode_dfv_brief,
+    "dfv-dash": _mode_dfv_dash,
 }
 
 

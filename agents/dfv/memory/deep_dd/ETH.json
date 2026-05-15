@@ -1,0 +1,314 @@
+{
+  "symbol": "ETH",
+  "generated_at": "2026-05-15T23:34:32.956693+00:00",
+  "legs": [
+    {
+      "account": "ndax",
+      "qty": 0.333428695701362,
+      "side": "long",
+      "asset_type": "equity",
+      "right": "",
+      "strike": null,
+      "expiry": "",
+      "avg_cost": 0.0,
+      "last_price": 0.0,
+      "unrealized": 0.0
+    }
+  ],
+  "market": {
+    "spot": 21.100000381469727,
+    "sigma_realized_30d": 0.3746648279731568,
+    "sigma_atm_iv": null,
+    "sigma_used": 0.3746648279731568
+  },
+  "horizon": {
+    "last_expiry": null,
+    "dte": 90,
+    "window_end": "2026-05-15"
+  },
+  "monte_carlo": {
+    "paths": 20000,
+    "T_days": 90,
+    "T_years": 0.2466,
+    "sigma_used": 0.3747,
+    "spot": 21.1,
+    "S_T_mean": 21.3591,
+    "S_T_p05": 15.4444,
+    "S_T_p25": 18.5115,
+    "S_T_p50": 20.9627,
+    "S_T_p75": 23.7653,
+    "S_T_p95": 28.6118,
+    "pnl_mean_usd": 7.12,
+    "pnl_median_usd": 6.99,
+    "pnl_p05_usd": 5.15,
+    "pnl_p25_usd": 6.17,
+    "pnl_p75_usd": 7.92,
+    "pnl_p95_usd": 9.54,
+    "prob_profit": 1.0,
+    "prob_double": 1.0,
+    "prob_max_loss": 0.0,
+    "max_loss_estimate_usd": 0.0
+  },
+  "research": {
+    "events": [
+      {
+        "date": "2026-06",
+        "event": "Glamsterdam hard fork upgrade (EIP-7732 ePBS, EIP-7928 parallel tx, gas limit to 200M)",
+        "impact": "bullish",
+        "importance": "high",
+        "source": "ethereum.org / QuickNode blog"
+      },
+      {
+        "date": "2026-05-15 to 2026-06-15",
+        "event": "Ongoing US spot ETH ETF inflows (10+ day streak, BlackRock ETHA leading $53M+ daily)",
+        "impact": "bullish",
+        "importance": "high",
+        "source": "SoSoValue / Yahoo Finance"
+      },
+      {
+        "date": "2026-05-15",
+        "event": "ETH validator entry queue exceeds exit queue (first time in 6 months)",
+        "impact": "bullish",
+        "importance": "med",
+        "source": "ValidatorQueue.com / X"
+      },
+      {
+        "date": "2026-05-15 to 2026-06-30",
+        "event": "Wells Fargo 13F shows 63.5% increase in ETHA holdings Q1 2026",
+        "impact": "bullish",
+        "importance": "med",
+        "source": "WuBlockchain"
+      },
+      {
+        "date": "2026-05-15",
+        "event": "US PCE inflation print at 3.5% YoY (core 3.2%) dampening rate cut odds",
+        "impact": "bearish",
+        "importance": "high",
+        "source": "Fortune / MEXC"
+      },
+      {
+        "date": "2026-06",
+        "event": "Hegot\u00e1 upgrade development updates (second half 2026 target)",
+        "impact": "bullish",
+        "importance": "med",
+        "source": "CoinGecko"
+      },
+      {
+        "date": "2026-05-15 to 2026-05-31",
+        "event": "Polymarket ETH price resolution markets (focus on $2400+ break)",
+        "impact": "mixed",
+        "importance": "low",
+        "source": "Polymarket"
+      },
+      {
+        "date": "2026-05-15",
+        "event": "BlackRock ETHB staking ETF distributing 82% rewards monthly",
+        "impact": "bullish",
+        "importance": "med",
+        "source": "CoinGecko"
+      },
+      {
+        "date": "2026-05-20",
+        "event": "Devnet-5 testing completion for Glamsterdam EIPs",
+        "impact": "bullish",
+        "importance": "med",
+        "source": "Ethereum Foundation"
+      },
+      {
+        "date": "2026-06-15",
+        "event": "Potential mainnet Glamsterdam activation window if testnets green",
+        "impact": "bullish",
+        "importance": "high",
+        "source": "Phemex / QuickNode"
+      }
+    ],
+    "leading_indicators": [
+      {
+        "indicator": "ETH ETF net inflows streak",
+        "current": "10+ days consecutive, $43M+ daily avg",
+        "signal": "thesis-on",
+        "why_it_matters": "Structural demand floor mirroring BTC ETF dynamic, supports holding equity through expiry+30"
+      },
+      {
+        "indicator": "Validator entry/exit queue ratio",
+        "current": "Entry > exit (first since Sept 2025)",
+        "signal": "thesis-on",
+        "why_it_matters": "Historical precursor to 100%+ rallies; signals renewed staking demand"
+      },
+      {
+        "indicator": "ETH/BTC ratio",
+        "current": "Weakest in 10 months, 8% YTD decline",
+        "signal": "thesis-off",
+        "why_it_matters": "Lagging altseason; needs Glamsterdam catalyst to reverse"
+      },
+      {
+        "indicator": "Funding rates & taker buy-sell",
+        "current": "Negative funding, bearish derivatives metrics",
+        "signal": "neutral",
+        "why_it_matters": "Short-term pressure but setup for squeeze on upgrade news"
+      },
+      {
+        "indicator": "On-chain TVL / stablecoin volume",
+        "current": "L2 dominant, mainnet fee burn low post-Dencun",
+        "signal": "thesis-on",
+        "why_it_matters": "Glamsterdam targets 78% gas cut to pull activity back to L1"
+      },
+      {
+        "indicator": "Institutional 13F holdings (Wells Fargo)",
+        "current": "+63.5% ETHA Q1 2026",
+        "signal": "thesis-on",
+        "why_it_matters": "Bank-level accumulation confirms long-term conviction"
+      },
+      {
+        "indicator": "Fear & Greed Index",
+        "current": "47 (neutral)",
+        "signal": "neutral",
+        "why_it_matters": "Room for upside re-rating on positive catalysts"
+      }
+    ],
+    "sentiment": {
+      "retail": "mixed",
+      "institutional": "bullish",
+      "options_flow": "neutral-bearish (negative funding)",
+      "notes": "Retail waiting for clean catalyst; institutions via ETFs and 13Fs are accumulating"
+    },
+    "key_drivers": [
+      "Glamsterdam upgrade June 2026",
+      "Persistent ETH ETF inflows",
+      "Validator staking queue flip",
+      "Macro inflation/rate path",
+      "L1 fee economics recovery"
+    ],
+    "risks": [
+      "ETH < $15.44 invalidation (MC P05)",
+      "Macro recession fears pushing risk-off",
+      "Glamsterdam testnet delays to Q3",
+      "ETH/BTC underperformance continues",
+      "Elevated PCE inflation delaying Fed cuts"
+    ],
+    "thesis_update": "No material change since original 'no events' thesis; Glamsterdam June 2026 now the dominant near-term catalyst with testnet progress confirmed. ETF inflows and validator queue signal remain constructive for holding 0.33 long equity past expiry+30, with P&L median still positive across paths. Only macro inflation prints add near-term volatility risk."
+  },
+  "citations": [
+    {
+      "type": "url_citation",
+      "url": "https://www.etftrends.com/monthly-income-content-hub/etf-way-play-ethereum-2026/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2055431654676550113"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2055431047689744641"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://polymarket.com/event/what-price-will-ethereum-hit-in-may-2026"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2055431559013159262"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://fortune.com/article/price-of-ethereum-05-13-2026/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2055431663098925250"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://bingx.com/en/blog/article/ethereum-price-outlook-what-will-drive-next-phase-of-eth-market-cycle"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://finance.yahoo.com/news/ethereum-6k-2026-analyst-flags-130117648.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://polymarket.com/event/ethereum-all-time-high-by"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://fortune.com/article/price-of-ethereum-05-14-2026/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.mexc.com/learn/article/ethereum-eth-price-prediction-may-2026-what-charts-whales-and-catalysts-are-telling-traders/1"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.mexc.co/en-NG/news/1066249"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://changelly.com/blog/ethereum-eth-price-predictions/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.mexc.com/news/1086654"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.ainvest.com/news/ethereum-2026-flow-etf-inflows-stagnant-price-action-2605/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.coingecko.com/learn/ethereum-eth-price-predictions-expert-forecasts"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://phemex.com/blogs/q2-2026-crypto-catalysts"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://mudrex.com/learn/will-ethereum-rise-again-catalysts-risks/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.wublockchain.xyz/news/wells-fargo-increases-ethereum-etf-holdings-q1-2026-13f-19113"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.youtube.com/watch?v=J-aizrXC4qg"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://finance.yahoo.com/markets/crypto/articles/ethereum-etfs-hit-10-day-102637975.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2055430991838101719"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://coinmarketcap.com/academy/article/ethereum-eth-price-prediction-2026-xrp-hype-hyperliquid"
+    }
+  ],
+  "synthesis": {
+    "verdict": "hold",
+    "thesis": "Hold long ETH equity into Glamsterdam hard fork (June 2026, EIP-7732/ePBS + 200M gas) and persistent ETF inflows (10+ day streak, BlackRock ETHA $53M daily). MC 20k paths shows P(profit)=1.0, median P&L +6.99, S_T median 20.96 (spot 21.10), P95 28.61. Validator entry>exit queue flip (first in 6mo) and Wells Fargo +63.5% ETHA holdings confirm staking/institutional floor. L1 TVL recovery post-Dencun plus Glamsterdam 78% gas cut outweigh PCE 3.5% print and ETH/BTC lag.",
+    "conviction": 4,
+    "horizon": "through June 2026",
+    "catalysts": [
+      "Glamsterdam mainnet window June 2026",
+      "Devnet-5 May 20 2026",
+      "BlackRock ETHB 82% monthly rewards"
+    ],
+    "invalidation": "Exit if ETH < 15.44 (MC P05) closes below for 2 sessions or validator queue flips back to exits",
+    "exit_ladder": {
+      "profit_take_1": "ETH > 23.76 (MC P75) peel 40%",
+      "profit_take_2": "ETH > 28.61 (MC P95) peel remaining 60%",
+      "stop": "hard stop ETH < 15.44 close full position",
+      "time_stop": "close at 21 DTE if below MC median"
+    },
+    "target": {
+      "price": 28.61,
+      "rationale": "MC P95 on Glamsterdam + ETF catalysts"
+    },
+    "max_pct_book": 0.03,
+    "alignment_check": "Thesis built on Glamsterdam June 2026 event, ETF inflows streak, validator queue flip, and MC 100% P(profit) with S_T P95 28.61"
+  },
+  "elapsed_s": 26.21
+}

@@ -1,0 +1,414 @@
+{
+  "symbol": "OWL",
+  "generated_at": "2026-05-15T23:36:42.178508+00:00",
+  "legs": [
+    {
+      "account": "moomoo",
+      "qty": 12.0,
+      "side": "long",
+      "asset_type": "put",
+      "right": "P",
+      "strike": 5.0,
+      "expiry": "20270115",
+      "avg_cost": 0.0,
+      "last_price": 0.0,
+      "unrealized": 270.0
+    }
+  ],
+  "market": {
+    "spot": 9.460000038146973,
+    "sigma_realized_30d": 0.5717270852676712,
+    "sigma_atm_iv": null,
+    "sigma_used": 0.5717270852676712
+  },
+  "horizon": {
+    "last_expiry": "2027-01-15",
+    "dte": 245,
+    "window_end": "2027-01-15"
+  },
+  "monte_carlo": {
+    "paths": 20000,
+    "T_days": 245,
+    "T_years": 0.6712,
+    "sigma_used": 0.5717,
+    "spot": 9.46,
+    "S_T_mean": 9.7837,
+    "S_T_p05": 4.0455,
+    "S_T_p25": 6.3833,
+    "S_T_p50": 8.7301,
+    "S_T_p75": 11.9736,
+    "S_T_p95": 19.1054,
+    "pnl_mean_usd": 133.85,
+    "pnl_median_usd": 0.0,
+    "pnl_p05_usd": 0.0,
+    "pnl_p25_usd": 0.0,
+    "pnl_p75_usd": 0.0,
+    "pnl_p95_usd": 1145.36,
+    "prob_profit": 0.1168,
+    "prob_double": 0.1168,
+    "prob_max_loss": 0.8831,
+    "max_loss_estimate_usd": 0.0
+  },
+  "research": {
+    "events": [
+      {
+        "date": "2026-06-03",
+        "event": "Blue Owl Capital Annual General Meeting of Shareholders",
+        "impact": "mixed",
+        "importance": "med",
+        "source": "ir.blueowl.com/events"
+      },
+      {
+        "date": "2026-07-30",
+        "event": "Q2 2026 Earnings Release & Conference Call",
+        "impact": "mixed",
+        "importance": "high",
+        "source": "marketbeat.com/earnings"
+      },
+      {
+        "date": "2026-10-30",
+        "event": "Q3 2026 Earnings Release & Conference Call (est.)",
+        "impact": "mixed",
+        "importance": "high",
+        "source": "historical pattern + marketbeat"
+      },
+      {
+        "date": "2026-12-31",
+        "event": "Year-end AUM & Fundraising Update Window",
+        "impact": "bullish",
+        "importance": "high",
+        "source": "ir.blueowl.com/news"
+      },
+      {
+        "date": "2027-01-15",
+        "event": "Option Expiry (position expiry)",
+        "impact": "mixed",
+        "importance": "high",
+        "source": "position details"
+      },
+      {
+        "date": "2026-05-27",
+        "event": "Q1 Dividend Payment ($0.23)",
+        "impact": "bullish",
+        "importance": "low",
+        "source": "prnewswire.com"
+      },
+      {
+        "date": "2026-09-30",
+        "event": "Q2 Dividend Payment (est. $0.23-0.31)",
+        "impact": "bullish",
+        "importance": "low",
+        "source": "ir.blueowl.com/dividends"
+      },
+      {
+        "date": "2026-12-15",
+        "event": "Q3 Dividend Payment (est.)",
+        "impact": "bullish",
+        "importance": "low",
+        "source": "historical pattern"
+      },
+      {
+        "date": "2026-07-15",
+        "event": "Q2 Dividend Payment",
+        "impact": "bullish",
+        "importance": "low",
+        "source": "prnewswire"
+      }
+    ],
+    "leading_indicators": [
+      {
+        "indicator": "AUM Growth",
+        "current": "$315B (Q1 2026), steady fundraising",
+        "signal": "neutral",
+        "why_it_matters": "Drives fee income; slowdown could pressure stock below 9.00"
+      },
+      {
+        "indicator": "Fee-Related Earnings",
+        "current": "$393.6M Q1 2026 (+14% YoY)",
+        "signal": "thesis-off",
+        "why_it_matters": "Strong FRE supports valuation; weakness would accelerate downside"
+      },
+      {
+        "indicator": "Redemption Caps",
+        "current": "5% caps on select funds (Evercore note)",
+        "signal": "thesis-on",
+        "why_it_matters": "Signals outflow pressure in private credit, bearish for OWL"
+      },
+      {
+        "indicator": "Analyst Consensus",
+        "current": "Moderate Buy, avg PT $15.03",
+        "signal": "thesis-off",
+        "why_it_matters": "17 analysts see 58% upside; sustained downgrade wave could trigger selloff"
+      },
+      {
+        "indicator": "Institutional Flow",
+        "current": "Soros new 2.45M share stake",
+        "signal": "neutral",
+        "why_it_matters": "Large buyer supports floor near 9.00"
+      },
+      {
+        "indicator": "SEC FOIA Flag",
+        "current": "Blue Owl on April 2026 FOIA logs (possible undisclosed probe)",
+        "signal": "thesis-on",
+        "why_it_matters": "Negative headline risk from Dorsey report, could gap lower"
+      },
+      {
+        "indicator": "Share Repurchases",
+        "current": "$300M program active, $265M remaining",
+        "impact": "bullish",
+        "why_it_matters": "Accretive to NAV, provides support above 9.00"
+      }
+    ],
+    "sentiment": {
+      "retail": "mixed",
+      "institutional": "bullish",
+      "options_flow": "neutral",
+      "notes": "X chatter mostly spam; institutional buying (Soros) offsets retail noise; no heavy options flow detected"
+    },
+    "key_drivers": [
+      "Private credit AUM & FRE growth",
+      "Redemption/outflow trends in direct lending funds",
+      "SEC investigation headline risk",
+      "Dividend stability & yield support",
+      "Broader rate environment & spread compression"
+    ],
+    "risks": [
+      "Undisclosed SEC investigation triggering sharp selloff",
+      "Accelerated redemptions breaching 5% caps and hitting fee revenue",
+      "Prolonged spread compression eroding FRE below estimates",
+      "Stock re-rating to 12+ on positive earnings surprises"
+    ],
+    "thesis_update": "Q1 results beat with $315B AUM and strong FRE but revealed redemption caps and rate headwinds. New SEC FOIA flag adds tail-risk catalyst absent from original GBM model. Price target dispersion (9-23) and active buyback keep asymmetric downside intact through 2027 expiry."
+  },
+  "citations": [
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2055357764763869410"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.marketbeat.com/stocks/NYSE/OWL/forecast/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.blueowlcapitalcorporation.com/investors/news-events/events-presentations"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2055357762905788606"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://tickernerd.com/stock/owl-forecast/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2055386442751246606"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.zacks.com/stock/research/OWL/earnings-calendar"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.marketscreener.com/quote/stock/BLUE-OWL-CAPITAL-INC-116485496/consensus/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://rockflow.ai/stocks/owl"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.stocktitan.net/news/OWL/blue-owl-capital-inc-first-quarter-2026-gjpaz4j9rit2.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2055375971008815250"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2055410008553365808"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.investing.com/equities/altimar-acquisition-dividends"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://marketchameleon.com/Overview/OWL/Dividends/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.blueowlcapitalcorporation.com/investors/news-events"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://public.com/stocks/owl/forecast-price-target"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://ir.blueowl.com/Investors/events-and-presentations/default.aspx"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.prnewswire.com/news-releases/blue-owl-capital-inc-first-quarter-2026-results-302758422.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2055403582984241657"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://ir.blueowl.com/Investors/stock-info/dividend-history/default.aspx"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.marketscreener.com/quote/stock/BLUE-OWL-CAPITAL-INC-116485496/calendar/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.benzinga.com/quote/OWL/analyst-ratings"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://finance.yahoo.com/markets/stocks/articles/piper-sandler-maintains-overweight-rating-211835877.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://stockanalysis.com/stocks/owl/forecast/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2055406756323340403"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2055379942561767857"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://qz.com/blue-owl-capital-q1-2026-earnings-real-assets-direct-lending-043026"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.blueowlcapitalcorporation.com/investors/news-events/press-releases/detail/91/blue-owl-capital-corporation-schedules-earnings-release-and"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.blueowlcapitalcorporation.com/investors/stock-info/dividends"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.dividendmax.com/united-states/nyse/financial-services/blue-owl-capital-corp/dividends"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.marketbeat.com/instant-alerts/blue-owl-capital-obdc-to-release-earnings-on-wednesday-2026-04-29/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://ir.blueowl.com/Investors/news/news-details/2026/Blue-Owl-Capital-Inc--to-Announce-First-Quarter-2026-Results/default.aspx"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.blueowl.com/careers"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.marketbeat.com/stocks/NYSE/OWL/earnings/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://stockevents.app/en/stock/OWL/dividends"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.investing.com/equities/altimar-acquisition-earnings"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://marketchameleon.com/PressReleases/i/2277235/OWL/blue-owl-capital-announces-29-billion-final"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.prnewswire.com/news-releases/blue-owl-capital-corporation-announces-march-31-2026-financial-results-302764665.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://marketchameleon.com/Overview/OWL/Earnings/Earnings-Dates/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.stocktitan.net/news/OWL/blue-owl-capital-inc-to-announce-first-quarter-2026-cra7rbitc09u.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://anachart.com/ticker/owl/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://ir.blueowl.com/Investors/stock-info/default.aspx"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.marketscreener.com/news/blue-owl-capital-inc-announces-quarterly-dividend-payable-on-may-27-2026-ce7f58d9da81f72c"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://finance.yahoo.com/markets/stocks/articles/blue-owl-capital-corporation-announces-201500783.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://finance.yahoo.com/markets/stocks/articles/blue-owl-capital-inc-q1-165034052.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://stocksguide.com/en/forecast/Blue-Owl-Technology-Finance-US0959241060"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://ir.blueowl.com/Investors/news/news-details/2026/Blue-Owl-Capital-Inc--First-Quarter-2026-Results/default.aspx"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.investing.com/news/transcripts/earnings-call-transcript-blue-owl-capital-misses-q1-2026-earnings-expectations-93CH-4687367"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://finance.yahoo.com/news/blue-owl-capital-q1-earnings-110741063.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.blueowlcapitalcorporation.com/investors/news-events/press-releases/detail/92/blue-owl-capital-corporation-announces-march-31-2026"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2055375974615970061"
+    }
+  ],
+  "synthesis": {
+    "verdict": "hold",
+    "thesis": "Long 12 Jan-2027 5.0 puts on OWL at spot 9.46. MC 20k GBM paths give P05 S_T=4.0455 (11.68% P(profit)) with median 8.73, creating asymmetric payoff if redemptions breach 5% caps or SEC FOIA probe leaks. Key supports: 2026-07-30 Q2 earnings, 2026-12-31 AUM update, and 2027-01-15 expiry. FRE +14% YoY and $300M buyback provide floor but cannot offset private-credit outflow risk priced in P05 tail.",
+    "conviction": 2,
+    "horizon": "2027 LEAPs",
+    "catalysts": [
+      "2026-07-30 Q2 Earnings Release",
+      "2026-12-31 Year-end AUM Update",
+      "2026-10-30 Q3 Earnings"
+    ],
+    "invalidation": "Exit if OWL closes above 11.00 for 5 sessions or FRE growth misses 10% YoY in any quarterly print",
+    "exit_ladder": {
+      "profit_take_1": "OWL < 6.00, peel 50% of position",
+      "profit_take_2": "OWL < 4.50, peel remaining 50%",
+      "stop": "OWL > 11.00 close, close entire position",
+      "time_stop": "close at 60 DTE if not ITM"
+    },
+    "target": {
+      "price": 4.5,
+      "rationale": "MC P05 level reached on redemption or SEC headline"
+    },
+    "max_pct_book": 0.03,
+    "alignment_check": "Thesis uses MC P05=4.0455 and P(profit)=0.1168 plus 2026-07-30 earnings, 2026-12-31 AUM, and redemption-cap/SEC indicators to justify holding the puts."
+  },
+  "elapsed_s": 25.99
+}

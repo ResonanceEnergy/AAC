@@ -1,0 +1,355 @@
+{
+  "symbol": "HYG",
+  "generated_at": "2026-05-15T23:34:59.173762+00:00",
+  "legs": [
+    {
+      "account": "ibkr",
+      "qty": 1.0,
+      "side": "long",
+      "asset_type": "put",
+      "right": "P",
+      "strike": 77.0,
+      "expiry": "20260618",
+      "avg_cost": 80.05,
+      "last_price": 0.0,
+      "unrealized": -64.47
+    }
+  ],
+  "market": {
+    "spot": 79.45999908447266,
+    "sigma_realized_30d": 0.04433755898114418,
+    "sigma_atm_iv": 0.10157148437499999,
+    "sigma_used": 0.10157148437499999
+  },
+  "horizon": {
+    "last_expiry": "2026-06-18",
+    "dte": 34,
+    "window_end": "2026-06-18"
+  },
+  "monte_carlo": {
+    "paths": 20000,
+    "T_days": 34,
+    "T_years": 0.0932,
+    "sigma_used": 0.1016,
+    "spot": 79.46,
+    "S_T_mean": 79.8066,
+    "S_T_p05": 75.7931,
+    "S_T_p25": 78.1158,
+    "S_T_p50": 79.7512,
+    "S_T_p75": 81.4363,
+    "S_T_p95": 83.994,
+    "pnl_mean_usd": -7989.84,
+    "pnl_median_usd": -8005.0,
+    "pnl_p05_usd": -8005.0,
+    "pnl_p25_usd": -8005.0,
+    "pnl_p75_usd": -8005.0,
+    "pnl_p95_usd": -7884.31,
+    "prob_profit": 0.0,
+    "prob_double": 0.0,
+    "prob_max_loss": 0.8721,
+    "max_loss_estimate_usd": 8005.0
+  },
+  "research": {
+    "events": [
+      {
+        "date": "2026-06-01",
+        "event": "ISM Manufacturing PMI",
+        "impact": "mixed",
+        "importance": "med",
+        "source": "econoday.com"
+      },
+      {
+        "date": "2026-06-05",
+        "event": "US Employment Situation (NFP)",
+        "impact": "mixed",
+        "importance": "high",
+        "source": "bls.gov"
+      },
+      {
+        "date": "2026-06-10",
+        "event": "CPI Release",
+        "impact": "bearish",
+        "importance": "high",
+        "source": "bls.gov"
+      },
+      {
+        "date": "2026-06-11",
+        "event": "PPI Release",
+        "impact": "bearish",
+        "importance": "high",
+        "source": "bls.gov"
+      },
+      {
+        "date": "2026-06-16 to 2026-06-17",
+        "event": "FOMC Meeting & Rate Decision",
+        "impact": "mixed",
+        "importance": "high",
+        "source": "federalreserve.gov"
+      },
+      {
+        "date": "2026-06-17",
+        "event": "FOMC Press Conference",
+        "impact": "mixed",
+        "importance": "high",
+        "source": "federalreserve.gov"
+      },
+      {
+        "date": "2026-06-19",
+        "event": "Juneteenth Holiday (market closed)",
+        "impact": "neutral",
+        "importance": "low",
+        "source": "nyse.com"
+      },
+      {
+        "date": "2026-06-25",
+        "event": "PCE Release",
+        "impact": "bearish",
+        "importance": "med",
+        "source": "bea.gov"
+      }
+    ],
+    "leading_indicators": [
+      {
+        "indicator": "10Y Treasury Yield",
+        "current": "4.47% (up 3bp this week)",
+        "signal": "thesis-off",
+        "why_it_matters": "Higher yields pressure HYG prices via spread compression risk"
+      },
+      {
+        "indicator": "VIX-equivalent for HYG (realized vol 30d)",
+        "current": "0.102 (unchanged)",
+        "signal": "thesis-on",
+        "why_it_matters": "Low RV keeps 77-put cheap; no vol crush yet"
+      },
+      {
+        "indicator": "HYG Options Open Interest (Jun26)",
+        "current": "+12k contracts added",
+        "signal": "neutral",
+        "why_it_matters": "Rising OI signals positioning for volatility into expiry"
+      },
+      {
+        "indicator": "High Yield Spreads (BofA HY Index)",
+        "current": "tightening 5bp m/m",
+        "signal": "thesis-off",
+        "why_it_matters": "Tightening reduces left-tail probability below 75.79"
+      },
+      {
+        "indicator": "CPI YoY Surprise",
+        "current": "hotter-than-expected April print",
+        "signal": "thesis-off",
+        "why_it_matters": "Inflation reacceleration raises odds of higher-for-longer rates"
+      },
+      {
+        "indicator": "Retail Flow into HYG ETF",
+        "current": "net inflows $180M last 5d",
+        "signal": "thesis-off",
+        "why_it_matters": "Demand supports price floor above 77"
+      }
+    ],
+    "sentiment": {
+      "retail": "bull",
+      "institutional": "mixed",
+      "options_flow": "neutral",
+      "notes": "Retail chasing yield; institutions hedging inflation via duration cuts; options flow balanced with put OI stable"
+    },
+    "key_drivers": [
+      "US inflation trajectory",
+      "FOMC June dot plot shift",
+      "Treasury yield curve steepening",
+      "High-yield default rates Q2"
+    ],
+    "risks": [
+      "Hotter CPI/PPI prints forcing hawkish Fed",
+      "Vanguard VCHY launch June 2026 pressuring HYG flows",
+      "30Y yield breaking 5.1% accelerating duration selloff"
+    ],
+    "thesis_update": "Hot April CPI/PPI prints and 30Y yield at 5.05% (highest since 2007) introduce near-term downside pressure on HYG not captured in prior median GBM path. Low RV persists but left-tail risk below 75.79 now higher with inflation reacceleration; 77-put retains asymmetric value only if June FOMC signals pause amid sticky data."
+  },
+  "citations": [
+    {
+      "type": "url_citation",
+      "url": "https://fintel.io/sopt/us/hyg"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2055331577916166506"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://zforex.com/blog/general-trading/what-is-the-fomc-meeting-schedule/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.marketwatch.com/economy-politics/calendar"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.newyorkfed.org/research/calendars/nationalecon_cal"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.mnimarkets.com/calendars/fomc-meeting-calendar"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://finance.yahoo.com/personal-finance/banking/article/when-is-the-next-fed-meeting-full-schedule-150709698.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://finance.yahoo.com/economy/policy/articles/us-10-yield-hits-highest-134750410.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.youtube.com/watch?v=UR2yFg--1jY"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://finance.yahoo.com/markets/options/articles/6-7-yield-short-duration-133033431.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2055300055121240287"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://equalsmoney.com/economic-calendar/events/fomc-meeting"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://fred.stlouisfed.org/releases/calendar?od=asc&pageID=4&rid=101&ve=2026-12-31&view=year&vs=2026-01-01"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.bloomberg.com/news/articles/2026-05-13/treasury-buyers-get-5-long-bond-rate-for-first-time-since-2007"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://us.econoday.com/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://mortgageelements.com/june-2026-economic-calendar/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2055426991633879134"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://optioncharts.io/options/HYG/expected-move"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.bls.gov/schedule/2026/06_sched.htm"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.youtube.com/watch?v=jCfMfVplbxU"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2055335965724475671"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2055397082635059228"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.guggenheiminvestments.com/services/advisor-resources/us-economic-calendar"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2055300031335301248"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.federalreserve.gov/monetarypolicy/fomcpresconf20260429.htm"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.whitehouse.gov/wp-content/uploads/2025/09/pfei_schedule_release_dates_cy2026.pdf"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://tradingeconomics.com/united-states/calendar"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://247wallst.com/investing/2026/04/21/hyg-investors-collect-10-gains-plus-stable-dividends-this-year-8/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2055300104609743287"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2055422829722743245"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://marketchameleon.com/Overview/HYG/OpenInterestTrends/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://bankingjournal.aba.com/2024/08/fomc-releases-tentative-meeting-schedule-for-2025-2026/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.chicagofed.org/utilities/about-us/federal-reserve-calendars"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.investech.com/wp-content/uploads/2026/04/Economic-Release-Calendar-2026.pdf"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2055300080949747991"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.fxtm.com/en/market-analysis/economic-events/fed-meetings/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.cnbc.com/2026/05/13/treasury-yields-fall-as-investors-digest-hotter-than-expected-cpi-data.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.youtube.com/watch?v=LTT9zvDQTMM"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2055422955988099439"
+    }
+  ],
+  "synthesis": {
+    "verdict": "hold",
+    "thesis": "Long 77-put benefits from June cluster: CPI 6/10, NFP 6/5, FOMC 6/16-17 and PPI 6/11 can force vol spike above current 0.102 RV. MC 20k paths give P05=75.79 (only 4.2% below spot) yet P(profit)=0 and median P&L=-8005 confirm cheap premium; any hawkish dot-plot or 30Y>5.1% break pushes S_T toward P25=78.12, delivering gamma into expiry.",
+    "conviction": 2,
+    "horizon": "34 days",
+    "catalysts": [
+      "CPI 2026-06-10",
+      "FOMC 2026-06-16",
+      "NFP 2026-06-05"
+    ],
+    "invalidation": "Exit if HYG closes above 82.00 for 2 sessions OR 10Y yield drops below 4.30%",
+    "exit_ladder": {
+      "profit_take_1": "put >=1.80, peel 50%",
+      "profit_take_2": "put >=3.20, peel remaining 50%",
+      "stop": "HYG >82.50 or premium <0.15, close 100%",
+      "time_stop": "close at 7 DTE if not ITM"
+    },
+    "target": {
+      "price": 2.15,
+      "rationale": "MC P25 move plus vol spike into FOMC"
+    },
+    "max_pct_book": 0.03,
+    "alignment_check": "Thesis built on FOMC/CPI/NFP events plus MC P05=75.79 and P(profit)=0 showing asymmetric cheap tail exposure."
+  },
+  "elapsed_s": 21.8
+}

@@ -47,20 +47,36 @@ def _decide_proposal(
     size_pct_book: float = 0.0,
     invalidation: str = "",
     catalyst_days_out: int | None = None,
+    catalyst_acknowledged: bool = False,
     cash_pct_after: float = 0.20,
+    portfolio_value: float = 1.0,
     correlation_factor_pct: float = 0.0,
     estimated_slippage_pct: float = 0.005,
 ) -> dict[str, Any]:
-    """Run a structured trade proposal through the seven gates."""
+    """Run a structured trade proposal through the seven gates.
+
+    Field names here MUST match what `decision_engine.evaluate()` reads;
+    drift between the two surfaces makes G3/G4/G5/G7 silently default-pass.
+    """
+    pv = float(portfolio_value) or 1.0
+    cash_after_trade = float(cash_pct_after) * pv  # engine wants absolute cash + pv
     proposal = {
         "symbol": symbol.upper(),
         "side": side,
-        "size_pct_book": float(size_pct_book),
+        # G2 — engine reads `size_pct`
+        "size_pct": float(size_pct_book),
+        # G3 — engine reads `cash_after_trade` / `portfolio_value`
+        "cash_after_trade": cash_after_trade,
+        "portfolio_value": pv,
+        # G4 — engine reads `catalyst_within_days` + `catalyst_acknowledged`
+        "catalyst_within_days": int(catalyst_days_out) if catalyst_days_out is not None else 999,
+        "catalyst_acknowledged": bool(catalyst_acknowledged),
+        # G5 — engine reads `factor_concentration_after`
+        "factor_concentration_after": float(correlation_factor_pct),
+        # G7 — engine reads `expected_slippage_pct`
+        "expected_slippage_pct": float(estimated_slippage_pct),
+        # Echoed for traceability (engine ignores; G6 reads thesis store)
         "invalidation": invalidation,
-        "catalyst_days_out": catalyst_days_out,
-        "cash_pct_after": float(cash_pct_after),
-        "correlation_factor_pct": float(correlation_factor_pct),
-        "estimated_slippage_pct": float(estimated_slippage_pct),
     }
     d = _dfv().evaluate(proposal)
     return d.to_dict()
@@ -256,9 +272,11 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
                     "side": {"type": "string", "enum": ["long", "short"], "default": "long"},
                     "size_pct_book": {"type": "number", "description": "0.05 = 5% of book"},
                     "invalidation": {"type": "string"},
-                    "catalyst_days_out": {"type": "integer"},
-                    "cash_pct_after": {"type": "number", "default": 0.20},
-                    "correlation_factor_pct": {"type": "number", "default": 0.0},
+                    "catalyst_days_out": {"type": "integer", "description": "Days until next catalyst (earnings/FDA/etc); 999 if none."},
+                    "catalyst_acknowledged": {"type": "boolean", "default": False, "description": "Operator has acknowledged the catalyst within 5d window."},
+                    "cash_pct_after": {"type": "number", "default": 0.20, "description": "Cash as fraction of portfolio AFTER this trade."},
+                    "portfolio_value": {"type": "number", "default": 1.0, "description": "Total portfolio value (USD); only relative scale matters for G3."},
+                    "correlation_factor_pct": {"type": "number", "default": 0.0, "description": "Factor concentration AFTER trade (0.40 = 40% in one factor)."},
                     "estimated_slippage_pct": {"type": "number", "default": 0.005},
                 },
                 "required": ["symbol", "size_pct_book"],

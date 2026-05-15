@@ -1,0 +1,270 @@
+{
+  "symbol": "EMB",
+  "generated_at": "2026-05-15T23:34:10.008151+00:00",
+  "legs": [
+    {
+      "account": "ibkr",
+      "qty": 1.0,
+      "side": "long",
+      "asset_type": "put",
+      "right": "P",
+      "strike": 90.0,
+      "expiry": "20260515",
+      "avg_cost": 48.05,
+      "last_price": 0.0,
+      "unrealized": -48.05
+    }
+  ],
+  "market": {
+    "spot": 94.70999908447266,
+    "sigma_realized_30d": 0.07216563518093418,
+    "sigma_atm_iv": 0.15125360473632812,
+    "sigma_used": 0.15125360473632812
+  },
+  "horizon": {
+    "last_expiry": "2026-05-15",
+    "dte": 1,
+    "window_end": "2026-05-15"
+  },
+  "monte_carlo": {
+    "paths": 20000,
+    "T_days": 1,
+    "T_years": 0.0027,
+    "sigma_used": 0.1513,
+    "spot": 94.71,
+    "S_T_mean": 94.7255,
+    "S_T_p05": 93.494,
+    "S_T_p25": 94.2175,
+    "S_T_p50": 94.7174,
+    "S_T_p75": 95.2246,
+    "S_T_p95": 95.9796,
+    "pnl_mean_usd": -4805.0,
+    "pnl_median_usd": -4805.0,
+    "pnl_p05_usd": -4805.0,
+    "pnl_p25_usd": -4805.0,
+    "pnl_p75_usd": -4805.0,
+    "pnl_p95_usd": -4805.0,
+    "prob_profit": 0.0,
+    "prob_double": 0.0,
+    "prob_max_loss": 1.0,
+    "max_loss_estimate_usd": 4805.0
+  },
+  "research": {
+    "events": [
+      {
+        "date": "2026-05-01",
+        "event": "EMB ex-dividend date for May 2026 distribution $0.4101/share",
+        "impact": "neutral",
+        "importance": "low",
+        "source": "iShares site / Yahoo"
+      },
+      {
+        "date": "2026-05-06",
+        "event": "EMB May distribution payable",
+        "impact": "neutral",
+        "importance": "low",
+        "source": "BlackRock / DividendInvestor"
+      },
+      {
+        "date": "2026-05-11",
+        "event": "Article flags 3 macro triggers for EMB: 10Y yield >4.5%, Fed policy shift, distribution variability",
+        "impact": "mixed",
+        "importance": "med",
+        "source": "Yahoo Finance / 247WallSt"
+      },
+      {
+        "date": "2026-05-14",
+        "event": "EMB 52-week high 97.80 from Feb 23; recent close near 94-96",
+        "impact": "neutral",
+        "importance": "low",
+        "source": "CNBC / ETF.com"
+      },
+      {
+        "date": "2026-05-15",
+        "event": "No scheduled Fed or EM sovereign events; expiry day for May options",
+        "impact": "neutral",
+        "importance": "med",
+        "source": "Market calendars / BlackRock factsheet"
+      }
+    ],
+    "leading_indicators": [
+      {
+        "indicator": "US 10Y Treasury yield",
+        "current": "~4.4% (77th percentile 12m range)",
+        "signal": "thesis-on",
+        "why_it_matters": "Break above 4.50% would pressure EMB prices and spreads"
+      },
+      {
+        "indicator": "Fed funds rate",
+        "current": "3.75% hold since Dec 2025",
+        "signal": "thesis-on",
+        "why_it_matters": "Anchors EM credit attractiveness; any hike or cut moves spreads immediately"
+      },
+      {
+        "indicator": "EMB distribution yield",
+        "current": "5.4% (May payout $0.4101 down from Apr $0.4554)",
+        "signal": "neutral",
+        "why_it_matters": "Monthly variability tied to sovereign coupon timing"
+      },
+      {
+        "indicator": "EMB spot vs 90-put strike",
+        "current": "94.71 vs 90.00 (deep OTM)",
+        "signal": "thesis-off",
+        "why_it_matters": "Full premium decay confirmed; P&L locked at -100%"
+      },
+      {
+        "indicator": "EMBI Global Core index vol",
+        "current": "Realized 30d 15.1%",
+        "signal": "neutral",
+        "why_it_matters": "Low vol supports stable EMB price near upper range"
+      }
+    ],
+    "sentiment": {
+      "retail": "neutral",
+      "institutional": "neutral",
+      "options_flow": "neutral",
+      "notes": "No X spike; focus on income yield 5.1-5.7%; no fresh retail chatter"
+    },
+    "key_drivers": [
+      "US 10Y yield trajectory",
+      "Fed policy hold duration",
+      "EM sovereign coupon flows"
+    ],
+    "risks": [
+      "10Y yield break above 4.50%",
+      "Fed surprise hike",
+      "Sovereign credit event in top holdings (Brazil/Turkey/Mexico)"
+    ],
+    "thesis_update": "No material change since prior note; expiry today confirms full decay of 90-put with spot 94.71 well above strike. Macro triggers article from May 11 reinforces rate-watch only, no new catalysts surfaced."
+  },
+  "citations": [
+    {
+      "type": "url_citation",
+      "url": "https://delphos.co/news/blog/future-of-capital-raising-in-emerging-markets-2026-what-issuers-must-do-differently-to-attract-capital-2/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.financecharts.com/etfs/EMB/performance"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://pluang.com/en/news-feed/investor-emb-pantau-3-pemicu-makro-sebelum-musim-panas-2026"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.barrons.com/market-data/funds/emb"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.vaneck.com/us/en/blogs/emerging-markets-bonds/why-investors-should-consider-an-emerging-markets-bonds-allocation-in-2026/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.dividendinvestor.com/dividend-news/20260227/ishares-j.p.-morgan-usd-emerging-markets-bond-etf-ishares-trust-nasdaq-emb-declared-a-dividend-of-$0.4030-per-share/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.eatonvance.com/insights/articles/a-bright-outlook-for-emd.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.youtube.com/watch?v=5Md6htJu5iA"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://finance.yahoo.com/economy/policy/articles/emb-investors-watch-3-macro-234559923.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.cnbc.com/quotes/EMB"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://realinvestmentadvice.com/resources/blog/bond-yields-may-plummet-five-potential-catalysts/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.youtube.com/watch?v=85bo5-KugCY"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://247wallst.com/investing/2026/05/11/emb-investors-watch-these-3-macro-triggers-before-summer-2026/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://privatebank.jpmorgan.com/latam/en/insights/markets-and-investing/tmt/emerging-markets-may-offer-more-than-meets-the-eye-selectivity-matters"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.transamerica.com/knowledge-place/emerging-markets-uncovering-key-alpha-drivers-amid-shifting-global-dynamics/pd"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://finance.yahoo.com/markets/currencies/articles/emerging-market-bond-sales-soaring-123000211.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.environmental-finance.com/content/the-green-bond-hub/emerging-market-issuers-navigate-choppy-waters.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.blackrock.com/us/financial-professionals/products/239572/ishares-jp-morgan-usd-emerging-markets-bond-etf"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://finance.yahoo.com/quote/EMB260515C00095000/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.etf.com/EMB"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.marketscreener.com/news/ishares-trust-ishares-j-p-morgan-usd-emerging-markets-bond-etf-announces-monthly-dividend-payabl-ce7f58ded889f627"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.aol.com/articles/emb-investors-watch-3-macro-234559262.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.ishares.com/us/products/239572/ishares-jp-morgan-usd-emerging-markets-bond-etf"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2050547338049995119"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2050548173223956711"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.etftrends.com/fixed-income-content-hub/emerging-market-bonds-have-wow-factor-again-2026/"
+    }
+  ],
+  "synthesis": {
+    "verdict": "trim",
+    "thesis": "MC 20000-path GBM locks 100% loss at median P&L -4805 with P(profit)=0.0 and all quantiles identical, confirming full decay of the 90-put at 1 DTE. 2026-05-11 macro triggers (10Y>4.5%, Fed shift) plus 2026-05-15 expiry create last-moment vol window, yet EMB spot 94.71 vs strike and 15.1% realized vol keep position OTM. Trim to realize tax loss before time decay finalizes.",
+    "conviction": 2,
+    "horizon": "1 day",
+    "catalysts": [
+      "2026-05-15 expiry day",
+      "10Y yield break above 4.50%"
+    ],
+    "invalidation": "Exit immediately if EMB spot >95.50 at tomorrow open OR 10Y yield <4.35%",
+    "exit_ladder": {
+      "profit_take_1": "none - position OTM",
+      "profit_take_2": "none - position OTM",
+      "stop": "market sell at 0.05 or lower, close full size",
+      "time_stop": "close at expiry open if not ITM"
+    },
+    "target": {
+      "price": 0.0,
+      "rationale": "full premium decay per MC P05-P95"
+    },
+    "max_pct_book": 0.03,
+    "alignment_check": "Used 2026-05-11 macro triggers + 2026-05-15 expiry with MC median P&L -4805 and P(profit)=0.0 to justify trim"
+  },
+  "elapsed_s": 22.94
+}

@@ -1,0 +1,367 @@
+{
+  "symbol": "OBDC",
+  "generated_at": "2026-05-15T23:36:19.649657+00:00",
+  "legs": [
+    {
+      "account": "ibkr",
+      "qty": 11.0,
+      "side": "long",
+      "asset_type": "put",
+      "right": "P",
+      "strike": 7.5,
+      "expiry": "20260717",
+      "avg_cost": 17.7,
+      "last_price": 0.0,
+      "unrealized": -128.09
+    },
+    {
+      "account": "wealthsimple",
+      "qty": 65.0,
+      "side": "long",
+      "asset_type": "put",
+      "right": "P",
+      "strike": 10.0,
+      "expiry": "20260417",
+      "avg_cost": 0.15,
+      "last_price": 0.0,
+      "unrealized": 162.5
+    },
+    {
+      "account": "wealthsimple",
+      "qty": 10.0,
+      "side": "long",
+      "asset_type": "put",
+      "right": "P",
+      "strike": 7.5,
+      "expiry": "20260717",
+      "avg_cost": 0.1,
+      "last_price": 0.0,
+      "unrealized": 20.0
+    }
+  ],
+  "market": {
+    "spot": 11.210000038146973,
+    "sigma_realized_30d": 0.2638635298943563,
+    "sigma_atm_iv": null,
+    "sigma_used": 0.2638635298943563
+  },
+  "horizon": {
+    "last_expiry": "2026-07-17",
+    "dte": 63,
+    "window_end": "2026-07-17"
+  },
+  "monte_carlo": {
+    "paths": 20000,
+    "T_days": 63,
+    "T_years": 0.1726,
+    "sigma_used": 0.2639,
+    "spot": 11.21,
+    "S_T_mean": 11.3043,
+    "S_T_p05": 9.378,
+    "S_T_p25": 10.4344,
+    "S_T_p50": 11.2276,
+    "S_T_p75": 12.0892,
+    "S_T_p95": 13.4863,
+    "pnl_mean_usd": -762.07,
+    "pnl_median_usd": -1269.7,
+    "pnl_p05_usd": -1269.7,
+    "pnl_p25_usd": -1269.7,
+    "pnl_p75_usd": -1269.7,
+    "pnl_p95_usd": 2773.21,
+    "prob_profit": 0.1086,
+    "prob_double": 0.078,
+    "prob_max_loss": 0.8557,
+    "max_loss_estimate_usd": 1269.7
+  },
+  "research": {
+    "events": [
+      {
+        "date": "2026-05-06",
+        "event": "Q1 2026 earnings release: EPS $0.31 miss vs $0.35 est, rev $391M miss, NAV $14.41 down 2.7%, base dividend cut to $0.31",
+        "impact": "mixed",
+        "importance": "high",
+        "source": "Blue Owl IR / MarketBeat"
+      },
+      {
+        "date": "2026-05-07",
+        "event": "Q1 2026 earnings call: CEO notes favorable spreads ahead, leverage down to 1.13x, credit quality strong",
+        "impact": "bullish",
+        "importance": "high",
+        "source": "Seeking Alpha transcript"
+      },
+      {
+        "date": "2026-05-12",
+        "event": "Q1 dividend ex-date $0.23 (prior quarter)",
+        "impact": "neutral",
+        "importance": "low",
+        "source": "Blue Owl IR"
+      },
+      {
+        "date": "2026-05-27",
+        "event": "Q1 dividend payment",
+        "impact": "neutral",
+        "importance": "low",
+        "source": "Blue Owl IR"
+      },
+      {
+        "date": "2026-06-30",
+        "event": "Q2 2026 base dividend $0.31 ex-date",
+        "impact": "neutral",
+        "importance": "med",
+        "source": "DividendMax / Blue Owl"
+      },
+      {
+        "date": "2026-07-15",
+        "event": "Q2 2026 $0.31 dividend payment",
+        "impact": "neutral",
+        "importance": "med",
+        "source": "Blue Owl IR"
+      },
+      {
+        "date": "2026-05-06 to 2026-07-17",
+        "event": "Ongoing $300M share repurchase authorization (5.1% of shares)",
+        "impact": "bullish",
+        "importance": "med",
+        "source": "MarketBeat / Q1 release"
+      },
+      {
+        "date": "2026-05-15",
+        "event": "Seeking Alpha coverage: 'Pain Is Over, Let The Recovery Begin' post-Q1 miss",
+        "impact": "bullish",
+        "importance": "med",
+        "source": "Seeking Alpha"
+      },
+      {
+        "date": "2026-05-13",
+        "event": "Seeking Alpha: '11% Yield, The More You Sell The More I Buy' on discount to book",
+        "impact": "bullish",
+        "importance": "med",
+        "source": "Seeking Alpha"
+      }
+    ],
+    "leading_indicators": [
+      {
+        "indicator": "NAV per share",
+        "current": "$14.41 (Q1 2026, down from $14.81)",
+        "signal": "thesis-on",
+        "why_it_matters": "Floor at ~$14.41 supports downside protection; further compression would trigger put payoff"
+      },
+      {
+        "indicator": "Net leverage",
+        "current": "1.13x (lowest in 2yrs)",
+        "signal": "thesis-on",
+        "why_it_matters": "Lower leverage reduces volatility but limits upside, favoring tail downside scenario"
+      },
+      {
+        "indicator": "Non-accruals",
+        "current": "1.0% (stable, no new)",
+        "signal": "neutral",
+        "why_it_matters": "Credit quality intact; breach >2% would accelerate downside"
+      },
+      {
+        "indicator": "Stock price vs NAV",
+        "current": "~11.21 trading at 22% discount to $14.41 NAV",
+        "signal": "thesis-on",
+        "why_it_matters": "Deep discount amplifies asymmetric put leverage on any further NAV or sentiment drop"
+      },
+      {
+        "indicator": "Dividend yield",
+        "current": "~11% (post-cut $0.31 quarterly)",
+        "signal": "thesis-off",
+        "why_it_matters": "Cut signals lower go-forward earnings power; supports thesis if yield compression drives selling"
+      },
+      {
+        "indicator": "Options implied vol",
+        "current": "Realized 0.264 (elevated post-earnings)",
+        "signal": "thesis-on",
+        "why_it_matters": "Vol supports put premium and tail payoff in 5% downside scenario"
+      }
+    ],
+    "sentiment": {
+      "retail": "mixed",
+      "institutional": "bullish",
+      "options_flow": "neutral",
+      "notes": "SA analysts bullish on recovery post-div cut; X chatter minimal/unrelated; institutional flows stable per buyback activity"
+    },
+    "key_drivers": [
+      "Interest rate environment and spread widening",
+      "BDC sector NAV compression",
+      "Share repurchase execution",
+      "Credit quality / non-accrual trends",
+      "Q2 earnings preview (Aug 5)"
+    ],
+    "risks": [
+      "Further NAV erosion below $13.50 invalidation trigger",
+      "Rate cut reversal or spread compression reversal",
+      "Spike in non-accruals >2%",
+      "Broader BDC sector selloff"
+    ],
+    "thesis_update": "Q1 earnings introduced dividend cut to $0.31 and 2.7% NAV drop, contradicting 'no events' assumption, but reinforced asymmetric tail via lower leverage and strong credit. Post-earnings SA coverage turned bullish on recovery, keeping 5% downside put thesis intact with 63 days to July expiry."
+  },
+  "citations": [
+    {
+      "type": "url_citation",
+      "url": "https://seekingalpha.com/article/4902819-blue-owl-capitals-11-percent-yield-the-more-you-sell-the-more-i-buy"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2055412813896536325"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.marketbeat.com/instant-alerts/blue-owl-capital-obdc-to-release-earnings-on-wednesday-2026-04-29/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://marketchameleon.com/Overview/OBDC/Dividends/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://seekingalpha.com/article/4904920-blue-owl-capital-pain-is-over-let-the-recovery-begin"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.zacks.com/stock/research/OBDC/earnings-calendar"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://ir.blueowl.com/Investors/events-and-presentations/default.aspx"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.facebook.com/jim.twitty.9/photos/business-development-companies-bdcs-arcc-ares-capital-corporationhttpsirarescapi/10237264488204091/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2055386762718163220"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.blueowlcapitalcorporation.com/investors/news-events/press-releases"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://ir.blueowl.com/Investors/stock-info/dividend-history/default.aspx"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.sec.gov/ix?doc=/Archives/edgar/data/1450704/000168316822003101/vivakor_i10ka1-123121.htm"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.blueowlcapitalcorporation.com/_assets/_f00fff3480d0de0742707148fd1d284f/blueowlcapitalcorporation/db/2246/28752/webcast_transcript/OBDC+Q1+2026+Earnings+Call+Transcript.pdf"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.blueowlcapitalcorporation.com/investors"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.zacks.com/stock/research/OBDC/dividend-history"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.blueowl.com/news/certain-blue-owl-bdcs-sell-14-billion-assets-institutional-investors"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.blueowlcapitalcorporation.com/investors/news-events/press-releases/detail/91/blue-owl-capital-corporation-schedules-earnings-release-and"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://uk.investing.com/equities/owl-rock-capital-corp-dividends"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.blueowlcapitalcorporation.com/investors/stock-info/dividends"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.blueowlcapitalcorporation.com/investors/news-events"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.perplexity.ai/finance/OBDC?comparing=OBDC,GBDC,OCSL,HTGC,NMFC,CCAP"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.prnewswire.com/news-releases/blue-owl-capital-corporation-announces-march-31-2026-financial-results-302764665.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2055415099829920133"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://public.com/stocks/obdc/earnings"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://marketchameleon.com/Overview/OBDC/Earnings/Earnings-Dates/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://seekingalpha.com/article/4900403-blue-owl-capital-corporation-obdc-q1-2026-earnings-call-transcript"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.morningstar.com/stocks/xnys/obdc/dividends"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://finance.yahoo.com/news/blue-owl-capital-bdcs-sell-175128417.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.dividendmax.com/united-states/nyse/financial-services/blue-owl-capital-corp/dividends"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://finance.biggo.com/news/US_OBDC_2026-05-07"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.blueowlcapitalcorporation.com/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://seekingalpha.com/symbol/OBDC"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.marketbeat.com/stocks/NYSE/OBDC/earnings/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.blueowlcapitalcorporation.com/investors/news-events/press-releases/detail/92/blue-owl-capital-corporation-announces-march-31-2026"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://seekingalpha.com/article/4900322-blue-owl-capital-corporation-2026-q1-results-earnings-call-presentation"
+    }
+  ],
+  "synthesis": {
+    "verdict": "hold",
+    "thesis": "Long OBDC puts aligned to 22% NAV discount at 11.21 vs 14.41 post-2026-05-06 EPS miss and dividend cut. MC 20000 paths show P95 P&L +2773.21 despite median -1269.7 and P(profit) 0.1086, capturing tail payoff if price reaches P05 9.378. Elevated RV 0.264 and 1.13x leverage amplify downside from any non-accrual spike or spread widening through 2026-07-17. Share repurchase and 2026-05-07 CEO commentary provide temporary support but do not offset NAV floor risk below 13.50.",
+    "conviction": 3,
+    "horizon": "63 days to 2026-07-17",
+    "catalysts": [
+      "2026-05-06 Q1 earnings miss follow-through",
+      "2026-08-05 Q2 earnings preview"
+    ],
+    "invalidation": "Exit if OBDC closes above 13.50 for 3 sessions or NAV prints above 14.00",
+    "exit_ladder": {
+      "profit_take_1": "S_T <10.43 peel 40% at P25 MC level",
+      "profit_take_2": "S_T <9.38 peel remaining 60% at P05 MC level",
+      "stop": "hard stop at -100% premium loss, close all",
+      "time_stop": "close at 21 DTE if not 25% ITM"
+    },
+    "target": {
+      "price": 9.38,
+      "rationale": "MC P05 level for max put payoff"
+    },
+    "max_pct_book": 0.03,
+    "alignment_check": "Thesis uses 2026-05-06 earnings miss event plus MC P95 P&L 2773.21 and P(profit) 0.1086 keyed to NAV discount support."
+  },
+  "elapsed_s": 22.52
+}

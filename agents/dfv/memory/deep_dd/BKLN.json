@@ -1,0 +1,367 @@
+{
+  "symbol": "BKLN",
+  "generated_at": "2026-05-15T23:33:50.536930+00:00",
+  "legs": [
+    {
+      "account": "ibkr",
+      "qty": 3.0,
+      "side": "long",
+      "asset_type": "put",
+      "right": "P",
+      "strike": 20.0,
+      "expiry": "20260618",
+      "avg_cost": 39.7,
+      "last_price": 0.0,
+      "unrealized": -102.83
+    }
+  ],
+  "market": {
+    "spot": 20.610000610351562,
+    "sigma_realized_30d": 0.03257323171374866,
+    "sigma_atm_iv": 0.3164130859375,
+    "sigma_used": 0.3164130859375
+  },
+  "horizon": {
+    "last_expiry": "2026-06-18",
+    "dte": 34,
+    "window_end": "2026-06-18"
+  },
+  "monte_carlo": {
+    "paths": 20000,
+    "T_days": 34,
+    "T_years": 0.0932,
+    "sigma_used": 0.3164,
+    "spot": 20.61,
+    "S_T_mean": 20.7076,
+    "S_T_p05": 17.5765,
+    "S_T_p25": 19.3094,
+    "S_T_p50": 20.5969,
+    "S_T_p75": 21.9831,
+    "S_T_p95": 24.2062,
+    "pnl_mean_usd": 25.46,
+    "pnl_median_usd": -119.1,
+    "pnl_p05_usd": -119.1,
+    "pnl_p25_usd": -119.1,
+    "pnl_p75_usd": 88.08,
+    "pnl_p95_usd": 607.95,
+    "prob_profit": 0.3016,
+    "prob_double": 0.2329,
+    "prob_max_loss": 0.6241,
+    "max_loss_estimate_usd": 119.1
+  },
+  "research": {
+    "events": [
+      {
+        "date": "2026-06-01",
+        "event": "ISM Manufacturing PMI release",
+        "impact": "mixed",
+        "importance": "med",
+        "source": "econoday.com"
+      },
+      {
+        "date": "2026-06-05",
+        "event": "US Employment Report (NFP)",
+        "impact": "mixed",
+        "importance": "high",
+        "source": "marketwatch.com"
+      },
+      {
+        "date": "2026-06-10",
+        "event": "US CPI release",
+        "impact": "mixed",
+        "importance": "high",
+        "source": "guggenheiminvestments.com"
+      },
+      {
+        "date": "2026-06-11",
+        "event": "US PPI release",
+        "impact": "mixed",
+        "importance": "med",
+        "source": "guggenheiminvestments.com"
+      },
+      {
+        "date": "2026-06-16",
+        "event": "FOMC two-day meeting begins",
+        "impact": "mixed",
+        "importance": "high",
+        "source": "federalreserve.gov"
+      },
+      {
+        "date": "2026-06-17",
+        "event": "FOMC policy decision and press conference",
+        "impact": "mixed",
+        "importance": "high",
+        "source": "federalreserve.gov"
+      },
+      {
+        "date": "2026-06-17",
+        "event": "BKLN index rebalance/reconstitution effective",
+        "impact": "mixed",
+        "importance": "med",
+        "source": "marketchameleon.com"
+      },
+      {
+        "date": "2026-06-18",
+        "event": "Expiry window close for 20260618 options",
+        "impact": "mixed",
+        "importance": "high",
+        "source": "position data"
+      }
+    ],
+    "leading_indicators": [
+      {
+        "indicator": "SOFR futures curve",
+        "current": "pricing ~1-2 cuts by Dec 2026",
+        "signal": "thesis-on",
+        "why_it_matters": "rate cuts could compress senior loan yields and pressure BKLN NAV"
+      },
+      {
+        "indicator": "Leveraged loan default rate TTM",
+        "current": "4.9%",
+        "signal": "thesis-on",
+        "why_it_matters": "elevated defaults support downside tail risk below 19.31"
+      },
+      {
+        "indicator": "BKLN put/call flow",
+        "current": "400k put surge noted Apr 2026",
+        "signal": "thesis-on",
+        "why_it_matters": "institutional hedging signals expected volatility"
+      },
+      {
+        "indicator": "Senior loan spreads",
+        "current": "~430 bps",
+        "signal": "neutral",
+        "why_it_matters": "tight spreads limit upside but widen on credit stress"
+      },
+      {
+        "indicator": "CLO formation/issuance",
+        "current": "strong pipeline",
+        "signal": "thesis-off",
+        "why_it_matters": "healthy CLO demand supports loan prices"
+      },
+      {
+        "indicator": "BKLN YTD flows",
+        "current": "+$0.5B early 2026",
+        "signal": "neutral",
+        "why_it_matters": "inflows provide support against sharp drops"
+      }
+    ],
+    "sentiment": {
+      "retail": "mixed",
+      "institutional": "bearish on credit risk",
+      "options_flow": "heavy put buying",
+      "notes": "software sector credit concerns cited; legacy vintages downgrade risk elevated"
+    },
+    "key_drivers": [
+      "FOMC rate path June 17",
+      "default rate trajectory in legacy loans",
+      "software/AI issuer stress",
+      "SOFR level persistence"
+    ],
+    "risks": [
+      "FOMC hawkish surprise lifting BKLN >22",
+      "CLO bid supporting loan prices",
+      "low realized vol compression of put value"
+    ],
+    "thesis_update": "No material change to no-event baseline through expiry; FOMC June 17 now the dominant catalyst with rate-cut odds favoring downside volatility. Leading default indicators remain elevated at 4.9% TTM, keeping P(profit) thesis intact ahead of 34-day window."
+  },
+  "citations": [
+    {
+      "type": "url_citation",
+      "url": "https://www.guggenheiminvestments.com/services/advisor-resources/us-economic-calendar"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.cnbc.com/quotes/BKLN"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.spglobal.com/ratings/en/regulatory/article/us-leveraged-finance-q1-2026-update-encouraging-discipline-in-recent-deals-lingering-default-risk-in-legacy-vintages-s101683653"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.federalreserve.gov/newsevents/2026-may.htm"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.pinebridge.com/en/insights/2026-leveraged-finance-outlook"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.chicagofed.org/utilities/about-us/federal-reserve-calendars"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.moodys.com/web/en/us/creditview/blog/leveraged-finance-and-clo-2026.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.cmegroup.com/education/events/economic-releases-calendar"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://finance.yahoo.com/personal-finance/banking/article/when-is-the-next-fed-meeting-full-schedule-150709698.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://octus.com/resources/articles/americas-primary-market-2026-outlook/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.fitchratings.com/research/corporate-finance/us-leverage-finance-default-risk-rising-amid-geopolitical-tensions-16-04-2026"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://equalsmoney.com/economic-calendar/events/fed-interest-rate-decision"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.forbes.com/sites/investor-hub/article/fed-meeting-tracker-interest-rate-strategy/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://us.econoday.com/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://public.com/stocks/bkln"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.bloomberg.com/markets/economic-calendar"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.investing.com/economic-calendar"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.invesco.com/us/en/financial-products/etfs/invesco-senior-loan-etf.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.marketbeat.com/stocks/NYSEARCA/BKLN/dividend/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://marketchameleon.com/Overview/BKLN/ETFProfile/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://mortgageelements.com/june-2026-economic-calendar/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://zforex.com/blog/general-trading/what-is-the-fomc-meeting-schedule/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://etfdb.com/etf/BKLN/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.linkedin.com/posts/signal-capital-partners_in-2025-clo-managers-were-largely-focused-activity-7424382245022371840-u53I"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.morningstar.com/etfs/arcx/bkln/quote"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.marketbeat.com/stocks/NYSEARCA/BKLN/news/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.invesco.com/content/dam/invesco/us/en/product-documents/etf/fact-sheet/bkln-invesco-senior-loan-etf-fact-sheet.pdf"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://finance.yahoo.com/quote/BKLN/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.federalreserve.gov/newsevents/2026-june.htm"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.mnimarkets.com/calendars/fomc-meeting-calendar"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.calendarx.com/events/fomc-meeting-june-2026"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://marketchameleon.com/Overview/BKLN/Summary/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://etftrends.com/fed-flux-creates-opportunity-senior-loan-etf/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.marketwatch.com/economy-politics/calendar"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.google.com/finance/beta/quote/BKLN:NYSEARCA"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://tradingeconomics.com/calendar"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.fitchratings.com/research/corporate-finance/global-leveraged-finance-defaults-to-ease-in-2026-03-12-2025"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.newyorkfed.org/research/calendars/nationalecon_cal"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.fticonsulting.com/insights/reports/2026-leveraged-loan-market-survey"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.moodys.com/web/en/us/insights/credit-risk/outlooks/global-leveraged-finance-and-clos.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.9fin.com/insights/us-levfin-outlook-2026"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://bankingjournal.aba.com/2024/08/fomc-releases-tentative-meeting-schedule-for-2025-2026/"
+    }
+  ],
+  "synthesis": {
+    "verdict": "hold",
+    "thesis": "Long 3x 20-strike Jun18 puts positioned for vol spike and downside from 17 Jun FOMC decision plus 5 Jun NFP/10 Jun CPI cluster. MC 20k GBM paths give P(profit)=0.3016 with P95 P&L +607.95 vs median -119.1, driven by P05 tail to 17.58. Elevated 4.9% default rate and 400k put flow support breach below 19.31; SOFR curve pricing 1-2 cuts adds NAV pressure. Thesis holds through 18 Jun expiry window.",
+    "conviction": 3,
+    "horizon": "34 days",
+    "catalysts": [
+      "2026-06-05 US NFP",
+      "2026-06-10 US CPI",
+      "2026-06-17 FOMC decision"
+    ],
+    "invalidation": "Exit if BKLN closes above 22.00 for 2 sessions or SOFR futures price in 0 cuts by Dec 2026",
+    "exit_ladder": {
+      "profit_take_1": "P&L +200, peel 1 contract",
+      "profit_take_2": "P&L +450, peel 1 contract",
+      "stop": "BKLN >22.50 or premium <0.05, close all",
+      "time_stop": "close at 5 DTE if not 25% ITM"
+    },
+    "target": {
+      "price": 1.85,
+      "rationale": "MC P75 path to 21.98 plus vol expansion into FOMC"
+    },
+    "max_pct_book": 0.03,
+    "alignment_check": "Thesis built on 17 Jun FOMC + 5/10 Jun data releases plus MC P(profit)=0.3016 and P95 P&L +607.95 tail"
+  },
+  "elapsed_s": 19.47
+}

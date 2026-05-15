@@ -110,15 +110,17 @@ cadence:
   weekend_dd: "Sat 09:00"
 
 # ── Data sources (priority order) ────────────────────────────────
+# Reality check 2026-05-15: only sources actually wired through clients
+# in this repo. Aspirational sources (finnhub, fintel_scrape, sec_edgar,
+# reddit_pushshift, stocktwits, finnhub_calendar) removed until a client
+# exists. Add back only when an integration is in place.
 data_sources:
-  fundamentals: ["finnhub", "yfinance"]
-  short_interest: ["finnhub", "fintel_scrape"]
-  insider_form4: ["sec_edgar"]
+  fundamentals: ["yfinance"]
   options_flow: ["unusual_whales", "yfinance"]
-  news: ["finnhub", "newsapi"]
-  sentiment: ["reddit_pushshift", "stocktwits"]
-  catalysts: ["finnhub_calendar", "sec_edgar"]
+  news: ["newsapi"]
   technicals: ["yfinance"]
+  portfolio: ["ibkr", "moomoo"]
+  aggregate: ["mission_control.collect_payload"]
 
 # ── Memory paths ─────────────────────────────────────────────────
 memory:
@@ -137,3 +139,5 @@ hard_rules:
   - "No trade I can't explain on a whiteboard in 60 seconds."
   - "No trade because of FOMO."
   - "Cash is a position. Dry powder is sacred."
+  - "No trade that risks irrationality eating my solvency."
+  - "If I can't say 'I like the stock' in plain English, I don't own it."

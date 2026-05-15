@@ -1,0 +1,390 @@
+{
+  "symbol": "XRP",
+  "generated_at": "2026-05-15T23:38:08.919965+00:00",
+  "legs": [
+    {
+      "account": "ibkr",
+      "qty": 5.0,
+      "side": "long",
+      "asset_type": "call",
+      "right": "C",
+      "strike": 19.0,
+      "expiry": "20260618",
+      "avg_cost": 114.7,
+      "last_price": 0.0,
+      "unrealized": -367.81
+    },
+    {
+      "account": "moomoo",
+      "qty": 15.0,
+      "side": "long",
+      "asset_type": "call",
+      "right": "C",
+      "strike": 17.0,
+      "expiry": "20260821",
+      "avg_cost": 0.0,
+      "last_price": 0.0,
+      "unrealized": 2662.5
+    },
+    {
+      "account": "ndax",
+      "qty": 339.238924,
+      "side": "long",
+      "asset_type": "equity",
+      "right": "",
+      "strike": null,
+      "expiry": "",
+      "avg_cost": 0.0,
+      "last_price": 0.0,
+      "unrealized": 0.0
+    }
+  ],
+  "market": {
+    "spot": 16.06999969482422,
+    "sigma_realized_30d": 0.42776354750497375,
+    "sigma_atm_iv": null,
+    "sigma_used": 0.42776354750497375
+  },
+  "horizon": {
+    "last_expiry": "2026-08-21",
+    "dte": 98,
+    "window_end": "2026-08-21"
+  },
+  "monte_carlo": {
+    "paths": 20000,
+    "T_days": 98,
+    "T_years": 0.2685,
+    "sigma_used": 0.4278,
+    "spot": 16.07,
+    "S_T_mean": 16.2874,
+    "S_T_p05": 11.0246,
+    "S_T_p25": 13.6801,
+    "S_T_p50": 15.8646,
+    "S_T_p75": 18.4228,
+    "S_T_p95": 22.9818,
+    "pnl_mean_usd": 6958.72,
+    "pnl_median_usd": 4808.4,
+    "pnl_p05_usd": 3166.46,
+    "pnl_p25_usd": 4067.33,
+    "pnl_p75_usd": 7810.51,
+    "pnl_p95_usd": 18186.33,
+    "prob_profit": 1.0,
+    "prob_double": 1.0,
+    "prob_max_loss": 0.0,
+    "max_loss_estimate_usd": 573.5
+  },
+  "research": {
+    "events": [
+      {
+        "date": "2026-05-14",
+        "event": "Senate Banking Committee markup on CLARITY Act (crypto market structure bill)",
+        "impact": "bullish",
+        "importance": "high",
+        "source": "Cointelegraph / Senate Banking Committee"
+      },
+      {
+        "date": "2026-05-19 to 2026-05-20",
+        "event": "Stablecon Europe conference (Amsterdam) - RLUSD and XRPL adoption focus",
+        "impact": "bullish",
+        "importance": "med",
+        "source": "Ripple Events"
+      },
+      {
+        "date": "2026-06-02 to 2026-06-04",
+        "event": "Money20/20 Europe (Amsterdam) - payments & stablecoin sessions",
+        "impact": "bullish",
+        "importance": "med",
+        "source": "Ripple Events"
+      },
+      {
+        "date": "2026-06-23 to 2026-06-25",
+        "event": "Point Zero Forum (Zurich) - tokenized assets & XRPL RWA panel",
+        "impact": "bullish",
+        "importance": "med",
+        "source": "Ripple Events"
+      },
+      {
+        "date": "2026-07-29 to 2026-07-30",
+        "event": "FOMC rate decision window (potential cuts supporting risk assets)",
+        "impact": "bullish",
+        "importance": "high",
+        "source": "FOMC calendar / JPMorgan XRP ETF forecast"
+      },
+      {
+        "date": "2026-08-01 to 2026-08-15",
+        "event": "Ongoing XRP ETF inflows tracking (target $4-8B first-year AUM)",
+        "impact": "bullish",
+        "importance": "high",
+        "source": "The Block / xrp-insights.com AUM tracker"
+      },
+      {
+        "date": "2026-08-21",
+        "event": "Aug21 option expiry + potential Q2 earnings / enterprise budget updates",
+        "impact": "mixed",
+        "importance": "med",
+        "source": "247wallst.com / Artemis RLUSD data"
+      }
+    ],
+    "leading_indicators": [
+      {
+        "indicator": "XRP spot ETF AUM & flows",
+        "current": "$1.25B AUM, $18.5M daily inflows (May 15)",
+        "signal": "thesis-on",
+        "why_it_matters": "Direct supply lock + institutional demand validating upside capture to 22.98"
+      },
+      {
+        "indicator": "Retail X sentiment (X posts)",
+        "current": "Mixed bullish chatter on BlackRock ETF filing hopes",
+        "signal": "neutral",
+        "why_it_matters": "Retail still holding despite price lag; volume spike on positive news could accelerate gamma"
+      },
+      {
+        "indicator": "Institutional 13F / ETF holdings",
+        "current": "Goldman $153.8M position disclosed Mar 2026",
+        "signal": "thesis-on",
+        "why_it_matters": "Confirms whale accumulation supporting median P&L targets"
+      },
+      {
+        "indicator": "RLUSD Japan launch traction",
+        "current": "Q1 2026 rollout via SBI in progress",
+        "signal": "thesis-on",
+        "why_it_matters": "Stablecoin volume drives XRPL utility and XRP demand through Aug"
+      },
+      {
+        "indicator": "Realized vol 30d",
+        "current": "0.428 (elevated)",
+        "signal": "thesis-on",
+        "why_it_matters": "Supports call premium retention and upside volatility capture"
+      },
+      {
+        "indicator": "Fed Chair transition signals",
+        "current": "Powell step-down chatter May 2026",
+        "signal": "bullish",
+        "why_it_matters": "Easing expectations boost risk assets into expiry window"
+      }
+    ],
+    "sentiment": {
+      "retail": "bull",
+      "institutional": "bull",
+      "options_flow": "bullish (ETF inflows driving call interest)",
+      "notes": "Retail hype on CLARITY Act & BlackRock filing; institutions accumulating via ETFs; no major sell-side pressure post-SEC settlement"
+    },
+    "key_drivers": [
+      "XRP spot ETF inflows & AUM growth",
+      "CLARITY Act passage momentum",
+      "RLUSD adoption & XRPL RWA tokenization",
+      "Macro rate-cut expectations",
+      "Mastercard blockchain partnership execution"
+    ],
+    "risks": [
+      "FOMC hawkish surprise delaying cuts",
+      "Delayed BlackRock XRP ETF filing",
+      "Macro recession risk capping risk-asset beta",
+      "Ripple XRP sales into ETF bids suppressing spot"
+    ],
+    "thesis_update": "ETFs now live with $1.25B AUM and accelerating inflows since March commodity ruling; CLARITY Act markup on May 14 adds near-term catalyst tailwind; thesis unchanged but upside now supported by confirmed institutional flows rather than just MC projection."
+  },
+  "citations": [
+    {
+      "type": "url_citation",
+      "url": "https://www.binance.com/en/square/post/29638646712946"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://coinmarketcal.com/en/coin/xrp"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2055432216486773032"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2055431119349150064"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2055428227813056769"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.mexc.com/news/1059812"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.bydfi.com/en/cointalk/xrp-sec-lawsuit-2026-update"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.youtube.com/watch?v=hW3NKEHJzTU"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://stocktwits.com/news-articles/markets/cryptocurrency/what-sec-new-crypto-rules-after-ripple-case/cZ379meRIgK"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.binance.com/en/square/post/25995156957978"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.youtube.com/watch?v=F4CbpW0yPSk"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.fool.com/investing/2026/03/23/this-new-catalyst-could-send-xrp-skyrocketing-high/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://coindcx.com/blog/price-predictions/xrp-price-weekly/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.bitget.com/academy/xrp-legal-status-2026-ripple-sec-case-update"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://247wallst.com/investing/2026/03/23/xrp-etf-whats-approved-whats-still-pending-and-what-the-xrp-price-needs-next/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.instagram.com/reel/DWyy5nQEQRe/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://finance.yahoo.com/markets/crypto/articles/catalyst-could-send-xrp-skyrocketing-235000589.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.youtube.com/watch?v=joBfHgC_G4g"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.reddit.com/r/XRP/comments/1pq2f4l/2026_catalysts/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.theblock.co/xrp-etf-live-chart"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://ripple.com/events/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.youtube.com/watch?v=IPb31mvuUNg"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2055432162422509694"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2055424102979015092"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://ripple.com/insights/xrp-etfs-the-institutional-era-has-begun/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.youtube.com/watch?v=pP5DYHe_DTE"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://lawfold.com/ripple-sec-lawsuit-settlement-2026/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://xrp-insights.com/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://247wallst.com/investing/2025/12/28/5-xrp-catalysts-coming-in-q1-2026-rlusd-japan-launch-blackrock-etf-and-more/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://cryptoslate.com/xrp-rewrites-the-playbook-so-altcoin-etf-approvals-could-surge-in-late-2026-after-a-wave-of-futures-listings/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2055431223942451486"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.dextools.io/news/sec-xrp-etf-deadline-march-27-commodity-ruling"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.kucoin.com/blog/which-cryptocurrency-etfs-are-most-likely-to-be-approved"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://events.coinpedia.org/ripple-swell-2026-8107/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2055427832906666268"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.aol.com/finance/xrp-hit-5-2026-5-143246013.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2055423566435213565"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://phemex.com/academy/xrp-lawsuit-timeline"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.financemagnates.com/trending/xrp-price-prediction-2026-can-xrp-hit-8/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2055430721850765585"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.binance.com/en/square/post/34514384166849"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.msn.com/en-us/money/markets/will-xrp-hit-5-in-2026-5-catalysts-that-could-make-it-happen-and-3-risks-that-won-t/ar-AA1SUgXG"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.mexc.com/learn/article/how-high-will-xrp-go-after-lawsuit-what-experts-say/1"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.youtube.com/watch?v=506brRItGew"
+    }
+  ],
+  "synthesis": {
+    "verdict": "hold",
+    "thesis": "P(profit)=1.0 and median P&L 4808 (P05 3166/P95 18186) from 20k GBM paths support holding the 19/17 calls + equity into 2026-08-21 expiry. High/bullish CLARITY Act markup 2026-05-14, FOMC cuts 2026-07-29 and ongoing ETF inflows ($18.5M daily, target $4-8B AUM) plus RLUSD Japan traction drive upside capture to MC P75 18.42/P95 22.98. Goldman 13F and realized vol 0.428 confirm whale accumulation and premium retention.",
+    "conviction": 4,
+    "horizon": "through 2026-08-21",
+    "catalysts": [
+      "Senate Banking CLARITY Act markup 2026-05-14",
+      "FOMC rate decision window 2026-07-29",
+      "XRP ETF inflows to $4-8B AUM by Aug 2026"
+    ],
+    "invalidation": "Exit if spot <13.68 (MC P25) for 5 sessions OR daily ETF inflows reverse below 10M",
+    "exit_ladder": {
+      "profit_take_1": "spot >18.42 (MC P75) peel 40% of calls",
+      "profit_take_2": "spot >22.98 (MC P95) peel remaining 60% of calls",
+      "stop": "spot <11.02 (MC P05) close entire position",
+      "time_stop": "close all at 2026-08-21 expiry if not 25% ITM"
+    },
+    "target": {
+      "price": 22.98,
+      "rationale": "MC P95 driven by ETF AUM growth and CLARITY Act passage"
+    },
+    "max_pct_book": 0.03,
+    "alignment_check": "Thesis built on MC median P&L 4808/P95 18186 plus high/bullish events CLARITY Act May-14, FOMC July-29 and ETF inflows validating upside to 22.98."
+  },
+  "elapsed_s": 22.52
+}

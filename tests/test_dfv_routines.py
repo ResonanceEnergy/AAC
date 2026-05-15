@@ -13,10 +13,14 @@ import pytest
 @pytest.fixture(autouse=True)
 def _isolate_briefs(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Redirect brief writes + DFV memory into tmp_path."""
+    from agents.dfv import decision_engine as de
+    from agents.dfv import memory_store as ms
     from agents.dfv import routines as r
 
     monkeypatch.setattr(r, "BRIEF_DIR", tmp_path / "briefs")
     monkeypatch.setattr(r, "REPO_ROOT", tmp_path)
+    monkeypatch.setattr(de, "REPO_ROOT", tmp_path)
+    monkeypatch.setattr(ms, "REPO_ROOT", tmp_path)
 
     # Empty payload (no IBKR / mission_control)
     monkeypatch.setattr(r, "_safe_collect_payload", lambda: {})
@@ -54,3 +58,113 @@ def test_asia_watch_emits_risk_flag() -> None:
     assert out["type"] == "asia_watch"
     assert out["risk_flag"] in {"calm", "elevated", "stressed"}
     assert "war_room" in out
+
+
+# ── Sprint 2 contract tests ─────────────────────────────────────────────
+
+
+def test_collect_payload_returns_dfv_required_keys(monkeypatch: pytest.MonkeyPatch) -> None:
+    """C1/T2 — mission_control.collect_payload() is the single feed for DFV.
+
+    DFV routines depend on the keys: portfolio, war_room, pnl, alerts.
+    Stub heavy collectors so the test runs in milliseconds.
+    """
+    from monitoring import mission_control as mc
+
+    sentinel = {
+        "portfolio": {"sentinel": "p"},
+        "war_room": {"sentinel": "w"},
+        "live_feeds": {},
+        "regime": {},
+        "doctrine": {},
+        "moon": {},
+        "health": {},
+        "tasks": {},
+        "daily_tasks": {},
+        "unusual_whales": {},
+        "divisions": {},
+        "api_feeds": {},
+        "polymarket": {},
+        "scenarios": {},
+        "openclaw": {},
+        "backbone": {},
+        "pnl": {"sentinel": "pnl"},
+        "trade_log": {},
+    }
+    for key, value in sentinel.items():
+        if hasattr(mc, f"collect_{key}"):
+            monkeypatch.setattr(mc, f"collect_{key}", lambda v=value: v)
+    if hasattr(mc, "_collect_alerts_for_payload"):
+        monkeypatch.setattr(mc, "_collect_alerts_for_payload", lambda: [])
+
+    payload = mc.collect_payload()
+    assert isinstance(payload, dict)
+    for required in ("portfolio", "war_room", "pnl", "alerts", "ts"):
+        assert required in payload, f"DFV depends on payload['{required}']"
+
+
+def test_eod_writes_postmortem_for_expired_thesis(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path,
+) -> None:
+    """M4+M5 — eod() auto-writes a post-mortem and nudges conviction on expiry losses."""
+    from agents.dfv import routines as r
+    from agents.dfv.decision_engine import DFV
+
+    dfv = DFV()
+    dfv.thesis.set(
+        "TEST",
+        thesis="expired test name",
+        conviction=3,
+        horizon="weeks",
+        catalysts=[],
+        invalidation="below 100",
+        target={"raw": "test", "expiry": "2020-01-01", "realized_pnl": -250.0},
+        sizing={"max_pct_book": 0.01},
+    )
+    dfv.conviction.set("TEST", 3, reason="seed")
+
+    monkeypatch.setattr(r, "_safe_collect_payload", lambda: {"pnl": {}})
+    out = r.eod()
+
+    assert out["type"] == "eod"
+    syms = [e["symbol"] for e in out["expirations_processed"]]
+    assert "TEST" in syms, f"expected TEST in {out['expirations_processed']}"
+    nudges = {n["symbol"]: n for n in out["conviction_nudges"]}
+    assert "TEST" in nudges and nudges["TEST"]["to"] == 2
+
+    # Idempotent: second run does not double-write
+    out2 = r.eod()
+    assert "TEST" not in [e["symbol"] for e in out2["expirations_processed"]]
+
+
+def test_brief_flags_invalidation_breach(monkeypatch: pytest.MonkeyPatch) -> None:
+    """M3 — brief() surfaces theses where current price has crossed the invalidation level."""
+    from agents.dfv import routines as r
+    from agents.dfv.decision_engine import DFV
+
+    dfv = DFV()
+    dfv.thesis.set(
+        "BREACHTST",
+        thesis="long thesis",
+        conviction=3,
+        horizon="months",
+        catalysts=[],
+        invalidation="below $50",
+        target={"raw": "n/a"},
+        sizing={"max_pct_book": 0.02},
+    )
+
+    fake_payload = {
+        "portfolio": {
+            "accounts": {
+                "ibkr": {"positions": [{"symbol": "BREACHTST", "last_price": 42.0}]}
+            }
+        },
+        "war_room": {"regime": "RISK_OFF", "phase": "test"},
+    }
+    monkeypatch.setattr(r, "_safe_collect_payload", lambda: fake_payload)
+    out = r.brief()
+    breaches = out["discipline"]["invalidation_breaches"]
+    syms = [b["symbol"] for b in breaches]
+    assert "BREACHTST" in syms
+    assert "INVALIDATION BREACH" in out["headline"]

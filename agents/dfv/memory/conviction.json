@@ -1,74 +1,158 @@
 {
-    "BKLN": {
-        "history": [
-            {
-                "from": null,
-                "reason": "Sprint 0 backfill from thesis_log",
-                "to": 2,
-                "ts": "2026-05-15T20:54:33+00:00"
-            }
-        ],
-        "tier": 2,
-        "updated": "2026-05-15T20:54:33+00:00"
-    },
-    "EMB": {
-        "history": [
-            {
-                "from": null,
-                "reason": "Sprint 0 backfill from thesis_log",
-                "to": 1,
-                "ts": "2026-05-15T20:54:33+00:00"
-            }
-        ],
-        "tier": 1,
-        "updated": "2026-05-15T20:54:33+00:00"
-    },
-    "GME": {
-        "history": [
-            {
-                "from": null,
-                "reason": "Sprint 0 backfill from thesis_log",
-                "to": 5,
-                "ts": "2026-05-15T20:54:33+00:00"
-            }
-        ],
-        "tier": 5,
-        "updated": "2026-05-15T20:54:33+00:00"
-    },
-    "HYG": {
-        "history": [
-            {
-                "from": null,
-                "reason": "Sprint 0 backfill from thesis_log",
-                "to": 2,
-                "ts": "2026-05-15T20:54:33+00:00"
-            }
-        ],
-        "tier": 2,
-        "updated": "2026-05-15T20:54:33+00:00"
-    },
-    "LQD": {
-        "history": [
-            {
-                "from": null,
-                "reason": "Sprint 0 backfill from thesis_log",
-                "to": 1,
-                "ts": "2026-05-15T20:54:33+00:00"
-            }
-        ],
-        "tier": 1,
-        "updated": "2026-05-15T20:54:33+00:00"
-    },
-    "OBDC": {
-        "history": [
-            {
-                "from": null,
-                "reason": "Sprint 0 backfill from thesis_log",
-                "to": 2,
-                "ts": "2026-05-15T20:54:33+00:00"
-            }
-        ],
-        "tier": 2,
-        "updated": "2026-05-15T20:54:33+00:00"
-    }
+  "BKLN": {
+    "history": [
+      {
+        "from": null,
+        "reason": "Sprint 0 backfill from thesis_log",
+        "to": 2,
+        "ts": "2026-05-15T20:54:33+00:00"
+      }
+    ],
+    "tier": 2,
+    "updated": "2026-05-15T20:54:33+00:00"
+  },
+  "EMB": {
+    "history": [
+      {
+        "from": null,
+        "reason": "Sprint 0 backfill from thesis_log",
+        "to": 1,
+        "ts": "2026-05-15T20:54:33+00:00"
+      }
+    ],
+    "tier": 1,
+    "updated": "2026-05-15T20:54:33+00:00"
+  },
+  "ETH": {
+    "history": [
+      {
+        "from": null,
+        "reason": "GROK candidate (hold)",
+        "to": 3,
+        "ts": "2026-05-15T23:09:14+00:00"
+      }
+    ],
+    "tier": 3,
+    "updated": "2026-05-15T23:09:14+00:00"
+  },
+  "GME": {
+    "history": [
+      {
+        "from": null,
+        "reason": "Sprint 0 backfill from thesis_log",
+        "to": 5,
+        "ts": "2026-05-15T20:54:33+00:00"
+      }
+    ],
+    "tier": 5,
+    "updated": "2026-05-15T20:54:33+00:00"
+  },
+  "HYG": {
+    "history": [
+      {
+        "from": null,
+        "reason": "Sprint 0 backfill from thesis_log",
+        "to": 2,
+        "ts": "2026-05-15T20:54:33+00:00"
+      }
+    ],
+    "tier": 2,
+    "updated": "2026-05-15T20:54:33+00:00"
+  },
+  "LQD": {
+    "history": [
+      {
+        "from": null,
+        "reason": "Sprint 0 backfill from thesis_log",
+        "to": 1,
+        "ts": "2026-05-15T20:54:33+00:00"
+      }
+    ],
+    "tier": 1,
+    "updated": "2026-05-15T20:54:33+00:00"
+  },
+  "OBDC": {
+    "history": [
+      {
+        "from": null,
+        "reason": "Sprint 0 backfill from thesis_log",
+        "to": 2,
+        "ts": "2026-05-15T20:54:33+00:00"
+      }
+    ],
+    "tier": 2,
+    "updated": "2026-05-15T20:54:33+00:00"
+  },
+  "OWL": {
+    "history": [
+      {
+        "from": null,
+        "reason": "GROK candidate (hold)",
+        "to": 3,
+        "ts": "2026-05-15T23:09:26+00:00"
+      }
+    ],
+    "tier": 3,
+    "updated": "2026-05-15T23:09:26+00:00"
+  },
+  "SLV": {
+    "history": [
+      {
+        "from": null,
+        "reason": "GROK candidate (hold)",
+        "to": 2,
+        "ts": "2026-05-15T22:52:25+00:00"
+      }
+    ],
+    "tier": 2,
+    "updated": "2026-05-15T22:52:25+00:00"
+  },
+  "TSLA": {
+    "history": [
+      {
+        "from": null,
+        "reason": "GROK candidate (hold)",
+        "to": 3,
+        "ts": "2026-05-15T23:09:36+00:00"
+      }
+    ],
+    "tier": 3,
+    "updated": "2026-05-15T23:09:36+00:00"
+  },
+  "XLE": {
+    "history": [
+      {
+        "from": null,
+        "reason": "GROK candidate (hold)",
+        "to": 3,
+        "ts": "2026-05-15T23:09:44+00:00"
+      }
+    ],
+    "tier": 3,
+    "updated": "2026-05-15T23:09:44+00:00"
+  },
+  "XRP": {
+    "history": [
+      {
+        "from": null,
+        "reason": "GROK candidate (hold)",
+        "to": 3,
+        "ts": "2026-05-15T23:09:53+00:00"
+      }
+    ],
+    "tier": 3,
+    "updated": "2026-05-15T23:09:53+00:00"
+  },
+  "XRPT": {
+    "history": [
+      {
+        "from": null,
+        "reason": "GROK candidate (hold)",
+        "to": 3,
+        "ts": "2026-05-15T23:10:01+00:00"
+      }
+    ],
+    "tier": 3,
+    "updated": "2026-05-15T23:10:01+00:00"
+  }
 }

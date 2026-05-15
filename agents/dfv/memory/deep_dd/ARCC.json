@@ -1,0 +1,330 @@
+{
+  "symbol": "ARCC",
+  "generated_at": "2026-05-15T23:33:30.090380+00:00",
+  "legs": [
+    {
+      "account": "wealthsimple",
+      "qty": 10.0,
+      "side": "long",
+      "asset_type": "put",
+      "right": "P",
+      "strike": 16.0,
+      "expiry": "20260417",
+      "avg_cost": 0.2,
+      "last_price": 0.0,
+      "unrealized": 0.0
+    },
+    {
+      "account": "wealthsimple",
+      "qty": 5.0,
+      "side": "long",
+      "asset_type": "put",
+      "right": "P",
+      "strike": 15.0,
+      "expiry": "20260618",
+      "avg_cost": 0.28,
+      "last_price": 0.0,
+      "unrealized": 10.0
+    }
+  ],
+  "market": {
+    "spot": 18.899999618530273,
+    "sigma_realized_30d": 0.19433189062947706,
+    "sigma_atm_iv": null,
+    "sigma_used": 0.19433189062947706
+  },
+  "horizon": {
+    "last_expiry": "2026-06-18",
+    "dte": 34,
+    "window_end": "2026-06-18"
+  },
+  "monte_carlo": {
+    "paths": 20000,
+    "T_days": 34,
+    "T_years": 0.0932,
+    "sigma_used": 0.1943,
+    "spot": 18.9,
+    "S_T_mean": 18.9854,
+    "S_T_p05": 17.1861,
+    "S_T_p25": 18.2078,
+    "S_T_p50": 18.9441,
+    "S_T_p75": 19.7173,
+    "S_T_p95": 20.9191,
+    "pnl_mean_usd": -339.34,
+    "pnl_median_usd": -340.0,
+    "pnl_p05_usd": -340.0,
+    "pnl_p25_usd": -340.0,
+    "pnl_p75_usd": -340.0,
+    "pnl_p95_usd": -340.0,
+    "prob_profit": 0.0006,
+    "prob_double": 0.0003,
+    "prob_max_loss": 0.9976,
+    "max_loss_estimate_usd": 340.0
+  },
+  "research": {
+    "events": [
+      {
+        "date": "2026-05-11",
+        "event": "Ares Capital announces $800M note offering",
+        "impact": "bullish",
+        "importance": "med",
+        "source": "TipRanks"
+      },
+      {
+        "date": "2026-05-08",
+        "event": "ARCC shareholder meeting elects directors, ratifies auditor",
+        "impact": "neutral",
+        "importance": "low",
+        "source": "TipRanks"
+      },
+      {
+        "date": "2026-06-15",
+        "event": "Q2 2026 dividend ex-date $0.48/share",
+        "impact": "bullish",
+        "importance": "high",
+        "source": "Ares Capital 8-K"
+      },
+      {
+        "date": "2026-06-30",
+        "event": "Q2 2026 dividend payment date",
+        "impact": "bullish",
+        "importance": "high",
+        "source": "Ares Capital press release"
+      },
+      {
+        "date": "2026-06-18",
+        "event": "End of hedge window (no Q2 earnings until 2026-07-28)",
+        "impact": "neutral",
+        "importance": "med",
+        "source": "MarketBeat earnings calendar"
+      },
+      {
+        "date": "2026-05-28",
+        "event": "Potential Fed rate decision window",
+        "impact": "mixed",
+        "importance": "med",
+        "source": "Macro calendar overlay on BDC sector"
+      },
+      {
+        "date": "2026-06-01 to 2026-06-10",
+        "event": "BDC sector credit quality updates / NII reports",
+        "impact": "mixed",
+        "importance": "low",
+        "source": "Industry filings"
+      },
+      {
+        "date": "2026-06-15",
+        "event": "Record date for $0.48 dividend",
+        "impact": "bullish",
+        "importance": "high",
+        "source": "Yahoo Finance dividend data"
+      }
+    ],
+    "leading_indicators": [
+      {
+        "indicator": "ARCC share price",
+        "current": "18.90 (flat since Q1 earnings)",
+        "signal": "thesis-on",
+        "why_it_matters": "No upward break of 20.50 invalidation; remains below median MC path"
+      },
+      {
+        "indicator": "Analyst consensus PT",
+        "current": "20.75 (Moderate Buy, 9 Buy/2 Hold)",
+        "signal": "thesis-on",
+        "why_it_matters": "Implied 9% upside but no immediate catalyst; supports cheap tail hedge value"
+      },
+      {
+        "indicator": "Dividend yield",
+        "current": "10.14% ($0.48 quarterly maintained)",
+        "signal": "thesis-on",
+        "why_it_matters": "Ex-date June 15 provides income support; cushions downside"
+      },
+      {
+        "indicator": "Realized vol 30d",
+        "current": "0.194",
+        "signal": "neutral",
+        "why_it_matters": "Low vol keeps puts cheap; any spike would activate positive skew"
+      },
+      {
+        "indicator": "Core EPS Q1 2026",
+        "current": "0.47 vs est 0.48 (miss)",
+        "signal": "thesis-on",
+        "why_it_matters": "Slight miss but dividend covered with spillover; no NII collapse"
+      },
+      {
+        "indicator": "Portfolio fair value",
+        "current": "$29.5B, D/E 1.13x",
+        "signal": "neutral",
+        "why_it_matters": "Stable credit quality; no early non-accrual signals"
+      },
+      {
+        "indicator": "Options flow",
+        "current": "Recent put volume heavy post-earnings",
+        "signal": "thesis-on",
+        "why_it_matters": "Confirms downside protection demand"
+      }
+    ],
+    "sentiment": {
+      "retail": "mixed",
+      "institutional": "bullish",
+      "options_flow": "bearish on upside, protective puts",
+      "notes": "Retail quiet on X; institutions maintain Buy ratings and dividend hold; flow shows put interest aligning with hedge"
+    },
+    "key_drivers": [
+      "Q2 dividend ex-date June 15",
+      "Stable BDC credit spreads",
+      "Fed policy path through June",
+      "Portfolio net investment income coverage",
+      "Analyst PT support near 21"
+    ],
+    "risks": [
+      "Unexpected credit deterioration pushing NAV lower",
+      "Rate hike surprise increasing funding costs",
+      "Failure to break 20.50 triggering invalidation",
+      "Sector rotation out of high-yield BDCs"
+    ],
+    "thesis_update": "Q1 results showed minor EPS miss but dividend held at $0.48 with strong coverage and new note issuance; no material upside catalysts materialized, keeping ARCC pinned near 18.90 and validating the low-cost tail hedge setup. Positive skew on vol or gap lower remains intact ahead of June ex-date."
+  },
+  "citations": [
+    {
+      "type": "url_citation",
+      "url": "https://www.cnn.com/markets/stocks/ARCC"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.marketbeat.com/stocks/NASDAQ/ARCC/earnings/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2055060545074585974"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.stocktitan.net/news/ARCC/ares-capital-corporation-schedules-earnings-release-for-the-first-c4q3h8l7z12v.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://marketchameleon.com/Overview/ARCC/Dividends/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://finance.yahoo.com/markets/stocks/articles/ares-capital-corporation-announces-march-110000525.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.benzinga.com/quote/ARCC/analyst-ratings"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.marketbeat.com/stocks/NASDAQ/ARCC/dividend/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2055073312334573805"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2055071604028088460"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.zacks.com/stock/research/ARCC/earnings-calendar"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.stocktitan.net/sec-filings/ARCC/8-k-ares-capital-corp-reports-material-event-398e13585565.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.dividendinvestor.com/dividend-news/20260428/ares-capital-corp-nasdaq-arcc-declared-a-dividend-of-$0.4800-per-share/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.allinvestview.com/earnings/ARCC/q1-2026/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.alphaspread.com/security/nasdaq/arcc/investor-relations/earnings-call/q1-2026"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.investing.com/news/transcripts/earnings-call-transcript-ares-capital-misses-q1-2026-earnings-expectations-93CH-4642578"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.marketbeat.com/instant-alerts/ares-capital-arcc-projected-to-post-earnings-on-tuesday-2026-04-21/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.youtube.com/watch?v=DTzwCf-U6_8"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.marketbeat.com/stocks/NASDAQ/ARCC/forecast/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://public.com/stocks/arcc/forecast-price-target"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.fool.com/investing/2026/04/20/could-this-high-yield-dividend-stock-help-make-you/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://finance.yahoo.com/markets/stocks/articles/ares-capital-corporation-q1-2026-204922533.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.tipranks.com/news/company-announcements/ares-capital-posts-q1-2026-results-maintains-dividend"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://stocksguide.com/en/dividends/Ares-Capital-Corporation-US04010L1035"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://finance.yahoo.com/news/10-yielding-dividend-stock-coming-165000297.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.morningstar.com/news/accesswire/1154089msn/ares-capital-corporation-schedules-earnings-release-for-the-first-quarter-ended-march-31-2026"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.aol.com/articles/could-high-yield-dividend-stock-162500239.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.wallstreetzen.com/stocks/us/nasdaq/arcc/stock-forecast"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://arcc.ares.com/"
+    }
+  ],
+  "synthesis": {
+    "verdict": "hold",
+    "thesis": "Long 10x 16P Apr26 + 5x 15P Jun26 at total debit 340 USD functions as cheap tail protection. MC 20k paths give median S_T 18.9441, P05 17.1861 and P(profit) 0.0006, confirming low premium cost while still capturing any break below 17.50 ahead of 15-Jun Q2 ex-date (0.48 dividend, high/bullish) and 28-May Fed window. Stable 10.14% yield and 0.194 realized vol keep skew attractive; position hedges credit-spread or rate-hike shocks without capping upside to 20.75 PT.",
+    "conviction": 3,
+    "horizon": "through 2026-06-18",
+    "catalysts": [
+      "Q2 2026 dividend ex-date 2026-06-15",
+      "Fed rate decision window 2026-05-28"
+    ],
+    "invalidation": "Exit all if ARCC closes above 20.50 for 3 sessions",
+    "exit_ladder": {
+      "profit_take_1": "S_T <=17.20, peel 50% of contracts",
+      "profit_take_2": "S_T <=16.50, peel remaining 50%",
+      "stop": "ARCC >20.50 close 100%",
+      "time_stop": "close at 21 DTE if not 25% ITM"
+    },
+    "target": {
+      "price": 17.5,
+      "rationale": "MC P25 level where hedge pays 2x+"
+    },
+    "max_pct_book": 0.03,
+    "alignment_check": "Thesis uses MC median S_T 18.9441 / P05 17.1861 plus 15-Jun dividend ex-date and 28-May Fed window to justify holding the OTM put ladder as low-cost downside buffer."
+  },
+  "elapsed_s": 20.44
+}

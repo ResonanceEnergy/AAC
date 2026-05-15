@@ -53,6 +53,7 @@ def isolated_dfv(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> de.DFV:
         "conviction":    "memory/conviction.json",
         "watchlist":     "memory/watchlist.json",
         "decisions_log": "memory/decisions.jsonl",
+        "postmortems":   "memory/postmortems.jsonl",
     }
     doc_path.write_text(yaml.safe_dump(doctrine), encoding="utf-8")
 
@@ -142,3 +143,63 @@ def test_decisions_log_written(isolated_dfv: de.DFV, tmp_path: Path) -> None:
     assert log.exists()
     lines = [json.loads(line) for line in log.read_text(encoding="utf-8").splitlines()]
     assert any(entry.get("decision", {}).get("verdict") == "vetoed" for entry in lines)
+
+
+def test_llm_tool_proposal_matches_direct_evaluate(
+    isolated_dfv: de.DFV, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """T3 — _decide_proposal (LLM tool layer) must hit the same gates as a direct dict.
+
+    Pre-fix: field name drift (size_pct_book vs size_pct, etc.) caused G3/G4/G5/G7
+    to silently default-pass. This test prevents regression.
+    """
+    isolated_dfv.thesis.set(
+        "GME",
+        thesis="Net cash, brand, console refresh",
+        conviction=3,
+        horizon="12m",
+        catalysts=["earnings"],
+        invalidation="cash burn > $200M/qtr",
+        target={"raw": "$45 base"},
+        sizing={"max_pct_book": 0.03},
+    )
+    isolated_dfv.conviction.set("GME", 3, reason="test")
+
+    # Force the LLM module to use OUR isolated DFV (not a fresh one with prod paths).
+    from agents.dfv import llm as dfv_llm
+    monkeypatch.setattr(dfv_llm, "_dfv", lambda: isolated_dfv)
+
+    # G2 should fail: oversized at 50% of book vs tier-3 cap of 3%.
+    direct = isolated_dfv.evaluate({
+        "symbol": "GME",
+        "action": "buy",
+        "size_pct": 0.50,
+        "expected_slippage_pct": 0.005,
+        "cash_after_trade": 50_000,
+        "portfolio_value": 100_000,
+        "factor_concentration_after": 0.10,
+        "catalyst_within_days": 3,
+        "catalyst_acknowledged": True,
+    }).to_dict()
+
+    via_tool = dfv_llm._decide_proposal(
+        symbol="GME",
+        side="long",
+        size_pct_book=0.50,
+        invalidation="cash burn > $200M/qtr",
+        catalyst_days_out=3,
+        catalyst_acknowledged=True,
+        cash_pct_after=0.50,
+        portfolio_value=100_000,
+        correlation_factor_pct=0.10,
+        estimated_slippage_pct=0.005,
+    )
+
+    assert direct["verdict"] == via_tool["verdict"] == "vetoed"
+    direct_g2 = next(g for g in direct["gates"] if g["gate_id"] == "G2")
+    tool_g2 = next(g for g in via_tool["gates"] if g["gate_id"] == "G2")
+    assert direct_g2["outcome"] == tool_g2["outcome"] == "fail"
+    # G4 should NOT silently pass — both surfaces see catalyst within 5d acknowledged.
+    direct_g4 = next(g for g in direct["gates"] if g["gate_id"] == "G4")
+    tool_g4 = next(g for g in via_tool["gates"] if g["gate_id"] == "G4")
+    assert direct_g4["outcome"] == tool_g4["outcome"]

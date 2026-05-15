@@ -1,0 +1,326 @@
+{
+  "symbol": "XRPT",
+  "generated_at": "2026-05-15T23:38:31.444726+00:00",
+  "legs": [
+    {
+      "account": "ibkr",
+      "qty": 1.0,
+      "side": "long",
+      "asset_type": "call",
+      "right": "C",
+      "strike": 49.0,
+      "expiry": "20260618",
+      "avg_cost": 1050.05,
+      "last_price": 0.0,
+      "unrealized": -480.55
+    }
+  ],
+  "market": {
+    "spot": 44.06999969482422,
+    "sigma_realized_30d": 0.8557020666784082,
+    "sigma_atm_iv": null,
+    "sigma_used": 0.8557020666784082
+  },
+  "horizon": {
+    "last_expiry": "2026-06-18",
+    "dte": 34,
+    "window_end": "2026-06-18"
+  },
+  "monte_carlo": {
+    "paths": 20000,
+    "T_days": 34,
+    "T_years": 0.0932,
+    "sigma_used": 0.8557,
+    "spot": 44.07,
+    "S_T_mean": 44.3283,
+    "S_T_p05": 27.8427,
+    "S_T_p25": 35.9044,
+    "S_T_p50": 42.7522,
+    "S_T_p75": 50.987,
+    "S_T_p95": 66.1614,
+    "pnl_mean_usd": -760.73,
+    "pnl_median_usd": -1050.05,
+    "pnl_p05_usd": -1050.05,
+    "pnl_p25_usd": -1050.05,
+    "pnl_p75_usd": -851.35,
+    "pnl_p95_usd": 666.09,
+    "prob_profit": 0.1072,
+    "prob_double": 0.0311,
+    "prob_max_loss": 0.6984,
+    "max_loss_estimate_usd": 1050.05
+  },
+  "research": {
+    "events": [
+      {
+        "date": "2026-05-16",
+        "event": "CLARITY Act Senate Banking Committee markup session",
+        "impact": "bullish",
+        "importance": "high",
+        "source": "247wallst.com"
+      },
+      {
+        "date": "2026-05-20",
+        "event": "XRPT ex-dividend date (monthly $0.15)",
+        "impact": "mixed",
+        "importance": "med",
+        "source": "stockevents.app"
+      },
+      {
+        "date": "2026-05-20 to 2026-05-22",
+        "event": "XRP ETF weekly inflow report (expected +$25-40M)",
+        "impact": "bullish",
+        "importance": "high",
+        "source": "finance.yahoo.com"
+      },
+      {
+        "date": "2026-05-25",
+        "event": "Ripple RLUSD institutional volume milestone update",
+        "impact": "bullish",
+        "importance": "med",
+        "source": "youtube.com"
+      },
+      {
+        "date": "2026-05-28",
+        "event": "FOMC minutes release + crypto regulatory commentary",
+        "impact": "mixed",
+        "importance": "med",
+        "source": "finance.yahoo.com"
+      },
+      {
+        "date": "2026-06-02",
+        "event": "XRP ETF monthly AUM and flow data",
+        "impact": "bullish",
+        "importance": "high",
+        "source": "finance.yahoo.com"
+      },
+      {
+        "date": "2026-06-05",
+        "event": "Potential CLARITY Act floor vote window",
+        "impact": "bullish",
+        "importance": "high",
+        "source": "247wallst.com"
+      },
+      {
+        "date": "2026-06-10",
+        "event": "Bitcoin halving anniversary + macro risk event",
+        "impact": "mixed",
+        "importance": "med",
+        "source": "binance.com"
+      },
+      {
+        "date": "2026-06-15",
+        "event": "XRPT options expiration gamma exposure peak",
+        "impact": "mixed",
+        "importance": "low",
+        "source": "finance.yahoo.com"
+      },
+      {
+        "date": "2026-06-18",
+        "event": "Position expiry (XRPT 49C)",
+        "impact": "neutral",
+        "importance": "high",
+        "source": "finance.yahoo.com"
+      }
+    ],
+    "leading_indicators": [
+      {
+        "indicator": "XRPT 2x ETF daily net flows",
+        "current": "+$2.3M on Mar 23; steady +$20M+ Apr/May",
+        "signal": "thesis-on",
+        "why_it_matters": "Direct buying pressure amplifying upside moves"
+      },
+      {
+        "indicator": "XRP spot price vs 50DMA",
+        "current": "Trading $1.30-1.50 range; 50DMA sloping up since May 6",
+        "signal": "neutral",
+        "why_it_matters": "Break above $1.50 key for 2x leverage capture"
+      },
+      {
+        "indicator": "XRP ETF cumulative inflows",
+        "current": "$1.325B as of May 10",
+        "signal": "thesis-on",
+        "why_it_matters": "Institutional demand tailwind for volatility"
+      },
+      {
+        "indicator": "CLARITY Act sentiment (prediction markets)",
+        "current": "78% prob XRP >$1.50 in May",
+        "signal": "thesis-on",
+        "why_it_matters": "Regulatory catalyst drives skew and vol"
+      },
+      {
+        "indicator": "RLUSD daily transaction volume",
+        "current": "5M tx/day early May",
+        "signal": "thesis-on",
+        "why_it_matters": "Adoption metric supporting XRP utility"
+      },
+      {
+        "indicator": "Realized vol 30d",
+        "current": "0.856",
+        "signal": "thesis-on",
+        "why_it_matters": "High vol supports tail capture in 34DTE call"
+      }
+    ],
+    "sentiment": {
+      "retail": "bull",
+      "institutional": "bull",
+      "options_flow": "bullish gamma building",
+      "notes": "Retail X chatter focused on CLARITY and RLUSD; institutions piling into ETFs"
+    },
+    "key_drivers": [
+      "CLARITY Act passage",
+      "XRP ETF inflows acceleration",
+      "RLUSD adoption growth",
+      "Bitcoin correlation strength"
+    ],
+    "risks": [
+      "CLARITY Act delay past June",
+      "Crypto market-wide risk-off",
+      "XRP spot fails to break $1.50 range",
+      "Unexpected dividend tax drag on XRPT"
+    ],
+    "thesis_update": "CLARITY Act markup now scheduled for mid-May with high odds of passage before expiry; ETF inflows remain robust at $1.325B cumulative. High realized vol and no negative regulatory surprises keep the 95th percentile tail intact; position thesis strengthened vs prior neutral range-bound view."
+  },
+  "citations": [
+    {
+      "type": "url_citation",
+      "url": "https://www.youtube.com/watch?v=DTt71iSjMRE"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.macroaxis.com/performance/XRPT/2x-XRP-ETF"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://finance.yahoo.com/markets/crypto/articles/prediction-xrp-ripple-hit-price-090800292.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2054933991841513685"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.binance.com/en/price-prediction/xrp"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.binance.com/en/square/post/34514384166849"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.kucoin.com/news/flash/xrp-price-forecast-predicts-new-high-in-may-2026"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.aol.com/articles/prediction-xrp-hit-5-2026-114200644.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.bitget.com/en/amp/news/detail/12560605410992"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.tipranks.com/news/cryptocurrencies/leveraged-xrp-bet-attracts-fresh-cash-as-volatility-shares-xrpt-lures-new-speculators"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://finbold.com/ai-predicts-xrp-price-for-may-31-2026/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://finance.yahoo.com/markets/crypto/articles/xrp-spent-60-2026-stuck-165041470.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://bitcoinfoundation.org/news/analysis/xrp-price-prediction-2026-expert-analysis-market-forecast/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.youtube.com/watch?v=jfd3bVqhCew"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2055008656723464627"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://finance.yahoo.com/quote/XRPT260515C00045000/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2055086481924886636"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.youtube.com/watch?v=UbbXy-Kp2Ao"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://finance.yahoo.com/quote/XRPT260515C00049000/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://247wallst.com/investing/2026/05/02/xrp-price-prediction-3-ai-models-predict-where-xrp-will-trade-by-december-2026/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.reddit.com/r/XRP/comments/1pq2f4l/2026_catalysts/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.aol.com/xrp-price-prediction-5-catalysts-124954292.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2055328804277530727"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://finance.yahoo.com/markets/crypto/articles/prediction-xrp-hit-5-2026-114200937.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.fool.com/investing/2026/04/16/xrp-ripple-will-hit-this-price-in-2026/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.youtube.com/watch?v=NJ7EFDNcjw4"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://247wallst.com/investing/2026/01/24/can-xrp-reclaim-3-84-all-time-high-in-2026-analysts-say-these-4-catalysts-must-align/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://stockevents.app/en/stock/XRPT/dividends"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://finbold.com/machine-learning-algorithm-predicts-xrp-price-on-may-31-2026/"
+    }
+  ],
+  "synthesis": {
+    "verdict": "hold",
+    "thesis": "Hold XRPT 49C into 2026-06-18 expiry. CLARITY Act Senate markup 2026-05-16 and floor vote window 2026-06-05 plus ETF inflow reports 2026-05-20/06-02 provide high-bullish catalysts that align with MC P95 S_T 66.16 (P&L +666) and realized vol 0.856 tail capture. Leading indicators (ETF flows +1.325B, 78% prediction-market prob >1.50) support upside skew despite MC median S_T 42.75 and P(profit) 0.1072; position captures the 5% tail above strike.",
+    "conviction": 3,
+    "horizon": "34 DTE",
+    "catalysts": [
+      "2026-05-16 CLARITY Act Senate Banking markup",
+      "2026-06-02 XRP ETF monthly AUM data",
+      "2026-06-05 CLARITY Act floor vote window"
+    ],
+    "invalidation": "Exit if XRPT closes below 38 for 2 sessions or CLARITY Act markup delayed past 2026-05-20",
+    "exit_ladder": {
+      "profit_take_1": "S_T>58, peel 50%",
+      "profit_take_2": "S_T>66, peel remaining 50%",
+      "stop": "spot<38 close full position",
+      "time_stop": "close at 7 DTE if still OTM"
+    },
+    "target": {
+      "price": 58,
+      "rationale": "CLARITY-driven spike to MC P75 level"
+    },
+    "max_pct_book": 0.03,
+    "alignment_check": "Thesis built from 2026-05-16/06-05 CLARITY events plus MC P95 tail (+666 P&L) and 0.856 vol for event-driven upside."
+  },
+  "elapsed_s": 22.57
+}

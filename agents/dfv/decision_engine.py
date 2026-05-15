@@ -17,6 +17,7 @@ import yaml
 from agents.dfv.memory_store import (
     ConvictionTracker,
     DecisionsLog,
+    PostMortemLog,
     ThesisLog,
     Watchlist,
 )
@@ -74,6 +75,7 @@ class DFV:
         self.conviction = ConvictionTracker(mem.get("conviction", "agents/dfv/memory/conviction.json"))
         self.watchlist = Watchlist(mem.get("watchlist", "agents/dfv/memory/watchlist.json"))
         self.decisions = DecisionsLog(mem.get("decisions_log", "agents/dfv/memory/decisions.jsonl"))
+        self.postmortems = PostMortemLog(mem.get("postmortems", "agents/dfv/memory/postmortems.jsonl"))
 
     # ── Public surface ────────────────────────────────────────────
     def evaluate(self, proposal: dict[str, Any]) -> Decision:

@@ -178,3 +178,42 @@ class DecisionsLog:
             except json.JSONDecodeError:
                 continue
         return out
+
+
+# ── Postmortems (append-only JSONL) ───────────────────────────────────────
+class PostMortemLog:
+    """Closed-position write-ups. Persona §3.7 — every closed name gets a lesson."""
+
+    def __init__(self, path: str | Path):
+        self.path = REPO_ROOT / Path(path)
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+
+    def append(self, entry: dict[str, Any]) -> dict[str, Any]:
+        entry = {"ts": _utc_now(), **entry}
+        with self.path.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(entry, default=str) + "\n")
+        return entry
+
+    def all(self) -> list[dict[str, Any]]:
+        if not self.path.exists():
+            return []
+        out: list[dict[str, Any]] = []
+        for line in self.path.read_text(encoding="utf-8").splitlines():
+            try:
+                out.append(json.loads(line))
+            except json.JSONDecodeError:
+                continue
+        return out
+
+    def has(self, symbol: str, expiry: str) -> bool:
+        sym = symbol.upper()
+        for rec in self.all():
+            if (rec.get("symbol", "").upper() == sym
+                    and str(rec.get("expiry", "")) == str(expiry)):
+                return True
+        return False
+
+    def for_symbol(self, symbol: str) -> list[dict[str, Any]]:
+        sym = symbol.upper()
+        return [r for r in self.all() if r.get("symbol", "").upper() == sym]
+

@@ -1,0 +1,384 @@
+{
+  "symbol": "TSLA",
+  "generated_at": "2026-05-15T23:37:26.483032+00:00",
+  "legs": [
+    {
+      "account": "ibkr",
+      "qty": 1.0,
+      "side": "long",
+      "asset_type": "call",
+      "right": "C",
+      "strike": 500.0,
+      "expiry": "20270115",
+      "avg_cost": 2041.53,
+      "last_price": 0.0,
+      "unrealized": 2240.96
+    }
+  ],
+  "market": {
+    "spot": 422.239990234375,
+    "sigma_realized_30d": 0.41177443786849777,
+    "sigma_atm_iv": null,
+    "sigma_used": 0.41177443786849777
+  },
+  "horizon": {
+    "last_expiry": "2027-01-15",
+    "dte": 245,
+    "window_end": "2027-01-15"
+  },
+  "monte_carlo": {
+    "paths": 20000,
+    "T_days": 245,
+    "T_years": 0.6712,
+    "sigma_used": 0.4118,
+    "spot": 422.24,
+    "S_T_mean": 436.1739,
+    "S_T_p05": 236.1163,
+    "S_T_p25": 327.932,
+    "S_T_p50": 410.8773,
+    "S_T_p75": 515.8618,
+    "S_T_p95": 722.2533,
+    "pnl_mean_usd": 1581.65,
+    "pnl_median_usd": -2041.53,
+    "pnl_p05_usd": -2041.53,
+    "pnl_p25_usd": -2041.53,
+    "pnl_p75_usd": -455.35,
+    "pnl_p95_usd": 20183.8,
+    "prob_profit": 0.2429,
+    "prob_double": 0.2091,
+    "prob_max_loss": 0.7207,
+    "max_loss_estimate_usd": 2041.53
+  },
+  "research": {
+    "events": [
+      {
+        "date": "2026-07-22",
+        "event": "Q2 2026 Earnings Release",
+        "impact": "mixed",
+        "importance": "high",
+        "source": "Tesla IR / Wall Street Horizon"
+      },
+      {
+        "date": "2026-10-21",
+        "event": "Q3 2026 Earnings Release",
+        "impact": "mixed",
+        "importance": "high",
+        "source": "Wall Street Horizon"
+      },
+      {
+        "date": "2026-06-30",
+        "event": "Robotaxi expansion to 7 US cities (Phoenix, Miami, Orlando, Tampa, Las Vegas added)",
+        "impact": "bullish",
+        "importance": "high",
+        "source": "Tech Insider"
+      },
+      {
+        "date": "2026-04-01",
+        "event": "Cybercab production ramp begins at Giga Texas",
+        "impact": "bullish",
+        "importance": "high",
+        "source": "Yahoo Finance / Tesla updates"
+      },
+      {
+        "date": "2026-01-01",
+        "event": "Optimus Gen 3 mass production start",
+        "impact": "bullish",
+        "importance": "high",
+        "source": "Optimus blog / Musk timeline"
+      },
+      {
+        "date": "2027-01-27",
+        "event": "Q4 2026 / Full Year Earnings",
+        "impact": "mixed",
+        "importance": "high",
+        "source": "Wall Street Horizon"
+      },
+      {
+        "date": "2026-Q3",
+        "event": "Unsupervised FSD removal of safety monitors in Austin fleet",
+        "impact": "bullish",
+        "importance": "med",
+        "source": "Gary Black X / Musk statements"
+      },
+      {
+        "date": "2026-12-31",
+        "event": "First external commercial Optimus robot deployments",
+        "impact": "bullish",
+        "importance": "med",
+        "source": "Tesla 2026 roadmap"
+      },
+      {
+        "date": "2026-07-01",
+        "event": "Tesla Semi volume production ramp",
+        "impact": "bullish",
+        "importance": "med",
+        "source": "YouTube 2026 Roadmap analysis"
+      },
+      {
+        "date": "2026-11-06",
+        "event": "Annual Shareholder Meeting (if held)",
+        "impact": "mixed",
+        "importance": "low",
+        "source": "MarketScreener historical pattern"
+      }
+    ],
+    "leading_indicators": [
+      {
+        "indicator": "Robotaxi operational cities",
+        "current": "3 cities (Austin, Dallas, Houston)",
+        "signal": "thesis-on",
+        "why_it_matters": "Direct validation of autonomy scaling toward 500+ strike"
+      },
+      {
+        "indicator": "Optimus deployment progress",
+        "current": "Gen 3 production ramp, factory testing",
+        "signal": "thesis-on",
+        "why_it_matters": "High-margin robotics revenue tail for 2027+"
+      },
+      {
+        "indicator": "FSD unsupervised miles",
+        "current": "Accelerating with Cortex 2.0 Phase 1",
+        "signal": "thesis-on",
+        "why_it_matters": "Key regulatory unlock for robotaxi"
+      },
+      {
+        "indicator": "Energy storage deployments",
+        "current": "Record margins, strong YoY growth",
+        "signal": "thesis-on",
+        "why_it_matters": "Stable cash flow supporting AI/Capex"
+      },
+      {
+        "indicator": "Q1 2026 EPS beat",
+        "current": "$0.41 vs $0.39 est, revenue $22.39B",
+        "signal": "neutral",
+        "why_it_matters": "Auto margins improving but growth still moderate"
+      },
+      {
+        "indicator": "TSLA implied vol",
+        "current": "Elevated post-spot at 422",
+        "signal": "thesis-on",
+        "why_it_matters": "Supports OTM call value retention into 2027"
+      }
+    ],
+    "sentiment": {
+      "retail": "bull",
+      "institutional": "mixed",
+      "options_flow": "bullish on long-dated calls",
+      "notes": "Retail focused on robotaxi/Optimus; institutions flag 220-300x 2026 P/E vs growth estimates"
+    },
+    "key_drivers": [
+      "Robotaxi/Cybercab rollout",
+      "Optimus humanoid scaling",
+      "Unsupervised FSD regulatory approvals",
+      "Energy storage growth",
+      "Elon Musk execution narrative"
+    ],
+    "risks": [
+      "Regulatory delays on unsupervised autonomy",
+      "Cybercab production ramp slippage",
+      "High valuation compression on missed milestones",
+      "Competition in EV/autonomy",
+      "Capex burn outpacing near-term revenue"
+    ],
+    "thesis_update": "Q1 2026 earnings beat on EPS with energy margins strong but auto revenue slightly light. Robotaxi city launches (Dallas/Houston live) and Optimus Gen 3 ramp provide concrete 2026 progress since original thesis. No negative catalysts materialized, preserving the 500 call's asymmetric tail exposure to any S_T >722 scenario."
+  },
+  "citations": [
+    {
+      "type": "url_citation",
+      "url": "https://www.statesman.com/business/technology/article/tesla-cybercab-sxsw-22075456.php"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2003553907163717808"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://finance.yahoo.com/news/tesla-supercycle-5-catalysts-ignite-035300690.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2055415727440425326"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2053531794482356623"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://optimusk.blog/blog/tesla-optimus-robotaxi-2026-strategy/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.teslaacessories.com/blogs/news/tesla-2026-navigating-innovation-delays-%E2%80%94-cybercab-optimus-and-the-road-ahead?srsltid=AfmBOopo8A9KjCSwe7csg7jbh7MOpupwhwydqzZywDs0c8F7R5cIv3wG"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.wallstreethorizon.com/tesla-earnings-calendar"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.earningspike.com/s/TSLA"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/1524678366397448192"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.cnbc.com/2026/04/22/tesla-tsla-q1-2026-earnings-report.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://teslasciencefoundation.org/new_TSF/news-and-events/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2053315018880385096"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.tesla.com/events"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.youtube.com/watch?v=2PLpRh8buuw"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://finance.yahoo.com/news/why-2026-tesla-robotaxi-110000121.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.facebook.com/groups/1242309506256283/posts/1934458377041389/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.nasdaq.com/market-activity/stocks/tsla/earnings"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.tesla.com/en_sa/events?page=1"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.tesla.com/event/the-future-of-autonomy-visualized"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.reddit.com/r/SelfDrivingCars/comments/1q0pa8x/my_prediction_for_tesla_driverless_robotaxi/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.marketscreener.com/quote/stock/TESLA-INC-6344549/calendar/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.greendrive-accessories.com/blog/language/en/tesla-cybercab-robotaxi-production-2026/?srsltid=AfmBOooqZInumiHXjTUHORITSdf3AMIOz1JAZPZsWRb3gYGj2zNXJDpD"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.tesla.com/en_in/events?redirect=no"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.youtube.com/watch?v=kTS-CmqEcuc"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.moomoo.com/stock/TSLA-US/earnings?chain_id=Name1K9-3FXPhg.1l04rc0&global_content=%7B%22promote_id%22%3A13764,%22sub_promote_id%22%3A57,%22f%22%3A%22www.moomoo.com%2Fhans%2Fstock%2FSCL-US%2Foptions-chain%22%7D"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://finance.yahoo.com/video/tesla-earnings-do-investors-need-more-guidance-on-timelines-140741387.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.tradingkey.com/analysis/stocks/us-stocks/261454956-tesla-2026-moat-elon-musk-promise-robotaxi-fsd-cybercab-production-ramp-optimus-tradingkey"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.investing.com/equities/tesla-motors-earnings"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://finance.yahoo.com/calendar/earnings?symbol=TSLA"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.jowua-life.com/pages/tesla-events-calendar?srsltid=AfmBOoptvHc5rVGnazahHrpdiVTwqSkHCxaHa6qyoGi2YtKBuAMFNEsG"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.tesla.com/en_my/events?sl_SI%2Fevents="
+    },
+    {
+      "type": "url_citation",
+      "url": "https://finance.yahoo.com/video/elon-musk-tesla-robotaxi-widespread-165854054.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2055408610222764085"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://tech-insider.org/tesla-robotaxi-dallas-houston-unsupervised-launch-2026/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.tesla.com/en_ie/events?lat=23.424076&lng=53.847818%3Fredirect%3Dno"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.youtube.com/watch?v=GYxuGzNr6Jw"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.tesla.com/robotaxi"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2055423740683657640"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.tesla.com/en_au/events?sl_SI%2Fmodel3="
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.marketbeat.com/stocks/NASDAQ/TSLA/earnings/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://ir.tesla.com/"
+    }
+  ],
+  "synthesis": {
+    "verdict": "hold",
+    "thesis": "Long 500C 20270115 remains aligned: MC shows 24.29% P(profit) with P95 P&L +20183.8 versus median -2041.53 loss, capturing tail from 2026-04-01 Cybercab ramp at Giga Texas, 2026-06-30 Robotaxi expansion to 7 cities, 2026-01-01 Optimus Gen 3 production, and 2026-12-31 external Optimus deployments. Leading indicators (3-city Robotaxi ops, FSD unsupervised miles, energy margins) validate autonomy scaling to 500 strike. Elevated IV supports premium retention into 2027.",
+    "conviction": 3,
+    "horizon": "2027 LEAPs",
+    "catalysts": [
+      "2026-04-01 Cybercab production ramp begins",
+      "2026-06-30 Robotaxi expansion to 7 US cities",
+      "2026-01-01 Optimus Gen 3 mass production start"
+    ],
+    "invalidation": "Exit if Robotaxi operational cities remain below 5 by 2026-09-30 OR spot closes below 300 for 5 sessions",
+    "exit_ladder": {
+      "profit_take_1": "S_T>550, peel 40%",
+      "profit_take_2": "S_T>650, peel remaining 60%",
+      "stop": "spot<350 for 3 sessions, close full position",
+      "time_stop": "close at 90 DTE if not ITM"
+    },
+    "target": {
+      "price": 600,
+      "rationale": "MC P75 515 + event-driven tail to 650-700"
+    },
+    "max_pct_book": 0.03,
+    "alignment_check": "Thesis built from 2026-04-01/06-30/01-01 events plus MC P(profit) 0.2429 and P95 P&L +20183.8 for asymmetric upside."
+  },
+  "elapsed_s": 20.1
+}

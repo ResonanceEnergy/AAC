@@ -1,0 +1,485 @@
+{
+  "symbol": "SLV",
+  "generated_at": "2026-05-15T23:37:08.172837+00:00",
+  "legs": [
+    {
+      "account": "ibkr",
+      "qty": 8.0,
+      "side": "long",
+      "asset_type": "call",
+      "right": "C",
+      "strike": 66.0,
+      "expiry": "20260618",
+      "avg_cost": 784.7,
+      "last_price": 0.0,
+      "unrealized": -1316.08
+    },
+    {
+      "account": "ibkr",
+      "qty": 2.0,
+      "side": "long",
+      "asset_type": "call",
+      "right": "C",
+      "strike": 70.0,
+      "expiry": "20260618",
+      "avg_cost": 570.7,
+      "last_price": 0.0,
+      "unrealized": -285.21
+    },
+    {
+      "account": "ibkr",
+      "qty": 2.0,
+      "side": "long",
+      "asset_type": "call",
+      "right": "C",
+      "strike": 75.0,
+      "expiry": "20270115",
+      "avg_cost": 1031.1,
+      "last_price": 0.0,
+      "unrealized": -19.03
+    },
+    {
+      "account": "moomoo",
+      "qty": 3.0,
+      "side": "long",
+      "asset_type": "call",
+      "right": "C",
+      "strike": 65.0,
+      "expiry": "20270115",
+      "avg_cost": 0.0,
+      "last_price": 0.0,
+      "unrealized": 4087.5
+    },
+    {
+      "account": "moomoo",
+      "qty": 1.0,
+      "side": "long",
+      "asset_type": "call",
+      "right": "C",
+      "strike": 67.5,
+      "expiry": "20260918",
+      "avg_cost": 0.0,
+      "last_price": 0.0,
+      "unrealized": 945.0
+    },
+    {
+      "account": "moomoo",
+      "qty": 1.0,
+      "side": "long",
+      "asset_type": "call",
+      "right": "C",
+      "strike": 70.0,
+      "expiry": "20260618",
+      "avg_cost": 0.0,
+      "last_price": 0.0,
+      "unrealized": 417.5
+    }
+  ],
+  "market": {
+    "spot": 69.04000091552734,
+    "sigma_realized_30d": 0.53852753418005,
+    "sigma_atm_iv": null,
+    "sigma_used": 0.53852753418005
+  },
+  "horizon": {
+    "last_expiry": "2027-01-15",
+    "dte": 245,
+    "window_end": "2027-01-15"
+  },
+  "monte_carlo": {
+    "paths": 20000,
+    "T_days": 245,
+    "T_years": 0.6712,
+    "sigma_used": 0.5385,
+    "spot": 69.04,
+    "S_T_mean": 71.3842,
+    "S_T_p05": 31.259,
+    "S_T_p25": 48.0338,
+    "S_T_p50": 64.5089,
+    "S_T_p75": 86.868,
+    "S_T_p95": 134.8982,
+    "pnl_mean_usd": 14652.32,
+    "pnl_median_usd": -9481.2,
+    "pnl_p05_usd": -9481.2,
+    "pnl_p25_usd": -9481.2,
+    "pnl_p75_usd": 23144.43,
+    "pnl_p95_usd": 104795.73,
+    "prob_profit": 0.3899,
+    "prob_double": 0.3249,
+    "prob_max_loss": 0.5083,
+    "max_loss_estimate_usd": 9481.2
+  },
+  "research": {
+    "events": [
+      {
+        "date": "2026-05-13",
+        "event": "April 2026 CPI at 3.8% (hotter than expected)",
+        "impact": "bearish",
+        "importance": "high",
+        "source": "U.S. BLS via market reports"
+      },
+      {
+        "date": "2026-06-16",
+        "event": "FOMC meeting with potential rate decision",
+        "impact": "mixed",
+        "importance": "high",
+        "source": "Federal Reserve calendar"
+      },
+      {
+        "date": "2026-07-28",
+        "event": "FOMC meeting and projections release",
+        "impact": "mixed",
+        "importance": "high",
+        "source": "Federal Reserve calendar"
+      },
+      {
+        "date": "2026-09-15",
+        "event": "FOMC meeting (possible first rate cut window)",
+        "impact": "bullish",
+        "importance": "high",
+        "source": "CME FedWatch / analyst forecasts"
+      },
+      {
+        "date": "2026-10-27",
+        "event": "FOMC meeting",
+        "impact": "mixed",
+        "importance": "med",
+        "source": "Federal Reserve calendar"
+      },
+      {
+        "date": "2026-12-08",
+        "event": "FOMC meeting with year-end projections",
+        "impact": "mixed",
+        "importance": "high",
+        "source": "Federal Reserve calendar"
+      },
+      {
+        "date": "2026-Q2/Q3",
+        "event": "Silver Institute mid-year demand update / solar/EV data releases",
+        "impact": "bullish",
+        "importance": "med",
+        "source": "Silver Institute / JPM forecasts"
+      },
+      {
+        "date": "2026-06-30",
+        "event": "China silver export license quarterly review",
+        "impact": "bullish",
+        "importance": "med",
+        "source": "China policy tracking"
+      },
+      {
+        "date": "2026-12-31",
+        "event": "2026 silver supply deficit confirmation",
+        "impact": "bullish",
+        "importance": "high",
+        "source": "Silver Institute World Silver Survey"
+      },
+      {
+        "date": "2027-01-10",
+        "event": "Pre-Jan 15 expiry positioning window",
+        "impact": "mixed",
+        "importance": "low",
+        "source": "Options flow analysis"
+      }
+    ],
+    "leading_indicators": [
+      {
+        "indicator": "SLV AUM / ETF flows",
+        "current": "net outflows YTD 2026 accelerating post-Jan high",
+        "signal": "thesis-off",
+        "why_it_matters": "Retail/institutional rotation away from SLV reduces immediate price support"
+      },
+      {
+        "indicator": "COMEX registered silver inventories",
+        "current": "down 26%+ in early 2026 spikes",
+        "signal": "thesis-on",
+        "why_it_matters": "Physical squeeze supports vol skew and tail upside"
+      },
+      {
+        "indicator": "Gold/Silver ratio",
+        "current": "~63:1 (historical low)",
+        "signal": "thesis-on",
+        "why_it_matters": "Compression signals silver outperformance potential above 86.87 strike cluster"
+      },
+      {
+        "indicator": "Industrial demand proxies (solar/EV orders)",
+        "current": "strong 70GW+ U.S. solar growth projected 2026-27",
+        "signal": "thesis-on",
+        "why_it_matters": "Drives structural deficit sustaining high realized vol"
+      },
+      {
+        "indicator": "Realized vol 30d (SLV)",
+        "current": "0.539",
+        "signal": "thesis-on",
+        "why_it_matters": "Elevated vol regime favors long-dated call skew capture"
+      },
+      {
+        "indicator": "Fed rate cut probabilities (2026)",
+        "current": "June cut <8%, first cut Sep/Dec at best",
+        "signal": "thesis-off",
+        "why_it_matters": "Higher-for-longer rates strengthen USD, caps near-term rallies"
+      },
+      {
+        "indicator": "Options flow skew (SLV calls)",
+        "current": "heavy long-dated call buying 2026-27 strikes",
+        "signal": "thesis-on",
+        "why_it_matters": "Confirms positioning for P75+ upside tail to 134.90"
+      }
+    ],
+    "sentiment": {
+      "retail": "mixed",
+      "institutional": "bullish",
+      "options_flow": "bullish long-dated calls",
+      "notes": "X chatter light on SLV; banks (JPM $81 avg 2026, Commerzbank $90 YE) remain constructive on deficits despite outflows"
+    },
+    "key_drivers": [
+      "persistent 6th consecutive silver market deficit",
+      "industrial demand growth (solar/EV/AI)",
+      "Fed policy & USD strength",
+      "geopolitical supply risks (China export curbs, Middle East)",
+      "COMEX physical tightness"
+    ],
+    "risks": [
+      "stronger USD from delayed rate cuts",
+      "China economic slowdown throttling industrial demand",
+      "accelerated mine supply response to high prices",
+      "further SLV ETF outflows accelerating deleveraging"
+    ],
+    "thesis_update": "Hot April CPI and collapsed 2026 rate-cut odds have shifted near-term pressure to higher-for-longer rates, muting median path but preserving asymmetric tail via structural deficits and vol skew. Recent May tariff relief surge and ongoing COMEX drawdowns keep P75+ capture thesis intact through Jan 2027 expiry."
+  },
+  "citations": [
+    {
+      "type": "url_citation",
+      "url": "https://investingnews.com/daily/resource-investing/precious-metals-investing/silver-investing/silver-forecast/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://finance.yahoo.com/news/global-silver-investment-remain-strong-145000735.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.facebook.com/bullionexchanges/videos/market-update-may-13-2026silver-leads-as-inflation-stays-hot-metals-are-mostly-f/1516763066491910/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://silverinstitute.org/global-silver-investment-to-remain-strong-in-2026-against-the-backdrop-of-a-sixth-consecutive-annual-market-deficit/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://247wallst.com/investing/2026/04/17/buy-this-etf-as-silvers-next-leg-up-can-be-even-more-explosive/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.facebook.com/Stockstoearnpage/posts/goldman-sachs-projects-that-silver-will-average-between-85-and-100-per-ounce-in-/122160932108938282/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2055429965164818823"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://bullionexchanges.com/blog/market-report-by-bullion-exchanges-apr-27-2026?srsltid=AfmBOopO0-tcOlrutpUg7J4vfFVJtFfHLxPwpl0-zcFQqVsBRfFEu_tG"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://goldbroker.com/news/outlook-2026-silver-return-strategic-metal-3655"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://carboncredits.com/silver-price-hits-64-as-supply-deficit-enters-fifth-year-prices-may-reach-100-oz/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.facebook.com/cnnnews18/posts/since-the-start-of-2026-substantial-funds-have-moved-out-of-silver-exchange-trad/1522791876557117/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.youtube.com/watch?v=rT5o5cikcIM"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.federalreserve.gov/monetarypolicy/fomcprojtabl20260318.htm"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://goldsilver.com/industry-news/article/silver-price-forecast-2026-2027-the-bull-case-and-bear-case-laid-out/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2055432137592189128"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.jpmorgan.com/insights/global-research/commodities/silver-prices"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.ig.com/en/news-and-trade-ideas/commodities-market-outlook-for-2026-251212"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.idnfinancials.com/news/63245/gold-and-silver-prices-weaken-ahead-of-fomc-meeting"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.youtube.com/watch?v=LZtXcwPS7zs"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.youtube.com/watch?v=1kHhXga6JXw"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://ca.finance.yahoo.com/news/fed-cutting-rates-2026-essentially-114009042.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.fool.com/investing/2026/05/04/prediction-this-silver-etf-will-take-off-after-may/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://finance.yahoo.com/news/silver-reach-200-2026-answer-104200689.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.financemagnates.com/trending/how-high-can-silver-go-silver-price-predictions-target-300-in-2026/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.investing.com/news/commodities-news/hsbc-raises-silver-price-targets-for-2026-and-2027-but-sees-limited-upside-4688158"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.youtube.com/watch?v=HeB6teYKs-0"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2055431268700176490"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2055429942150869338"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2055430981335540220"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.xs.com/en/blog/silver-price-prediction/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.mufgresearch.com/rates/april-2026-fed-rates-call-update/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.forbes.com/sites/investor-hub/article/fed-meeting-tracker-interest-rate-strategy/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://cryptobriefing.com/silver-price-forecast-cut-to-78oz-for-2026-731oz-for-2027/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.youtube.com/watch?v=D8Bl5HqXGY0"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.devere-group.com/whats-next-for-silver-in-2026-analysts-predict-volatility-ahead/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.youtube.com/watch?v=uitA8tUhO9w"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://finance.yahoo.com/markets/commodities/articles/slv-largest-silver-etf-world-163200043.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://uniathena.com/silver-market-demand-trends"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://theoregongroup.com/commodities/gold/can-silver-hit-150-in-2026/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://investingnews.com/david-hunter-gold-silver-forecast/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://finance.yahoo.com/markets/commodities/articles/silver-outperforming-gold-2026-does-213500463.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.tradingview.com/news/invezz:bb675baaf094b:0-silver-price-at-risk-as-slv-etf-outflows-jump-ahead-of-fomc-decision/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://silverinstitute.org/wp-content/uploads/2026/04/World-Silver-Survey-2026.pdf"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://discoveryalert.com.au/silver-price-forecast-may-2026-fed-supply-deficit-trade/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2055431366909841807"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://finviz.com/news/283976/why-silver-will-outperform-gold-in-2026"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2055431784750580106"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://paretoinvestor.substack.com/p/silver-crisis-2026-portfolio-defense"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2055432077118493000"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://x.com/i/status/2055430036065276097"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://seekingalpha.com/article/4854508-silver-not-silicon-why-the-next-market-leader-in-2026-wont-be-ai"
+    }
+  ],
+  "synthesis": {
+    "verdict": "hold",
+    "thesis": "Long SLV calls positioned for 2026-12-31 supply deficit confirmation and 2026-Q2/Q3 Silver Institute solar/EV releases to drive physical squeeze. MC 20000 paths show median S_T 64.51 and P&L -9481 but P95 S_T 134.90 with 104795 upside P&L and 0.3899 P(profit) supported by COMEX inventories down 26% and G/S ratio 63:1 compression. Elevated RV 0.539 and heavy long-dated call flow align with P75 86.87 strike cluster capture despite ETF outflows and delayed Fed cuts.",
+    "conviction": 3,
+    "horizon": "2027 LEAPs",
+    "catalysts": [
+      "2026-12-31 silver supply deficit confirmation",
+      "2026-09-15 FOMC first rate cut window",
+      "2026-Q2/Q3 Silver Institute demand update"
+    ],
+    "invalidation": "Exit if SLV AUM outflows accelerate past YTD pace for 10 sessions OR spot closes below 48.03 (MC P25) for 3 sessions",
+    "exit_ladder": {
+      "profit_take_1": "spot >86.87 (MC P75) peel 40% of position",
+      "profit_take_2": "spot >110 peel remaining 40%",
+      "stop": "spot <48.03 close 100% of position",
+      "time_stop": "close all at 30 DTE if not 25% ITM"
+    },
+    "target": {
+      "price": 86.87,
+      "rationale": "MC P75 level from deficit confirmation and industrial demand tail"
+    },
+    "max_pct_book": 0.03,
+    "alignment_check": "Thesis uses 2026-12-31 deficit event plus MC P95 134.90 tail and 0.3899 P(profit) with COMEX tightness and RV 0.539"
+  },
+  "elapsed_s": 18.31
+}

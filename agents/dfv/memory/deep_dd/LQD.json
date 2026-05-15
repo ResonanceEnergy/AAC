@@ -1,0 +1,323 @@
+{
+  "symbol": "LQD",
+  "generated_at": "2026-05-15T23:35:58.689160+00:00",
+  "legs": [
+    {
+      "account": "ibkr",
+      "qty": 1.0,
+      "side": "long",
+      "asset_type": "put",
+      "right": "P",
+      "strike": 106.0,
+      "expiry": "20260515",
+      "avg_cost": 63.05,
+      "last_price": 0.0,
+      "unrealized": -63.05
+    }
+  ],
+  "market": {
+    "spot": 107.86000061035156,
+    "sigma_realized_30d": 0.05223625743795247,
+    "sigma_atm_iv": 0.09241630249023439,
+    "sigma_used": 0.09241630249023439
+  },
+  "horizon": {
+    "last_expiry": "2026-05-15",
+    "dte": 1,
+    "window_end": "2026-05-15"
+  },
+  "monte_carlo": {
+    "paths": 20000,
+    "T_days": 1,
+    "T_years": 0.0027,
+    "sigma_used": 0.0924,
+    "spot": 107.86,
+    "S_T_mean": 107.8759,
+    "S_T_p05": 107.0177,
+    "S_T_p25": 107.5229,
+    "S_T_p50": 107.8711,
+    "S_T_p75": 108.2237,
+    "S_T_p95": 108.7472,
+    "pnl_mean_usd": -6305.0,
+    "pnl_median_usd": -6305.0,
+    "pnl_p05_usd": -6305.0,
+    "pnl_p25_usd": -6305.0,
+    "pnl_p75_usd": -6305.0,
+    "pnl_p95_usd": -6305.0,
+    "prob_profit": 0.0,
+    "prob_double": 0.0,
+    "prob_max_loss": 0.9998,
+    "max_loss_estimate_usd": 6305.0
+  },
+  "research": {
+    "events": [
+      {
+        "date": "2026-05-15",
+        "event": "Empire State Manufacturing Index May: 19.6 vs 7.0 exp",
+        "impact": "bearish",
+        "importance": "med",
+        "source": "forex.tradingcharts.com"
+      },
+      {
+        "date": "2026-05-15",
+        "event": "Industrial Production Apr: 0.7% vs 0.2% exp",
+        "impact": "bearish",
+        "importance": "high",
+        "source": "marketwatch.com"
+      },
+      {
+        "date": "2026-05-15",
+        "event": "Capacity Utilization Apr: 76.1% vs 75.7% exp",
+        "impact": "bearish",
+        "importance": "med",
+        "source": "forex.tradingcharts.com"
+      },
+      {
+        "date": "2026-05-15",
+        "event": "Baker Hughes Rig Count",
+        "impact": "neutral",
+        "importance": "low",
+        "source": "forex.tradingcharts.com"
+      },
+      {
+        "date": "2026-05-15",
+        "event": "ECB Economic Bulletin",
+        "impact": "mixed",
+        "importance": "med",
+        "source": "forexfactory.com"
+      },
+      {
+        "date": "2026-06-16",
+        "event": "FOMC Rate Decision window",
+        "impact": "mixed",
+        "importance": "high",
+        "source": "federalreserve.gov"
+      },
+      {
+        "date": "2026-05-13",
+        "event": "LQD May dividend $0.4246 ex-date",
+        "impact": "bullish",
+        "importance": "low",
+        "source": "ishares.com"
+      },
+      {
+        "date": "2026-05-14",
+        "event": "Kevin Warsh confirmed Fed Chair",
+        "impact": "mixed",
+        "importance": "high",
+        "source": "cnbc.com"
+      },
+      {
+        "date": "2026-05-12",
+        "event": "CPI/PPI hot reports",
+        "impact": "bearish",
+        "importance": "high",
+        "source": "seekingalpha.com"
+      }
+    ],
+    "leading_indicators": [
+      {
+        "indicator": "LQD spot price",
+        "current": "107.86 (near 108 resistance)",
+        "signal": "thesis-off",
+        "why_it_matters": "Above 108.75 invalidates per thesis; strong data pushing yields higher"
+      },
+      {
+        "indicator": "30d realized vol",
+        "current": "0.092 low",
+        "signal": "thesis-on",
+        "why_it_matters": "Confirms low vol regime; put expires worthless unless tail break"
+      },
+      {
+        "indicator": "10Y Treasury yield",
+        "current": "4.36-4.41%",
+        "signal": "thesis-off",
+        "why_it_matters": "Rising yields pressure LQD prices downward"
+      },
+      {
+        "indicator": "Industrial Production surprise",
+        "current": "strong beat",
+        "signal": "thesis-off",
+        "why_it_matters": "Signals resilient economy = less rate cut odds = bond headwind"
+      },
+      {
+        "indicator": "Empire State Index",
+        "current": "19.6 beat",
+        "signal": "thesis-off",
+        "why_it_matters": "Regional manufacturing strength reinforces hawkish tilt"
+      },
+      {
+        "indicator": "LQD 30d SEC yield",
+        "current": "5.16%",
+        "signal": "thesis-on",
+        "why_it_matters": "Attractive carry but price downside from yields dominates near expiry"
+      }
+    ],
+    "sentiment": {
+      "retail": "mixed",
+      "institutional": "bear",
+      "options_flow": "neutral",
+      "notes": "LQD inflows steady but recent hot data shifting flows to shorts; dividend focus dominates retail chatter"
+    },
+    "key_drivers": [
+      "Fed Chair transition to Warsh",
+      "May 15 strong US data releases",
+      "10Y yield at 4.4% resistance",
+      "Low realized vol persistence",
+      "Corporate bond spread stability"
+    ],
+    "risks": [
+      "Stronger-than-expected data extends rate hold = LQD price drop below 107",
+      "Sudden yield spike to 4.5%+ on inflation reprice",
+      "No tail break by expiry = full premium loss"
+    ],
+    "thesis_update": "Strong May 15 data beats (IP 0.7%, Empire 19.6) and Warsh confirmation have reinforced higher-for-longer rates, pushing yields up and invalidating the low-vol tail hedge thesis; LQD at 107.86 sits just below invalidation while put expires worthless today with zero catalysts to drive spot below 107.52."
+  },
+  "citations": [
+    {
+      "type": "url_citation",
+      "url": "https://ors3.cxc.org/first-dry/iShares-iBoxx-Investment-Grade-Corporate-Bond-ETF-LQD-Assessing-Fixed-Income-Headwinds-and-2026-Dividend-ETF-Alternatives-10-6892"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.marketbeat.com/stocks/NYSEARCA/LQD/news/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://mortgageelements.com/may-2026-economic-calendar/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://ca.finance.yahoo.com/calendar/economic?day=2026-05-15"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://amplifyetfs.com/lqdm/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.bls.gov/schedule/2026/05_sched_list.htm"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.heygotrade.com/en/us-stock/lqd/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.guggenheiminvestments.com/services/advisor-resources/us-economic-calendar"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://finance.yahoo.com/quote/LQD/news/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.usbank.com/dam/en/documents/pdfs/about-us-bank/weekly-market-analysis.pdf"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://seekingalpha.com/symbol/LQD"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.nbc.ca/content/dam/bnc/taux-analyses/analyse-eco/mensuel/economic-calendar.pdf"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://finance.yahoo.com/markets/options/articles/lqd-4-5-yield-looks-155647078.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.cnbc.com/quotes/LQD"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.youtube.com/watch?v=4hRmqykpV94"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://blog.swbc.com/lenderhub/market-commentary-week-of-may-11-2026"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.youtube.com/watch?v=Ej9V_vC3xNw"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.cnbc.com/2026/04/29/fed-interest-rate-decision-april-2026.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://us.econoday.com/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.ishares.com/us/products/239566/ishares-iboxx-investment-grade-corporate-bond-etf"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://nmbnow.com/capital-market-update-for-may-11-2026/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://equalsmoney.com/economic-calendar/events/fed-interest-rate-decision"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://finance.yahoo.com/personal-finance/banking/article/fed-rate-predictions-2026-154647304.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.marketwatch.com/economy-politics/calendar"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://tradingeconomics.com/calendar"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.murrayfinancialservices.com/may-11-2026-weekly-market-commentary/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://forex.tradingcharts.com/economic_calendar/2026-05-15.html?code=USD"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.forbes.com/sites/investor-hub/article/fed-meeting-tracker-interest-rate-strategy/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.forexfactory.com/calendar?day=may15.2026"
+    }
+  ],
+  "synthesis": {
+    "verdict": "hold",
+    "thesis": "Long LQD 106 put exp 20260515. MC 20000 paths GBM shows median S_T 107.8711 (P05 107.02) and P(profit)=0 with uniform -6305 P&L, yet 2026-05-15 high-impact bearish prints (IP +0.7% beat, Empire 19.6 beat, Capacity 76.1) plus Warsh Fed Chair confirmation can force a non-GBM tail below 106. Low 0.092 realized vol keeps baseline stable but 10Y at 4.36-4.41% and strong data reduce rate-cut odds, pressuring LQD toward strike on expiry.",
+    "conviction": 2,
+    "horizon": "2026-05-15",
+    "catalysts": [
+      "2026-05-15 Industrial Production Apr 0.7% beat",
+      "2026-05-15 Empire State Manufacturing 19.6 beat",
+      "2026-05-14 Kevin Warsh Fed Chair confirmation"
+    ],
+    "invalidation": "Exit if LQD > 108.75 at any point before 2026-05-15 close",
+    "exit_ladder": {
+      "profit_take_1": "LQD < 106.50 at 10:00 ET 2026-05-15, close 100%",
+      "profit_take_2": "none",
+      "stop": "LQD > 108.75, close 100%",
+      "time_stop": "close at 16:00 ET 2026-05-15 if not ITM"
+    },
+    "target": {
+      "price": 0.0,
+      "rationale": "full premium decay unless 2026-05-15 data tail materializes"
+    },
+    "max_pct_book": 0.03,
+    "alignment_check": "Thesis built from 2026-05-15 IP/Empire beats + MC median S_T 107.8711 and P05 107.02 showing no intrinsic value without event tail"
+  },
+  "elapsed_s": 20.96
+}

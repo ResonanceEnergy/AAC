@@ -1,0 +1,342 @@
+{
+  "symbol": "JNK",
+  "generated_at": "2026-05-15T23:35:20.971894+00:00",
+  "legs": [
+    {
+      "account": "wealthsimple",
+      "qty": 5.0,
+      "side": "long",
+      "asset_type": "put",
+      "right": "P",
+      "strike": 94.0,
+      "expiry": "20260417",
+      "avg_cost": 0.6,
+      "last_price": 0.0,
+      "unrealized": 108.0
+    },
+    {
+      "account": "wealthsimple",
+      "qty": 2.0,
+      "side": "long",
+      "asset_type": "put",
+      "right": "P",
+      "strike": 92.0,
+      "expiry": "20260618",
+      "avg_cost": 0.45,
+      "last_price": 0.0,
+      "unrealized": 14.0
+    }
+  ],
+  "market": {
+    "spot": 95.72000122070312,
+    "sigma_realized_30d": 0.04327277603901387,
+    "sigma_atm_iv": 0.08606870971679689,
+    "sigma_used": 0.08606870971679689
+  },
+  "horizon": {
+    "last_expiry": "2026-06-18",
+    "dte": 34,
+    "window_end": "2026-06-18"
+  },
+  "monte_carlo": {
+    "paths": 20000,
+    "T_days": 34,
+    "T_years": 0.0932,
+    "sigma_used": 0.0861,
+    "spot": 95.72,
+    "S_T_mean": 96.1351,
+    "S_T_p05": 92.0281,
+    "S_T_p25": 94.4123,
+    "S_T_p50": 96.0846,
+    "S_T_p75": 97.8022,
+    "S_T_p95": 100.3989,
+    "pnl_mean_usd": -242.81,
+    "pnl_median_usd": -390.0,
+    "pnl_p05_usd": -390.0,
+    "pnl_p25_usd": -390.0,
+    "pnl_p75_usd": -390.0,
+    "pnl_p95_usd": 595.94,
+    "prob_profit": 0.1239,
+    "prob_double": 0.0698,
+    "prob_max_loss": 0.8006,
+    "max_loss_estimate_usd": 390.0
+  },
+  "research": {
+    "events": [
+      {
+        "date": "2026-05-21",
+        "event": "Weekly initial jobless claims",
+        "impact": "mixed",
+        "importance": "low",
+        "source": "BLS via tradingeconomics.com"
+      },
+      {
+        "date": "2026-06-05",
+        "event": "Employment Situation for May 2026",
+        "impact": "bearish",
+        "importance": "high",
+        "source": "bls.gov"
+      },
+      {
+        "date": "2026-06-10",
+        "event": "CPI for May 2026",
+        "impact": "mixed",
+        "importance": "high",
+        "source": "bls.gov"
+      },
+      {
+        "date": "2026-06-11",
+        "event": "PPI for May 2026",
+        "impact": "bearish",
+        "importance": "med",
+        "source": "bls.gov"
+      },
+      {
+        "date": "2026-06-16",
+        "event": "FOMC meeting begins",
+        "impact": "mixed",
+        "importance": "high",
+        "source": "federalreserve.gov"
+      },
+      {
+        "date": "2026-06-17",
+        "event": "FOMC rate decision and press conference",
+        "impact": "mixed",
+        "importance": "high",
+        "source": "federalreserve.gov"
+      },
+      {
+        "date": "2026-06-18",
+        "event": "JNK options expiry",
+        "impact": "neutral",
+        "importance": "high",
+        "source": "options data"
+      }
+    ],
+    "leading_indicators": [
+      {
+        "indicator": "ICE BofA US HY OAS",
+        "current": "2.76-2.82% tight",
+        "signal": "thesis-off",
+        "why_it_matters": "Spreads near multi-year lows signal low default risk and no widening"
+      },
+      {
+        "indicator": "VIX",
+        "current": "~19",
+        "signal": "neutral",
+        "why_it_matters": "Low vol supports bond prices and reduces left-tail probability"
+      },
+      {
+        "indicator": "JNK price vs 97.80 invalidation",
+        "current": "95.72 holding below",
+        "signal": "thesis-on",
+        "why_it_matters": "Still in put strike zone for 94/92 structure"
+      },
+      {
+        "indicator": "Fed funds rate expectations",
+        "current": "pause priced in",
+        "signal": "thesis-off",
+        "why_it_matters": "Rate stability reduces refinancing stress and spread volatility"
+      },
+      {
+        "indicator": "HY default rate forecasts 2026",
+        "current": "1.5-3% expected",
+        "signal": "neutral",
+        "why_it_matters": "Manageable levels cap credit event risk through expiry"
+      }
+    ],
+    "sentiment": {
+      "retail": "mixed",
+      "institutional": "mixed",
+      "options_flow": "light put buying",
+      "notes": "JNK maintains 6.5% yield with resilient payouts but 2026 default stress test highlighted in recent coverage"
+    },
+    "key_drivers": [
+      "FOMC June 17 decision",
+      "May employment and CPI prints",
+      "HY credit spread direction",
+      "cyclical sector earnings in JNK holdings"
+    ],
+    "risks": [
+      "spread compression to sub-2.5% on soft data",
+      "stronger-than-expected jobs/CPI keeping rates higher",
+      "no credit events materializing before June expiry"
+    ],
+    "thesis_update": "Spreads remain historically tight with no widening observed post-April FOMC; macro data since last thesis has reinforced resilient fundamentals and low vol, reducing near-term left-tail probability for the 94/92 puts while preserving June FOMC as the final binary catalyst before expiry."
+  },
+  "citations": [
+    {
+      "type": "url_citation",
+      "url": "https://finance.yahoo.com/personal-finance/banking/article/when-is-the-next-fed-meeting-full-schedule-150709698.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.schwab.com/learn/story/corporate-bond-outlook"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.forbes.com/sites/investor-hub/article/fed-meeting-tracker-interest-rate-strategy/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.perplexity.ai/finance/JNK?comparing=JNK,INDA,SPSB,IGV,SPAB,EFG"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.bls.gov/schedule/news_release/cpi.htm"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.newyorkfed.org/research/calendars/nationalecon_cal"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.ainvest.com/news/hyg-outpaces-jnk-yield-2026-high-yield-etf-battle-2604/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.ssga.com/us/en/intermediary/etfs/state-street-spdr-bloomberg-high-yield-bond-etf-jnk"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://finance.yahoo.com/markets/options/articles/high-yield-bond-etf-offers-000539203.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.bls.gov/schedule/2026/06_sched.htm"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.federalreserve.gov/newsevents/calendar.htm"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.bls.gov/schedule/news_release/current_year.asp"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.calendarx.com/events/jobs-report-june-2026"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.federalreserve.gov/monetarypolicy/fomcpresconf20260429.htm"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.chicagofed.org/utilities/about-us/federal-reserve-calendars"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://247wallst.com/investing/2026/04/18/this-high-yield-bond-fund-just-hit-a-sweet-spot-but-timing-matters/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.janushenderson.com/en-no/investor/article/high-yield-bonds-outlook-increasing-selectivity-in-2026/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://zforex.com/blog/general-trading/what-is-the-fomc-meeting-schedule/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://optioncharts.io/options/JNK/open-interest"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://tickeron.com/ticker/JNK/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.nb.com/insights/fixed-income-investment-outlook-2q-2026"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://fred.stlouisfed.org/series/BAMLH0A0HYM2"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://finance.yahoo.com/markets/stocks/articles/jnk-6-5-yield-faces-175120612.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://us.econoday.com/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.msn.com/en-us/news/insight/high-yield-bond-etfs-sustain-payouts-despite-rising-default-risks/gm-GMLEB5822E"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.whitehouse.gov/wp-content/uploads/2025/09/pfei_schedule_release_dates_cy2026.pdf"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.mnimarkets.com/calendars/fomc-meeting-calendar"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://tradingeconomics.com/calendar"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://equalsmoney.com/economic-calendar/events/fomc-meeting"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.linkedin.com/pulse/active-investing-what-2026-may-hold-us-corporate-3v0oc"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.aol.com/finance/jnk-6-5-yield-faces-175120313.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://money.usnews.com/funds/etfs/high-yield-bond/state-street-spdr-blmbg-hi-yld-bd-etf/jnk"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.guggenheiminvestments.com/services/advisor-resources/us-economic-calendar"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.marketwatch.com/economy-politics/calendar"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://bankingjournal.aba.com/2024/08/fomc-releases-tentative-meeting-schedule-for-2025-2026/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://fintel.io/sopt/us/jnk"
+    }
+  ],
+  "synthesis": {
+    "verdict": "hold",
+    "thesis": "Long JNK 94/92 put structure positioned for spread widening into 2026-06-17 FOMC decision and 2026-06-05 Employment Situation print. MC 20000-path GBM shows S_T P05 at 92.03 with P&L P95 of +595.94 versus median -390, delivering 12.39% P(profit) that rises sharply on any HY OAS re-widening above 3%. Price holding below 97.80 keeps both strikes live through 2026-06-18 expiry while VIX 19 caps left-tail but does not eliminate event-driven downside.",
+    "conviction": 2,
+    "horizon": "2026-06-18",
+    "catalysts": [
+      "FOMC rate decision and press conference 2026-06-17",
+      "Employment Situation May 2026 2026-06-05",
+      "CPI May 2026 2026-06-10"
+    ],
+    "invalidation": "Exit if JNK closes above 97.80 for three sessions or ICE BofA HY OAS compresses below 2.50%",
+    "exit_ladder": {
+      "profit_take_1": "JNK <= 92.50 peel 50% of 94-strike leg",
+      "profit_take_2": "JNK <= 91.00 peel remaining 50% of 94-strike leg",
+      "stop": "hard stop if realized loss exceeds 390 USD close entire position",
+      "time_stop": "close all at 21 DTE if not 25% ITM"
+    },
+    "target": {
+      "price": 92.0,
+      "rationale": "MC P05 level that monetizes both strikes"
+    },
+    "max_pct_book": 0.03,
+    "alignment_check": "Thesis uses 2026-06-17 FOMC and 2026-06-05 Employment events plus MC S_T P05=92.03 and 12.39% P(profit) to justify holding the put structure."
+  },
+  "elapsed_s": 20.75
+}

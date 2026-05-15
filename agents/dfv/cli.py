@@ -117,16 +117,48 @@ def _cmd_thesis(args: argparse.Namespace) -> int:
     elif args.action == "get":
         _print_json(dfv.thesis.get(args.symbol) or {})
     elif args.action == "set":
-        rec = dfv.thesis.set(
-            args.symbol,
-            thesis=args.thesis or "",
-            conviction=int(args.conviction or 3),
-            horizon=args.horizon or "months",
-            catalysts=(args.catalysts or "").split("|") if args.catalysts else [],
-            invalidation=args.invalidation or "",
-            target={"raw": args.target or ""},
-            sizing={"max_pct_book": float(args.max_pct or 0.03)},
-        )
+        # JSON-stdin path: shells eat $/quotes; let the operator pipe a dict.
+        if getattr(args, "from_json", False):
+            raw = sys.stdin.read()
+            try:
+                payload = json.loads(raw) if raw.strip() else {}
+            except json.JSONDecodeError as exc:
+                print(f"invalid JSON on stdin: {exc}", file=sys.stderr)
+                return 2
+            symbol = args.symbol or payload.get("symbol")
+            if not symbol:
+                print("thesis set --from-json requires 'symbol' arg or JSON key.", file=sys.stderr)
+                return 2
+            target = payload.get("target")
+            if not isinstance(target, dict):
+                target = {"raw": str(target)} if target else {"raw": ""}
+            sizing = payload.get("sizing")
+            if not isinstance(sizing, dict):
+                sizing = {"max_pct_book": float(payload.get("max_pct_book") or 0.03)}
+            catalysts = payload.get("catalysts") or []
+            if isinstance(catalysts, str):
+                catalysts = [c.strip() for c in catalysts.split("|") if c.strip()]
+            rec = dfv.thesis.set(
+                symbol,
+                thesis=str(payload.get("thesis") or ""),
+                conviction=int(payload.get("conviction") or 3),
+                horizon=str(payload.get("horizon") or "months"),
+                catalysts=list(catalysts),
+                invalidation=str(payload.get("invalidation") or ""),
+                target=target,
+                sizing=sizing,
+            )
+        else:
+            rec = dfv.thesis.set(
+                args.symbol,
+                thesis=args.thesis or "",
+                conviction=int(args.conviction or 3),
+                horizon=args.horizon or "months",
+                catalysts=(args.catalysts or "").split("|") if args.catalysts else [],
+                invalidation=args.invalidation or "",
+                target={"raw": args.target or ""},
+                sizing={"max_pct_book": float(args.max_pct or 0.03)},
+            )
         _print_json(rec)
     return 0
 
@@ -234,6 +266,8 @@ def main(argv: list[str] | None = None) -> int:
     th.add_argument("--invalidation")
     th.add_argument("--target")
     th.add_argument("--max-pct", type=float, dest="max_pct")
+    th.add_argument("--from-json", action="store_true", dest="from_json",
+                    help="Read full thesis dict from stdin (avoids shell-escape pain).")
     th.set_defaults(func=_cmd_thesis)
 
     args = ap.parse_args(argv)

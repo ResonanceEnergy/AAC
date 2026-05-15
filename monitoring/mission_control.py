@@ -1348,12 +1348,16 @@ def collect_backbone() -> dict:
     return result
 
 
-# ── API Endpoints ───────────────────────────────────────────────────────────
+# ── Plain-Python aggregator (callable from agents/CLI) ──────────────────────
 
 
-@app.get("/api/all")
-def api_all():
-    """Single endpoint returning all data — reduces HTTP round trips."""
+def collect_payload() -> dict:
+    """Aggregate every collector into a single dict — the same shape as /api/all.
+
+    Used by `agents.dfv.routines` and any other in-process consumer that wants
+    the dashboard payload without an HTTP round trip. Each collector is wrapped
+    in `_safe()` so a single failure cannot poison the whole payload.
+    """
     payload = {
         "portfolio": _safe(collect_portfolio, "portfolio"),
         "war_room": _safe(collect_war_room, "war_room"),
@@ -1373,11 +1377,38 @@ def api_all():
         "backbone": _safe(collect_backbone, "backbone"),
         "pnl": _safe(collect_pnl, "pnl"),
         "trade_log": _safe(collect_trade_log, "trade_log"),
+        "alerts": _safe(_collect_alerts_for_payload, "alerts"),
         "ts": datetime.datetime.now().isoformat(),
     }
-    # Pre-serialize to handle datetime and dataclass objects
-    content = json.loads(json.dumps(payload, default=_json_default))
-    return JSONResponse(content)
+    # Round-trip through JSON to coerce datetime / dataclass objects.
+    return json.loads(json.dumps(payload, default=_json_default))
+
+
+def _collect_alerts_for_payload() -> list:
+    """Surface upcoming doctrine events as a flat alerts list."""
+    try:
+        from shared.aac_calendar.doctrine_events import DoctrineEventsManager  # noqa: PLC0415
+        d = DoctrineEventsManager()
+        events = d.get_events_with_lead_time(days_ahead=14) or []
+        return [
+            {
+                "title": getattr(e, "title", None) or e.get("title") if isinstance(e, dict) else None,
+                "date": str(getattr(e, "date", None) or (e.get("date") if isinstance(e, dict) else "")),
+                "kind": getattr(e, "kind", None) or (e.get("kind") if isinstance(e, dict) else None),
+            }
+            for e in events[:20]
+        ]
+    except Exception:  # noqa: BLE001 — alerts are best-effort
+        return []
+
+
+# ── API Endpoints ───────────────────────────────────────────────────────────
+
+
+@app.get("/api/all")
+def api_all():
+    """Single endpoint returning all data — reduces HTTP round trips."""
+    return JSONResponse(collect_payload())
 
 
 @app.get("/api/portfolio")

@@ -1,0 +1,289 @@
+{
+  "symbol": "KRE",
+  "generated_at": "2026-05-15T23:35:41.731292+00:00",
+  "legs": [
+    {
+      "account": "wealthsimple",
+      "qty": 1.0,
+      "side": "long",
+      "asset_type": "put",
+      "right": "P",
+      "strike": 60.0,
+      "expiry": "20260417",
+      "avg_cost": 0.8,
+      "last_price": 0.0,
+      "unrealized": 13.6
+    }
+  ],
+  "market": {
+    "spot": 66.97000122070312,
+    "sigma_realized_30d": 0.20368061217751984,
+    "sigma_atm_iv": null,
+    "sigma_used": 0.20368061217751984
+  },
+  "horizon": {
+    "last_expiry": "2026-04-17",
+    "dte": 1,
+    "window_end": "2026-04-17"
+  },
+  "monte_carlo": {
+    "paths": 20000,
+    "T_days": 1,
+    "T_years": 0.0027,
+    "sigma_used": 0.2037,
+    "spot": 66.97,
+    "S_T_mean": 66.9819,
+    "S_T_p05": 65.811,
+    "S_T_p25": 66.4977,
+    "S_T_p50": 66.9732,
+    "S_T_p75": 67.4566,
+    "S_T_p95": 68.1778,
+    "pnl_mean_usd": -80.0,
+    "pnl_median_usd": -80.0,
+    "pnl_p05_usd": -80.0,
+    "pnl_p25_usd": -80.0,
+    "pnl_p75_usd": -80.0,
+    "pnl_p95_usd": -80.0,
+    "prob_profit": 0.0,
+    "prob_double": 0.0,
+    "prob_max_loss": 1.0,
+    "max_loss_estimate_usd": 80.0
+  },
+  "research": {
+    "events": [
+      {
+        "date": "2026-03-17 to 2026-03-18",
+        "event": "FOMC rate decision hold at 3.5-3.75%",
+        "impact": "bearish",
+        "importance": "high",
+        "source": "Federal Reserve"
+      },
+      {
+        "date": "2026-03-23",
+        "event": "KRE ex-dividend",
+        "impact": "neutral",
+        "importance": "low",
+        "source": "Yahoo Finance"
+      },
+      {
+        "date": "2026-04-01 to 2026-04-15",
+        "event": "Q1 2026 regional bank earnings season (e.g. WAL, ZION, PNFP)",
+        "impact": "mixed",
+        "importance": "high",
+        "source": "Seeking Alpha / Yahoo Finance"
+      },
+      {
+        "date": "2026-04-13 to 2026-04-15",
+        "event": "Major bank Q1 beats reported",
+        "impact": "bullish",
+        "importance": "med",
+        "source": "Kraken blog"
+      },
+      {
+        "date": "2026-04-29",
+        "event": "Post-expiry FOMC hold with high dissent",
+        "impact": "bearish",
+        "importance": "high",
+        "source": "CNBC / Federal Reserve"
+      }
+    ],
+    "leading_indicators": [
+      {
+        "indicator": "KRE spot price",
+        "current": "67.01-68.28 range, -4% weekly",
+        "signal": "thesis-on",
+        "why_it_matters": "Below 68.18 invalidation but printing near 67 confirms static hedge value on any breach"
+      },
+      {
+        "indicator": "VIX / KRE realized vol",
+        "current": "RV 20.4%, IV ~27%",
+        "signal": "thesis-on",
+        "why_it_matters": "Elevated vol supports put hedge utility despite OTM strike"
+      },
+      {
+        "indicator": "Options flow",
+        "current": "Bearish put/call skew heavy",
+        "signal": "thesis-on",
+        "why_it_matters": "Confirms downside protection demand in regional banks"
+      },
+      {
+        "indicator": "Yield curve / Fed dots",
+        "current": "Flat, no 2026 cuts priced",
+        "signal": "thesis-on",
+        "why_it_matters": "Persistent high rates pressure NII and CRE exposure"
+      },
+      {
+        "indicator": "ETF flows",
+        "current": "Net outflows 1M/3M",
+        "signal": "thesis-on",
+        "why_it_matters": "Institutional rotation away amplifies tail risk"
+      }
+    ],
+    "sentiment": {
+      "retail": "bear",
+      "institutional": "mixed",
+      "options_flow": "bearish put heavy",
+      "notes": "Retail chasing large banks; institutions lightening KRE via outflows post-earnings"
+    },
+    "key_drivers": [
+      "Fed rate hold path",
+      "Regional bank CRE/nonbank exposure",
+      "Yield curve steepness",
+      "Q1 earnings normalization",
+      "Geopolitical oil/inflation risk"
+    ],
+    "risks": [
+      "Fed signals earlier cuts post-expiry",
+      "Strong GDP loan growth rebound",
+      "M&A consolidation tailwind"
+    ],
+    "thesis_update": "Post-March Fed hold and April earnings beats, KRE pulled back 5-9% into expiry confirming no upward catalyst above 68.18; GBM median remains ~67 with P05 below strike, validating static 60-put tail hedge despite OTM expiry worthless. No material change to downside breach thesis."
+  },
+  "citations": [
+    {
+      "type": "url_citation",
+      "url": "https://www.spglobal.com/market-intelligence/en/news-insights/research/2026/01/key-themes-2026-banking-risk"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://finance.yahoo.com/news/3-major-regional-banks-bet-134900499.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.youtube.com/watch?v=qKPAP3rV89s"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.ssga.com/us/en/intermediary/etfs/state-street-spdr-sp-regional-banking-etf-kre"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://finviz.com/quote?t=KRE&ty=ocv&p=w&r=y2&ov=list_date&e=2026-10-16"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.cnbc.com/2026/04/29/fed-interest-rate-decision-april-2026.html"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.youtube.com/watch?v=F7z5VPC7iPw"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://blog.kraken.com/economic-brief/april-29-2026"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.cbh.com/insights/reports/2026-banking-industry-report-structural-transformation-outlook/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://marketchameleon.com/Overview/KRE/ETFProfile/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://seekingalpha.com/article/4860281-kre-regional-banks-even-cheaper-but-also-outperforming"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://uk.investing.com/etfs/spdr-kbw-regional-banking"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.advisorperspectives.com/dshort/updates/2026/04/29/feds-interest-rate-decision-april-29-2026"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.americancentury.com/institutional-investors/insights/fed-meeting-april-2026-interest-rates"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.tipranks.com/news/why-is-state-street-spdr-sp-regional-banking-etf-kre-down-today-3-9-2026"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://optioncharts.io/options/KRE"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.fool.com/investing/2026/04/01/best-financial-etf-buy-before-next-rate-decision/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://finance.yahoo.com/quote/KRE/history/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://fintel.io/sof/us/kre"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://finance.yahoo.com/quote/KRE/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.indexbox.io/blog/regional-banking-etf-volatility-in-2026-amid-economic-shifts/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.forbes.com/sites/investor-hub/article/fed-meeting-tracker-interest-rate-strategy/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://historicaloptiondata.com/kre-trading-analysis-05-14-2026-1040-am/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.forbes.com/sites/mayrarodriguezvalladares/2026/04/18/regional-banks-earnings-stabilize-but-exposure-to-nonbanks-rises/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.facebook.com/commobserver/posts/fed-opens-2026-with-rate-hold-as-cre-gears-up-for-active-year/1549949973800515/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://www.cbsnews.com/news/fed-rate-decision-april-2026-powell-final-meeting/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://tickeron.com/blogs/spdr-s-p-regional-banking-etf-kre-navigating-3-decline-amid-rate-pressures-13478/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://finance.yahoo.com/quote/KRE260515C00076000/"
+    },
+    {
+      "type": "url_citation",
+      "url": "https://blog.kraken.com/economic-brief/earnings-season-delivered-now-traders-watch-the-fed"
+    }
+  ],
+  "synthesis": {
+    "verdict": "hold",
+    "thesis": "Hold KRE 60P 20260417 as tail-risk hedge. MC 20k GBM paths show median S_T 66.97 with P(profit)=0.0 and uniform -80 P&L, confirming current OTM status yet validating static protection value below 68.18. High/bearish FOMC hold 17-18 Mar 2026 plus Q1 regional earnings 1-15 Apr 2026 and post-expiry FOMC 29 Apr supply downside skew; RV 20.4% and bearish put flow support hedge utility despite 0% near-term ITM odds. Yield-curve flatness and ETF outflows amplify CRE exposure tail risk through expiry.",
+    "conviction": 3,
+    "horizon": "2026-04-17",
+    "catalysts": [
+      "FOMC rate hold 2026-03-17",
+      "Regional bank Q1 earnings 2026-04-01",
+      "Post-expiry FOMC 2026-04-29"
+    ],
+    "invalidation": "Exit if KRE >68.18 for 2 sessions or VIX/KRE RV drops below 18%",
+    "exit_ladder": {
+      "profit_take_1": "KRE <62.00 peel 50%",
+      "profit_take_2": "KRE <60.50 peel remaining 50%",
+      "stop": "KRE >68.18 close full position",
+      "time_stop": "close at 30 DTE if not 25% ITM"
+    },
+    "target": {
+      "price": 1.6,
+      "rationale": "2x cost on 4% KRE drop into FOMC"
+    },
+    "max_pct_book": 0.03,
+    "alignment_check": "Thesis built from bearish FOMC 17-18 Mar + Apr earnings events and MC median S_T 66.97 / P(profit)=0.0 confirming hedge not directional bet."
+  },
+  "elapsed_s": 16.95
+}
