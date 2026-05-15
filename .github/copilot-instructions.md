@@ -77,10 +77,10 @@ AI-powered algorithmic trading platform. Part of Resonance Energy's NCC quad (NC
 | API | Status | Key Location | Notes |
 |---|---|---|---|
 | **yfinance** | WORKING (Free) | No key needed | Primary options chain source |
-| **CoinGecko** | WORKING (Free tier) | `.env` COINGECKO_API_KEY | Pro key expired → auto-downgrades. 10 req/min |
+| **CoinGecko** | WORKING (Free tier, no key) | — (key removed from `.env` 2026-05-15) | 10 req/min. Returns BTC/ETH OK. |
 | **Unusual Whales** | PARTIAL | `.env` UNUSUAL_WHALES_API_KEY | Connection works. Field parsing BROKEN (strike/premium/$0). Schema changed. |
-| **FRED** | WORKING | `.env` FRED_API_KEY | VIX fallback, macro data |
-| **Finnhub** | WORKING | `.env` FINNHUB_API_KEY | Quotes, news |
+| **FRED** | NOT CONFIGURED | — (key removed from `.env` 2026-05-15) | DFV no longer depends on this. Add key to restore macro feeds. |
+| **Finnhub** | NOT CONFIGURED | — (key removed from `.env` 2026-05-15) | DFV no longer depends on this. Add key to restore quotes/news. |
 | **Polygon** | LIMITED | `.env` POLYGON_API_KEY | Free tier: NO options snapshots (403). Needs $79/mo |
 | **IBKR** | WORKING | Port 7496 live, TWS | Account U24346218. 8 live put trades executed |
 | **Moomoo** | WORKING | OpenD, FUTUCA | Real mode, $365.15 USD, trade PIN=069420 |

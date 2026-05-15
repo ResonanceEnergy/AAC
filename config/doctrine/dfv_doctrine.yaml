@@ -8,21 +8,33 @@ operator: "Keith Patrick Gill (Roaring Kitty / DeepFuckingValue)"
 
 # ── Autonomy switches ────────────────────────────────────────────
 autonomy:
-  research: full          # screening, DD, thesis updates
-  briefings: full         # daily/weekly briefs, alerts
-  watchlist: full         # add/remove watchlist tickers
-  conviction_tiers: full  # nudge conviction on existing positions
-  trade_execution: human_in_loop  # DFV proposes, human signs.  flip to "full" only with explicit go-ahead.
+  research: full # screening, DD, thesis updates
+  briefings: full # daily/weekly briefs, alerts
+  watchlist: full # add/remove watchlist tickers
+  conviction_tiers: full # nudge conviction on existing positions
+  trade_execution: human_in_loop # DFV proposes, human signs.  flip to "full" only with explicit go-ahead.
   margin_changes: human_in_loop
-  new_ticker: human_in_loop  # any name not yet in active book
+  new_ticker: human_in_loop # any name not yet in active book
 
 # ── Conviction tiers → max % of book ─────────────────────────────
 conviction:
-  "5": { label: "screaming",   max_pct_book: 0.20, options_allowed: true,  notes: "core; LEAPS welcome" }
-  "4": { label: "high",        max_pct_book: 0.10, options_allowed: true }
-  "3": { label: "starter",     max_pct_book: 0.03, options_allowed: false, notes: "must hold ≥ 5 days before scaling" }
-  "2": { label: "watch",       max_pct_book: 0.0,  options_allowed: false }
-  "1": { label: "lottery",     max_pct_book: 0.0,  options_allowed: false }
+  "5":
+    {
+      label: "screaming",
+      max_pct_book: 0.20,
+      options_allowed: true,
+      notes: "core; LEAPS welcome",
+    }
+  "4": { label: "high", max_pct_book: 0.10, options_allowed: true }
+  "3":
+    {
+      label: "starter",
+      max_pct_book: 0.03,
+      options_allowed: false,
+      notes: "must hold ≥ 5 days before scaling",
+    }
+  "2": { label: "watch", max_pct_book: 0.0, options_allowed: false }
+  "1": { label: "lottery", max_pct_book: 0.0, options_allowed: false }
 
 # ── Deep value screen thresholds ────────────────────────────────
 screens:
@@ -82,20 +94,20 @@ gates:
     severity: soft
 
 decision_policy:
-  hard_fail_count_to_veto: 1   # any hard fail vetoes
+  hard_fail_count_to_veto: 1 # any hard fail vetoes
   soft_fail_count_to_veto: 3
   soft_fail_count_to_warn: 1
 
 # ── Daily cadence (ET) — daemon schedules ────────────────────────
 cadence:
-  asia_digest:    "04:00"
-  pre_market:     "07:30"
+  asia_digest: "04:00"
+  pre_market: "07:30"
   open_bell_prep: "09:25"
-  midday:         "12:00"
-  eod_prep:       "15:45"
-  close_debrief:  "17:00"
-  asia_watch:     "22:00"
-  weekend_dd:     "Sat 09:00"
+  midday: "12:00"
+  eod_prep: "15:45"
+  close_debrief: "17:00"
+  asia_watch: "22:00"
+  weekend_dd: "Sat 09:00"
 
 # ── Data sources (priority order) ────────────────────────────────
 data_sources:
@@ -110,11 +122,11 @@ data_sources:
 
 # ── Memory paths ─────────────────────────────────────────────────
 memory:
-  thesis_log:    "agents/dfv/memory/thesis_log.json"
-  conviction:    "agents/dfv/memory/conviction.json"
-  watchlist:     "agents/dfv/memory/watchlist.json"
-  postmortems:   "agents/dfv/memory/postmortems.jsonl"
-  daily_briefs:  "agents/dfv/memory/briefs/"
+  thesis_log: "agents/dfv/memory/thesis_log.json"
+  conviction: "agents/dfv/memory/conviction.json"
+  watchlist: "agents/dfv/memory/watchlist.json"
+  postmortems: "agents/dfv/memory/postmortems.jsonl"
+  daily_briefs: "agents/dfv/memory/briefs/"
   decisions_log: "agents/dfv/memory/decisions.jsonl"
 
 # ── Hard rules (will not be overridden) ──────────────────────────

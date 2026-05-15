@@ -1,0 +1,37 @@
+{
+  "type": "asia_digest",
+  "generated_at": "2026-05-15T21:21:28+00:00",
+  "tilt": "mixed",
+  "crypto": {
+    "ok": true,
+    "ts": "2026-05-15T21:21:24+00:00",
+    "prices": {
+      "BITCOIN/USD": {
+        "price": 79143,
+        "change_24h_pct": -2.695272260025709,
+        "volume_24h": 38845055212.32915
+      },
+      "ETHEREUM/USD": {
+        "price": 2223.02,
+        "change_24h_pct": -3.085586662514612,
+        "volume_24h": 17139312569.528238
+      }
+    }
+  },
+  "macro": {
+    "ok": true,
+    "ts": "2026-05-15T21:21:25+00:00",
+    "series": {
+      "DTWEXBGS": null,
+      "DGS10": null,
+      "VIXCLS": null
+    }
+  },
+  "asia_adrs": {
+    "ok": false,
+    "ts": "2026-05-15T21:21:27+00:00",
+    "quotes": {}
+  },
+  "headlines": [],
+  "headline": "Asia tape: mixed. BTC 24h -2.70% \u00b7 ADR breadth 0/0."
+}

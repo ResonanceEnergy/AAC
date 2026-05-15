@@ -52,7 +52,7 @@
 | **X/Twitter API** | HTTP 402 | LOW | Needs paid tier. Graceful fallback to 0.5. |
 | **NDAX** | ACTIVE (zero positions, account open) | LOW | XRP+ETH sold Mar 2026 ($4,492 CAD). Account open, NDAX_API_KEY/SECRET/USER_ID in .env, TESTNET=false. Connector ready. Wired back into docs 2026-04-20. Re-enter BTC/CAD on next doctrine signal. |
 
-## Active Positions (Real Money) — Updated Apr 9 (IBKR live-verified)
+## Active Positions (Real Money) — Updated 2026-05-15 (post Apr-17 / May-1 expiries)
 
 ### IBKR (Account U24346218) — Net Liq CAD $20,079.57 (~USD $14,520) | Cash CAD $2,700.83
 
@@ -66,22 +66,29 @@
 | SLV | $70C | 2 | Jun 18 | $1,270 | +$128 | Near ATM, hold |
 | XLE | $65C | 3 | Jun 18 | $225 | -$581 | OTM, underwater |
 
-**Puts (10 positions — $431 MV)**
+**Puts (5 live positions — Apr 17 / May 1 expired worthless)**
 
-| Ticker | Strike | Qty | Expiry | MV | PnL | Status |
-|--------|--------|-----|--------|------|------|--------|
-| OBDC | $7.5P | 11 | Jul 17 | $178 | -$16 | OTM, hold |
-| BKLN | $20P | 3 | Jun 18 | $118 | -$1 | Near ATM, hold |
-| HYG | $77P | 1 | Jun 18 | $36 | -$44 | OTM, hold |
-| LQD | $106P | 1 | May 15 | $28 | -$35 | OTM, monitor |
-| EMB | $90P | 1 | May 15 | $26 | -$22 | OTM, monitor |
-| MAIN | $49.7P | 1 | Apr 17 | $20 | -$53 | Near-worthless, expiring |
-| XLF | $46P | 1 | May 1 | $13 | -$62 | OTM, 21-DTE roll window |
-| ARCC | $17P | 1 | Apr 17 | $10 | -$15 | Near-worthless, expiring |
-| JNK | $92P | 1 | Apr 17 | $2 | -$33 | Near-worthless, expiring |
-| PFF | $29P | 1 | Apr 17 | $0 | -$17 | Worthless, expiring |
+| Ticker | Strike | Qty | Expiry | Status | DFV thesis |
+|--------|--------|-----|--------|--------|------------|
+| OBDC | $7.5P | 11 | Jul 17 | OTM, hold | conv 2 — BDC credit-stress lottery |
+| BKLN | $20P | 3 | Jun 18 | Near ATM, hold | conv 2 — leveraged-loan dislocation |
+| HYG | $77P | 1 | Jun 18 | OTM, hold | conv 2 — HY spread widening |
+| LQD | $106P | 1 | **May 15 — TODAY** | 0-DTE, let die | conv 1 — IG credit hedge |
+| EMB | $90P | 1 | **May 15 — TODAY** | 0-DTE, let die | conv 1 — EM USD-debt hedge |
 
-**IBKR Total PnL: -$484** (Calls -$186, Puts -$298). KRE/IWM expired Apr 4 (-$541).
+**Expired worthless (closed)**
+
+| Ticker | Strike | Expiry | Realized PnL |
+|--------|--------|--------|--------------|
+| MAIN | $49.7P | 2026-04-17 | -$53 |
+| ARCC | $17P | 2026-04-17 | -$15 |
+| JNK | $92P | 2026-04-17 | -$33 |
+| PFF | $29P | 2026-04-17 | -$17 |
+| XLF | $46P | 2026-05-01 | -$62 |
+| KRE | $58P | 2026-04-04 | -$271 |
+| IWM | $230P | 2026-04-04 | -$270 |
+
+**Realized put losses since Apr 4: -$721.** Theses (incl. post-mortems) in `agents/dfv/memory/thesis_log.json`.
 
 ### WealthSimple TFSA (~$18,638 CAD / ~$13,398 USD)
 
@@ -90,12 +97,8 @@
 | GLD | $515C | 1 | $19.40 | Mar 2027 | $428.66 | LEAPS — OTM, hold (time value) |
 | XLE | $85C | 26 | $0.37 | Jan 2027 | $59.37 | LEAPS — deep OTM, hold |
 | OWL | $8P | 5 | $0.75 | Jun 18 | $8.55 | Near ATM, hold |
-| ~~ARCC~~ | ~~$16P~~ | ~~10~~ | ~~$0.13~~ | ~~Apr 17~~ | | **EXPIRING WORTHLESS** ($0 bid) |
-| ~~JNK~~ | ~~$94P~~ | ~~5~~ | ~~$0.57~~ | ~~Apr 17~~ | | **EXPIRING WORTHLESS** ($0 bid) |
-| ~~KRE~~ | ~~$60P~~ | ~~1~~ | ~~$1.05~~ | ~~Apr 17~~ | | **EXPIRING WORTHLESS** ($0 bid) |
-| ~~OBDC~~ | ~~$10P~~ | ~~65~~ | ~~$0.15~~ | ~~Apr 17~~ | | **EXPIRING WORTHLESS** ($0 bid, $975 loss) |
 
-**WS Apr expired premium lost: -$1,495** (ARCC $130 + JNK $285 + KRE $105 + OBDC $975)
+**WS Apr 17 expired worthless (closed)**: ARCC $16P (-$130), JNK $94P (-$285), KRE $60P (-$105), OBDC $10P (-$975). Total realized: **-$1,495**.
 
 ### Moomoo (FUTUCA) — ~$17,684 USD
 

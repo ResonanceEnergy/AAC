@@ -168,6 +168,11 @@ def _headline(missing: list[str], stale: list[str], war_room: dict[str, Any]) ->
 # ── Sprint 1: distinct cadence routines ────────────────────────────────
 # Replace the four stale aliases (asia_digest, open_bell_prep,
 # close_debrief, asia_watch) with their own substantive scope.
+#
+# 2026-05-15: external feeds (CoinGecko / FRED / Finnhub) were orphaned
+# from these routines because their keys are empty in .env. Routines
+# now operate exclusively on what mission_control already aggregates
+# (IBKR / Moomoo / war room) plus DFV's own thesis & watchlist memory.
 
 def _held_symbols() -> list[str]:
     """Pull held symbols from mission_control payload (defensive)."""
@@ -182,37 +187,34 @@ def _held_symbols() -> list[str]:
 
 
 def asia_digest() -> dict[str, Any]:
-    """04:00 ET — Asia overnight tape: crypto, dollar, rates, ADR pre-market."""
-    crypto = dfv_data.crypto_snapshot()
-    macro = dfv_data.macro_snapshot()
-    adrs = dfv_data.quotes(dfv_data.ASIA_ADRS)
-    news = dfv_data.market_news(category="general", limit=5)
+    """04:00 ET — first read of the day. Held names + war-room snapshot."""
+    payload = _safe_collect_payload()
+    war_room = payload.get("war_room", {}) or {}
+    held = _held_symbols()
+    overnight_alerts = (payload.get("alerts", []) or [])[:5]
 
-    # Lightweight regime tilt: BTC 24h sign + ADR breadth
-    btc = crypto.get("prices", {}).get("BITCOIN/USD", {}).get("change_24h_pct")
-    adr_q = adrs.get("quotes", {})
-    adr_up = sum(1 for q in adr_q.values() if (q.get("change_pct") or 0) > 0)
-    adr_dn = sum(1 for q in adr_q.values() if (q.get("change_pct") or 0) < 0)
-    tilt = "risk-on" if (btc and btc > 0 and adr_up > adr_dn) else (
-        "risk-off" if (btc is not None and btc < 0 and adr_dn > adr_up) else "mixed"
-    )
+    composite = war_room.get("composite_score")
+    regime = (war_room.get("regime") or "").upper() or "?"
 
     report = {
         "type": "asia_digest",
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "tilt": tilt,
-        "crypto": crypto,
-        "macro": macro,
-        "asia_adrs": adrs,
-        "headlines": news.get("headlines", []),
+        "held_symbols": held,
+        "war_room": {
+            "composite": composite,
+            "regime": regime,
+            "phase": war_room.get("phase"),
+        },
+        "overnight_alerts": overnight_alerts,
+        "asia_adr_universe": list(dfv_data.ASIA_ADRS),
         "headline": (
-            f"Asia tape: {tilt}. BTC 24h {btc:+.2f}% · ADR breadth {adr_up}/{adr_up+adr_dn}."
-            if btc is not None else
-            f"Asia tape: {tilt} (no crypto signal). ADR breadth {adr_up}/{adr_up+adr_dn}."
+            f"Asia open. Regime {regime}. {len(held)} held names. "
+            f"{len(overnight_alerts)} overnight alert(s)."
         ),
+        "note": "External quote feeds (CoinGecko/FRED/Finnhub) orphaned 2026-05-15.",
     }
     _save_brief("asia_digest", report)
-    _log.info("dfv.asia_digest", tilt=tilt, adr_up=adr_up, adr_dn=adr_dn)
+    _log.info("dfv.asia_digest", held=len(held), alerts=len(overnight_alerts))
     return report
 
 
@@ -220,28 +222,25 @@ def open_bell_prep() -> dict[str, Any]:
     """09:25 ET — last 5 minutes before the open. Held names, top alerts, war room."""
     payload = _safe_collect_payload()
     held = _held_symbols()
-    pre = dfv_data.quotes(held) if held else {"ok": True, "quotes": {}}
-
-    # Largest pre-market movers among held names
-    movers = sorted(
-        [
-            {"symbol": s, "change_pct": q.get("change_pct"), "current": q.get("current")}
-            for s, q in pre.get("quotes", {}).items()
-            if q.get("change_pct") is not None
-        ],
-        key=lambda x: abs(x["change_pct"] or 0),
-        reverse=True,
-    )[:5]
-
     war_room = payload.get("war_room", {}) or {}
     alerts = (payload.get("alerts", []) or [])[:3]
+    portfolio = payload.get("portfolio", {}) or {}
 
     report = {
         "type": "open_bell_prep",
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "minutes_to_open": "T-5",
-        "held_premarket": pre,
-        "top_movers_held": movers,
+        "portfolio": {
+            "total_equity_usd": portfolio.get("total_assets_usd")
+                or portfolio.get("total_equity")
+                or portfolio.get("total_value"),
+            "buying_power_usd": portfolio.get("buying_power_usd"),
+            "open_positions": len([
+                p for acct in portfolio.get("accounts", {}).values()
+                for p in acct.get("positions", [])
+            ]),
+        },
+        "held_symbols": held,
         "war_room": {
             "composite": war_room.get("composite_score"),
             "regime": war_room.get("regime"),
@@ -249,9 +248,8 @@ def open_bell_prep() -> dict[str, Any]:
         },
         "alerts": alerts,
         "headline": (
-            f"Open in 5. {len(held)} held names. "
-            + (f"Biggest mover: {movers[0]['symbol']} {movers[0]['change_pct']:+.2f}%."
-               if movers else "No pre-market movement on the book.")
+            f"Open in 5. {len(held)} held name(s). "
+            f"{len(alerts)} alert(s) on the wire."
         ),
     }
     _save_brief("open_bell_prep", report)
@@ -260,47 +258,34 @@ def open_bell_prep() -> dict[str, Any]:
 
 
 def close_debrief() -> dict[str, Any]:
-    """17:00 ET — close prints, watchlist movers, stale theses, tomorrow's catalysts."""
+    """17:00 ET — close summary, stale theses + next required actions."""
     dfv = DFV()
+    payload = _safe_collect_payload()
     held = _held_symbols()
-    closes = dfv_data.quotes(held) if held else {"ok": True, "quotes": {}}
-
-    watch = list(dfv.watchlist.all().keys())
-    watch_quotes = dfv_data.quotes(watch[:25]) if watch else {"ok": True, "quotes": {}}
-    watch_movers = sorted(
-        [
-            {"symbol": s, "change_pct": q.get("change_pct"), "current": q.get("current")}
-            for s, q in watch_quotes.get("quotes", {}).items()
-            if (q.get("change_pct") is not None)
-        ],
-        key=lambda x: abs(x["change_pct"] or 0),
-        reverse=True,
-    )[:5]
+    pnl = payload.get("pnl", {}) or {}
 
     stale = dfv.thesis.needs_review(max_age_days=30)
     next_actions = [
         {"symbol": s, "action": "re-state thesis or close position"} for s in stale
     ]
-
-    earnings = dfv_data.earnings_window(days_ahead=1).get("earnings", [])
-    held_set = set(held)
-    earnings_for_book = [e for e in earnings if e["symbol"] in held_set]
+    watch = list(dfv.watchlist.all().keys())
 
     report = {
         "type": "close_debrief",
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "held_closes": closes,
-        "watchlist_movers": watch_movers,
+        "held_symbols": held,
+        "pnl": {
+            "today_realized": pnl.get("today_realized"),
+            "mtd_realized": pnl.get("mtd_realized"),
+            "ytd_realized": pnl.get("ytd_realized"),
+        },
         "stale_theses": stale,
         "next_actions": next_actions,
-        "tomorrow_earnings_on_book": earnings_for_book,
-        "tomorrow_earnings_universe_count": len(earnings),
+        "watchlist_size": len(watch),
         "headline": (
             f"Close: {len(held)} held. "
-            + (f"{len(stale)} stale thesis(es) — write the lesson tonight. "
-               if stale else "Discipline clean. ")
-            + (f"{len(earnings_for_book)} earnings on book tomorrow."
-               if earnings_for_book else "No earnings on book tomorrow.")
+            + (f"{len(stale)} stale thesis(es) — write the lesson tonight."
+               if stale else "Discipline clean.")
         ),
     }
     _save_brief("close_debrief", report)
@@ -309,36 +294,36 @@ def close_debrief() -> dict[str, Any]:
 
 
 def asia_watch() -> dict[str, Any]:
-    """22:00 ET — going to bed. Crypto, VIX/dollar, US futures-proxy ETFs."""
-    crypto = dfv_data.crypto_snapshot()
-    macro = dfv_data.macro_snapshot(series=(dfv_data.VIX_FRED, dfv_data.DXY_FRED))
-    futures_proxy = dfv_data.quotes(dfv_data.US_FUTURES_PROXIES)
+    """22:00 ET — going to bed. Snapshot the book + war-room risk state."""
+    payload = _safe_collect_payload()
+    war_room = payload.get("war_room", {}) or {}
+    held = _held_symbols()
+    alerts = (payload.get("alerts", []) or [])[:5]
 
-    btc_chg = crypto.get("prices", {}).get("BITCOIN/USD", {}).get("change_24h_pct")
-    spy_chg = futures_proxy.get("quotes", {}).get("SPY", {}).get("change_pct")
-    vix_obs = (macro.get("series", {}) or {}).get(dfv_data.VIX_FRED)
-    vix_val = vix_obs["value"] if isinstance(vix_obs, dict) else None
-
+    composite = war_room.get("composite_score")
     risk_flag = "calm"
-    if vix_val is not None and vix_val > 25:
-        risk_flag = "elevated"
-    if (btc_chg is not None and btc_chg < -3) or (spy_chg is not None and spy_chg < -1):
-        risk_flag = "stressed"
+    if isinstance(composite, (int, float)):
+        if composite < 30:
+            risk_flag = "stressed"
+        elif composite < 50:
+            risk_flag = "elevated"
 
     report = {
         "type": "asia_watch",
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "risk_flag": risk_flag,
-        "crypto": crypto,
-        "macro": macro,
-        "us_close_proxies": futures_proxy,
+        "war_room": {
+            "composite": composite,
+            "regime": war_room.get("regime"),
+            "phase": war_room.get("phase"),
+        },
+        "held_symbols": held,
+        "alerts": alerts,
         "headline": (
-            f"Overnight watch: {risk_flag}. "
-            + (f"VIX {vix_val:.2f}. " if vix_val is not None else "")
-            + (f"BTC 24h {btc_chg:+.2f}%. " if btc_chg is not None else "")
-            + (f"SPY {spy_chg:+.2f}%." if spy_chg is not None else "")
-        ).strip(),
+            f"Overnight watch: {risk_flag}. {len(held)} held name(s). "
+            f"Composite {composite if composite is not None else 'n/a'}."
+        ),
     }
     _save_brief("asia_watch", report)
-    _log.info("dfv.asia_watch", risk=risk_flag)
+    _log.info("dfv.asia_watch", risk=risk_flag, held=len(held))
     return report
