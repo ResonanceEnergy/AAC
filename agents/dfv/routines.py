@@ -25,6 +25,12 @@ def _save_brief(name: str, payload: dict[str, Any]) -> Path:
     path = BRIEF_DIR / f"{ts}_{name}.json"
     import json
     path.write_text(json.dumps(payload, indent=2, default=str), encoding="utf-8")
+    # Best-effort: index into DFV semantic memory so future `ask` calls can recall it.
+    try:
+        from agents.dfv import rag as dfv_rag  # noqa: PLC0415
+        dfv_rag.index_brief(path, payload)
+    except Exception as e:  # noqa: BLE001 — daemon must not die on RAG failures
+        _log.warning("dfv.routines.index_brief_failed", error=str(e))
     return path
 
 

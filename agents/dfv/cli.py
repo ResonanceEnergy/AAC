@@ -102,6 +102,39 @@ def _cmd_thesis(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_ask(args: argparse.Namespace) -> int:
+    from agents.dfv.llm import ask
+    text = args.text or sys.stdin.read()
+    if not text.strip():
+        print("usage: dfv ask <question>", file=sys.stderr)
+        return 2
+    res = ask(text, verbose=bool(args.verbose))
+    print(res.answer)
+    if args.show_tools and res.tool_calls:
+        print("\n--- tools called ---")
+        for tc in res.tool_calls:
+            print(f"  {tc.get('name')}({json.dumps(tc.get('args'), default=str)[:120]})")
+    return 0
+
+
+def _cmd_recall(args: argparse.Namespace) -> int:
+    from agents.dfv.rag import search
+    hits = search(args.query, k=int(args.k), kind=args.kind, symbol=args.symbol)
+    _print_json(hits)
+    return 0
+
+
+def _cmd_reindex(args: argparse.Namespace) -> int:
+    from agents.dfv import rag as dfv_rag
+    out = {}
+    if args.what in ("all", "theses"):
+        out["theses_indexed"] = dfv_rag.reindex_all_theses()
+    if args.what in ("all", "briefs"):
+        out["briefs_indexed"] = dfv_rag.reindex_all_briefs()
+    _print_json(out)
+    return 0
+
+
 def _cmd_status(_args: argparse.Namespace) -> int:
     dfv = DFV()
     print("=== DFV Status ===")
@@ -132,6 +165,23 @@ def main(argv: list[str] | None = None) -> int:
         .set_defaults(func=_cmd_decide)
     sub.add_parser("daemon", help="run 24/7 cadence loop").set_defaults(func=_cmd_daemon)
     sub.add_parser("status").set_defaults(func=_cmd_status)
+
+    ak = sub.add_parser("ask", help="Ask DFV a question — uses local LLM + tools")
+    ak.add_argument("text", nargs="?", help="prompt text (or stdin)")
+    ak.add_argument("--verbose", "-v", action="store_true")
+    ak.add_argument("--show-tools", action="store_true", dest="show_tools")
+    ak.set_defaults(func=_cmd_ask)
+
+    rc = sub.add_parser("recall", help="Semantic search DFV memory")
+    rc.add_argument("query")
+    rc.add_argument("-k", type=int, default=5)
+    rc.add_argument("--kind", choices=["brief", "thesis", "decision", "note"])
+    rc.add_argument("--symbol")
+    rc.set_defaults(func=_cmd_recall)
+
+    rx = sub.add_parser("reindex", help="Rebuild DFV RAG index from disk")
+    rx.add_argument("what", choices=["all", "theses", "briefs"], nargs="?", default="all")
+    rx.set_defaults(func=_cmd_reindex)
 
     th = sub.add_parser("thesis")
     th.add_argument("action", choices=["list", "get", "set"])

@@ -1,4 +1,73 @@
 {
+  "ARCC": {
+    "author": "DFV",
+    "catalysts": [
+      "Already expired 2026-04-17"
+    ],
+    "conviction": 0,
+    "created": "2026-05-15T20:11:44+00:00",
+    "horizon": "closed",
+    "invalidation": "Position already closed at expiry.",
+    "revision": 1,
+    "sizing": {
+      "contracts": 1,
+      "max_pct_book": 0.0
+    },
+    "symbol": "ARCC",
+    "target": {
+      "realized_pnl": -15,
+      "status": "expired_worthless"
+    },
+    "thesis": "CLOSED. ARCC $17P 2026-04-17 expired worthless. Original thesis: macro tail-risk hedge / credit-spread widening expectation that did not materialize within the contract window. Premium lost ~$15. Lesson: bought protection without a defined exit/roll trigger; theta beat realized vol.",
+    "updated": "2026-05-15T20:11:44+00:00"
+  },
+  "BKLN": {
+    "author": "DFV",
+    "catalysts": [
+      "Jun FOMC",
+      "Q2 default-rate prints (S&P / Moody's)"
+    ],
+    "conviction": 2,
+    "created": "2026-05-15T20:11:44+00:00",
+    "horizon": "34 DTE",
+    "invalidation": "Close if BKLN > $21.00 sustained 2 sessions. Hard time-stop = 21 DTE (2026-05-28).",
+    "revision": 1,
+    "sizing": {
+      "contracts": 3,
+      "max_pct_book": 0.5
+    },
+    "symbol": "BKLN",
+    "target": {
+      "expiry": "2026-06-18",
+      "instrument": "BKLN $20P 2026-06-18",
+      "strike": 20
+    },
+    "thesis": "Senior loan ETF (floating-rate leveraged loans). Hedge against leveraged-credit dislocation if Fed pivots dovish (kills floating-rate appeal) or default cycle accelerates. Near ATM. 3 contracts.",
+    "updated": "2026-05-15T20:11:44+00:00"
+  },
+  "EMB": {
+    "author": "DFV",
+    "catalysts": [
+      "Expires today 2026-05-15"
+    ],
+    "conviction": 1,
+    "created": "2026-05-15T20:11:44+00:00",
+    "horizon": "0 DTE",
+    "invalidation": "Already at expiry. Time-stop = today close.",
+    "revision": 1,
+    "sizing": {
+      "contracts": 1,
+      "max_pct_book": 0.5
+    },
+    "symbol": "EMB",
+    "target": {
+      "expiry": "2026-05-15",
+      "instrument": "EMB $90P 2026-05-15",
+      "strike": 90
+    },
+    "thesis": "EM USD-denominated debt hedge. Dollar-strength + EM credit-spread blowout play. EXPIRES TODAY -- let it die or close for residual bid.",
+    "updated": "2026-05-15T20:11:44+00:00"
+  },
   "GME": {
     "author": "DFV",
     "catalysts": [
@@ -20,5 +89,186 @@
     },
     "thesis": "Net-cash balance sheet (.6B), brand recognition, optionality on console refresh, no debt.",
     "updated": "2026-05-15T19:36:32+00:00"
+  },
+  "HYG": {
+    "author": "DFV",
+    "catalysts": [
+      "Jun FOMC",
+      "HY OAS > +400bp print"
+    ],
+    "conviction": 2,
+    "created": "2026-05-15T20:11:44+00:00",
+    "horizon": "34 DTE",
+    "invalidation": "Close if HYG > $80.50 sustained, or HY OAS tightens below 290bp. Hard time-stop = 21 DTE (2026-05-28).",
+    "revision": 1,
+    "sizing": {
+      "contracts": 1,
+      "max_pct_book": 0.3
+    },
+    "symbol": "HYG",
+    "target": {
+      "expiry": "2026-06-18",
+      "instrument": "HYG $77P 2026-06-18",
+      "strike": 77
+    },
+    "thesis": "HY credit-spread widening hedge. $77P is ~5% OTM -- protection against a junk-bond reversal if growth slows or defaults cluster. 1 contract, small.",
+    "updated": "2026-05-15T20:11:44+00:00"
+  },
+  "IWM": {
+    "author": "DFV",
+    "catalysts": [
+      "Already expired 2026-04-04"
+    ],
+    "conviction": 0,
+    "created": "2026-05-15T20:11:44+00:00",
+    "horizon": "closed",
+    "invalidation": "Position already closed at expiry.",
+    "revision": 1,
+    "sizing": {
+      "contracts": 1,
+      "max_pct_book": 0.0
+    },
+    "symbol": "IWM",
+    "target": {
+      "realized_pnl": -270,
+      "status": "expired_worthless"
+    },
+    "thesis": "CLOSED. IWM $230P 2026-04-04 expired worthless. Original thesis: macro tail-risk hedge / credit-spread widening expectation that did not materialize within the contract window. Premium lost ~$270. Lesson: bought protection without a defined exit/roll trigger; theta beat realized vol.",
+    "updated": "2026-05-15T20:11:44+00:00"
+  },
+  "JNK": {
+    "author": "DFV",
+    "catalysts": [
+      "Already expired 2026-04-17"
+    ],
+    "conviction": 0,
+    "created": "2026-05-15T20:11:44+00:00",
+    "horizon": "closed",
+    "invalidation": "Position already closed at expiry.",
+    "revision": 1,
+    "sizing": {
+      "contracts": 1,
+      "max_pct_book": 0.0
+    },
+    "symbol": "JNK",
+    "target": {
+      "realized_pnl": -33,
+      "status": "expired_worthless"
+    },
+    "thesis": "CLOSED. JNK $92P 2026-04-17 expired worthless. Original thesis: macro tail-risk hedge / credit-spread widening expectation that did not materialize within the contract window. Premium lost ~$33. Lesson: bought protection without a defined exit/roll trigger; theta beat realized vol.",
+    "updated": "2026-05-15T20:11:44+00:00"
+  },
+  "KRE": {
+    "author": "DFV",
+    "catalysts": [
+      "Already expired 2026-04-04"
+    ],
+    "conviction": 0,
+    "created": "2026-05-15T20:11:44+00:00",
+    "horizon": "closed",
+    "invalidation": "Position already closed at expiry.",
+    "revision": 1,
+    "sizing": {
+      "contracts": 1,
+      "max_pct_book": 0.0
+    },
+    "symbol": "KRE",
+    "target": {
+      "realized_pnl": -271,
+      "status": "expired_worthless"
+    },
+    "thesis": "CLOSED. KRE $58P 2026-04-04 expired worthless. Original thesis: macro tail-risk hedge / credit-spread widening expectation that did not materialize within the contract window. Premium lost ~$271. Lesson: bought protection without a defined exit/roll trigger; theta beat realized vol.",
+    "updated": "2026-05-15T20:11:44+00:00"
+  },
+  "LQD": {
+    "author": "DFV",
+    "catalysts": [
+      "Expires today 2026-05-15"
+    ],
+    "conviction": 1,
+    "created": "2026-05-15T20:11:44+00:00",
+    "horizon": "0 DTE",
+    "invalidation": "Already at expiry. Time-stop = today close.",
+    "revision": 1,
+    "sizing": {
+      "contracts": 1,
+      "max_pct_book": 0.5
+    },
+    "symbol": "LQD",
+    "target": {
+      "expiry": "2026-05-15",
+      "instrument": "LQD $106P 2026-05-15",
+      "strike": 106
+    },
+    "thesis": "IG corporate credit hedge. Bet on duration / credit-spread widening as the Fed holds rates higher-for-longer. EXPIRES TODAY -- let it die or close for residual bid.",
+    "updated": "2026-05-15T20:11:44+00:00"
+  },
+  "MAIN": {
+    "author": "DFV",
+    "catalysts": [
+      "Already expired 2026-04-17"
+    ],
+    "conviction": 0,
+    "created": "2026-05-15T20:11:44+00:00",
+    "horizon": "closed",
+    "invalidation": "Position already closed at expiry.",
+    "revision": 1,
+    "sizing": {
+      "contracts": 1,
+      "max_pct_book": 0.0
+    },
+    "symbol": "MAIN",
+    "target": {
+      "realized_pnl": -53,
+      "status": "expired_worthless"
+    },
+    "thesis": "CLOSED. MAIN $49.7P 2026-04-17 expired worthless. Original thesis: macro tail-risk hedge / credit-spread widening expectation that did not materialize within the contract window. Premium lost ~$53. Lesson: bought protection without a defined exit/roll trigger; theta beat realized vol.",
+    "updated": "2026-05-15T20:11:44+00:00"
+  },
+  "OBDC": {
+    "author": "DFV",
+    "catalysts": [
+      "Q2 BDC earnings late Jul / early Aug",
+      "HY OAS > +100bp move"
+    ],
+    "conviction": 2,
+    "created": "2026-05-15T20:11:44+00:00",
+    "horizon": "63 DTE",
+    "invalidation": "Roll/close if OBDC > $15.50 (sustained) or HY OAS tightens below 280bp into Jun-end. Hard time-stop = 21 DTE (2026-06-26).",
+    "revision": 1,
+    "sizing": {
+      "contracts": 11,
+      "max_pct_book": 1.0
+    },
+    "symbol": "OBDC",
+    "target": {
+      "expiry": "2026-07-17",
+      "instrument": "OBDC $7.5P 2026-07-17",
+      "strike": 7.5
+    },
+    "thesis": "BDC credit-stress hedge. OBDC NAV is sensitive to middle-market loan defaults; $7.50 strike is ~30%+ OTM, lottery-style protection against a credit air-pocket. 11 contracts, small notional.",
+    "updated": "2026-05-15T20:11:44+00:00"
+  },
+  "PFF": {
+    "author": "DFV",
+    "catalysts": [
+      "Already expired 2026-04-17"
+    ],
+    "conviction": 0,
+    "created": "2026-05-15T20:11:44+00:00",
+    "horizon": "closed",
+    "invalidation": "Position already closed at expiry.",
+    "revision": 1,
+    "sizing": {
+      "contracts": 1,
+      "max_pct_book": 0.0
+    },
+    "symbol": "PFF",
+    "target": {
+      "realized_pnl": -17,
+      "status": "expired_worthless"
+    },
+    "thesis": "CLOSED. PFF $29P 2026-04-17 expired worthless. Original thesis: macro tail-risk hedge / credit-spread widening expectation that did not materialize within the contract window. Premium lost ~$17. Lesson: bought protection without a defined exit/roll trigger; theta beat realized vol.",
+    "updated": "2026-05-15T20:11:44+00:00"
   }
 }

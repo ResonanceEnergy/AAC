@@ -299,3 +299,7 @@ councils/*/output/
 # REPORT TEXT FILES
 # ===========================================
 reports/*.txt
+
+agents/dfv/memory/llm_history.jsonl
+data/rag_index/
+
