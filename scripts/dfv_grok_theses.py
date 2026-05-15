@@ -54,7 +54,7 @@ USER_TEMPLATE = """Write the strongest defensible thesis for this OPEN position.
   - \"trim\"   : reduce, but stay in the name
 
 DO NOT use \"close\". The position is already on. Your job is to give it a thesis.
-If you genuinely cannot construct a bull case, write the strongest tactical / hedge / 
+If you genuinely cannot construct a bull case, write the strongest tactical / hedge /
 optionality case (e.g. tail hedge, vol exposure, asymmetric payoff, theme exposure).
 
 POSITION:
