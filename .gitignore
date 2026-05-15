@@ -301,5 +301,7 @@ councils/*/output/
 reports/*.txt
 
 agents/dfv/memory/llm_history.jsonl
+agents/dfv/memory/daemon_heartbeat.json
+agents/dfv/memory/briefs/
 data/rag_index/
 
