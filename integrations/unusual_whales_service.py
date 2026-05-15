@@ -15,6 +15,11 @@ from integrations.unusual_whales_client import DarkPoolTrade, OptionsFlow, Unusu
 
 logger = logging.getLogger("UnusualWhalesService")
 
+# Cool-down (in seconds) applied after persistent auth/transport failures so a
+# dead/expired API key doesn't generate one log line per endpoint per minute.
+_AUTH_FAILURE_COOLDOWN_SECONDS = 3600  # 1h
+_TRANSIENT_FAILURE_COOLDOWN_SECONDS = 300  # 5m
+
 # Per-ticker fetches are 2 calls each (IV + GEX); UW free tier is 120 req/min.
 # Cap watchlist size to stay well under the limit even with 5-min refresh.
 _MAX_WATCHLIST_TICKERS = 5
@@ -85,6 +90,12 @@ class UnusualWhalesSnapshotService:
         )
         self._last_refresh: Optional[datetime] = None
         self._lock = asyncio.Lock()
+        # Circuit breaker: when set, skip API calls until this time. Set on
+        # HTTP 401/403 (auth failure) or repeated transport errors so a dead
+        # key doesn't spam the log every refresh cycle.
+        self._suppressed_until: Optional[datetime] = None
+        self._suppression_reason: Optional[str] = None
+        self._suppression_logged: bool = False
 
     @property
     def client(self) -> UnusualWhalesClient:
@@ -105,6 +116,18 @@ class UnusualWhalesSnapshotService:
                 return self._snapshot.to_dict()
 
             now = datetime.now()
+
+            # Circuit breaker: short-circuit while suppressed (e.g. dead key).
+            if self._suppressed_until is not None and now < self._suppressed_until:
+                if not self._suppression_logged:
+                    logger.warning(
+                        "Unusual Whales suppressed until %s (%s); returning cached snapshot",
+                        self._suppressed_until.isoformat(),
+                        self._suppression_reason or "unknown",
+                    )
+                    self._suppression_logged = True
+                return self._snapshot.to_dict()
+
             if (
                 not force_refresh
                 and self._last_refresh is not None
@@ -114,11 +137,54 @@ class UnusualWhalesSnapshotService:
 
             self._snapshot = await self._fetch_snapshot()
             self._last_refresh = now
+            self._maybe_trip_circuit_breaker(self._snapshot)
             return self._snapshot.to_dict()
+
+    def _maybe_trip_circuit_breaker(self, snap: "UnusualWhalesSnapshot") -> None:
+        """Inspect the latest snapshot and trip the breaker on auth/transport errors."""
+        if snap.status != "error" or not snap.error:
+            # Healthy refresh — clear any prior suppression.
+            if self._suppressed_until is not None:
+                logger.info("Unusual Whales recovered; clearing suppression")
+            self._suppressed_until = None
+            self._suppression_reason = None
+            self._suppression_logged = False
+            return
+
+        err = snap.error.lower()
+        is_auth = (
+            "401" in err
+            or "403" in err
+            or "unauthorized" in err
+            or "authentication_required" in err
+            or "invalid" in err and "token" in err
+        )
+        cooldown = (
+            _AUTH_FAILURE_COOLDOWN_SECONDS if is_auth else _TRANSIENT_FAILURE_COOLDOWN_SECONDS
+        )
+        self._suppressed_until = datetime.now() + timedelta(seconds=cooldown)
+        self._suppression_reason = (
+            "auth failure (check UNUSUAL_WHALES_API_KEY)" if is_auth else f"transport error: {snap.error[:120]}"
+        )
+        self._suppression_logged = False  # let next get_snapshot log the cool-down once
+        logger.error(
+            "Unusual Whales tripped circuit breaker for %ds (%s)",
+            cooldown,
+            self._suppression_reason,
+        )
 
     async def _fetch_snapshot(self) -> UnusualWhalesSnapshot:
         try:
             summary = await self._client.get_market_flow_summary()
+            # Bail out fast on auth failure so the remaining ~13 endpoint calls
+            # don't each generate their own HTTP 401 log line every cycle.
+            if getattr(self._client, "auth_failed", False):
+                return UnusualWhalesSnapshot(
+                    status="error",
+                    as_of=datetime.now().isoformat(),
+                    configured=self._client.endpoint.enabled,
+                    error=self._client.last_error or "HTTP 401: authentication_required",
+                )
             flow = await self._client.get_flow(limit=25, min_premium=0)
             dark_pool = await self._client.get_dark_pool(limit=25)
             congress = await self._client.get_congress_trades(limit=25)

@@ -2751,6 +2751,30 @@ class WarRoomEngine:
     def get_portfolio_value(self) -> float:
         return get_portfolio_value_usd()
 
+    def get_status(self) -> dict:
+        """Return composite-score / regime snapshot for dashboards & daily tasks.
+
+        Mirrors the keys exposed by :class:`WarRoomAutoEngine.get_status` so
+        callers (e.g. ``monitoring/daily_tasks.py``) can use either engine
+        interchangeably.
+        """
+        try:
+            comp = compute_composite_score(self.indicators)
+        except Exception as exc:  # noqa: BLE001 — must never crash daily tasks
+            return {
+                "composite_score": 0.0,
+                "regime": "UNKNOWN",
+                "phase": self.get_phase(),
+                "portfolio_value": self.get_portfolio_value(),
+                "error": str(exc),
+            }
+        return {
+            "composite_score": float(comp.get("composite_score", 0.0)),
+            "regime": str(comp.get("regime", "UNKNOWN")),
+            "phase": self.get_phase(),
+            "portfolio_value": self.get_portfolio_value(),
+        }
+
     def render(self) -> str:
         return render_dashboard()
 

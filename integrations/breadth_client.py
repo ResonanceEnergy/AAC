@@ -2,36 +2,61 @@
 """
 NYSE Market Breadth Client
 ==========================
-Free market breadth indicators via yfinance (no API key required).
+Free market breadth indicators with graceful degradation.
 
-Indices pulled:
-    ^TRIN   — Arms Index / Short-Term Trading Index
-    ^TICK   — NYSE TICK (last-trade up vs down)
-    ^ADD    — NYSE Advances minus Declines
-    ^DECL   — NYSE Declines (raw count)
+Primary source: Stooq daily CSV (no key, no ticker delisting).
+    https://stooq.com/q/d/?s=<symbol>&i=d
+
+Stooq symbols used:
+    ^trin   -> Arms Index (TRIN)
+    ^tick   -> NYSE TICK (intraday last)
+    ^add    -> NYSE Advances - Declines
+
+Fallback source: yfinance (^TRIN / ^TICK / ^ADV / ^DECL / ^ADD).
+    NOTE: As of 2026-Q2 Yahoo dropped most of these tickers and they return
+    "possibly delisted; no price data found". The client now caches a
+    "source unavailable" verdict for an hour so the dashboard doesn't spam
+    the log every minute.
 
 Derived:
-    advance_decline_ratio = ADV / DECL
+    advance_decline_ratio = ADV / DECL  (only if both available)
     mcclellan_oscillator  = EMA(ADV-DECL, 19) - EMA(ADV-DECL, 39)
-
-Source: Yahoo Finance (delayed ~15 min; close-of-day for breadth aggregates).
 
 Usage:
     from integrations.breadth_client import BreadthClient
     bc = BreadthClient()
-    snap = bc.get_snapshot()         # current values + classification
-    series = bc.get_history(days=60) # historical breadth for McClellan
+    snap = bc.get_snapshot()
 """
 from __future__ import annotations
 
+import csv
+import io
 import logging
+import time
+import urllib.error
+import urllib.request
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
-# Yahoo Finance ticker symbols for NYSE breadth
+
+def _try_ibkr_breadth() -> dict | None:
+    """Pull TICK/TRIN/AD/DC from IBKR if AAC_DATA_PRIMARY=ibkr and TWS up."""
+    try:
+        from integrations.ibkr_market_data_client import get_breadth_snapshot, is_available
+    except ImportError:
+        return None
+    try:
+        if not is_available():
+            return None
+        return get_breadth_snapshot()
+    except (RuntimeError, OSError, ValueError) as exc:
+        logger.debug("ibkr breadth fallback: %s", exc)
+        return None
+
+# Yahoo Finance ticker symbols for NYSE breadth (legacy fallback only).
 BREADTH_TICKERS = {
     "trin": "^TRIN",
     "tick": "^TICK",
@@ -39,6 +64,55 @@ BREADTH_TICKERS = {
     "declines": "^DECL",        # NYSE Declines (raw)
     "advances": "^ADV",         # NYSE Advances (raw)
 }
+
+# Stooq symbol map (lower-case, no caret).
+STOOQ_SYMBOLS = {
+    "trin": "^trin",
+    "tick": "^tick",
+    "adv_minus_decl": "^add",
+}
+
+# Cache "source unavailable" verdict for this many seconds so we don't spam
+# yfinance / network on every dashboard cycle.
+_SOURCE_FAILURE_TTL_SECONDS = 3600
+
+# Module-level state so multiple BreadthClient instances share the cooldown.
+_yahoo_unavailable_until: float = 0.0
+_yahoo_failure_logged: bool = False
+_stooq_unavailable_until: float = 0.0
+_stooq_failure_logged: bool = False
+
+
+def _yahoo_in_cooldown() -> bool:
+    return time.time() < _yahoo_unavailable_until
+
+
+def _stooq_in_cooldown() -> bool:
+    return time.time() < _stooq_unavailable_until
+
+
+def _trip_yahoo_cooldown(reason: str) -> None:
+    global _yahoo_unavailable_until, _yahoo_failure_logged
+    _yahoo_unavailable_until = time.time() + _SOURCE_FAILURE_TTL_SECONDS
+    if not _yahoo_failure_logged:
+        logger.warning(
+            "breadth: Yahoo source disabled for %ds (%s)",
+            _SOURCE_FAILURE_TTL_SECONDS,
+            reason,
+        )
+        _yahoo_failure_logged = True
+
+
+def _trip_stooq_cooldown(reason: str) -> None:
+    global _stooq_unavailable_until, _stooq_failure_logged
+    _stooq_unavailable_until = time.time() + _SOURCE_FAILURE_TTL_SECONDS
+    if not _stooq_failure_logged:
+        logger.warning(
+            "breadth: Stooq source disabled for %ds (%s)",
+            _SOURCE_FAILURE_TTL_SECONDS,
+            reason,
+        )
+        _stooq_failure_logged = True
 
 
 @dataclass
@@ -84,6 +158,8 @@ class BreadthClient:
 
     def _last_close(self, ticker: str) -> Optional[float]:
         """Return the most recent non-NaN close for a Yahoo ticker."""
+        if _yahoo_in_cooldown():
+            return None
         yf = self._yfinance()
         try:
             hist = yf.Ticker(ticker).history(period="5d", auto_adjust=False)
@@ -91,13 +167,19 @@ class BreadthClient:
             logger.warning("breadth: %s history failed: %s", ticker, exc)
             return None
         if hist is None or hist.empty or "Close" not in hist.columns:
+            # Yahoo silently returns empty when a symbol is delisted; treat as
+            # a dead source and short-circuit subsequent calls for an hour.
+            _trip_yahoo_cooldown(f"{ticker} returned no data")
             return None
         closes = hist["Close"].dropna()
         if closes.empty:
+            _trip_yahoo_cooldown(f"{ticker} returned no closes")
             return None
         return float(closes.iloc[-1])
 
     def _close_series(self, ticker: str, days: int) -> List[float]:
+        if _yahoo_in_cooldown():
+            return []
         yf = self._yfinance()
         try:
             hist = yf.Ticker(ticker).history(period=f"{max(days, 60)}d", auto_adjust=False)
@@ -105,8 +187,87 @@ class BreadthClient:
             logger.warning("breadth: %s series failed: %s", ticker, exc)
             return []
         if hist is None or hist.empty or "Close" not in hist.columns:
+            _trip_yahoo_cooldown(f"{ticker} series returned no data")
             return []
         return [float(v) for v in hist["Close"].dropna().tolist()]
+
+    # ------------------------------------------------------------------
+    # Stooq fallback (no API key, no auth, daily CSV)
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _fetch_stooq_csv(symbol: str) -> List[Dict[str, str]]:
+        """Fetch Stooq daily CSV and return rows. Empty on any failure."""
+        if _stooq_in_cooldown():
+            return []
+        url = f"https://stooq.com/q/d/l/?s={symbol}&i=d"
+        try:
+            req = urllib.request.Request(
+                url, headers={"User-Agent": "AAC/3.6.0 BreadthClient"}
+            )
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                if resp.status != 200:
+                    _trip_stooq_cooldown(f"HTTP {resp.status} for {symbol}")
+                    return []
+                body = resp.read().decode("utf-8", errors="replace")
+        except (urllib.error.URLError, TimeoutError, ConnectionError) as exc:
+            _trip_stooq_cooldown(f"{symbol}: {exc}")
+            return []
+        if not body or body.lower().startswith("no data"):
+            return []
+        reader = csv.DictReader(io.StringIO(body))
+        return list(reader)
+
+    def _stooq_last_close(self, key: str) -> Optional[float]:
+        symbol = STOOQ_SYMBOLS.get(key)
+        if not symbol:
+            return None
+        rows = self._fetch_stooq_csv(symbol)
+        if not rows:
+            return None
+        # Stooq returns ascending dates; last row is most recent close.
+        last = rows[-1]
+        try:
+            return float(last.get("Close") or last.get("close") or "")
+        except (TypeError, ValueError):
+            return None
+
+    def _stooq_close_series(self, key: str, days: int) -> List[float]:
+        symbol = STOOQ_SYMBOLS.get(key)
+        if not symbol:
+            return []
+        rows = self._fetch_stooq_csv(symbol)
+        if not rows:
+            return []
+        closes: List[float] = []
+        for row in rows[-max(days, 60):]:
+            raw = row.get("Close") or row.get("close")
+            if raw in (None, ""):
+                continue
+            try:
+                closes.append(float(raw))
+            except (TypeError, ValueError):
+                continue
+        return closes
+
+    def _resolve_last_close(self, key: str) -> Optional[float]:
+        """Try Stooq first, then Yahoo, returning None if both unavailable."""
+        value = self._stooq_last_close(key)
+        if value is not None:
+            return value
+        ticker = BREADTH_TICKERS.get(key)
+        if not ticker:
+            return None
+        return self._last_close(ticker)
+
+    def _resolve_close_series(self, key: str, days: int) -> List[float]:
+        series = self._stooq_close_series(key, days=days)
+        if series:
+            return series
+        ticker = BREADTH_TICKERS.get(key)
+        if not ticker:
+            return []
+        return self._close_series(ticker, days=days)
 
     @staticmethod
     def _ema(values: List[float], period: int) -> Optional[float]:
@@ -169,14 +330,33 @@ class BreadthClient:
         return "neutral"
 
     def get_snapshot(self) -> BreadthSnapshot:
-        """Fetch a current breadth snapshot with derived metrics + regime."""
+        """Fetch a current breadth snapshot with derived metrics + regime.
+
+        Tries IBKR (TICK-NYSE / TRIN-NYSE indices) first if AAC_DATA_PRIMARY=ibkr
+        and TWS is reachable; falls back to the legacy Yahoo/Stooq path.
+        """
+        # ── IBKR primary path ────────────────────────────────────────────
+        ib_snap = _try_ibkr_breadth()
+        if ib_snap is not None:
+            snap = BreadthSnapshot(timestamp=ib_snap.get("timestamp", datetime.utcnow().isoformat()))
+            snap.trin = ib_snap.get("trin")
+            snap.tick = ib_snap.get("tick")
+            snap.advances = ib_snap.get("advances")
+            snap.declines = ib_snap.get("declines")
+            snap.adv_minus_decl = ib_snap.get("adv_minus_decl")
+            snap.advance_decline_ratio = ib_snap.get("advance_decline_ratio")
+            snap.regime = ib_snap.get("regime", "unknown")
+            snap.notes.append(ib_snap.get("notes", "ibkr"))
+            return snap
+
+        # ── Legacy yfinance/Stooq path ──────────────────────────────────
         snap = BreadthSnapshot(timestamp=datetime.utcnow().isoformat())
         try:
-            snap.trin = self._last_close(BREADTH_TICKERS["trin"])
-            snap.tick = self._last_close(BREADTH_TICKERS["tick"])
-            snap.advances = self._last_close(BREADTH_TICKERS["advances"])
-            snap.declines = self._last_close(BREADTH_TICKERS["declines"])
-            snap.adv_minus_decl = self._last_close(BREADTH_TICKERS["adv_minus_decl"])
+            snap.trin = self._resolve_last_close("trin")
+            snap.tick = self._resolve_last_close("tick")
+            snap.advances = self._resolve_last_close("advances")
+            snap.declines = self._resolve_last_close("declines")
+            snap.adv_minus_decl = self._resolve_last_close("adv_minus_decl")
 
             if (
                 snap.advances is not None
@@ -186,13 +366,23 @@ class BreadthClient:
                 snap.advance_decline_ratio = snap.advances / snap.declines
 
             # McClellan needs at least 39 daily samples of (ADV-DECL)
-            series = self._close_series(BREADTH_TICKERS["adv_minus_decl"], days=60)
+            series = self._resolve_close_series("adv_minus_decl", days=60)
             if len(series) >= 39:
                 snap.mcclellan_oscillator = self.mcclellan_oscillator(series)
             else:
                 snap.notes.append(
                     f"McClellan needs >=39 samples; got {len(series)}"
                 )
+
+            # If every reading is None, surface that the source is dead so
+            # callers can skip downstream calculations cleanly.
+            if all(
+                v is None
+                for v in (snap.trin, snap.tick, snap.advances, snap.declines, snap.adv_minus_decl)
+            ):
+                snap.error = "breadth source unavailable (Yahoo delisted, Stooq unreachable)"
+                snap.regime = "unknown"
+                return snap
 
             snap.regime = self._classify(snap)
             return snap
@@ -201,10 +391,10 @@ class BreadthClient:
             return snap
 
     def get_history(self, days: int = 60) -> Dict[str, List[float]]:
-        """Return parallel close-price arrays for all breadth tickers."""
+        """Return parallel close-price arrays for all breadth keys."""
         return {
-            label: self._close_series(ticker, days=days)
-            for label, ticker in BREADTH_TICKERS.items()
+            label: self._resolve_close_series(label, days=days)
+            for label in BREADTH_TICKERS.keys()
         }
 
 

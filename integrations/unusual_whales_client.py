@@ -122,12 +122,36 @@ class UnusualWhalesClient(APIClient):
         )
         super().__init__(endpoint)
         self.logger = logging.getLogger("UnusualWhales")
+        # Tracked by ``_make_request`` so the snapshot service can trip a
+        # circuit breaker on persistent auth failures (dead/expired key).
+        self.last_status_code: int = 0
+        self.last_error: Optional[str] = None
+        self.auth_failed: bool = False
 
     def _get_auth_headers(self) -> Dict[str, str]:
         headers = super()._get_auth_headers()
         headers["User-Agent"] = self._USER_AGENT
         headers["UW-CLIENT-API-ID"] = self._CLIENT_API_ID
         return headers
+
+    async def _make_request(self, method: str, url: str, **kwargs):  # type: ignore[override]
+        response = await super()._make_request(method, url, **kwargs)
+        # Persist for the snapshot service's circuit breaker.
+        self.last_status_code = getattr(response, "status_code", 0) or 0
+        self.last_error = getattr(response, "error", None)
+        if not response.success and self.last_error:
+            err = self.last_error.lower()
+            if (
+                "401" in err
+                or "403" in err
+                or "unauthorized" in err
+                or "authentication_required" in err
+                or ("invalid" in err and "token" in err)
+            ):
+                self.auth_failed = True
+        elif response.success:
+            self.auth_failed = False
+        return response
 
     async def get_flow(
         self,

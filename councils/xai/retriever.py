@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import time
 from textwrap import dedent
 
 import httpx
@@ -13,6 +14,49 @@ import structlog
 from councils.xai.models import XPost
 
 _log = structlog.get_logger(__name__)
+
+# Module-level circuit breaker: when Grok consistently rejects calls (HTTP
+# 400/401/403 — bad model, bad key, bad schema) the dashboard otherwise spams
+# one warning per query per minute. Trip after a few consecutive failures and
+# stay quiet for an hour.
+_FAILURE_THRESHOLD = 3
+_COOLDOWN_SECONDS = 3600
+_consecutive_failures: dict[str, int] = {}
+_suppressed_until: dict[str, float] = {}
+_suppression_logged: dict[str, bool] = {}
+
+
+def _is_suppressed(provider: str) -> bool:
+    until = _suppressed_until.get(provider, 0.0)
+    if until and time.time() < until:
+        if not _suppression_logged.get(provider, False):
+            _log.error(
+                "grok_circuit_open",
+                provider=provider,
+                cooldown_s=_COOLDOWN_SECONDS,
+                hint="check XAI_API_KEY / model name; suppressing further calls",
+            )
+            _suppression_logged[provider] = True
+        return True
+    if until and time.time() >= until:
+        _suppressed_until.pop(provider, None)
+        _suppression_logged.pop(provider, None)
+        _consecutive_failures[provider] = 0
+    return False
+
+
+def _record_failure(provider: str) -> None:
+    n = _consecutive_failures.get(provider, 0) + 1
+    _consecutive_failures[provider] = n
+    if n >= _FAILURE_THRESHOLD:
+        _suppressed_until[provider] = time.time() + _COOLDOWN_SECONDS
+        _suppression_logged[provider] = False
+
+
+def _record_success(provider: str) -> None:
+    _consecutive_failures[provider] = 0
+    _suppressed_until.pop(provider, None)
+    _suppression_logged.pop(provider, None)
 
 
 def _get_api_config(provider: str) -> tuple[str, str, str] | None:
@@ -41,6 +85,9 @@ def search_x_via_grok(
     config = _get_api_config(provider)
     if not config:
         _log.warning("api_key_missing", provider=provider)
+        return []
+
+    if _is_suppressed(provider):
         return []
 
     base_url, api_key, model = config
@@ -95,10 +142,12 @@ def search_x_via_grok(
                 is_repost=bool(p.get("is_repost", False)),
             ))
         _log.info("grok_search_done", posts=len(posts), query=query)
+        _record_success(provider)
         return posts
 
     except Exception as exc:
         _log.warning("grok_search_failed", error=str(exc))
+        _record_failure(provider)
         return []
 
 

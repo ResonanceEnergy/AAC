@@ -1465,12 +1465,12 @@ class AACMasterMonitoringDashboard:
         ibkr_balance = 0.0
         ibkr_positions = 0
         try:
-            from strategies.ninety_day_war_room import ACCOUNTS, POSITIONS
-
-            ibkr_acct = ACCOUNTS.get("ibkr")
-            if ibkr_acct:
-                ibkr_balance = ibkr_acct.balance
-                ibkr_positions = len([p for p in POSITIONS if p.account == "ibkr"])
+            from config.account_balances import Balances as _Bal
+            _ibkr = _Bal.get("ibkr")
+            _curr = _ibkr.get("currency", "USD")
+            _val = float(_ibkr.get("total_assets", _ibkr.get("balance", 0)) or 0)
+            ibkr_balance = _val * _Bal.cad_usd() if _curr == "CAD" else _val
+            ibkr_positions = len(_ibkr.get("positions", []) or [])
         except Exception:
             pass
         strategies.append(
@@ -1493,11 +1493,11 @@ class AACMasterMonitoringDashboard:
         # ── 2. LIFEBOAT — Moomoo Margin (SECONDARY) ──
         moomoo_balance = 0.0
         try:
-            from strategies.ninety_day_war_room import ACCOUNTS as _ACCTS2
-
-            moomoo_acct = _ACCTS2.get("moomoo")
-            if moomoo_acct:
-                moomoo_balance = moomoo_acct.balance_usd
+            from config.account_balances import Balances as _Bal
+            _moo = _Bal.get("moomoo")
+            _curr = _moo.get("currency", "USD")
+            _val = float(_moo.get("total_assets", _moo.get("balance", 0)) or 0)
+            moomoo_balance = _val * _Bal.cad_usd() if _curr == "CAD" else _val
         except Exception:
             pass
         strategies.append(
@@ -1520,11 +1520,11 @@ class AACMasterMonitoringDashboard:
         # ── 3. CRYPTO HEDGE — NDAX + CoinGecko (via Lifeboat) ──
         ndax_balance_usd = 0.0
         try:
-            from strategies.ninety_day_war_room import ACCOUNTS as _ACCTS3
-
-            ndax_acct = _ACCTS3.get("ndax")
-            if ndax_acct:
-                ndax_balance_usd = ndax_acct.balance_usd
+            from config.account_balances import Balances as _Bal
+            _ndx = _Bal.get("ndax")
+            _curr = _ndx.get("currency", "CAD")
+            _val = float(_ndx.get("total_assets", _ndx.get("balance", 0)) or 0)
+            ndax_balance_usd = _val * _Bal.cad_usd() if _curr == "CAD" else _val
         except Exception:
             pass
         strategies.append(
@@ -1547,11 +1547,11 @@ class AACMasterMonitoringDashboard:
         # ── 4. WEALTHSIMPLE TFSA — Manual Legacy ──
         ws_balance_usd = 0.0
         try:
-            from strategies.ninety_day_war_room import ACCOUNTS as _ACCTS4
-
-            ws_acct = _ACCTS4.get("wealthsimple")
-            if ws_acct:
-                ws_balance_usd = ws_acct.balance_usd
+            from config.account_balances import Balances as _Bal
+            _ws = _Bal.get("wealthsimple")
+            _curr = _ws.get("currency", "CAD")
+            _val = float(_ws.get("total_assets", _ws.get("balance", 0)) or 0)
+            ws_balance_usd = _val * _Bal.cad_usd() if _curr == "CAD" else _val
         except Exception:
             pass
         strategies.append(

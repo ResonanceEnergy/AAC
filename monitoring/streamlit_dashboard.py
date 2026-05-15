@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import datetime as dt
+import os
 import json
 import subprocess
 import sys
@@ -34,6 +35,46 @@ def _json_default(obj: Any) -> Any:
 
 
 _CACHED_COLLECT: Callable[[str], dict[str, Any]] | None = None
+_CACHED_PILLAR: Callable[..., dict[str, Any]] | None = None
+
+
+def _get_cached_pillar() -> Callable[..., dict[str, Any]]:
+    """Cache wrapper for the three pillar collectors. Longer TTL (5 min)
+    because each pillar makes multiple yfinance calls."""
+    global _CACHED_PILLAR
+    if _CACHED_PILLAR is not None:
+        return _CACHED_PILLAR
+    import streamlit as st
+
+    @st.cache_data(ttl=300, show_spinner=False)
+    def _cached_pillar(name: str, key: str = "") -> dict[str, Any]:  # noqa: ARG001
+        try:
+            from monitoring import dashboard_pillars as dp
+        except ImportError as exc:
+            return {"error": f"pillar_bootstrap_failed: {exc}"}
+        try:
+            if name == "call_options":
+                portfolio = st.session_state.get("__portfolio_payload__", {})
+                own_calls = [
+                    p for p in _flatten_positions(portfolio)
+                    if str(p.get("type", "")).lower() == "call"
+                ]
+                return dp.collect_call_options(own_call_positions=own_calls)
+            if name == "index_flow":
+                uw = st.session_state.get("__uw_payload__", {})
+                return dp.collect_index_flow(uw_payload=uw)
+            if name == "quant_research":
+                return dp.collect_quant_research(run_walk_forward=False)
+            if name == "quant_walk_forward":
+                ticker = st.session_state.get("__wf_ticker__", "SPY")
+                return dp.collect_quant_research(backtest_ticker=ticker, run_walk_forward=True)
+        except _COLLECTOR_ERRORS as exc:
+            _log.warning("pillar_collector_failed", pillar=name, error=str(exc))
+            return {"error": str(exc)}
+        return {"error": f"unknown_pillar:{name}"}
+
+    _CACHED_PILLAR = _cached_pillar
+    return _cached_pillar
 
 
 def _get_cached_collect() -> Callable[[str], dict[str, Any]]:
@@ -158,23 +199,112 @@ def _render_overview(payload: dict[str, Any]) -> None:
 
     portfolio = _safe_get(payload, "portfolio")
     health = _safe_get(payload, "health")
-    war = _safe_get(payload, "war_room")
-    regime = _safe_get(payload, "regime")
+    pnl = _safe_get(payload, "pnl")
+    calls = _safe_get(payload, "call_options")
+    flow = _safe_get(payload, "index_flow")
+    quant = _safe_get(payload, "quant_research")
 
+    pnl_summary = pnl.get("summary") if isinstance(pnl.get("summary"), dict) else {}
     status, ok, total = _derive_health_status(health)
-    c1, c2, c3, c4, c5 = st.columns(5)
-    c1.metric("Portfolio (USD)", _fmt_usd(portfolio.get("total_usd")))
-    c2.metric("Unrealized PnL", _fmt_usd(portfolio.get("total_unrealized_pnl")))
-    c3.metric("Positions", str(portfolio.get("total_positions", 0)))
-    c4.metric("Regime", str(regime.get("primary", war.get("regime", "?"))))
-    c5.metric("Health", f"{status} ({ok}/{total})")
 
-    c6, c7, c8, c9 = st.columns(4)
-    c6.metric("Composite", _fmt_num(war.get("composite_score")))
-    c7.metric("Confidence", _fmt_pct(war.get("confidence", 0) * 100 if isinstance(war.get("confidence"), float) and war.get("confidence", 0) <= 1 else war.get("confidence")))
-    c8.metric("Phase", str(war.get("phase", "?")))
-    c9.metric("Mandate", str(war.get("mandate", "?")))
+    # ---------- Top KPI strip ----------
+    k1, k2, k3, k4, k5 = st.columns(5)
+    k1.metric("Portfolio (USD)", _fmt_usd(portfolio.get("total_usd")))
+    k2.metric("Unrealized P&L", _fmt_usd(portfolio.get("total_unrealized_pnl")))
+    k3.metric("Realized P&L", _fmt_usd(pnl_summary.get("total_realized_pnl")))
+    k4.metric("Positions", str(portfolio.get("total_positions", 0)))
+    k5.metric("Health", f"{status}", delta=f"{ok}/{total} checks")
 
+    st.divider()
+
+    # ---------- Three pillar status cards ----------
+    own = calls.get("own_call_summary") if isinstance(calls.get("own_call_summary"), dict) else {}
+    of = flow.get("options_flow") if isinstance(flow.get("options_flow"), dict) else {}
+    vp_signals = quant.get("vol_premium_signals") if isinstance(quant.get("vol_premium_signals"), list) else []
+    bt = quant.get("simple_backtest") if isinstance(quant.get("simple_backtest"), dict) else {}
+    bt_strategies = bt.get("strategies") if isinstance(bt.get("strategies"), list) else []
+    best_bt: dict[str, Any] | None = None
+    best_wr = -1.0
+    for sval in bt_strategies:
+        if isinstance(sval, dict) and isinstance(sval.get("win_rate"), (int, float)):
+            wr = float(sval["win_rate"])
+            if wr > best_wr:
+                best_wr = wr
+                best_bt = sval
+
+    p1, p2, p3 = st.columns(3)
+    with p1:
+        st.markdown("### 🟢 Call Options")
+        st.metric("Open call positions", str(own.get("position_count", 0)))
+        st.caption(
+            f"Rich-IV: **{calls.get('rich_premium_count', 0)}**  ·  "
+            f"Cheap-IV: **{calls.get('cheap_premium_count', 0)}**  ·  "
+            f"Universe: {calls.get('universe_size', 0)}"
+        )
+        cc = calls.get("covered_call_candidates") or []
+        if cc:
+            st.caption(f"Covered-call candidates: {len(cc)} (top: {', '.join(str(c.get('ticker', '?')) for c in cc[:5])})")
+    with p2:
+        st.markdown("### 📊 Index & Flow")
+        st.metric("Market tone", str(of.get("market_tone", "?")))
+        st.caption(
+            f"P/C: **{_fmt_num(of.get('put_call_ratio'))}**  ·  "
+            f"Net call prem: **{_fmt_usd(of.get('net_call_premium'))}**  ·  "
+            f"Net put prem: **{_fmt_usd(of.get('net_put_premium'))}**"
+        )
+        st.caption(
+            f"Dark pool: **{_fmt_usd(of.get('dark_pool_notional'))}** "
+            f"({of.get('dark_pool_trade_count', 0)} trades)  ·  "
+            f"Flow signals: **{of.get('options_flow_signal_count', 0)}**"
+        )
+    with p3:
+        st.markdown("### 🔬 Quant Research")
+        st.metric("Vol-premium signals", str(len(vp_signals)))
+        if best_bt:
+            st.caption(
+                f"Best 90d win-rate: **{best_bt.get('win_rate', 0) * 100:.1f}%** "
+                f"({best_bt.get('strategy', '?')}, n={best_bt.get('n_signals', 0)})"
+            )
+        else:
+            st.caption("No backtest results yet.")
+        st.caption(f"Tracked sources: {len(quant.get('hit_rates') or [])}")
+
+    st.divider()
+
+    # ---------- Today's action items ----------
+    a1, a2, a3 = st.columns(3)
+    with a1:
+        st.markdown("**🔥 Hot vol-premium (IV/HV ≥ 1.20)**")
+        readings = calls.get("vol_premium_readings") or []
+        hot = [r for r in readings if isinstance(r.get("iv_hv_ratio"), (int, float)) and r["iv_hv_ratio"] >= 1.20]
+        if hot:
+            st.dataframe(
+                [
+                    {"ticker": r.get("ticker"), "IV/HV": round(r["iv_hv_ratio"], 2), "IV": round(r.get("iv", 0), 3)}
+                    for r in hot[:8]
+                ],
+                width="stretch",
+                hide_index=True,
+            )
+        else:
+            st.caption("None right now.")
+    with a2:
+        st.markdown("**📈 Top UW flow tickers**")
+        top_flow = of.get("top_flow_tickers") or []
+        if top_flow:
+            st.dataframe(top_flow[:8], width="stretch", hide_index=True)
+        else:
+            st.caption("No flow data.")
+    with a3:
+        st.markdown("**🎯 Top quant signals**")
+        if vp_signals:
+            st.dataframe(vp_signals[:8], width="stretch", hide_index=True)
+        else:
+            st.caption("No signals fired.")
+
+    st.divider()
+
+    # ---------- Accounts ----------
     st.subheader("Accounts")
     rows = _accounts_summary(portfolio)
     if rows:
@@ -182,9 +312,19 @@ def _render_overview(payload: dict[str, Any]) -> None:
     else:
         st.info("No account data.")
 
+    # ---------- Pillar errors (collapsed) ----------
+    pillar_errs: list[str] = []
+    for label, p in (("call_options", calls), ("index_flow", flow), ("quant_research", quant)):
+        for e in p.get("errors") or []:
+            pillar_errs.append(f"[{label}] {e}")
+    if pillar_errs:
+        with st.expander(f"⚠ Pillar collector warnings ({len(pillar_errs)})", expanded=False):
+            for e in pillar_errs:
+                st.caption(e)
+
     st.caption(
         f"FX CAD→USD {portfolio.get('fx_cad_usd', '?')} · "
-        f"Updated {portfolio.get('last_updated', '?')} · "
+        f"Portfolio updated {portfolio.get('last_updated', '?')} · "
         f"Payload ts {payload.get('ts', '-')}"
     )
 
@@ -268,7 +408,11 @@ def _render_pnl(payload: dict[str, Any]) -> None:
     if daily:
         st.subheader("Daily realised PnL (last 14 days)")
         try:
-            chart_data = {d.get("date", ""): d.get("realized_pnl", 0) for d in daily}
+            sorted_daily = sorted(
+                (d for d in daily if isinstance(d, dict)),
+                key=lambda d: str(d.get("date", "")),
+            )
+            chart_data = {d.get("date", ""): d.get("realized_pnl", 0) for d in sorted_daily}
             st.line_chart(chart_data)
         except (TypeError, ValueError, KeyError):
             pass
@@ -547,51 +691,429 @@ def _render_feeds(payload: dict[str, Any]) -> None:
                 st.code(str(e))
 
 
+# ── Pillar A — Call Options ─────────────────────────────────────────────────
+
+
+def _render_call_options(payload: dict[str, Any]) -> None:
+    import streamlit as st
+
+    st.subheader("🟢 Call Options — Strategies · Research · Flow")
+    pillar = _safe_get(payload, "call_options")
+    if pillar.get("error"):
+        st.error(pillar["error"])
+        return
+    st.caption(
+        f"Universe: {pillar.get('universe_size', 0)} tickers  ·  "
+        f"As of {pillar.get('as_of', '-')}  ·  "
+        f"Took {pillar.get('duration_s', 0)}s  ·  cache 5m"
+    )
+
+    own = pillar.get("own_call_summary") or {}
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("Open call positions", own.get("position_count", 0))
+    c2.metric("Call mkt value", _fmt_usd(own.get("total_market_value")))
+    c3.metric("Call unrealized P&L", _fmt_usd(own.get("total_unrealized_pnl")))
+    c4.metric("Rich-IV names", pillar.get("rich_premium_count", 0))
+
+    st.markdown("**Own call positions by underlying**")
+    by_und = own.get("by_underlying") or []
+    if by_und:
+        st.dataframe(by_und, hide_index=True, width="stretch")
+    else:
+        st.info("No open long-call positions detected across accounts.")
+
+    st.markdown("**IV / HV vol-premium readings** (sorted by IV/HV ratio desc)")
+    readings = pillar.get("vol_premium_readings") or []
+    if readings:
+        # Display IV/HV nicely.
+        view = []
+        for r in readings:
+            view.append({
+                "ticker": r.get("ticker"),
+                "spot": r.get("spot"),
+                "HV (30d)": f"{r.get('realized_hv', 0)*100:.1f}%",
+                "IV (ATM)": f"{r.get('implied_vol', 0)*100:.1f}%" if r.get("option_available") else "-",
+                "IV/HV": f"{r.get('iv_hv_ratio', 0):.2f}" if r.get("option_available") else "-",
+                "rich": "🔥" if r.get("iv_hv_ratio", 0) >= 1.20 else ("❄️" if 0 < r.get("iv_hv_ratio", 0) <= 0.85 else ""),
+            })
+        st.dataframe(view, hide_index=True, width="stretch")
+    else:
+        st.info("No vol-premium readings available (yfinance throttled?).")
+
+    st.markdown("**Covered-call income screen** (own underlyings, ~5% OTM, ~30 DTE)")
+    cc = pillar.get("covered_call_candidates") or []
+    if cc:
+        st.dataframe(cc, hide_index=True, width="stretch")
+    else:
+        st.caption("_No covered-call candidates found — provide own-underlying shares to enable._")
+
+    errs = pillar.get("errors") or []
+    if errs:
+        with st.expander(f"Pillar A errors ({len(errs)})"):
+            for e in errs:
+                st.code(str(e))
+
+
+# ── Pillar B — Index Strategy / Order Flow / Options Flow ───────────────────
+
+
+def _render_index_flow(payload: dict[str, Any]) -> None:
+    import streamlit as st
+
+    st.subheader("📊 Index Strategy · Order Flow · Options Flow · Research")
+    pillar = _safe_get(payload, "index_flow")
+    if pillar.get("error"):
+        st.error(pillar["error"])
+        return
+    st.caption(
+        f"As of {pillar.get('as_of', '-')}  ·  "
+        f"Took {pillar.get('duration_s', 0)}s  ·  cache 5m"
+    )
+
+    of = pillar.get("options_flow") or {}
+    uw_dead = (
+        of.get("market_tone") in ("unknown", None)
+        and not of.get("top_flow_tickers")
+        and (of.get("net_call_premium", 0) or 0) == 0
+    )
+    if uw_dead:
+        st.warning(
+            "🔴 Unusual Whales returned no flow data — likely 401 (invalid `UNUSUAL_WHALES_API_KEY`). "
+            "Options-flow metrics below will read as zeros until the key is refreshed."
+        )
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("Market tone", str(of.get("market_tone", "?")).upper())
+    c2.metric("Put/Call", _fmt_num(of.get("put_call_ratio"), 3))
+    c3.metric("Net call premium", _fmt_usd(of.get("net_call_premium")))
+    c4.metric("Net put premium", _fmt_usd(of.get("net_put_premium")))
+
+    c5, c6, c7, c8 = st.columns(4)
+    c5.metric("Dark pool notional", _fmt_usd(of.get("dark_pool_notional")))
+    c6.metric("Dark pool trades", of.get("dark_pool_trade_count", 0))
+    c7.metric("Flow signals", of.get("options_flow_signal_count", 0))
+    c8.metric("Top flow tickers", ", ".join((of.get("top_flow_tickers") or [])[:5]) or "-")
+
+    st.markdown("**Index ETF flows** (Δshares × NAV proxy)")
+    etf = pillar.get("etf_flows") or []
+    if etf:
+        view = []
+        for e in etf:
+            flow_val = e.get("daily_flow_usd")
+            if flow_val is None:
+                flow_str = "first sample (need 2+ days)" if e.get("shares_outstanding") is None else "-"
+            else:
+                flow_str = _fmt_usd(flow_val)
+            view.append({
+                "symbol": e.get("symbol"),
+                "date": e.get("date"),
+                "price": e.get("price"),
+                "shares_outstanding": e.get("shares_outstanding") or "—",
+                "AUM": _fmt_usd(e.get("total_assets")) if e.get("total_assets") else "—",
+                "daily flow": flow_str,
+                "error": e.get("error", ""),
+            })
+        st.dataframe(view, hide_index=True, width="stretch")
+        st.caption(
+            "_Daily flow requires shares-outstanding history; ETFFlowClient builds the baseline on first run._"
+        )
+    else:
+        st.info("No ETF flow data.")
+
+    st.markdown("**GEX walls** (Unusual Whales — top dealer-positioned strikes)")
+    walls = pillar.get("gex_walls") or {}
+    if walls:
+        for sym, items in walls.items():
+            with st.expander(f"{sym} — {len(items)} walls"):
+                if items:
+                    st.dataframe(items, hide_index=True, width="stretch")
+    else:
+        st.caption("_No GEX wall data (UW key may need refresh)._")
+
+    st.markdown("**NYSE Breadth**")
+    breadth = pillar.get("breadth") or {}
+    if breadth:
+        b1, b2, b3, b4, b5 = st.columns(5)
+        b1.metric("TRIN", _fmt_num(breadth.get("trin"), 3))
+        b2.metric("TICK", _fmt_num(breadth.get("tick"), 0))
+        b3.metric("ADV-DECL", _fmt_num(breadth.get("adv_minus_decl"), 0))
+        b4.metric("McClellan", _fmt_num(breadth.get("mcclellan_oscillator"), 1))
+        b5.metric("Regime", str(breadth.get("regime", "?")).upper())
+        if breadth.get("notes"):
+            st.caption("  ·  ".join(breadth["notes"]))
+    else:
+        st.caption("_Breadth unavailable._")
+
+    st.markdown("**COT positioning** (E-mini index futures)")
+    cot = pillar.get("cot_positioning") or []
+    if cot:
+        view = []
+        for r in cot:
+            sig = r.get("extreme_signal") or {}
+            view.append({
+                "market": r.get("market", "?"),
+                "report_date": r.get("report_date", ""),
+                "leveraged_net": r.get("leveraged_net"),
+                "asset_mgr_net": r.get("asset_mgr_net"),
+                "dealer_net": r.get("dealer_net"),
+                "extreme": sig.get("signal", "") if sig else "",
+                "z_score": round(sig.get("z_score", 0), 2) if sig else "",
+            })
+        st.dataframe(view, hide_index=True, width="stretch")
+    else:
+        st.caption("_COT unavailable (first call downloads ~7 MB ZIP, retry next cycle)._")
+
+    errs = pillar.get("errors") or []
+    if errs:
+        with st.expander(f"Pillar B errors ({len(errs)})"):
+            for e in errs:
+                st.code(str(e))
+
+
+# ── Pillar C — Quant Trading Analysis / Research / Strategies ───────────────
+
+
+def _render_quant_research(payload: dict[str, Any]) -> None:
+    import streamlit as st
+
+    st.subheader("🔬 Quant Trading — Analysis · Research · Strategies")
+    pillar = _safe_get(payload, "quant_research")
+    if pillar.get("error"):
+        st.error(pillar["error"])
+        return
+    st.caption(
+        f"As of {pillar.get('as_of', '-')}  ·  Took {pillar.get('duration_s', 0)}s  ·  cache 5m"
+    )
+
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Vol-premium signals", pillar.get("vol_premium_signal_count", 0))
+    bt = pillar.get("simple_backtest") or {}
+    strategies = (bt.get("strategies") or []) if isinstance(bt, dict) else []
+    if not isinstance(strategies, list):
+        strategies = []
+    best_wr_frac = max(
+        (s.get("win_rate", 0) for s in strategies if isinstance(s, dict) and isinstance(s.get("win_rate"), (int, float))),
+        default=0,
+    )
+    c2.metric("Best 90d win-rate", f"{best_wr_frac * 100:.1f}%")
+    hr = pillar.get("hit_rates") or {}
+    c3.metric("Tracked signal sources", len(hr) if hasattr(hr, "__len__") else 0)
+
+    st.markdown("**Vol-premium signals** (LONG_PUT when IV/HV ≥ 1.20)")
+    sigs = pillar.get("vol_premium_signals") or []
+    if sigs:
+        st.dataframe(sigs, hide_index=True, width="stretch")
+    else:
+        st.info("No vol-premium signals firing right now.")
+
+    st.markdown("**90-day proxy backtest** (war_room / vol_premium / combined)")
+    if strategies:
+        view = []
+        for s in strategies:
+            if not isinstance(s, dict):
+                continue
+            view.append({
+                "strategy": s.get("strategy", "?"),
+                "signals": s.get("n_signals"),
+                "wins": s.get("n_wins"),
+                "win_rate %": round(float(s.get("win_rate", 0)) * 100, 1),
+                "avg_drawdown %": round(float(s.get("avg_drawdown_pct", 0)), 2),
+                "notes": s.get("notes", ""),
+            })
+        st.dataframe(view, hide_index=True, width="stretch")
+        if bt.get("start_date"):
+            st.caption(f"Window: {bt.get('start_date')} → {bt.get('end_date')}")
+    else:
+        st.caption("_Backtest unavailable._")
+
+    st.markdown("**Walk-forward backtest** (mean-reversion vs momentum)")
+    wf_col1, wf_col2 = st.columns([1, 3])
+    ticker = wf_col1.text_input("Ticker", value="SPY", key="__wf_ticker_input__")
+    if wf_col2.button("Run walk-forward (5–15s)", key="__wf_run__"):
+        st.session_state["__wf_ticker__"] = ticker
+        with st.spinner(f"Running walk-forward on {ticker} ..."):
+            wf_payload = _get_cached_pillar()("quant_walk_forward", key=ticker)
+        st.session_state["__wf_result__"] = wf_payload
+    wf_payload = st.session_state.get("__wf_result__", {})
+    wf_data = wf_payload.get("walk_forward") or {} if isinstance(wf_payload, dict) else {}
+    if wf_data:
+        if wf_data.get("error"):
+            st.warning(wf_data["error"])
+        else:
+            mr = wf_data.get("mean_reversion") or {}
+            mom = wf_data.get("momentum") or {}
+            view = []
+            for label, r in (("mean_reversion", mr), ("momentum", mom)):
+                if r:
+                    view.append({
+                        "strategy": label,
+                        "folds": r.get("total_folds"),
+                        "OOS Sharpe": round(r.get("oos_sharpe", 0), 3),
+                        "OOS return": round(r.get("oos_return", 0), 4),
+                        "OOS hit-rate": round(r.get("oos_hit_rate", 0), 3),
+                        "max DD": round(r.get("max_drawdown", 0), 3),
+                    })
+            if view:
+                st.dataframe(view, hide_index=True, width="stretch")
+
+    st.markdown("**Signal journal hit rates** (logged signals → resolved outcomes)")
+    if hr:
+        view = []
+        for src, stats in hr.items():
+            if isinstance(stats, dict):
+                view.append({
+                    "source": src,
+                    "wins": stats.get("wins"),
+                    "losses": stats.get("losses"),
+                    "rate %": round(stats.get("rate", 0) * 100, 1) if isinstance(stats.get("rate"), (int, float)) else "-",
+                })
+        if view:
+            st.dataframe(view, hide_index=True, width="stretch")
+    else:
+        st.caption("_No resolved signals tracked yet._")
+
+    errs = pillar.get("errors") or []
+    if errs:
+        with st.expander(f"Pillar C errors ({len(errs)})"):
+            for e in errs:
+                st.code(str(e))
+
+
+def _data_source_status(payload: dict[str, Any]) -> list[tuple[str, str]]:
+    """Return [(label, status_emoji)] for the top status strip.
+    Status emoji: 🟢 healthy, 🟡 degraded, 🔴 down, ⚪ unknown.
+    """
+    out: list[tuple[str, str]] = []
+
+    # Portfolio (any account verified today/yesterday)
+    pf = _safe_get(payload, "portfolio")
+    accounts = pf.get("accounts") or []
+    fresh = sum(1 for a in accounts if str(a.get("verified", "")).startswith(dt.date.today().isoformat()[:7]))
+    out.append(("Portfolio", "🟢" if fresh else ("🟡" if accounts else "⚪")))
+
+    # IBKR (live_feeds errors mention it when down)
+    live = _safe_get(payload, "live_feeds")
+    ib_down = any("IBKR" in str(e) or "TWS" in str(e) for e in (live.get("errors") or []))
+    out.append(("IBKR", "🔴" if ib_down else "🟢"))
+
+    # Unusual Whales
+    uw = _safe_get(payload, "unusual_whales")
+    fs = uw.get("flow_summary") if isinstance(uw.get("flow_summary"), dict) else {}
+    uw_bad = bool(uw.get("error")) or bool(fs.get("error")) or (isinstance(fs, dict) and not fs)
+    out.append(("Unusual Whales", "🔴" if uw_bad else "🟢"))
+
+    # CFTC COT (gated off by default \u2014 zip 404 for current years)
+    flow = _safe_get(payload, "index_flow")
+    cftc_enabled = os.environ.get("AAC_DASHBOARD_ENABLE_CFTC", "0") == "1"
+    if not cftc_enabled:
+        out.append(("CFTC COT", "\u26aa"))
+    else:
+        cot_ok = bool(flow.get("cot_positioning"))
+        out.append(("CFTC COT", "\ud83d\udfe2" if cot_ok else "\ud83d\udd34"))
+
+    # Breadth (gated off by default \u2014 ^TRIN delisted)
+    breadth_enabled = os.environ.get("AAC_DASHBOARD_ENABLE_BREADTH", "0") == "1"
+    if not breadth_enabled:
+        out.append(("NYSE Breadth", "\u26aa"))
+    else:
+        breadth = flow.get("breadth") or {}
+        out.append(("NYSE Breadth", "\ud83d\udfe2" if breadth else "\ud83d\udd34"))
+
+    # yfinance / vol-premium  (now: IBKR primary, yfinance fallback)
+    calls = _safe_get(payload, "call_options")
+    readings = calls.get("vol_premium_readings") or []
+    src = "ibkr" if readings and any(r.get("source") == "ibkr" for r in readings) else "yf"
+    out.append((f"IV/HV ({src})", "🟢" if readings else "🔴"))
+
+    return out
+
+
 def _render(payload: dict[str, Any]) -> None:
     import streamlit as st
 
-    st.title("AAC Monitoring Dashboard")
-    st.caption(f"Last updated: {payload.get('ts', '-')}  ·  cache TTL 30s  ·  auto-refresh 30s")
+    st.title("AAC Trading Intelligence Dashboard")
+    st.caption(
+        f"Last updated: {payload.get('ts', '-')}  ·  ops cache 30s  ·  pillar cache 5m  ·  auto-refresh 30s"
+    )
 
-    tabs = st.tabs(
+    # Data-source status strip
+    statuses = _data_source_status(payload)
+    cols = st.columns(len(statuses))
+    for col, (label, emoji) in zip(cols, statuses):
+        col.markdown(f"<div style='text-align:center;font-size:0.85rem'>{emoji}<br>{label}</div>", unsafe_allow_html=True)
+    st.divider()
+
+    # Sidebar cache controls
+    with st.sidebar:
+        st.subheader("Controls")
+        if st.button("🔄 Refresh now (clear cache)"):
+            st.cache_data.clear()
+            st.rerun()
+        st.caption(f"Payload ts: {payload.get('ts', '-')}")
+
+    # Make portfolio + UW available to pillar collectors via session state.
+    st.session_state["__portfolio_payload__"] = payload.get("portfolio") or {}
+    st.session_state["__uw_payload__"] = payload.get("unusual_whales") or {}
+
+    pillar_tabs = st.tabs(
         [
-            "Overview",
-            "Positions",
-            "War Room",
-            "PnL",
-            "Trades",
-            "Tasks",
-            "Divisions",
-            "Polymarket",
-            "Scenarios",
-            "Unusual Whales",
-            "Regime / Doctrine",
-            "Health",
-            "Feeds",
-            "Raw",
+            "📈 Overview",
+            "🟢 Call Options",
+            "📊 Index & Flow",
+            "🔬 Quant Research",
+            "💼 Positions",
+            "💰 PnL & Trades",
+            "🩺 Health & War Room",
+            "📰 Other",
         ]
     )
-    renderers = [
-        _render_overview,
-        _render_positions,
-        _render_war_room,
-        _render_pnl,
-        _render_trades,
-        _render_tasks,
-        _render_divisions,
-        _render_polymarket,
-        _render_scenarios,
-        _render_uw,
-        _render_regime,
-        _render_health,
-        _render_feeds,
-    ]
-    for tab, fn in zip(tabs[:-1], renderers):
-        with tab:
-            fn(payload)
-    with tabs[-1]:
-        with st.expander("Raw payload", expanded=False):
-            st.code(json.dumps(payload, default=_json_default, indent=2), language="json")
+
+    with pillar_tabs[0]:
+        _render_overview(payload)
+
+    with pillar_tabs[1]:
+        _render_call_options(payload)
+
+    with pillar_tabs[2]:
+        _render_index_flow(payload)
+
+    with pillar_tabs[3]:
+        _render_quant_research(payload)
+
+    with pillar_tabs[4]:
+        _render_positions(payload)
+
+    with pillar_tabs[5]:
+        c1, c2 = st.columns(2)
+        with c1:
+            _render_pnl(payload)
+        with c2:
+            _render_trades(payload)
+
+    with pillar_tabs[6]:
+        c1, c2 = st.columns(2)
+        with c1:
+            _render_health(payload)
+        with c2:
+            _render_war_room(payload)
+        _render_feeds(payload)
+
+    with pillar_tabs[7]:
+        sub = st.tabs(["UW", "Regime / Doctrine", "Tasks", "Divisions", "Polymarket", "Scenarios", "Raw"])
+        with sub[0]:
+            _render_uw(payload)
+        with sub[1]:
+            _render_regime(payload)
+        with sub[2]:
+            _render_tasks(payload)
+        with sub[3]:
+            _render_divisions(payload)
+        with sub[4]:
+            _render_polymarket(payload)
+        with sub[5]:
+            _render_scenarios(payload)
+        with sub[6]:
+            with st.expander("Raw payload", expanded=False):
+                st.code(json.dumps(payload, default=_json_default, indent=2), language="json")
 
 
 # ── Entry point ─────────────────────────────────────────────────────────────
@@ -644,7 +1166,6 @@ def main() -> None:
         pass
 
     placeholder = st.empty()
-    placeholder.title("AAC Monitoring Dashboard")
     placeholder.caption("Loading collectors ...")
 
     with st.spinner("Collecting portfolio, war room, health, and feed data ..."):
@@ -652,6 +1173,14 @@ def main() -> None:
         collect = _get_cached_collect()
         for name in _COLLECTOR_NAMES:
             payload[name] = collect(name)
+
+        # Pillar collectors run after the operational ones so they can read
+        # the freshly-collected portfolio + UW snapshot via session state.
+        st.session_state["__portfolio_payload__"] = payload.get("portfolio") or {}
+        st.session_state["__uw_payload__"] = payload.get("unusual_whales") or {}
+        pillar = _get_cached_pillar()
+        for pillar_name in ("call_options", "index_flow", "quant_research"):
+            payload[pillar_name] = pillar(pillar_name)
 
     placeholder.empty()
     _render(payload)
@@ -710,3 +1239,4 @@ class AACStreamlitDashboard:
 
 if __name__ == "__main__":
     main()
+
