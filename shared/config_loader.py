@@ -453,10 +453,13 @@ class Config:
             ),
 
             # NDAX (Canadian crypto exchange)
+            # NDAX has no usable public sandbox; default to mainnet so callers
+            # passing testnet=False are not silently flipped back to staging
+            # (which resolves to ndaxmarginstaging.cdnhop.net and fails).
             ndax=ExchangeConfig(
                 api_key=get_env('NDAX_API_KEY'),
                 api_secret=get_env('NDAX_API_SECRET'),
-                testnet=get_env_bool('NDAX_TESTNET', True),
+                testnet=get_env_bool('NDAX_TESTNET', False),
                 enabled=bool(get_env('NDAX_API_KEY')),
             ),
             ndax_user_id=get_env('NDAX_USER_ID'),

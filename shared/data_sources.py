@@ -941,6 +941,9 @@ class DataAggregator:
         # Exchange connectors (injected by orchestrator after init)
         self._ibkr_connector: Optional[Any] = None
         self._ndax_connector: Optional[Any] = None
+        self._moomoo_connector: Optional[Any] = None
+        # Unusual Whales options-flow snapshot service (set by orchestrator)
+        self._uw_snapshot_service: Optional[Any] = None
 
         # Data storage
         self.latest_ticks: Dict[str, MarketTick] = {}
@@ -973,6 +976,49 @@ class DataAggregator:
         """Inject NDAX connector for CAD crypto pricing."""
         self._ndax_connector = connector
         self.logger.info("NDAX connector wired into DataAggregator")
+
+    def set_moomoo_connector(self, connector: Any) -> None:
+        """Inject Moomoo connector for equity/option pricing (IBKR fallback)."""
+        self._moomoo_connector = connector
+        self.logger.info("Moomoo connector wired into DataAggregator")
+
+    def set_unusual_whales_service(self, service: Any) -> None:
+        """Inject Unusual Whales snapshot service for options-flow context."""
+        self._uw_snapshot_service = service
+        self.logger.info("Unusual Whales snapshot service wired into DataAggregator")
+
+    async def _moomoo_get_ticker(self, symbol: str) -> Optional[MarketTick]:
+        """Fetch a single equity quote from Moomoo (IBKR fallback)."""
+        if not self._moomoo_connector:
+            return None
+        try:
+            ticker = await self._moomoo_connector.get_ticker(f"{symbol}/USD")
+            if ticker and ticker.last > 0:
+                tick = MarketTick(
+                    symbol=symbol,
+                    price=ticker.last,
+                    volume_24h=getattr(ticker, 'volume_24h', 0),
+                    change_24h=0.0,
+                    bid=ticker.bid,
+                    ask=ticker.ask,
+                    timestamp=datetime.now(),
+                    source="moomoo",
+                )
+                self.latest_ticks[symbol] = tick
+                return tick
+        except Exception as e:
+            self.logger.debug(f"Moomoo ticker failed for {symbol}: {e}")
+        return None
+
+    async def get_options_flow_snapshot(self) -> Dict[str, Any]:
+        """Return cached Unusual Whales options-flow snapshot (or empty dict)."""
+        if not self._uw_snapshot_service:
+            return {}
+        try:
+            return await self._uw_snapshot_service.get_snapshot()
+        except Exception as e:
+            self.logger.debug(f"UW snapshot fetch failed: {e}")
+            return {}
 
     async def connect_all(self):
         """Connect all data sources"""
@@ -1069,11 +1115,20 @@ class DataAggregator:
         equity_syms = [s for s in symbols if is_equity(s)]
         crypto_syms = [s for s in symbols if not is_equity(s)]
 
-        # ── IBKR path for equities / ETFs ──
+        # ── IBKR path for equities / ETFs (primary) ──
         for sym in equity_syms:
             tick = await self._ibkr_get_ticker(sym.upper())
             if tick:
                 result[tick.symbol] = tick
+
+        # ── Moomoo fallback for equities IBKR couldn't price ──
+        if self._moomoo_connector:
+            for sym in equity_syms:
+                su = sym.upper()
+                if su not in result:
+                    tick = await self._moomoo_get_ticker(su)
+                    if tick:
+                        result[tick.symbol] = tick
 
         # ── CoinGecko path for crypto ──
         if crypto_syms:

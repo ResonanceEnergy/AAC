@@ -303,7 +303,8 @@ def _fetch_space_weather() -> dict:
             result["kp_time"] = latest.get("time_tag", "")
             result["kp_value"] = float(latest.get("Kp", 0))
     except Exception:
-        pass
+        import logging as _gap_log  # noqa: PLC0415
+        _gap_log.getLogger(__name__).debug("suppressed exception", exc_info=True)
 
     # ── Solar wind speed (DSCOVR real-time) ──
     try:
@@ -318,7 +319,8 @@ def _fetch_space_weather() -> dict:
         elif isinstance(data, dict):
             result["wind_speed"] = data.get("WindSpeed") or data.get("proton_speed")
     except Exception:
-        pass
+        import logging as _gap_log  # noqa: PLC0415
+        _gap_log.getLogger(__name__).debug("suppressed exception", exc_info=True)
 
     # ── Solar flux (10.7cm) ──
     try:
@@ -335,7 +337,8 @@ def _fetch_space_weather() -> dict:
             result["solar_flux"] = data.get("Flux") or data.get("flux")
             result["flux_time"] = data.get("TimeStamp") or data.get("time_tag")
     except Exception:
-        pass
+        import logging as _gap_log  # noqa: PLC0415
+        _gap_log.getLogger(__name__).debug("suppressed exception", exc_info=True)
 
     # ── Geomagnetic storm / alerts ──
     try:
@@ -351,7 +354,8 @@ def _fetch_space_weather() -> dict:
         result["solar_rad"] = current.get("S", {})    # Solar radiation scale
         result["radio_blackout"] = current.get("R", {})  # Radio blackout scale
     except Exception:
-        pass
+        import logging as _gap_log  # noqa: PLC0415
+        _gap_log.getLogger(__name__).debug("suppressed exception", exc_info=True)
 
     # ── Sunspot number ──
     try:
@@ -371,7 +375,8 @@ def _fetch_space_weather() -> dict:
                 result["ssn_low"] = row.get("low_ssn")
                 break
     except Exception:
-        pass
+        import logging as _gap_log  # noqa: PLC0415
+        _gap_log.getLogger(__name__).debug("suppressed exception", exc_info=True)
 
     return result
 

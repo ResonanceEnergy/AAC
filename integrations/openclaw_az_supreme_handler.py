@@ -943,7 +943,8 @@ class AZSupremeOpenClawHandler:
                 alerts = [a for a in monitor.active_alerts.values() if a.severity.value in ('high', 'critical') and not a.resolved]
                 risk_ok = len(alerts) == 0
         except Exception:
-            pass  # If monitoring unavailable, assume OK
+            import logging as _gap_log  # noqa: PLC0415
+            _gap_log.getLogger(__name__).debug("risk monitoring unavailable; assuming OK", exc_info=True)
         if not risk_ok:
             alert = RESPONSE_TEMPLATES["risk_alert"].format(
                 alert_level="ELEVATED",

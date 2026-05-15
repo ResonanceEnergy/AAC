@@ -305,7 +305,8 @@ def full_startup(
                 _health_server.shutdown()
                 logger.info("  [+] Health server stopped")
             except Exception:
-                pass
+                import logging as _gap_log  # noqa: PLC0415
+                _gap_log.getLogger(__name__).debug("suppressed exception", exc_info=True)
         # Wait briefly for monitor thread to finish
         if _monitor_thread is not None and _monitor_thread.is_alive():
             logger.info("  [+] Matrix Monitor thread stopping (daemon) ...")

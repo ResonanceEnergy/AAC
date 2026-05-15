@@ -294,8 +294,11 @@ class IBKRConnector(BaseExchangeConnector):
             parsed = _parse_symbol(symbol)
             contract = _make_contract(parsed)
 
-            # Qualify the contract (resolve to specific exchange contract)
-            qualified = self._conn.qualifyContracts(contract)
+            # Qualify the contract (resolve to specific exchange contract).
+            # MUST use the async variant when called from inside a running
+            # event loop — the sync qualifyContracts() calls loop.run_until_complete()
+            # internally, which raises "This event loop is already running".
+            qualified = await self._conn.qualifyContractsAsync(contract)
             if not qualified:
                 raise ExchangeError(f"Could not qualify contract for {symbol}")
             contract = qualified[0]
@@ -341,7 +344,7 @@ class IBKRConnector(BaseExchangeConnector):
         try:
             parsed = _parse_symbol(symbol)
             contract = _make_contract(parsed)
-            qualified = self._conn.qualifyContracts(contract)
+            qualified = await self._conn.qualifyContractsAsync(contract)
             if not qualified:
                 raise ExchangeError(f"Could not qualify contract for {symbol}")
             contract = qualified[0]
@@ -473,7 +476,7 @@ class IBKRConnector(BaseExchangeConnector):
         try:
             parsed = _parse_symbol(symbol)
             contract = _make_contract(parsed)
-            qualified = self._conn.qualifyContracts(contract)
+            qualified = await self._conn.qualifyContractsAsync(contract)
             if not qualified:
                 raise OrderError(f"Could not qualify contract for {symbol}")
             contract = qualified[0]
@@ -636,7 +639,7 @@ class IBKRConnector(BaseExchangeConnector):
         try:
             parsed = _parse_symbol(symbol)
             contract = _make_contract(parsed)
-            qualified = self._conn.qualifyContracts(contract)
+            qualified = await self._conn.qualifyContractsAsync(contract)
             if not qualified:
                 raise OrderError(f"Could not qualify contract for {symbol}")
             contract = qualified[0]
@@ -782,11 +785,11 @@ class IBKRConnector(BaseExchangeConnector):
 
         try:
             stock = Stock(symbol, 'SMART', 'USD')
-            qualified = self._conn.qualifyContracts(stock)
+            qualified = await self._conn.qualifyContractsAsync(stock)
             if not qualified:
                 raise OrderError(f"Could not qualify underlying {symbol}")
 
-            chains = self._conn.reqSecDefOptParams(
+            chains = await self._conn.reqSecDefOptParamsAsync(
                 qualified[0].symbol, '', qualified[0].secType, qualified[0].conId
             )
 
@@ -835,7 +838,7 @@ class IBKRConnector(BaseExchangeConnector):
 
         try:
             contract = self._make_option_contract(symbol, expiry, strike, right)
-            qualified = self._conn.qualifyContracts(contract)
+            qualified = await self._conn.qualifyContractsAsync(contract)
             if not qualified:
                 raise OrderError(
                     f"Could not qualify option {symbol} {expiry} {strike} {right}"
@@ -902,7 +905,7 @@ class IBKRConnector(BaseExchangeConnector):
 
         try:
             contract = self._make_option_contract(symbol, expiry, strike, right)
-            qualified = self._conn.qualifyContracts(contract)
+            qualified = await self._conn.qualifyContractsAsync(contract)
             if not qualified:
                 raise OrderError(
                     f"Could not qualify option {symbol} {expiry} {strike} {right}"

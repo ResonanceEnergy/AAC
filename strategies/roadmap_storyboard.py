@@ -513,13 +513,15 @@ def _collect_war_room(today: date) -> dict[str, Any]:
             achieved = sum(1 for v in ms_state.values() if v)
             war["milestones"]["achieved"] = achieved
         except Exception:
-            pass
+            import logging as _gap_log  # noqa: PLC0415
+            _gap_log.getLogger(__name__).debug("suppressed exception", exc_info=True)
 
         # Phase
         try:
             war["phase"] = get_current_phase()
         except Exception:
-            pass
+            import logging as _gap_log  # noqa: PLC0415
+            _gap_log.getLogger(__name__).debug("suppressed exception", exc_info=True)
 
     except ImportError:
         logger.debug("roadmap_war_room_import_unavailable")

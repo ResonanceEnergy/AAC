@@ -693,6 +693,21 @@ class AAC2100Orchestrator:
             except Exception as e:
                 self.logger.warning("NDAX connector not available for DataAggregator: %s", e)
 
+            try:
+                moomoo_conn = self.execution_engine._get_connector("moomoo")
+                self.data_aggregator.set_moomoo_connector(moomoo_conn)
+                self.logger.info("Moomoo connector wired into DataAggregator")
+            except Exception as e:
+                self.logger.warning("Moomoo connector not available for DataAggregator: %s", e)
+
+            try:
+                from integrations import get_unusual_whales_snapshot_service
+                uw_service = get_unusual_whales_snapshot_service()
+                self.data_aggregator.set_unusual_whales_service(uw_service)
+                self.logger.info("Unusual Whales snapshot service wired into DataAggregator")
+            except Exception as e:
+                self.logger.warning("Unusual Whales service not available for DataAggregator: %s", e)
+
             # Initialize AAC 2100 AI Components
             if self._enable_ai_autonomy:
                 self.logger.info("Initializing AI autonomy components...")

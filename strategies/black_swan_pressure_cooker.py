@@ -1062,7 +1062,8 @@ class PressureCooker:
                     "total_authorities": data.get("total_authorities", 0),
                 }
         except Exception:
-            pass
+            import logging as _gap_log  # noqa: PLC0415
+            _gap_log.getLogger(__name__).debug("suppressed exception", exc_info=True)
         return None
 
     def get_crisis_data(self) -> Dict:

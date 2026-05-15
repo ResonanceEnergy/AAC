@@ -358,6 +358,11 @@ Paper Trading Order Simulator
 ============================
 
 Simulates order execution for paper trading validation.
+
+WARNING: This module uses random.expovariate / random.random() to model
+fills. It is PAPER-TRADING ONLY. Never import OrderSimulator from any live
+trading path or broker adapter — its output is synthetic and must not be
+treated as real fill data.
 """
 
 import asyncio

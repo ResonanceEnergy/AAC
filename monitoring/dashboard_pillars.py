@@ -217,12 +217,29 @@ def _build_covered_call_screen(own_calls: list[dict[str, Any]]) -> list[dict[str
             chain = chain.copy()
             chain["_dist"] = (chain["strike"] - spot * 1.05).abs()  # ~5% OTM target
             row = chain.loc[chain["_dist"].idxmin()]
+            iv = float(row.get("impliedVolatility", 0.0) or 0.0)
+            strike = float(row.get("strike", spot))
+            # yfinance doesn't expose live Greeks. Compute call delta from
+            # Black-Scholes using IV; if IV is unavailable, omit the candidate
+            # rather than feed a placeholder into the screener.
+            if iv <= 0:
+                continue
+            try:
+                import math
+                from scipy.stats import norm
+                T = 30 / 365.0
+                r = 0.037
+                q = 0.0
+                d1 = (math.log(spot / strike) + (r - q + 0.5 * iv ** 2) * T) / (iv * math.sqrt(T))
+                call_delta = math.exp(-q * T) * float(norm.cdf(d1))
+            except (ImportError, ValueError, ZeroDivisionError):
+                continue
             candidates.append({
                 "symbol": sym,
                 "price": round(spot, 2),
                 "call_premium": float(row.get("lastPrice", 0.0) or 0.0),
-                "call_delta": 0.30,  # placeholder — yfinance doesn't expose Greeks
-                "iv": float(row.get("impliedVolatility", 0.0) or 0.0),
+                "call_delta": call_delta,
+                "iv": iv,
                 "dte": 30,
                 "div_yield": 0.0,
                 "earnings_in_cycle": False,

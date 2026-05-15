@@ -1,7 +1,7 @@
 # AAC Living Status Dashboard
 
-> **Last updated:** 2026-05-15
-> **Updated by:** Built 3 new data clients (NYSE breadth, CFTC COT, ETF flow) + fixed Unusual Whales field parsing (OCC fallback + GEX `*_oi` aliases). Pytest **4969 passed, 2 skipped** (excl. integration_test.py + autonomous). 4 new test files (61 focused tests, 100% pass).
+> **Last updated:** 2026-05-15 (PM)
+> **Updated by:** 250-gap audit + first remediation pass. Audit doc: `.context/07_gaps/gap-audit-2026-05-15-250.md`. Fixed: 39 root-clutter logs deleted, 36 duplicate modules collapsed to shims, 43 silent excepts rewritten with debug-logging, deterministic 1.5 bps slippage in `TradingExecution/execution_engine.py`, pre-commit hook + `tools/check_forbidden_patterns.py` now block new silent-excepts / sys.path.insert / root pytest logs. New tests: `tests/test_portfolio_manager_agent.py` (13 cases). Pytest **4981 passed, 25 skipped, 1 xfailed, 2 pre-existing MagicMock failures** in `test_breadth_client.py` (unrelated).
 > **Update this file** after every significant change. This is the single source of truth for what works.
 
 ---

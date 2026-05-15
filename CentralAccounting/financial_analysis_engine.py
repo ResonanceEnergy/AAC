@@ -172,8 +172,22 @@ class FinancialAnalysisEngine:
             position_weights = [abs(pos.market_value) / total_exposure for pos in self.positions.values() if total_exposure > 0]
             portfolio_heat = sum(w**2 for w in position_weights) * 100 if position_weights else 0
 
-            # Strategy correlation (simplified - would need historical data)
-            strategy_correlation = 0.3  # Placeholder
+            # Strategy correlation proxy: derived from strategy concentration.
+            # Without historical return series we cannot compute true pairwise
+            # correlation, but we can give an honest concentration-weighted
+            # proxy: 1.0 = all capital in one strategy (fully correlated),
+            # decaying toward 1/N as exposure spreads. This replaces the
+            # previous hard-coded 0.3 placeholder.
+            strategy_exposure: Dict[str, float] = {}
+            for pos in self.positions.values():
+                key = getattr(pos, "strategy", "unknown") or "unknown"
+                strategy_exposure[key] = strategy_exposure.get(key, 0.0) + abs(pos.market_value)
+            if total_exposure > 0 and strategy_exposure:
+                weights = [v / total_exposure for v in strategy_exposure.values()]
+                # Herfindahl concentration in [1/N, 1]; equals correlation proxy.
+                strategy_correlation = float(sum(w * w for w in weights))
+            else:
+                strategy_correlation = 0.0  # honest "no data" rather than fake 0.3
 
             return RiskMetrics(
                 max_drawdown_pct=self.current_drawdown,

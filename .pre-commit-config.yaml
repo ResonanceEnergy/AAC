@@ -39,3 +39,24 @@ repos:
         language: system
         always_run: true
         pass_filenames: false
+
+      # ── Forbidden Patterns (gap audit 2026-05-15) ───────────────────────
+      - id: no-silent-except
+        name: "Block 'except Exception: pass' (silent exceptions)"
+        entry: python tools/check_forbidden_patterns.py --check silent-except
+        language: system
+        types: [python]
+        exclude: '^(_archive|_scratch|tests|archive)/'
+      - id: no-syspath-insert
+        name: "Block new sys.path.insert hacks"
+        entry: python tools/check_forbidden_patterns.py --check syspath
+        language: system
+        types: [python]
+        exclude: '^(_archive|_scratch|tests|archive)/'
+      - id: no-root-pytest-logs
+        name: "Block root-level pytest_*.txt log files"
+        entry: python -c "import sys,pathlib;root=pathlib.Path('.');bad=[p.name for p in root.glob('pytest_*.txt')];sys.exit('ROOT CLUTTER: '+', '.join(bad)+' (use _scratch/ or pipe to file outside repo)') if bad else None"
+        language: system
+        always_run: true
+        pass_filenames: false
+

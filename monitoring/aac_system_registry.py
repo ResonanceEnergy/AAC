@@ -376,7 +376,8 @@ def _probe_storm_lifeboat(now: str) -> ComponentStatus:
                 checked_at=now,
             )
         except Exception:
-            pass
+            import logging as _gap_log  # noqa: PLC0415
+            _gap_log.getLogger(__name__).debug("suppressed exception", exc_info=True)
 
     return ComponentStatus(
         name="Storm Lifeboat Matrix",
@@ -450,7 +451,8 @@ def _inventory_orphans() -> List[Dict[str, Any]]:
                         desc = stripped.lstrip("# ")
                         break
         except Exception:
-            pass
+            import logging as _gap_log  # noqa: PLC0415
+            _gap_log.getLogger(__name__).debug("suppressed exception", exc_info=True)
         results.append({"script": name, "description": desc[:120]})
     return results
 

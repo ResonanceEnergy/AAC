@@ -220,7 +220,8 @@ class ScenarioEngine:
             _tq_hub.record_scenarios(scenario_dicts)
             _tq_hub.save_all()
         except Exception:
-            pass
+            import logging as _gap_log  # noqa: PLC0415
+            _gap_log.getLogger(__name__).debug("suppressed exception", exc_info=True)
 
         return adjustments
 

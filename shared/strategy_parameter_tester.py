@@ -115,6 +115,15 @@ class StrategyParameterTester:
         self.results_history: List[OptimizationResult] = []
         self.parameter_configs = self._load_parameter_configs()
 
+        # SAFETY: synthetic parameter-test simulation (random.choice symbols,
+        # random.uniform prices) is OFF by default. Results are noise. Enable
+        # only via AAC_ALLOW_SYNTHETIC_PARAM_TESTS=true and never in prod/live.
+        import os as _os
+        env_flag = _os.getenv("AAC_ALLOW_SYNTHETIC_PARAM_TESTS", "").strip().lower() in ("1", "true", "yes")
+        is_prod = _os.getenv("AAC_ENV", "").lower() == "production"
+        live_trading = _os.getenv("LIVE_TRADING_ENABLED", "").lower() == "true"
+        self.allow_synthetic_param_tests = env_flag and not (is_prod or live_trading)
+
     async def initialize(self):
         """Initialize the parameter testing system"""
         self.logger.info("Initializing Strategy Parameter Tester")
@@ -297,8 +306,8 @@ class StrategyParameterTester:
             risk_level="medium",
             symbols=["SPY", "QQQ"],  # Default symbols
             parameters=params,
-            entry_logic="pass",  # Placeholder
-            exit_logic="pass",   # Placeholder
+            entry_logic="# entry logic not implemented for parameter test scaffold",
+            exit_logic="# exit logic not implemented for parameter test scaffold",
             risk_management={"max_drawdown": 0.05},
             backtest_results={}
         )
@@ -350,6 +359,15 @@ class StrategyParameterTester:
     async def _simulate_parameterized_strategy(self, strategy, params: Dict[str, Any]) -> List[Dict]:
         """Simulate strategy execution with specific parameters"""
         trades_executed = []
+
+        # SAFETY GATE: this method generates fake trades using random.choice/uniform.
+        # Refuse to run unless explicitly opted in (off in prod / live trading).
+        if not getattr(self, "allow_synthetic_param_tests", False):
+            self.logger.warning(
+                "_simulate_parameterized_strategy refused: synthetic trades disabled "
+                "(set AAC_ALLOW_SYNTHETIC_PARAM_TESTS=true outside prod/live to enable)."
+            )
+            return trades_executed
 
         # Extract parameters with defaults
         entry_threshold = params.get("entry_threshold", 1.0)

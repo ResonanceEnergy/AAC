@@ -222,8 +222,8 @@ class PolymarketBlackSwanScanner:
             pressure_scale = min(pressure_pct / 50.0, 1.0)
             mult = 1.0 + (mult - 1.0) * pressure_scale
         except Exception:
-            pass  # Use base multiplier
-
+                import logging as _gap_log  # noqa: PLC0415
+                _gap_log.getLogger(__name__).debug("multiplier override failed; using base", exc_info=True)
         estimated = implied * mult
         # Cap at 0.50 — never more than 50% certain on tail events
         return min(estimated, 0.50)

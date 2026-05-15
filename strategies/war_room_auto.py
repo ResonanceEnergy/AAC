@@ -309,7 +309,8 @@ class WarRoomAutoEngine:
                 from strategies.ninety_day_war_room import log_intel_update
                 log_intel_update("Auto-update: 11-feed refresh completed", {})
             except Exception:
-                pass
+                import logging as _gap_log  # noqa: PLC0415
+                _gap_log.getLogger(__name__).debug("suppressed exception", exc_info=True)
 
             logger.info("WAR ROOM AUTO: live feeds refreshed successfully")
         except Exception as e:
@@ -357,7 +358,8 @@ class WarRoomAutoEngine:
                     "sentiment": council_result.combined_sentiment,
                 })
             except Exception:
-                pass
+                import logging as _gap_log  # noqa: PLC0415
+                _gap_log.getLogger(__name__).debug("suppressed exception", exc_info=True)
 
             logger.info("WAR ROOM AUTO: council scan completed — %s", council_result.summary())
 
@@ -528,7 +530,8 @@ class WarRoomAutoEngine:
                 from config.account_balances import Balances
                 state["portfolio_usd"] = Balances.total_portfolio_usd()
             except Exception:
-                pass
+                import logging as _gap_log  # noqa: PLC0415
+                _gap_log.getLogger(__name__).debug("suppressed exception", exc_info=True)
             newly_triggered = check_milestones(state)
             if newly_triggered:
                 save_milestone_state()
@@ -544,7 +547,8 @@ class WarRoomAutoEngine:
                     names = ", ".join(str(m) for m in newly_triggered)
                     log_intel_update(f"Auto: Milestones triggered: {names}", {})
                 except Exception:
-                    pass
+                    import logging as _gap_log  # noqa: PLC0415
+                    _gap_log.getLogger(__name__).debug("suppressed exception", exc_info=True)
         except Exception as e:
             logger.warning("WAR ROOM AUTO: milestone check failed: %s", e)
 

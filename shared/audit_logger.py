@@ -140,7 +140,8 @@ class AuditLogger:
                 with self._get_db_connection() as conn:
                     conn.execute("DELETE FROM audit_events WHERE timestamp < ?", (cutoff,))
             except Exception:
-                pass  # Non-critical cleanup
+                import logging as _gap_log  # noqa: PLC0415
+                _gap_log.getLogger(__name__).debug("audit cleanup failed (non-critical)", exc_info=True)
         self.logger.info(f"AuditLogger initialized (retention={self.retention_days}d, db={self.enable_db_logging}, file={self.enable_file_logging})")
 
     def _init_database(self) -> None:

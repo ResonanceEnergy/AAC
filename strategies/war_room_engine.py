@@ -2870,8 +2870,13 @@ async def fetch_x_sentiment(bearer_token: Optional[str] = None) -> float:
                             pass  # rate limited, use what we have
                 except (aiohttp.ClientError, TimeoutError):
                     continue
-    except Exception:
-        return 0.5  # fallback on any network error
+    except (aiohttp.ClientError, OSError, TimeoutError) as exc:
+        logging.getLogger(__name__).warning(
+            "X sentiment fetch failed (%s); returning neutral 0.5 as no-data sentinel. "
+            "Downstream callers should treat this as 'unknown', not as a real reading.",
+            exc,
+        )
+        return 0.5  # explicit no-data sentinel
 
     if not all_scores:
         return 0.5
@@ -2891,7 +2896,11 @@ async def fetch_news_severity() -> float:
         scanner = BlackSwanNewsScanner()
         result = await scanner.scan(quick=True)
         return round(result.average_severity, 3)
-    except Exception:
+    except (ImportError, RuntimeError, OSError) as exc:
+        logging.getLogger(__name__).warning(
+            "News severity scan failed (%s); returning 0.0 as no-data sentinel.",
+            exc,
+        )
         return 0.0
 
 

@@ -193,6 +193,18 @@ _survey_stubs.py
 _find_urls.py
 
 # ===========================================
+# ROOT-LEVEL TEST/SMOKE OUTPUT (gap audit 2026-05-15)
+# ===========================================
+pytest_*.txt
+launch_dash*.txt
+_launch_out.txt
+health_check.txt
+dashboard_smoke_*.log
+streamlit_*.log
+automation_engine.log
+launch_dashboard_run.log
+
+# ===========================================
 # SERVICES — microservices build artifacts
 # ===========================================
 services/*/__pycache__/

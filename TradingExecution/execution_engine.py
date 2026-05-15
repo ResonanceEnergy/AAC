@@ -312,8 +312,10 @@ class ExecutionEngine:
                 self._connectors[exchange] = IBKRConnector()
             elif exchange == "moomoo":
                 from TradingExecution.exchange_connectors.moomoo_connector import MoomooConnector
+                # MoomooConnector reads MOOMOO_TRADE_ENV (REAL/SIMULATE) from env;
+                # `testnet` is the only paper-mode kwarg in BaseExchangeConnector.
                 self._connectors[exchange] = MoomooConnector(
-                    paper=getattr(self.config, 'moomoo_paper', False),
+                    testnet=getattr(self.config, 'moomoo_paper', False),
                 )
             elif exchange == "noxi_rise":
                 from TradingExecution.exchange_connectors.noxi_rise_connector import (
@@ -508,9 +510,9 @@ class ExecutionEngine:
                 if model_name == 'D':
                     slippage_bps = model_metric  # Model D returns slippage in bps
                 else:
-                    # Default slippage for other models
-                    import random
-                    slippage_bps = random.uniform(0.5, 3.0)  # 0.5-3 bps
+                    # Deterministic 1.5 bps slippage (gap audit 2026-05-15: removed random.uniform)
+                    # Production execution must be deterministic for reproducibility & audit.
+                    slippage_bps = 1.5
 
                 slippage_pct = slippage_bps / 10000  # Convert bps to percentage
                 if order.side == OrderSide.BUY:

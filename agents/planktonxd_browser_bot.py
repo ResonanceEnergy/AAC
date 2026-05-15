@@ -397,7 +397,7 @@ class PlanktonXDBrowserBot(BaseArbitrageStrategy):
                         self.safe_click(element)
                         await asyncio.sleep(1)
                         logger.debug(f"Dismissed popup: {selector}")
-                except:
+                except (TimeoutException, NoSuchElementException, WebDriverException, StaleElementReferenceException, AttributeError):
                     continue
                     
         except Exception as e:
@@ -457,7 +457,7 @@ class PlanktonXDBrowserBot(BaseArbitrageStrategy):
                     if q_elem and q_elem.text.strip():
                         question = q_elem.text.strip()
                         break
-                except:
+                except (TimeoutException, NoSuchElementException, WebDriverException, StaleElementReferenceException, AttributeError):
                     continue
             
             if not question:
@@ -518,7 +518,7 @@ class PlanktonXDBrowserBot(BaseArbitrageStrategy):
                             if price > 1:
                                 price = price / 100
                             prices.append(price)
-                except:
+                except (TimeoutException, NoSuchElementException, WebDriverException, StaleElementReferenceException, AttributeError):
                     continue
             
             if len(prices) >= 2:
@@ -554,7 +554,7 @@ class PlanktonXDBrowserBot(BaseArbitrageStrategy):
                         elif suffix == 'm':
                             num *= 1000000
                         return num
-                except:
+                except (TimeoutException, NoSuchElementException, WebDriverException, StaleElementReferenceException, AttributeError):
                     continue
             
             return 10000  # Default volume estimate
@@ -574,14 +574,14 @@ class PlanktonXDBrowserBot(BaseArbitrageStrategy):
                     href = link_elem.get_attribute("href")
                     if href and "/market/" in href:
                         return href
-                except:
+                except (TimeoutException, NoSuchElementException, WebDriverException, StaleElementReferenceException, AttributeError):
                     continue
             
             # Fallback: construct URL from current page
             current_url = self.driver.current_url
             return f"{current_url}/market/unknown"
             
-        except:
+        except (TimeoutException, NoSuchElementException, WebDriverException, StaleElementReferenceException, AttributeError):
             return ""
 
     def _categorize_market(self, question: str) -> MarketCategory:
@@ -746,7 +746,7 @@ class PlanktonXDBrowserBot(BaseArbitrageStrategy):
                 element = self.wait_for_element(By.CSS_SELECTOR, selector, timeout=5)
                 if element and outcome.lower() in element.text.lower():
                     return element
-            except:
+            except (TimeoutException, NoSuchElementException, WebDriverException, StaleElementReferenceException, AttributeError):
                 continue
         
         # Fallback: look for buttons with outcome text
@@ -813,7 +813,7 @@ class PlanktonXDBrowserBot(BaseArbitrageStrategy):
                         element = self.driver.find_element(By.CSS_SELECTOR, selector)
                         if element and element.is_displayed():
                             return True
-                    except:
+                    except (TimeoutException, NoSuchElementException, WebDriverException, StaleElementReferenceException, AttributeError):
                         continue
                 
                 # Look for error indicators 
@@ -829,7 +829,7 @@ class PlanktonXDBrowserBot(BaseArbitrageStrategy):
                         if element and element.is_displayed():
                             logger.warning(f"Trade error detected: {element.text}")
                             return False
-                    except:
+                    except (TimeoutException, NoSuchElementException, WebDriverException, StaleElementReferenceException, AttributeError):
                         continue
                 
                 await asyncio.sleep(2)

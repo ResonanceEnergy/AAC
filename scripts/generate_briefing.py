@@ -150,7 +150,8 @@ def _collect_war_room() -> dict:
                 "fear_greed": result.fear_greed_value,
             }
     except Exception:
-        pass
+        import logging as _gap_log  # noqa: PLC0415
+        _gap_log.getLogger(__name__).debug("suppressed exception", exc_info=True)
 
     return {
         "mandate": mandate,

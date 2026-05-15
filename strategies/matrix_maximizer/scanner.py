@@ -171,6 +171,16 @@ class OptionsScanner:
         self._uw_key = ""
         self._load_keys()
 
+        # SAFETY: synthetic options-chain fallback is OFF by default in
+        # production / live trading. The synthetic chain produces fully
+        # fabricated bid/ask/IV/OI; trades sized off it would be fictional.
+        # Enable only with AAC_ALLOW_SYNTHETIC_CHAIN=true and not in prod/live.
+        import os as _os
+        env_flag = _os.getenv("AAC_ALLOW_SYNTHETIC_CHAIN", "").strip().lower() in ("1", "true", "yes")
+        is_prod = _os.getenv("AAC_ENV", "").lower() == "production"
+        live_trading = _os.getenv("LIVE_TRADING_ENABLED", "").lower() == "true"
+        self.allow_synthetic_chain = env_flag and not (is_prod or live_trading)
+
     def _load_keys(self) -> None:
         """Load API keys from environment (via AAC config_loader)."""
         try:
@@ -315,6 +325,14 @@ class OptionsScanner:
         # Fetch chain
         contracts = self._fetch_polygon_chain(ticker, self.config.max_expiry_days)
         if not contracts:
+            if not self.allow_synthetic_chain:
+                logger.warning(
+                    "No real options chain for %s and synthetic chain is disabled "
+                    "(set AAC_ALLOW_SYNTHETIC_CHAIN=true in non-prod to enable). "
+                    "Returning no recommendations rather than fabricated ones.",
+                    ticker,
+                )
+                return []
             contracts = self._generate_synthetic_chain(ticker, spot, sigma)
 
         if not contracts:

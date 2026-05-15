@@ -9,6 +9,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import os
 import random
 import sys
 from dataclasses import dataclass, field
@@ -114,6 +115,15 @@ class AIStrategyGenerator:
         self.logger = logging.getLogger("AIStrategyGenerator")
         self.audit_logger = get_audit_logger()
 
+        # SAFETY: training on synthetic random data and synthetic-data
+        # backtests are OFF by default. Models trained on `random.uniform`
+        # noise produce meaningless rankings. Enable only via explicit env
+        # flag, never in production / live trading.
+        env_flag = os.getenv("AAC_ALLOW_SYNTHETIC_TRAINING", "").strip().lower() in ("1", "true", "yes")
+        is_prod = os.getenv("AAC_ENV", "").lower() == "production"
+        live_trading = os.getenv("LIVE_TRADING_ENABLED", "").lower() == "true"
+        self.allow_synthetic_training = env_flag and not (is_prod or live_trading)
+
         # ML Models
         self.opportunity_detector = None
         self.return_predictor = None
@@ -160,7 +170,15 @@ class AIStrategyGenerator:
             self.logger.error(f"Failed to initialize AI models: {e}")
 
     async def _train_initial_models(self):
-        """Train initial ML models with synthetic data"""
+        """Train initial ML models with synthetic data (gated)."""
+        if not self.allow_synthetic_training:
+            self.logger.warning(
+                "Synthetic-data model training is disabled in this environment. "
+                "Set AAC_ALLOW_SYNTHETIC_TRAINING=true (and unset production/live flags) to enable. "
+                "AI models will remain unloaded until trained on real data."
+            )
+            return
+
         self.logger.info("Training initial AI models with synthetic data...")
 
         # Generate synthetic training data
@@ -411,33 +429,15 @@ class AIStrategyGenerator:
             current_price = context.current_price.price
             volume = context.current_price.volume or 1000
 
-            # Calculate volatility (simplified)
-            volatility = 0.02  # Default 2%
-
-            # Calculate spread (simplified)
-            spread = current_price * 0.001  # 0.1%
-
-            # Order book depth (simplified)
-            order_book_depth = 500
-
-            # Momentum (simplified)
-            momentum = random.uniform(-0.05, 0.05)
-
-            # Trend strength (simplified)
-            trend_strength = random.uniform(0, 1)
-
-            return MarketFeatures(
-                symbol=symbol,
-                timestamp=datetime.now(),
-                price=current_price,
-                volume=volume,
-                volatility=volatility,
-                spread=spread,
-                order_book_depth=order_book_depth,
-                momentum=momentum,
-                trend_strength=trend_strength,
-                market_regime="neutral"
+            # Volatility / spread / depth / momentum / trend_strength are
+            # NOT computed here yet — returning None forces the caller to
+            # skip rather than feeding placeholder values into the model.
+            self.logger.debug(
+                "Skipping feature extraction for %s: real volatility/spread/depth/momentum "
+                "calculation not implemented; refusing to fabricate.",
+                symbol,
             )
+            return None
 
         except Exception as e:
             self.logger.debug(f"Failed to extract features for {symbol}: {e}")
@@ -532,7 +532,20 @@ def should_exit(position, current_price, entry_price, hold_time):
         return code
 
     async def _backtest_strategy(self, strategy: GeneratedStrategy) -> Dict[str, Any]:
-        """Run backtest for generated strategy"""
+        """Run backtest for generated strategy (synthetic-data path is gated)."""
+        if not self.allow_synthetic_training:
+            self.logger.debug(
+                "Skipping synthetic backtest for %s: AAC_ALLOW_SYNTHETIC_TRAINING not set.",
+                strategy.strategy_id,
+            )
+            return {
+                "status": "skipped",
+                "reason": "synthetic_backtest_disabled",
+                "total_return": 0.0,
+                "sharpe_ratio": 0.0,
+                "max_drawdown": 0.0,
+                "trade_count": 0,
+            }
         # Simplified backtest with synthetic data
         try:
             # Generate synthetic price data

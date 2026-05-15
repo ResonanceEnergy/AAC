@@ -366,7 +366,8 @@ class PreMarketScanner:
             if not hist.empty:
                 return float(hist["Close"].iloc[-1])
         except Exception:
-            pass
+            import logging as _gap_log  # noqa: PLC0415
+            _gap_log.getLogger(__name__).debug("suppressed exception", exc_info=True)
 
         # Fallback: use env or default
         return float(os.environ.get("CURRENT_VIX", "20.0"))

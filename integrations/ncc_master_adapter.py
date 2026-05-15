@@ -203,7 +203,8 @@ class NCCMasterAdapter:
             try:
                 state = json.loads(state_file.read_text())
             except Exception:
-                pass
+                import logging as _gap_log  # noqa: PLC0415
+                _gap_log.getLogger(__name__).debug("suppressed exception", exc_info=True)
 
         old_mode = state.get("doctrine_mode", "UNKNOWN")
         state["doctrine_mode"] = mode
@@ -246,7 +247,8 @@ class NCCMasterAdapter:
                     "NORMAL", "CAUTION"
                 )
             except Exception:
-                pass
+                import logging as _gap_log  # noqa: PLC0415
+                _gap_log.getLogger(__name__).debug("suppressed exception", exc_info=True)
 
     def get_matrix_status(self) -> Dict[str, Any]:
         """Get AAC matrix monitor status for NCC MASTER."""

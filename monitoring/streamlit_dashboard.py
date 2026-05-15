@@ -194,6 +194,159 @@ def _accounts_summary(portfolio: dict[str, Any]) -> list[dict[str, Any]]:
 # ── Tab renderers ───────────────────────────────────────────────────────────
 
 
+# ── Functions & Data Flows registry ─────────────────────────────────────────
+
+# Each entry: (label, kind, target). kind ∈ {"collector", "pillar", "ds", "url"}.
+# - "collector": runs mission_control.collect_<target>()
+# - "pillar":    runs dashboard_pillars.collect_<target>()
+# - "ds":        runs a named data-source probe (see _run_ds)
+# - "url":       opens an external link
+_FUNCTIONS_REGISTRY: dict[str, list[tuple[str, str, str]]] = {
+    "📊 Pillars (cached, drive UI)": [
+        ("Pillar A: Call Options", "pillar", "call_options"),
+        ("Pillar B: Index & Flow", "pillar", "index_flow"),
+        ("Pillar C: Quant Research", "pillar", "quant_research"),
+    ],
+    "💼 Accounts & Trading": [
+        ("Portfolio (all accounts)", "collector", "portfolio"),
+        ("PnL summary + daily", "collector", "pnl"),
+        ("Trade log", "collector", "trade_log"),
+        ("Health (subsystems)", "collector", "health"),
+    ],
+    "🌊 Live data sources": [
+        ("IBKR breadth (TICK/TRIN/AD-DC)", "ds", "ibkr_breadth"),
+        ("IBKR IV/HV (SPY+core)", "ds", "ibkr_iv_hv"),
+        ("Unusual Whales flow", "collector", "unusual_whales"),
+        ("Live feeds (VIX/SPY)", "collector", "live_feeds"),
+        ("API feeds (FRED/Finnhub/etc.)", "collector", "api_feeds"),
+    ],
+    "🔬 Research & doctrine": [
+        ("War room (composite)", "collector", "war_room"),
+        ("Regime engine", "collector", "regime"),
+        ("Doctrine pack", "collector", "doctrine"),
+        ("Thirteen-moon", "collector", "moon"),
+        ("Polymarket", "collector", "polymarket"),
+        ("Scenarios", "collector", "scenarios"),
+        ("Divisions", "collector", "divisions"),
+        ("Backbone", "collector", "backbone"),
+    ],
+    "📋 Tasks & ops": [
+        ("Tasks", "collector", "tasks"),
+        ("Daily tasks", "collector", "daily_tasks"),
+        ("Openclaw", "collector", "openclaw"),
+    ],
+    "🔗 External": [
+        ("Unusual Whales", "url", "https://unusualwhales.com/"),
+        ("IBKR Client Portal", "url", "https://www.interactivebrokers.com/portal"),
+        ("Moomoo Web", "url", "https://www.moomoo.com/"),
+        ("CoinGecko", "url", "https://www.coingecko.com/"),
+        ("FRED", "url", "https://fred.stlouisfed.org/"),
+        ("Streamlit docs", "url", "https://docs.streamlit.io/"),
+    ],
+}
+
+
+def _run_ds(name: str) -> dict[str, Any]:
+    """Direct probes for non-mission-control data sources."""
+    if name == "ibkr_breadth":
+        try:
+            from integrations import ibkr_market_data_client as md  # noqa: PLC0415
+        except ImportError as exc:
+            return {"error": f"import_failed: {exc}"}
+        if not md.is_available():
+            return {"error": "IBKR data primary disabled or ib_insync missing", "available": False}
+        snap = md.get_breadth_snapshot()
+        return snap or {"error": "TWS not reachable on 7496/7497"}
+    if name == "ibkr_iv_hv":
+        try:
+            from integrations import ibkr_market_data_client as md  # noqa: PLC0415
+        except ImportError as exc:
+            return {"error": f"import_failed: {exc}"}
+        if not md.is_available():
+            return {"error": "IBKR data primary disabled or ib_insync missing", "available": False}
+        snap = md.get_iv_hv_snapshot(["SPY", "QQQ", "IWM", "AAPL", "TSLA", "NVDA"])
+        return snap or {"error": "TWS not reachable on 7496/7497"}
+    return {"error": f"unknown_ds:{name}"}
+
+
+def _run_function(kind: str, target: str) -> dict[str, Any]:
+    """Dispatch a function-panel button to the right collector."""
+    if kind == "collector":
+        try:
+            from monitoring import mission_control as mc  # noqa: PLC0415
+        except ImportError as exc:
+            return {"error": f"mission_control_import_failed: {exc}"}
+        fn = getattr(mc, f"collect_{target}", None)
+        if fn is None:
+            return {"error": f"missing collector: collect_{target}"}
+        try:
+            res = fn()
+        except _COLLECTOR_ERRORS as exc:
+            return {"error": str(exc)}
+        return res if isinstance(res, dict) else {"value": res}
+    if kind == "pillar":
+        try:
+            from monitoring import dashboard_pillars as dp  # noqa: PLC0415
+        except ImportError as exc:
+            return {"error": f"pillars_import_failed: {exc}"}
+        fn = getattr(dp, f"collect_{target}", None)
+        if fn is None:
+            return {"error": f"missing pillar: collect_{target}"}
+        try:
+            res = fn()
+        except _COLLECTOR_ERRORS as exc:
+            return {"error": str(exc)}
+        return res if isinstance(res, dict) else {"value": res}
+    if kind == "ds":
+        try:
+            return _run_ds(target)
+        except _COLLECTOR_ERRORS as exc:
+            return {"error": str(exc)}
+    return {"error": f"unknown kind: {kind}"}
+
+
+def _render_functions_panel(payload: dict[str, Any]) -> None:
+    """Quick-jump panel: every collector / pillar / data source as a button."""
+    import streamlit as st
+
+    last = st.session_state.get("__fn_panel_last__")  # (label, payload)
+
+    with st.expander("⚡ Functions & Data Flows  —  run any collector / source on demand", expanded=False):
+        st.caption(
+            "Buttons run the underlying function fresh (bypassing the 30s/300s cache) "
+            "and show the raw result inline. Use this to confirm a data source is alive, "
+            "or to drill into a specific collector without flipping tabs."
+        )
+        for group, items in _FUNCTIONS_REGISTRY.items():
+            st.markdown(f"**{group}**")
+            cols = st.columns(min(4, len(items)))
+            for idx, (label, kind, target) in enumerate(items):
+                col = cols[idx % len(cols)]
+                if kind == "url":
+                    col.link_button(label, target, width="stretch")
+                else:
+                    if col.button(label, key=f"fn_{kind}_{target}", width="stretch"):
+                        with st.spinner(f"Running {label}…"):
+                            result = _run_function(kind, target)
+                        st.session_state["__fn_panel_last__"] = (f"{kind}:{target}  —  {label}", result)
+                        st.rerun()
+
+        if last:
+            st.divider()
+            label, result = last
+            err = result.get("error") if isinstance(result, dict) else None
+            if err:
+                st.error(f"❌ {label}\n\n{err}")
+            else:
+                size = len(result) if isinstance(result, (dict, list)) else 1
+                st.success(f"✅ {label}  ·  {size} top-level keys/items")
+            with st.expander("Raw result", expanded=False):
+                st.code(json.dumps(result, default=_json_default, indent=2)[:20000], language="json")
+            if st.button("Clear last result", key="fn_panel_clear"):
+                st.session_state.pop("__fn_panel_last__", None)
+                st.rerun()
+
+
 def _render_overview(payload: dict[str, Any]) -> None:
     import streamlit as st
 
@@ -203,6 +356,9 @@ def _render_overview(payload: dict[str, Any]) -> None:
     calls = _safe_get(payload, "call_options")
     flow = _safe_get(payload, "index_flow")
     quant = _safe_get(payload, "quant_research")
+
+    # ---------- Functions & Data Flows panel (top, collapsed) ----------
+    _render_functions_panel(payload)
 
     pnl_summary = pnl.get("summary") if isinstance(pnl.get("summary"), dict) else {}
     status, ok, total = _derive_health_status(health)
@@ -327,6 +483,9 @@ def _render_overview(payload: dict[str, Any]) -> None:
         f"Portfolio updated {portfolio.get('last_updated', '?')} · "
         f"Payload ts {payload.get('ts', '-')}"
     )
+
+    st.divider()
+    _render_decisions_panel()
 
 
 def _render_positions(payload: dict[str, Any]) -> None:
@@ -753,6 +912,14 @@ def _render_call_options(payload: dict[str, Any]) -> None:
             for e in errs:
                 st.code(str(e))
 
+    _render_agent_panel(
+        agent="options_strategist",
+        title="Ask the Options Strategist",
+        placeholder="e.g. Which 3 rich-IV names look best for covered calls this week?",
+        state_key="__pillar_a_agent",
+        default_prompt="Scan the call-options pillar and recommend the top 3 trades.",
+    )
+
 
 # ── Pillar B — Index Strategy / Order Flow / Options Flow ───────────────────
 
@@ -868,6 +1035,14 @@ def _render_index_flow(payload: dict[str, Any]) -> None:
             for e in errs:
                 st.code(str(e))
 
+    _render_agent_panel(
+        agent="flow_analyst",
+        title="Ask the Flow Analyst",
+        placeholder="e.g. What's the tape saying right now? Any smart-money tickers?",
+        state_key="__pillar_b_agent",
+        default_prompt="Read today's flow + breadth and call market tone.",
+    )
+
 
 # ── Pillar C — Quant Trading Analysis / Research / Strategies ───────────────
 
@@ -977,6 +1152,14 @@ def _render_quant_research(payload: dict[str, Any]) -> None:
             for e in errs:
                 st.code(str(e))
 
+    _render_agent_panel(
+        agent="quant_analyst",
+        title="Ask the Quant Analyst",
+        placeholder="e.g. Rank today's vol-premium signals and explain the top one.",
+        state_key="__pillar_c_agent",
+        default_prompt="Rank today's vol-premium signals; flag any with n<30.",
+    )
+
 
 def _data_source_status(payload: dict[str, Any]) -> list[tuple[str, str]]:
     """Return [(label, status_emoji)] for the top status strip.
@@ -1027,6 +1210,258 @@ def _data_source_status(payload: dict[str, Any]) -> list[tuple[str, str]]:
     return out
 
 
+# ── Agent helpers (chat / per-pillar / debate) ──────────────────────────────
+
+
+def _run_agent_safe(agent: str, prompt: str) -> dict[str, Any]:
+    """Wrap run_agent so any failure (Ollama down, tool crash) shows in UI."""
+    try:
+        from shared.aac_agents import run_agent  # noqa: PLC0415
+
+        return run_agent(agent, prompt, use_history=False)
+    except Exception as exc:
+        return {"agent": agent, "answer": f"_(agent error: {exc})_", "tool_calls": []}
+
+
+def _render_agent_panel(
+    *,
+    agent: str,
+    title: str,
+    placeholder: str,
+    state_key: str,
+    default_prompt: str,
+) -> None:
+    """Reusable 'Ask agent' expander used inside each pillar tab."""
+    import streamlit as st
+
+    with st.expander(f"🤖 {title}", expanded=False):
+        prompt = st.text_area(
+            "Question",
+            value=st.session_state.get(state_key + "_q", default_prompt),
+            placeholder=placeholder,
+            key=state_key + "_input",
+            height=80,
+        )
+        c1, c2 = st.columns([1, 5])
+        run_clicked = c1.button("Run agent", key=state_key + "_btn", type="primary")
+        c2.caption(f"Agent: `{agent}` · local Ollama · tool-calling")
+        if run_clicked and prompt.strip():
+            st.session_state[state_key + "_q"] = prompt
+            with st.spinner(f"{agent} thinking…"):
+                result = _run_agent_safe(agent, prompt.strip())
+            st.session_state[state_key + "_result"] = result
+        result = st.session_state.get(state_key + "_result")
+        if result:
+            st.markdown(result.get("answer", "_(no answer)_"))
+            tcs = result.get("tool_calls") or []
+            if tcs:
+                with st.expander(f"Tool calls ({len(tcs)})", expanded=False):
+                    for tc in tcs:
+                        st.caption(f"step {tc.get('step', '?')}: `{tc.get('tool', '?')}` args={tc.get('arguments', {})}")
+                        st.code((tc.get("result_preview") or "")[:1500], language="json")
+
+
+def _render_chat_tab() -> None:
+    """Free-form chat tab. User picks an agent and the conversation persists
+    in session_state."""
+    import streamlit as st
+
+    try:
+        from shared.aac_agents.runtime import AGENTS  # noqa: PLC0415
+
+        agent_names = sorted(AGENTS.keys())
+    except Exception as exc:
+        st.error(f"Agents module not available: {exc}")
+        return
+
+    st.subheader("🤖 AAC Agent Chat")
+    st.caption("Local Ollama (qwen2.5-coder:7b) + native tool-calling. Conversations persist for the dashboard session.")
+
+    c1, c2 = st.columns([2, 1])
+    selected = c1.selectbox(
+        "Agent",
+        agent_names,
+        index=agent_names.index("researcher") if "researcher" in agent_names else 0,
+        key="__chat_agent__",
+    )
+    if c2.button("Clear chat history", key="__chat_clear__"):
+        st.session_state["__chat_msgs__"] = []
+
+    msgs: list[dict[str, Any]] = st.session_state.setdefault("__chat_msgs__", [])
+    for m in msgs:
+        with st.chat_message(m["role"]):
+            st.markdown(m["content"])
+            if m.get("tool_calls"):
+                with st.expander(f"Tool calls ({len(m['tool_calls'])})", expanded=False):
+                    for tc in m["tool_calls"]:
+                        st.caption(f"step {tc.get('step', '?')}: `{tc.get('tool', '?')}`")
+
+    user_msg = st.chat_input(f"Ask {selected}…")
+    if user_msg:
+        msgs.append({"role": "user", "content": user_msg})
+        with st.chat_message("user"):
+            st.markdown(user_msg)
+        with st.chat_message("assistant"):
+            with st.spinner(f"{selected} thinking…"):
+                result = _run_agent_safe(selected, user_msg)
+            answer = result.get("answer") or "_(no answer)_"
+            st.markdown(answer)
+            tcs = result.get("tool_calls") or []
+            if tcs:
+                with st.expander(f"Tool calls ({len(tcs)})", expanded=False):
+                    for tc in tcs:
+                        st.caption(f"step {tc.get('step', '?')}: `{tc.get('tool', '?')}`")
+            msgs.append({"role": "assistant", "content": answer, "tool_calls": tcs})
+
+
+def _render_briefings_tab() -> None:
+    """Surface markdown briefings written by core/market_scheduler.py."""
+    import streamlit as st
+
+    bdir = Path("data") / "briefings"
+    if not bdir.exists():
+        st.info("No briefings yet. The scheduler writes morning + evening briefs to `data/briefings/`.")
+        return
+    files = sorted(bdir.glob("*.md"), reverse=True)
+    if not files:
+        st.info("No briefings yet.")
+        return
+
+    st.subheader("📝 Daily Briefings")
+    st.caption(f"{len(files)} brief(s) on disk · written by `core/market_scheduler.run_daily_briefing`.")
+
+    c1, c2 = st.columns([2, 1])
+    selected = c1.selectbox("Briefing", [f.name for f in files], key="__brief_select__")
+    if c2.button("🔄 Reload list", key="__brief_reload__"):
+        st.rerun()
+
+    selected_path = bdir / selected
+    try:
+        content = selected_path.read_text(encoding="utf-8")
+    except OSError as exc:
+        st.error(f"Read failed: {exc}")
+        return
+    st.markdown(content)
+    st.download_button(
+        "Download .md",
+        data=content,
+        file_name=selected,
+        mime="text/markdown",
+        key="__brief_dl__",
+    )
+
+
+def _render_decisions_panel() -> None:
+    """Recent decisions log + manual debate trigger."""
+    import streamlit as st
+
+    st.markdown("### 🥊 Decision of the Day — Bull vs Bear")
+    st.caption("Runs all 3 pillar specialists, then bull + bear debate. Persists to `data/memory/decisions.md`.")
+
+    c1, c2, c3 = st.columns([2, 1, 2])
+    sym = c1.text_input("Symbol (optional)", value=st.session_state.get("__debate_sym__", ""), key="__debate_sym_in__")
+    run = c2.button("Run debate", key="__debate_btn__", type="primary")
+    c3.caption("⚠ Slow: ~30-90s on local Ollama (5 sequential agent runs).")
+
+    include_pm = st.checkbox(
+        "Also run Portfolio Manager (final approve/reject + sizing) — adds ~15-30s",
+        value=False,
+        key="__debate_include_pm__",
+    )
+
+    if run:
+        st.session_state["__debate_sym__"] = sym
+        try:
+            from shared.aac_agents import run_debate, run_portfolio_decision  # noqa: PLC0415
+        except Exception as exc:
+            st.error(f"Debate import failed: {exc}")
+            return
+        spinner_msg = (
+            "3 analysts → bull → bear → PM…" if include_pm else "3 analysts → bull → bear → verdict…"
+        )
+        with st.spinner(spinner_msg):
+            try:
+                if include_pm:
+                    debate = run_portfolio_decision(symbol=sym.strip() or None, persist=True)
+                else:
+                    debate = run_debate(symbol=sym.strip() or None, persist=True)
+            except Exception as exc:
+                st.error(f"Debate failed: {exc}")
+                return
+        st.session_state["__debate_result__"] = debate
+
+    debate = st.session_state.get("__debate_result__")
+    if debate:
+        verdict = debate.get("verdict", "?")
+        emoji = {"bullish": "🟢", "bearish": "🔴", "neutral": "⚪"}.get(verdict, "❓")
+        st.success(
+            f"{emoji} **Debate verdict: {verdict.upper()}** · final confidence "
+            f"{debate.get('confidence', 0):.2f} · "
+            f"bull {debate.get('bull_confidence') or '—'} / bear {debate.get('bear_confidence') or '—'} · "
+            f"id `{debate.get('decision_id') or '—'}`"
+        )
+        bcol, rcol = st.columns(2)
+        with bcol:
+            st.markdown("**🟢 Bull thesis**")
+            st.markdown((debate.get("bull") or {}).get("answer", "_(none)_"))
+        with rcol:
+            st.markdown("**🔴 Bear thesis**")
+            st.markdown((debate.get("bear") or {}).get("answer", "_(none)_"))
+
+        # Portfolio Manager output (if it was run)
+        pm = debate.get("pm")
+        if pm:
+            parsed = debate.get("pm_decision") or {}
+            decision = parsed.get("decision") or "?"
+            pm_emoji = {"approve": "✅", "reject": "🚫"}.get(decision, "❓")
+            st.markdown("---")
+            st.markdown(f"### {pm_emoji} Portfolio Manager — {decision.upper()}")
+            mcol1, mcol2, mcol3 = st.columns(3)
+            mcol1.metric("Decision", decision.upper())
+            mcol2.metric("Size %", f"{parsed.get('size_pct') or 0:.1f}%")
+            mcol3.metric("PM confidence", f"{parsed.get('confidence') or 0:.2f}")
+            st.markdown((pm.get("answer") or "_(no PM output)_"))
+            tcs = pm.get("tool_calls") or []
+            if tcs:
+                with st.expander(f"PM risk-gate calls ({len(tcs)})", expanded=False):
+                    for tc in tcs:
+                        st.caption(f"step {tc.get('step', '?')}: `{tc.get('tool', '?')}`")
+            st.caption(f"PM decision id: `{debate.get('pm_decision_id') or '—'}`")
+
+        with st.expander("Analyst reports", expanded=False):
+            for name, r in (debate.get("analysts") or {}).items():
+                st.markdown(f"#### {name}")
+                st.markdown(r.get("answer", "_(no answer)_"))
+
+    # Recent decisions table
+    st.markdown("---")
+    st.markdown("**Recent decisions**")
+    try:
+        from shared.aac_agents.memory import recent_decisions  # noqa: PLC0415
+
+        rows = recent_decisions(n=10)
+    except Exception as exc:
+        st.caption(f"_(memory unavailable: {exc})_")
+        rows = []
+    if rows:
+        view = [
+            {
+                "ts": d.get("ts"),
+                "kind": d.get("kind"),
+                "symbol": d.get("symbol") or "—",
+                "verdict": d.get("verdict"),
+                "confidence": d.get("confidence"),
+                "realised_pnl": d.get("realised_pnl_usd"),
+            }
+            for d in rows
+        ]
+        import streamlit as st  # noqa: PLC0415,F811
+
+        st.dataframe(view, hide_index=True, width="stretch")
+    else:
+        st.caption("_No decisions logged yet._")
+
+
 def _render(payload: dict[str, Any]) -> None:
     import streamlit as st
 
@@ -1063,6 +1498,8 @@ def _render(payload: dict[str, Any]) -> None:
             "💼 Positions",
             "💰 PnL & Trades",
             "🩺 Health & War Room",
+            "🤖 Chat",
+            "📝 Briefings",
             "📰 Other",
         ]
     )
@@ -1098,6 +1535,12 @@ def _render(payload: dict[str, Any]) -> None:
         _render_feeds(payload)
 
     with pillar_tabs[7]:
+        _render_chat_tab()
+
+    with pillar_tabs[8]:
+        _render_briefings_tab()
+
+    with pillar_tabs[9]:
         sub = st.tabs(["UW", "Regime / Doctrine", "Tasks", "Divisions", "Polymarket", "Scenarios", "Raw"])
         with sub[0]:
             _render_uw(payload)

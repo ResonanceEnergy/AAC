@@ -1274,7 +1274,8 @@ class AACMasterMonitoringDashboard:
                 try:
                     await connector.disconnect()
                 except Exception:
-                    pass
+                    import logging as _gap_log  # noqa: PLC0415
+                    _gap_log.getLogger(__name__).debug("suppressed exception", exc_info=True)
 
     async def _get_strategy_metrics(self) -> Dict[str, Any]:
         """Get strategy metrics data"""
@@ -1472,7 +1473,8 @@ class AACMasterMonitoringDashboard:
             ibkr_balance = _val * _Bal.cad_usd() if _curr == "CAD" else _val
             ibkr_positions = len(_ibkr.get("positions", []) or [])
         except Exception:
-            pass
+            import logging as _gap_log  # noqa: PLC0415
+            _gap_log.getLogger(__name__).debug("suppressed exception", exc_info=True)
         strategies.append(
             {
                 "id": 1,
@@ -1499,7 +1501,8 @@ class AACMasterMonitoringDashboard:
             _val = float(_moo.get("total_assets", _moo.get("balance", 0)) or 0)
             moomoo_balance = _val * _Bal.cad_usd() if _curr == "CAD" else _val
         except Exception:
-            pass
+            import logging as _gap_log  # noqa: PLC0415
+            _gap_log.getLogger(__name__).debug("suppressed exception", exc_info=True)
         strategies.append(
             {
                 "id": 2,
@@ -1526,7 +1529,8 @@ class AACMasterMonitoringDashboard:
             _val = float(_ndx.get("total_assets", _ndx.get("balance", 0)) or 0)
             ndax_balance_usd = _val * _Bal.cad_usd() if _curr == "CAD" else _val
         except Exception:
-            pass
+            import logging as _gap_log  # noqa: PLC0415
+            _gap_log.getLogger(__name__).debug("suppressed exception", exc_info=True)
         strategies.append(
             {
                 "id": 3,
@@ -1553,7 +1557,8 @@ class AACMasterMonitoringDashboard:
             _val = float(_ws.get("total_assets", _ws.get("balance", 0)) or 0)
             ws_balance_usd = _val * _Bal.cad_usd() if _curr == "CAD" else _val
         except Exception:
-            pass
+            import logging as _gap_log  # noqa: PLC0415
+            _gap_log.getLogger(__name__).debug("suppressed exception", exc_info=True)
         strategies.append(
             {
                 "id": 4,
@@ -1594,7 +1599,8 @@ class AACMasterMonitoringDashboard:
                     if mc.get("status") == "ok":
                         poly_balance += mc.get("total_cost", 0)
         except Exception:
-            pass
+            import logging as _gap_log  # noqa: PLC0415
+            _gap_log.getLogger(__name__).debug("suppressed exception", exc_info=True)
         strategies.append(
             {
                 "id": 5,
@@ -1620,7 +1626,8 @@ class AACMasterMonitoringDashboard:
                 qtf_data = json.loads(qtf_path.read_text(encoding="utf-8"))
                 qtf_balance = qtf_data.get("balance", 1000.0)
         except Exception:
-            pass
+            import logging as _gap_log  # noqa: PLC0415
+            _gap_log.getLogger(__name__).debug("suppressed exception", exc_info=True)
         strategies.append(
             {
                 "id": 6,

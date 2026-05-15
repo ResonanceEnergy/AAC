@@ -17,6 +17,7 @@ import asyncio
 import json
 import logging
 import math
+import os
 import random
 import sys
 from dataclasses import dataclass, field
@@ -129,6 +130,16 @@ class StrategyExecutionEngine:
         self.audit_logger = get_audit_logger()
         self.strategy_loader = get_strategy_loader()
         self.execution_engine = ExecutionEngine()
+
+        # SAFETY: synthetic-signal generators (RNG-based algorithm methods) are
+        # OFF by default. They produce StrategyTradeSignal objects from
+        # random.Random() with deterministic per-minute seeds, which is fine
+        # for backtests/dev but MUST NOT reach a live broker. Enable only via
+        # explicit env flag, and never in production.
+        env_flag = os.getenv("AAC_ALLOW_SYNTHETIC_SIGNALS", "").strip().lower() in ("1", "true", "yes")
+        is_prod = os.getenv("AAC_ENV", "").lower() == "production"
+        live_trading = os.getenv("LIVE_TRADING_ENABLED", "").lower() == "true"
+        self.allow_synthetic_signals = env_flag and not (is_prod or live_trading)
         self.market_data = None  # Will be initialized in initialize()
         self.order_generator = None  # Will be initialized in initialize()
 
@@ -344,6 +355,13 @@ class StrategyExecutionEngine:
         """Monitor active strategies and generate signals"""
         while True:
             try:
+                # SAFETY GATE: refuse to emit synthetic RNG-based signals
+                # unless explicitly enabled via AAC_ALLOW_SYNTHETIC_SIGNALS
+                # AND not in production / live trading mode.
+                if not self.allow_synthetic_signals:
+                    await asyncio.sleep(self.poll_interval)
+                    continue
+
                 # Generate signals from all active strategies
                 for strategy_id in self.active_strategies:
                     strategy = self.executable_strategies[strategy_id]
@@ -392,8 +410,8 @@ class StrategyExecutionEngine:
                         signal.metadata["terrain"] = directive.terrain.terrain.value
                         signal.metadata["execution_style"] = exec_style
                 except Exception:
-                    pass  # Strategic overlay is advisory, never blocks execution
-
+                        import logging as _gap_log  # noqa: PLC0415
+                        _gap_log.getLogger(__name__).debug("strategic overlay advisory failed", exc_info=True)
                 # Generate validated order from signal
                 # Lazy import to break circular dependency: strategies/ <-> trading/
                 from trading.order_generation_system import OrderValidationResult

@@ -289,7 +289,8 @@ class ContinuousMonitoringService:
             s = socket.create_connection((os.environ.get('HEALTH_CHECK_HOST', '8.8.8.8'), int(os.environ.get('HEALTH_CHECK_PORT', '53'))), timeout=1)
             s.close()
         except Exception:
-            pass  # Loopback test — failure is OK
+            import logging as _gap_log  # noqa: PLC0415
+            _gap_log.getLogger(__name__).debug("loopback test failure (non-fatal)", exc_info=True)
         latency = round((time.monotonic() - start) * 1000, 1)
         return {
             'status': 'healthy' if latency < 500 else 'warning',

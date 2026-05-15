@@ -78,7 +78,8 @@ class HealthHandler(BaseHTTPRequestHandler):
             if dog is not None:
                 body['watchdog'] = dog.status()
         except Exception:
-            pass
+            import logging as _gap_log  # noqa: PLC0415
+            _gap_log.getLogger(__name__).debug("suppressed exception", exc_info=True)
 
         # Gateway PIDs
         try:
@@ -87,7 +88,8 @@ class HealthHandler(BaseHTTPRequestHandler):
             if pids:
                 body['gateway_pids'] = pids
         except Exception:
-            pass
+            import logging as _gap_log  # noqa: PLC0415
+            _gap_log.getLogger(__name__).debug("suppressed exception", exc_info=True)
 
         self._json_response(200, body)
 

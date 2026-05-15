@@ -84,7 +84,8 @@ def _connect_ibkr_sync():
             try:
                 ib.disconnect()
             except Exception:
-                pass
+                import logging as _gap_log  # noqa: PLC0415
+                _gap_log.getLogger(__name__).debug("suppressed exception", exc_info=True)
 
     raise RuntimeError(str(last_error) if last_error else "Could not connect to TWS/Gateway")
 
@@ -336,7 +337,8 @@ async def scan_polymarket() -> dict:
                     if val2 > 0:
                         result["balances"][f"CLOB_{label}"] = val2
             except Exception:
-                pass
+                import logging as _gap_log  # noqa: PLC0415
+                _gap_log.getLogger(__name__).debug("suppressed exception", exc_info=True)
 
         result["status"] = "ok"
     except Exception as e:
@@ -474,7 +476,8 @@ async def scan_wealthsimple() -> dict:
                     result["balances"][f"{acct_name}_{currency}"] = total
                     total_value += total
             except Exception:
-                pass
+                import logging as _gap_log  # noqa: PLC0415
+                _gap_log.getLogger(__name__).debug("suppressed exception", exc_info=True)
             # Get positions for each account
             try:
                 pos_resp = snaptrade.account_information.get_user_account_positions(
@@ -492,7 +495,8 @@ async def scan_wealthsimple() -> dict:
                         "market_value": mv,
                     })
             except Exception:
-                pass
+                import logging as _gap_log  # noqa: PLC0415
+                _gap_log.getLogger(__name__).debug("suppressed exception", exc_info=True)
 
         result["net_liquidation"] = total_value
         result["status"] = "ok"

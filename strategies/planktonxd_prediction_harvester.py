@@ -1145,6 +1145,11 @@ class PlanktonXDSimulator:
 
     Validates the math by simulating thousands of bets with configurable
     parameters to show expected outcomes.
+
+    NOTE: random.random() inside run_simulation() is INTENTIONAL — this is a
+    Monte Carlo simulator, not a live trading path. Outputs are clearly labelled
+    as "simulation" by all callers (dashboard, activation script, tests). Do
+    NOT feed simulator output into broker order flow.
     """
 
     def __init__(
