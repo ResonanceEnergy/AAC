@@ -144,6 +144,89 @@ def _recall_memory(query: str, k: int = 5, kind: str | None = None,
     return {"count": len(hits), "results": hits}
 
 
+_GROK_DEFAULT_MODEL = "grok-3-mini"
+_GROK_MAX_OUTPUT_CHARS = 6000
+
+
+def _grok_ask(
+    prompt: str,
+    system: str = "",
+    model: str = _GROK_DEFAULT_MODEL,
+    temperature: float = 0.3,
+    max_tokens: int = 1024,
+) -> dict[str, Any]:
+    """Call xAI Grok over HTTPS. Returns {ok, model, text, error?}."""
+    import os
+    import httpx
+
+    # Prefer .env value (in-repo, fresh) over a stale OS env XAI_API_KEY.
+    key = ""
+    try:
+        from dotenv import dotenv_values
+        env_path = REPO_ROOT / ".env"
+        if env_path.exists():
+            vals = dotenv_values(str(env_path))
+            key = (vals.get("XAI_API_KEY") or vals.get("GROK_API_KEY") or "").strip()
+    except ImportError:
+        pass
+    if not key:
+        key = os.environ.get("XAI_API_KEY") or os.environ.get("GROK_API_KEY") or ""
+    if not key:
+        return {"ok": False, "error": "XAI_API_KEY not set", "text": ""}
+
+    messages: list[dict[str, str]] = []
+    if system:
+        messages.append({"role": "system", "content": system})
+    messages.append({"role": "user", "content": prompt})
+
+    payload = {
+        "model": model,
+        "messages": messages,
+        "temperature": float(temperature),
+        "max_tokens": int(max_tokens),
+        "stream": False,
+    }
+    headers = {
+        "Authorization": f"Bearer {key}",
+        "Content-Type": "application/json",
+    }
+    try:
+        with httpx.Client(timeout=60.0) as client:
+            r = client.post(
+                "https://api.x.ai/v1/chat/completions",
+                headers=headers,
+                json=payload,
+            )
+        if r.status_code >= 400:
+            return {
+                "ok": False,
+                "model": model,
+                "error": f"HTTP {r.status_code}: {r.text[:400]}",
+                "text": "",
+            }
+        data = r.json()
+        text = (
+            data.get("choices", [{}])[0]
+            .get("message", {})
+            .get("content", "")
+            or ""
+        )
+        if len(text) > _GROK_MAX_OUTPUT_CHARS:
+            text = text[:_GROK_MAX_OUTPUT_CHARS] + "\n\u2026[truncated]"
+        usage = data.get("usage", {})
+        return {
+            "ok": True,
+            "model": model,
+            "text": text,
+            "prompt_tokens": usage.get("prompt_tokens"),
+            "completion_tokens": usage.get("completion_tokens"),
+        }
+    except httpx.HTTPError as e:
+        return {"ok": False, "model": model, "error": f"http: {e}", "text": ""}
+    except (ValueError, KeyError) as e:
+        return {"ok": False, "model": model, "error": f"parse: {e}", "text": ""}
+
+
 TOOLS: dict[str, Callable[..., Any]] = {
     "decide_proposal": _decide_proposal,
     "review_text": _review_text,
@@ -153,6 +236,7 @@ TOOLS: dict[str, Callable[..., Any]] = {
     "list_watchlist": _list_watchlist,
     "recent_decisions": _recent_decisions,
     "recall_memory": _recall_memory,
+    "grok_ask": _grok_ask,
 }
 
 
@@ -281,6 +365,32 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
             },
         },
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "grok_ask",
+            "description": (
+                "Ask xAI Grok over HTTPS. Use sparingly -- costs money and adds latency. "
+                "Good for: (a) live web / X / news context the local model lacks, "
+                "(b) a second opinion on a thesis or trade idea, (c) long-form reasoning "
+                "or recent events qwen2.5-coder is weak at. Treat the answer as ONE INPUT "
+                "-- still apply the seven gates yourself. Do NOT pass account numbers, "
+                "private position sizes, or PII in the prompt."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "prompt": {"type": "string", "description": "User question for Grok."},
+                    "system": {"type": "string", "description": "Optional system message to steer Grok."},
+                    "model": {"type": "string", "default": "grok-3-mini",
+                              "description": "xAI model id (grok-3-mini, grok-3, grok-4 if entitled)."},
+                    "temperature": {"type": "number", "default": 0.3},
+                    "max_tokens": {"type": "integer", "default": 1024},
+                },
+                "required": ["prompt"],
+            },
+        },
+    },
 ]
 
 
@@ -312,7 +422,11 @@ def _system_prompt() -> str:
         + "`recall_memory` and `list_theses` before answering.\n"
         + "3. For any structured trade idea, ALWAYS run `decide_proposal` and quote the "
         + "verdict + which gates passed/failed.\n"
-        + "4. For any vague or hype-y prompt, run `review_text` first.\n\n"
+        + "4. For any vague or hype-y prompt, run `review_text` first.\n"
+        + "5. `grok_ask` is your escape hatch to xAI Grok -- use it when you need live "
+        + "web/X context, recent news, or a stronger second opinion. Never trust Grok "
+        + "blindly: its answer is one input, the gates still rule. Never pass account "
+        + "numbers or private position sizes into Grok prompts.\n\n"
         + "Voice rules (binding):\n"
         + "- Plainspoken. Numbers > narratives.\n"
         + "- Lead with the headline in one line.\n"
