@@ -59,14 +59,36 @@ def _record_success(provider: str) -> None:
     _suppression_logged.pop(provider, None)
 
 
+def _env_key(name: str) -> str:
+    """Read an env var, preferring repo `.env` (process env may carry stale keys)."""
+    try:
+        from pathlib import Path
+
+        from dotenv import dotenv_values
+
+        env_path = Path(__file__).resolve().parents[2] / ".env"
+        if env_path.exists():
+            v = dotenv_values(str(env_path))
+            k = (v.get(name) or "").strip()
+            if k:
+                return k
+    except ImportError:
+        pass
+    return (os.environ.get(name) or "").strip()
+
+
 def _get_api_config(provider: str) -> tuple[str, str, str] | None:
-    """Return (base_url, api_key, model) for the given provider."""
+    """Return (base_url, api_key, model) for the given provider.
+
+    For xai we use grok-4 because the Responses API + x_search/web_search
+    tools require grok-4 (grok-3-mini does not support built-in search tools).
+    """
     if provider == "xai":
-        key = os.environ.get("XAI_API_KEY")
+        key = _env_key("XAI_API_KEY") or _env_key("GROK_API_KEY")
         if key:
-            return ("https://api.x.ai/v1", key, "grok-3-mini")
+            return ("https://api.x.ai/v1", key, "grok-4")
     elif provider == "openai":
-        key = os.environ.get("OPENAI_API_KEY")
+        key = _env_key("OPENAI_API_KEY")
         if key:
             return ("https://api.openai.com/v1", key, "gpt-4o-mini")
     return None
@@ -77,10 +99,17 @@ def search_x_via_grok(
     provider: str = "xai",
     max_posts: int = 30,
 ) -> list[XPost]:
-    """Ask Grok to retrieve and summarize recent X posts matching a query.
+    """Retrieve recent X posts matching a query, backed by real search.
 
-    Since direct X API requires paid tier (broken per API inventory),
-    we use Grok's built-in web/X search capability to find posts.
+    For provider=xai this calls the xAI Responses API with the built-in
+    `x_search` + `web_search` tools (grok-4). The legacy Chat Completions
+    `search_parameters` field was deprecated mid-2026 (HTTP 410), and asking
+    grok-3-mini to "search X" via plain chat completions was pure
+    hallucination — there was no actual retrieval happening.
+
+    For provider=openai we fall back to a plain chat-completions call which
+    has no real X search; it is left in place only so the existing council
+    plumbing keeps returning a list (typically empty).
     """
     config = _get_api_config(provider)
     if not config:
@@ -92,23 +121,117 @@ def search_x_via_grok(
 
     base_url, api_key, model = config
 
-    prompt = dedent(f"""\
-        Search X/Twitter for recent posts about: {query}
-        Return up to {max_posts} posts as a JSON array. Each post should have:
-        - "post_id": string (tweet ID or "unknown")
-        - "author": string (handle without @)
-        - "text": string (full post text)
-        - "created_at": string (date if known, else "recent")
-        - "likes": number (estimate if unknown, use 0)
-        - "reposts": number
-        - "replies": number
-        - "is_reply": boolean
-        - "is_repost": boolean
+    if provider == "xai":
+        return _search_x_via_responses(query, base_url, api_key, model, max_posts)
+    return _search_x_via_chat(query, base_url, api_key, model, max_posts, provider)
 
-        Return ONLY the JSON array, no markdown fences or extra text.
-        Focus on substantive posts, skip spam/ads.
+
+_X_SEARCH_SYSTEM = (
+    "You are a retrieval agent. Use the x_search and web_search tools to find "
+    "recent, substantive posts on X/Twitter matching the user's query. Return "
+    "ONLY a JSON array — no prose, no markdown fences."
+)
+
+
+def _x_search_prompt(query: str, max_posts: int) -> str:
+    return dedent(f"""\
+        Query: {query}
+        Find up to {max_posts} recent X/Twitter posts. Skip ads/spam.
+        Return a JSON array; each element MUST have these keys:
+          "post_id" (string, tweet id if known else "unknown"),
+          "author"  (handle without @),
+          "text"    (full post text),
+          "created_at" (ISO date if known, else "recent"),
+          "likes" (int, 0 if unknown),
+          "reposts" (int),
+          "replies" (int),
+          "is_reply" (bool),
+          "is_repost" (bool).
+        Return ONLY the JSON array.
     """)
 
+
+def _parse_posts(content: str) -> list[XPost]:
+    content = re.sub(r'^```json\s*', '', content.strip())
+    content = re.sub(r'\s*```$', '', content.strip())
+    # Tolerate text-before-JSON: grab the first [...] block
+    if not content.startswith("["):
+        m = re.search(r"\[.*\]", content, re.S)
+        if m:
+            content = m.group(0)
+    raw_posts = json.loads(content)
+    posts: list[XPost] = []
+    for p in raw_posts:
+        author = str(p.get("author", "unknown")).lstrip("@")
+        pid = str(p.get("post_id", "unknown"))
+        posts.append(XPost(
+            post_id=pid,
+            author=author,
+            text=str(p.get("text", "")),
+            created_at=str(p.get("created_at", "recent")),
+            url=f"https://x.com/{author}/status/{pid}" if pid != "unknown" else "",
+            likes=int(p.get("likes", 0) or 0),
+            reposts=int(p.get("reposts", 0) or 0),
+            replies=int(p.get("replies", 0) or 0),
+            is_reply=bool(p.get("is_reply", False)),
+            is_repost=bool(p.get("is_repost", False)),
+        ))
+    return posts
+
+
+def _search_x_via_responses(
+    query: str,
+    base_url: str,
+    api_key: str,
+    model: str,
+    max_posts: int,
+) -> list[XPost]:
+    """xAI Responses API path with real x_search + web_search tools."""
+    payload = {
+        "model": model,
+        "input": [
+            {"role": "system", "content": _X_SEARCH_SYSTEM},
+            {"role": "user", "content": _x_search_prompt(query, max_posts)},
+        ],
+        "tools": [{"type": "x_search"}, {"type": "web_search"}],
+        "max_tool_calls": 6,
+    }
+    try:
+        resp = httpx.post(
+            f"{base_url}/responses",
+            headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+            json=payload,
+            timeout=120,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        text = (data.get("output_text") or "").strip()
+        if not text:
+            for item in data.get("output", []) or []:
+                if item.get("type") == "message":
+                    for c in item.get("content", []) or []:
+                        if c.get("type") in ("output_text", "text"):
+                            text = (text + "\n" + (c.get("text") or "")).strip()
+        posts = _parse_posts(text) if text else []
+        _log.info("grok_search_done", posts=len(posts), query=query, via="responses")
+        _record_success("xai")
+        return posts
+    except (httpx.HTTPError, json.JSONDecodeError, ValueError, KeyError) as exc:
+        _log.warning("grok_search_failed", error=str(exc), via="responses")
+        _record_failure("xai")
+        return []
+
+
+def _search_x_via_chat(
+    query: str,
+    base_url: str,
+    api_key: str,
+    model: str,
+    max_posts: int,
+    provider: str,
+) -> list[XPost]:
+    """Fallback Chat Completions path (no real search; openai only)."""
+    prompt = _x_search_prompt(query, max_posts)
     try:
         resp = httpx.post(
             f"{base_url}/chat/completions",
@@ -122,31 +245,12 @@ def search_x_via_grok(
         )
         resp.raise_for_status()
         content = resp.json()["choices"][0]["message"]["content"]
-        content = re.sub(r'^```json\s*', '', content.strip())
-        content = re.sub(r'\s*```$', '', content.strip())
-        raw_posts = json.loads(content)
-
-        posts = []
-        for p in raw_posts:
-            author = str(p.get("author", "unknown")).lstrip("@")
-            posts.append(XPost(
-                post_id=str(p.get("post_id", "unknown")),
-                author=author,
-                text=str(p.get("text", "")),
-                created_at=str(p.get("created_at", "recent")),
-                url=f"https://x.com/{author}/status/{p.get('post_id', '')}" if p.get("post_id") != "unknown" else "",
-                likes=int(p.get("likes", 0)),
-                reposts=int(p.get("reposts", 0)),
-                replies=int(p.get("replies", 0)),
-                is_reply=bool(p.get("is_reply", False)),
-                is_repost=bool(p.get("is_repost", False)),
-            ))
-        _log.info("grok_search_done", posts=len(posts), query=query)
+        posts = _parse_posts(content)
+        _log.info("grok_search_done", posts=len(posts), query=query, via="chat")
         _record_success(provider)
         return posts
-
-    except Exception as exc:
-        _log.warning("grok_search_failed", error=str(exc))
+    except (httpx.HTTPError, json.JSONDecodeError, ValueError, KeyError) as exc:
+        _log.warning("grok_search_failed", error=str(exc), via="chat")
         _record_failure(provider)
         return []
 
