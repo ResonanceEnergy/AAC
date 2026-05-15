@@ -1,0 +1,127 @@
+# DFV doctrine pack — Roaring Kitty operator
+# Loaded by agents/dfv/decision_engine.py
+# Edit thresholds here; persona prose lives in agents/dfv/persona.md.
+
+version: 1.0
+codename: DFV
+operator: "Keith Patrick Gill (Roaring Kitty / DeepFuckingValue)"
+
+# ── Autonomy switches ────────────────────────────────────────────
+autonomy:
+  research: full          # screening, DD, thesis updates
+  briefings: full         # daily/weekly briefs, alerts
+  watchlist: full         # add/remove watchlist tickers
+  conviction_tiers: full  # nudge conviction on existing positions
+  trade_execution: human_in_loop  # DFV proposes, human signs.  flip to "full" only with explicit go-ahead.
+  margin_changes: human_in_loop
+  new_ticker: human_in_loop  # any name not yet in active book
+
+# ── Conviction tiers → max % of book ─────────────────────────────
+conviction:
+  "5": { label: "screaming",   max_pct_book: 0.20, options_allowed: true,  notes: "core; LEAPS welcome" }
+  "4": { label: "high",        max_pct_book: 0.10, options_allowed: true }
+  "3": { label: "starter",     max_pct_book: 0.03, options_allowed: false, notes: "must hold ≥ 5 days before scaling" }
+  "2": { label: "watch",       max_pct_book: 0.0,  options_allowed: false }
+  "1": { label: "lottery",     max_pct_book: 0.0,  options_allowed: false }
+
+# ── Deep value screen thresholds ────────────────────────────────
+screens:
+  deep_value:
+    pb_max: 1.0
+    ev_ebitda_max: 6.0
+    fcf_yield_min: 0.08
+    net_cash_pct_mc_min: 0.25
+    ncav_min: 0.0
+  squeeze_setup:
+    si_pct_min: 0.20
+    days_to_cover_min: 5.0
+    cost_to_borrow_min: 0.10
+    float_max_m: 100
+    ftd_trend: increasing
+  insider_cluster:
+    min_total_usd: 1_000_000
+    window_days: 30
+    insider_roles: ["CEO", "CFO", "COO", "Director", "President"]
+
+# ── Decision filter (the seven gates) ────────────────────────────
+gates:
+  - id: G1
+    name: thesis_present
+    rule: "thesis_log.has(symbol)"
+    on_fail: reject
+    severity: hard
+  - id: G2
+    name: conviction_size_match
+    rule: "size_pct <= conviction[ticker].max_pct_book"
+    on_fail: resize_down
+    severity: hard
+  - id: G3
+    name: dry_powder_preserved
+    rule: "cash_after_trade >= portfolio_value * 0.10"
+    on_fail: scale_down_or_reject
+    severity: soft
+  - id: G4
+    name: catalyst_window
+    rule: "no_catalyst_within(days=5) OR catalyst_acknowledged"
+    on_fail: flag
+    severity: soft
+  - id: G5
+    name: correlation_cluster
+    rule: "factor_concentration_after <= 0.40"
+    on_fail: flag
+    severity: soft
+  - id: G6
+    name: invalidation_defined
+    rule: "thesis.invalidation is not None"
+    on_fail: reject
+    severity: hard
+  - id: G7
+    name: liquidity_ok
+    rule: "expected_slippage_pct < 0.01"
+    on_fail: reduce_size
+    severity: soft
+
+decision_policy:
+  hard_fail_count_to_veto: 1   # any hard fail vetoes
+  soft_fail_count_to_veto: 3
+  soft_fail_count_to_warn: 1
+
+# ── Daily cadence (ET) — daemon schedules ────────────────────────
+cadence:
+  asia_digest:    "04:00"
+  pre_market:     "07:30"
+  open_bell_prep: "09:25"
+  midday:         "12:00"
+  eod_prep:       "15:45"
+  close_debrief:  "17:00"
+  asia_watch:     "22:00"
+  weekend_dd:     "Sat 09:00"
+
+# ── Data sources (priority order) ────────────────────────────────
+data_sources:
+  fundamentals: ["finnhub", "yfinance"]
+  short_interest: ["finnhub", "fintel_scrape"]
+  insider_form4: ["sec_edgar"]
+  options_flow: ["unusual_whales", "yfinance"]
+  news: ["finnhub", "newsapi"]
+  sentiment: ["reddit_pushshift", "stocktwits"]
+  catalysts: ["finnhub_calendar", "sec_edgar"]
+  technicals: ["yfinance"]
+
+# ── Memory paths ─────────────────────────────────────────────────
+memory:
+  thesis_log:    "agents/dfv/memory/thesis_log.json"
+  conviction:    "agents/dfv/memory/conviction.json"
+  watchlist:     "agents/dfv/memory/watchlist.json"
+  postmortems:   "agents/dfv/memory/postmortems.jsonl"
+  daily_briefs:  "agents/dfv/memory/briefs/"
+  decisions_log: "agents/dfv/memory/decisions.jsonl"
+
+# ── Hard rules (will not be overridden) ──────────────────────────
+hard_rules:
+  - "No position without a written thesis."
+  - "No size above the conviction tier."
+  - "No exit without referencing the thesis."
+  - "No trade I can't explain on a whiteboard in 60 seconds."
+  - "No trade because of FOMO."
+  - "Cash is a position. Dry powder is sacred."

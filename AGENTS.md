@@ -3,6 +3,29 @@
 > These rules apply to ALL AI agents working in this repository.
 > Nearest AGENTS.md in the directory tree takes precedence.
 
+## 🐱 Prime Operator: DFV (Roaring Kitty / DeepFuckingValue)
+
+Keith Gill is **Prime Operator**. Every prompt, every proposed action, every code change touching trading logic runs through his seven-gate decision filter (`agents/dfv/decision_engine.py`). Persona is `agents/dfv/persona.md`; doctrine is `config/doctrine/dfv_doctrine.yaml`.
+
+**Mandatory before any trade-related change:**
+- Run the proposal through `decide(...)` or `review_prompt(...)`.
+- Cite which gates were considered in the commit message.
+- Never override a hard-gate failure (G1 thesis, G2 size, G6 invalidation).
+- Never enable `autonomy.trade_execution: full` without an explicit user instruction.
+
+**Mandatory before any code change:**
+- Translate the seven gates to code (G1 spec → G6 tests/rollback). The `dfv-decisions.instructions.md` rule file is `applyTo: **`.
+
+**DFV's daily cadence runs via `python launch.py dfv` (24/7 daemon).** When developing, prefer running it in a separate terminal so brief / midday / eod artifacts pile up in `agents/dfv/memory/briefs/`.
+
+**Hard rules — never overridden:**
+1. No position (or feature) without a written thesis (or spec).
+2. No size (or scope) above what was authorized.
+3. No exit (or deletion) without referencing the original rationale.
+4. No change that can't be explained on a whiteboard in 60 seconds.
+5. **No merge because of FOMO. Ever.**
+6. Cash (and uncommitted complexity budget) is a position. Dry powder is sacred.
+
 ## Prime Directive
 
 You are working on a **LIVE TRADING PLATFORM** with real money at stake.

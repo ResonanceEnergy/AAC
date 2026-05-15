@@ -2,6 +2,32 @@
 
 > **Trust these instructions first. Only search the codebase if something here is incomplete or wrong.**
 
+## 🐱 DFV is Prime Operator
+
+**Keith Patrick Gill — Roaring Kitty / DeepFuckingValue (DFV)** — is the Prime Operator on AAC.
+Every prompt and every proposed action runs through his seven-gate decision filter.
+
+- Persona: `agents/dfv/persona.md`
+- Doctrine + autonomy switches: `config/doctrine/dfv_doctrine.yaml`
+- Decision engine: `agents/dfv/decision_engine.py` (`decide()`, `review_prompt()`)
+- Daily routines: `agents/dfv/routines.py` (brief / midday / eod / weekend_dd)
+- 24/7 daemon: `agents/dfv/daemon.py` — start via `python launch.py dfv`
+- CLI: `python -m agents.dfv <brief|midday|eod|review|status|thesis>`
+- Chatmode: `.github/chatmodes/dfv.chatmode.md`
+- Cross-cutting rule file: `.github/instructions/dfv-decisions.instructions.md` (applyTo `**`)
+
+**Hard rules (never overridden):**
+1. No position without a written thesis.
+2. No size above the conviction tier.
+3. No exit without referencing the thesis.
+4. No trade I can't explain on a whiteboard in 60 seconds.
+5. **No trade because of FOMO. Ever.**
+6. Cash is a position. Dry powder is sacred.
+
+**Autonomy:** research / screening / briefings / alerts / memory writes / watchlist / conviction nudges = **autonomous**. Order placement / margin / new tickers in active book = **propose; require human OK**. The switch is `config/doctrine/dfv_doctrine.yaml::autonomy.trade_execution`.
+
+When unsure how to handle a trading or strategy request, default to "What would DFV do?" and consult `agents/dfv/persona.md`.
+
 ## Identity
 
 **Accelerated Arbitrage Corp (AAC)** — codename BARREN WUFFET / AZ SUPREME.

@@ -133,6 +133,8 @@ MODES = [
     "autonomous",
     "console",
     "coder",
+    "dfv",
+    "dfv-brief",
 ]
 
 BANNER = r"""
@@ -176,6 +178,8 @@ MODE_DESCRIPTIONS = {
     "autonomous": "Autonomous trading engine (continuous loop with heartbeat to data/autonomous_state.json)",
     "console": "Unified Command Console (terminal) -- same data as command mode, no browser",
     "coder": "Autonomous coder -- scan repo for drift patterns, emit backlog, optional --apply safe fixes",
+    "dfv": "DFV / Roaring Kitty 24/7 daemon -- pre-market brief, midday, EOD, weekend DD on schedule",
+    "dfv-brief": "DFV one-shot pre-market brief (prints to terminal, saves to agents/dfv/memory/briefs/)",
 }
 
 
@@ -712,13 +716,13 @@ def _mode_planktonxd_browser() -> int:
     logger.info(str(_cyan("  Browser-based PlanktonXD strategy emulation")))
     logger.info(str(_cyan("  Deep OTM harvesting via Selenium automation")))
     logger.info("")
-    
+
     # Run the browser bot activation script
     script = PROJECT_ROOT / "scripts" / "activate_planktonxd_browser_bot.py"
     if not script.exists():
         logger.info(str(_red("  [X] PlanktonXD Browser Bot script not found")))
         return 1
-    
+
     return _run([_python(), str(script)])
 
 
@@ -730,18 +734,18 @@ def _mode_planktonxd_web_dashboard() -> int:
     logger.info(str(_cyan("  Browser-based control panel with buttons")))
     logger.info(str(_cyan("  Real-time monitoring & command execution")))
     logger.info("")
-    
+
     # Run the web dashboard
     dashboard_script = PROJECT_ROOT / "monitoring" / "planktonxd_browser_dashboard.py"
     if not dashboard_script.exists():
         logger.info(str(_red("  [X] PlanktonXD Web Dashboard script not found")))
         return 1
-    
+
     logger.info(str(_green("  🚀 Starting PlanktonXD Web Dashboard...")))
     logger.info(str(_green("  🌐 Opening browser to http://localhost:8088")))
     logger.info(str(_green("  🎛️ Click buttons to execute bot commands")))
     logger.info("")
-    
+
     return _run([_python(), str(dashboard_script)])
 
 
@@ -920,6 +924,39 @@ def _mode_coder(args: argparse.Namespace, extra: list[str]) -> int:
     return coder_main(extra)
 
 
+def _mode_dfv() -> int:
+    """DFV / Roaring Kitty 24/7 daemon — schedules brief, midday, EOD, weekend DD."""
+    logger.info(str(_cyan("  ════════════════════════════════════════")))
+    logger.info(str(_cyan("  🐱 DFV — Roaring Kitty Operator (24/7)")))
+    logger.info(str(_cyan("  ════════════════════════════════════════")))
+    logger.info(str(_cyan("  Cadence: pre-market 07:30 · midday 12:00 · EOD 17:00 ET")))
+    logger.info(str(_cyan("  Doctrine: config/doctrine/dfv_doctrine.yaml")))
+    logger.info(str(_cyan("  Briefs   : agents/dfv/memory/briefs/")))
+    logger.info("")
+    from agents.dfv.daemon import run_forever
+    run_forever()
+    return 0
+
+
+def _mode_dfv_brief() -> int:
+    """Run a one-shot DFV pre-market brief and print the headline."""
+    from agents.dfv.routines import brief
+    out = brief()
+    logger.info("")
+    logger.info(str(_cyan(f"  🐱 DFV Brief — {out['generated_at']}")))
+    logger.info(str(_cyan("  ────────────────────────────────────────")))
+    logger.info(f"  {out['headline']}")
+    logger.info("")
+    ps = out['portfolio_summary']
+    logger.info(f"  Equity:    ${(ps['total_equity_usd'] or 0):,.0f}")
+    logger.info(f"  Cash:      ${(ps['cash_usd'] or 0):,.0f}")
+    logger.info(f"  BP:        ${(ps['buying_power_usd'] or 0):,.0f}")
+    logger.info(f"  Positions: {ps['open_positions']}")
+    logger.info("")
+    logger.info(f"  Saved → {out.get('saved_to', '?')}")
+    return 0
+
+
 # ── Dispatch ────────────────────────────────────────────────────────────────
 
 MODE_DISPATCH = {
@@ -955,6 +992,8 @@ MODE_DISPATCH = {
     "autonomous": _mode_autonomous,
     "console": _mode_console,
     "coder": _mode_coder,
+    "dfv": _mode_dfv,
+    "dfv-brief": _mode_dfv_brief,
 }
 
 
@@ -1065,6 +1104,8 @@ def main() -> int:
         return handler(args)
     elif args.mode == "coder":
         return handler(args, extra or [])
+    elif args.mode in ("dfv", "dfv-brief"):
+        return handler()
     else:
         return handler()
 

@@ -1,0 +1,24 @@
+{
+  "GME": {
+    "author": "DFV",
+    "catalysts": [
+      "Q4 earnings",
+      "Holiday season",
+      "Buyback"
+    ],
+    "conviction": 5,
+    "created": "2026-05-15T19:36:32+00:00",
+    "horizon": "12-24 months",
+    "invalidation": "Cash burn > /qtr OR loss of net-cash position OR breach of ",
+    "revision": 1,
+    "sizing": {
+      "max_pct_book": 0.2
+    },
+    "symbol": "GME",
+    "target": {
+      "raw": " base /  bull (DCF + comps)"
+    },
+    "thesis": "Net-cash balance sheet (.6B), brand recognition, optionality on console refresh, no debt.",
+    "updated": "2026-05-15T19:36:32+00:00"
+  }
+}
