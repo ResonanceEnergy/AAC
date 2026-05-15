@@ -136,15 +136,23 @@ def _cmd_reindex(args: argparse.Namespace) -> int:
 
 
 def _cmd_status(_args: argparse.Namespace) -> int:
+    from agents.dfv.daemon import heartbeat_status
     dfv = DFV()
     print("=== DFV Status ===")
     print(f"Theses:     {len(dfv.thesis.all())}")
+    print(f"Conviction: {len(dfv.conviction.all())} tiers on file")
     print(f"Watchlist:  {len(dfv.watchlist.all())}")
     stale = dfv.thesis.needs_review(30)
     print(f"Stale (≥30d): {len(stale)}  {stale[:10]}")
     print(f"Recent decisions: {len(dfv.decisions.tail(100))}")
     print(f"Autonomy: trade_execution = "
           f"{dfv.doctrine.get('autonomy', {}).get('trade_execution')}")
+    hb = heartbeat_status()
+    if hb["alive"]:
+        print(f"Daemon:     ALIVE (pid={hb.get('pid')}, age={hb.get('age_seconds')}s, last_routine={hb.get('last_routine')})")
+    else:
+        reason = hb.get("reason") or f"stale (age={hb.get('age_seconds')}s)"
+        print(f"Daemon:     DOWN ({reason})")
     return 0
 
 
