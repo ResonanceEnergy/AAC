@@ -25,7 +25,16 @@ from zoneinfo import ZoneInfo
 import structlog
 
 from agents.dfv.decision_engine import DFV
-from agents.dfv.routines import brief, eod, midday, weekend_dd
+from agents.dfv.routines import (
+    asia_digest,
+    asia_watch,
+    brief,
+    close_debrief,
+    eod,
+    midday,
+    open_bell_prep,
+    weekend_dd,
+)
 
 _log = structlog.get_logger(__name__)
 ET = ZoneInfo("America/New_York")
@@ -101,13 +110,13 @@ def heartbeat_status() -> dict:
 
 # routine_key -> (callable, default HH:MM ET)
 ROUTINES: dict[str, Callable[[], dict]] = {
-    "asia_digest":    brief,
+    "asia_digest":    asia_digest,
     "pre_market":     brief,
-    "open_bell_prep": brief,
+    "open_bell_prep": open_bell_prep,
     "midday":         midday,
     "eod_prep":       eod,
-    "close_debrief":  eod,
-    "asia_watch":     midday,
+    "close_debrief":  close_debrief,
+    "asia_watch":     asia_watch,
     "weekend_dd":     weekend_dd,
 }
 

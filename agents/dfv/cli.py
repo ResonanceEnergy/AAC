@@ -20,7 +20,16 @@ import sys
 from typing import Any
 
 from agents.dfv.decision_engine import DFV, decide, review_prompt
-from agents.dfv.routines import brief, eod, midday, weekend_dd
+from agents.dfv.routines import (
+    asia_digest,
+    asia_watch,
+    brief,
+    close_debrief,
+    eod,
+    midday,
+    open_bell_prep,
+    weekend_dd,
+)
 
 
 def _print_json(obj: Any) -> None:
@@ -53,6 +62,26 @@ def _cmd_eod(_args: argparse.Namespace) -> int:
 
 def _cmd_weekend(_args: argparse.Namespace) -> int:
     _print_json(weekend_dd())
+    return 0
+
+
+def _cmd_asia_digest(_args: argparse.Namespace) -> int:
+    _print_json(asia_digest())
+    return 0
+
+
+def _cmd_open_bell_prep(_args: argparse.Namespace) -> int:
+    _print_json(open_bell_prep())
+    return 0
+
+
+def _cmd_close_debrief(_args: argparse.Namespace) -> int:
+    _print_json(close_debrief())
+    return 0
+
+
+def _cmd_asia_watch(_args: argparse.Namespace) -> int:
+    _print_json(asia_watch())
     return 0
 
 
@@ -164,6 +193,10 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("midday").set_defaults(func=_cmd_midday)
     sub.add_parser("eod").set_defaults(func=_cmd_eod)
     sub.add_parser("weekend").set_defaults(func=_cmd_weekend)
+    sub.add_parser("asia_digest", help="04:00 ET — Asia overnight tape").set_defaults(func=_cmd_asia_digest)
+    sub.add_parser("open_bell_prep", help="09:25 ET — last 5 before the open").set_defaults(func=_cmd_open_bell_prep)
+    sub.add_parser("close_debrief", help="17:00 ET — close prints + stale theses").set_defaults(func=_cmd_close_debrief)
+    sub.add_parser("asia_watch", help="22:00 ET — overnight risk watch").set_defaults(func=_cmd_asia_watch)
 
     rv = sub.add_parser("review", help="review free-text prompt through seven gates")
     rv.add_argument("text", nargs="?", help="prompt text (or stdin)")
