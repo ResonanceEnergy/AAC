@@ -184,12 +184,24 @@ tr:hover td { background: var(--surface2); }
 <!-- Row 2: Indicators | Arms -->
 <div class="grid-2">
     <div class="card" id="card-indicators">
-        <h2>15 Indicators</h2>
+        <h2>19 Indicators</h2>
         <div id="indicators-list"></div>
     </div>
     <div class="card" id="card-arms">
         <h2>5-Arm Allocation</h2>
         <div id="arms-list"></div>
+    </div>
+</div>
+
+<!-- Row 2.5: Quant Flow (breadth / COT / ETF) -->
+<div class="grid-full">
+    <div class="card" id="card-quant-flow" style="border-left: 3px solid var(--cyan);">
+        <h2>📊 Quant Flow <span id="quant-flow-ts" style="font-size:11px; color:var(--dim);"></span></h2>
+        <div id="quant-flow-grid" style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px;">
+            <div id="qf-breadth"></div>
+            <div id="qf-cot"></div>
+            <div id="qf-etf"></div>
+        </div>
     </div>
 </div>
 
@@ -460,6 +472,59 @@ function renderArms(d) {
         </div>`;
     });
     $('arms-list').innerHTML = html;
+}
+
+function renderQuantFlow(d) {
+    if (!d || d.error) {
+        $('qf-breadth').innerHTML = '<div class="error-msg">No data</div>';
+        $('qf-cot').innerHTML = '';
+        $('qf-etf').innerHTML = '';
+        return;
+    }
+    const extColor = (sig) => {
+        if (sig === 'extreme_long') return 'var(--green)';
+        if (sig === 'extreme_short') return 'var(--red)';
+        return 'var(--dim)';
+    };
+    const fmtBn = (v) => v == null ? '—' : (v / 1e9).toFixed(2) + 'B';
+    const breadthColor = d.mcclellan_oscillator == null ? 'var(--dim)'
+        : d.mcclellan_oscillator > 70 ? 'var(--green)'
+        : d.mcclellan_oscillator < -70 ? 'var(--red)' : 'var(--amber)';
+    const trinColor = d.trin == null ? 'var(--dim)'
+        : d.trin > 2.0 ? 'var(--red)'
+        : d.trin < 0.5 ? 'var(--green)' : 'var(--dim)';
+
+    $('qf-breadth').innerHTML = `
+        <div class="label">NYSE Breadth</div>
+        <div style="font-size:12px; line-height:1.6;">
+            <div>McClellan: <span style="color:${breadthColor}; font-weight:600;">${d.mcclellan_oscillator != null ? fmt(d.mcclellan_oscillator, 1) : '—'}</span></div>
+            <div>TRIN: <span style="color:${trinColor}; font-weight:600;">${d.trin != null ? fmt(d.trin, 2) : '—'}</span></div>
+            <div>TICK: <span style="font-weight:600;">${d.tick != null ? fmt(d.tick, 0) : '—'}</span></div>
+            <div>A/D Ratio: <span style="font-weight:600;">${d.advance_decline_ratio != null ? fmt(d.advance_decline_ratio, 2) : '—'}</span></div>
+            <div>Regime: <span style="font-weight:600;">${d.breadth_regime || '—'}</span></div>
+        </div>`;
+
+    $('qf-cot').innerHTML = `
+        <div class="label">CFTC COT (Leveraged Money) <span style="color:var(--dim); font-size:10px;">${d.cot_report_date || ''}</span></div>
+        <div style="font-size:12px; line-height:1.6;">
+            <div>ES: <span style="color:${extColor(d.cot_es_extreme)}; font-weight:600;">${d.cot_es_extreme || '—'}</span> <span style="color:var(--dim);">(${d.cot_es_lev_money_net != null ? fmt(d.cot_es_lev_money_net, 0) : '—'})</span></div>
+            <div>NQ: <span style="color:${extColor(d.cot_nq_extreme)}; font-weight:600;">${d.cot_nq_extreme || '—'}</span> <span style="color:var(--dim);">(${d.cot_nq_lev_money_net != null ? fmt(d.cot_nq_lev_money_net, 0) : '—'})</span></div>
+            <div>VX: <span style="color:${extColor(d.cot_vx_extreme)}; font-weight:600;">${d.cot_vx_extreme || '—'}</span> <span style="color:var(--dim);">(${d.cot_vx_lev_money_net != null ? fmt(d.cot_vx_lev_money_net, 0) : '—'})</span></div>
+        </div>`;
+
+    const netColor = d.etf_net_flow_usd == null ? 'var(--dim)'
+        : d.etf_net_flow_usd > 0 ? 'var(--green)' : 'var(--red)';
+    $('qf-etf').innerHTML = `
+        <div class="label">ETF Flow Estimates <span style="color:var(--dim); font-size:10px;">samples: ${d.etf_flow_samples || 0}</span></div>
+        <div style="font-size:12px; line-height:1.6;">
+            <div>Net: <span style="color:${netColor}; font-weight:600;">$${fmtBn(d.etf_net_flow_usd)}</span></div>
+            <div>Inflow: <span class="pos">$${fmtBn(d.etf_gross_inflow_usd)}</span></div>
+            <div>Outflow: <span class="neg">$${fmtBn(d.etf_gross_outflow_usd)}</span></div>
+            <div>Top In: <span style="font-weight:600;">${d.etf_top_inflow_ticker || '—'}</span></div>
+            <div>Top Out: <span style="font-weight:600;">${d.etf_top_outflow_ticker || '—'}</span></div>
+        </div>`;
+
+    if (d.ts) $('quant-flow-ts').textContent = '@ ' + d.ts.slice(11, 19);
 }
 
 function renderFeeds(d) {
@@ -920,6 +985,7 @@ function renderAll(data) {
     renderFeeds(data.live_feeds);
     renderIndicators(data.war_room);
     renderArms(data.war_room);
+    renderQuantFlow(data.live_feeds);
     renderPositions(data.portfolio);
     renderDailyTasks(data.daily_tasks);
     renderScenarios(data.scenarios);

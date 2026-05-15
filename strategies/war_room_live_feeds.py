@@ -116,6 +116,27 @@ class LiveFeedResult:
     # WSB sentiment (TradeStie — free, no auth)
     wsb_sentiment_score: Optional[float] = None   # -1.0 to 1.0
     wsb_top_tickers: List[str] = field(default_factory=list)
+    # NYSE breadth (yfinance ^TRIN/^TICK/^ADD/^DECL/^ADV)
+    trin: Optional[float] = None                  # arms index — >1.0 selling, <1.0 buying
+    tick: Optional[float] = None                  # NYSE TICK — uptick vs downtick balance
+    advance_decline_ratio: Optional[float] = None # advances / declines
+    mcclellan_oscillator: Optional[float] = None  # EMA19 - EMA39 of (ADV-DECL)
+    breadth_regime: Optional[str] = None          # bullish / bearish / neutral
+    # CFTC Commitments of Traders (weekly, financial futures)
+    cot_es_lev_money_net: Optional[int] = None    # leveraged money net long ES (S&P)
+    cot_nq_lev_money_net: Optional[int] = None    # leveraged money net long NQ
+    cot_vx_lev_money_net: Optional[int] = None    # leveraged money net long VIX
+    cot_es_extreme: Optional[str] = None          # extreme_long / extreme_short / neutral
+    cot_nq_extreme: Optional[str] = None
+    cot_vx_extreme: Optional[str] = None
+    cot_report_date: Optional[str] = None         # ISO date of latest COT release
+    # ETF flow estimates (Δshares × NAV — needs ≥2 snapshots per symbol)
+    etf_net_flow_usd: Optional[float] = None      # sum of all daily flows (USD)
+    etf_gross_inflow_usd: Optional[float] = None
+    etf_gross_outflow_usd: Optional[float] = None
+    etf_top_inflow_ticker: Optional[str] = None
+    etf_top_outflow_ticker: Optional[str] = None
+    etf_flow_samples: int = 0                     # how many ETFs had a delta computable
     # Errors (non-fatal -- partial data is still useful)
     errors: List[str] = field(default_factory=list)
 
@@ -408,6 +429,228 @@ async def fetch_unusual_whales_data(result: LiveFeedResult) -> None:
             result.errors.append(f"Unusual Whales: {err}")
     except Exception as exc:
         msg = f"Unusual Whales error: {exc}"
+        logger.warning(msg)
+        result.errors.append(msg)
+
+
+# ============================================================================
+# 2b. NYSE BREADTH — yfinance ^TRIN / ^TICK / McClellan Oscillator
+# ============================================================================
+
+async def fetch_breadth_data(result: LiveFeedResult) -> None:
+    """Fetch NYSE breadth indicators via yfinance (sync — runs in executor)."""
+    try:
+        from integrations.breadth_client import BreadthClient
+
+        client = BreadthClient()
+        loop = asyncio.get_running_loop()
+        snap = await loop.run_in_executor(None, client.get_snapshot)
+
+        result.trin = snap.trin
+        result.tick = snap.tick
+        result.advance_decline_ratio = snap.advance_decline_ratio
+        result.mcclellan_oscillator = snap.mcclellan_oscillator
+        result.breadth_regime = snap.regime
+        logger.info(
+            "NYSE Breadth: TRIN=%s TICK=%s A/D=%s McClellan=%s Regime=%s",
+            f"{snap.trin:.2f}" if snap.trin is not None else "n/a",
+            f"{snap.tick:.0f}" if snap.tick is not None else "n/a",
+            f"{snap.advance_decline_ratio:.2f}" if snap.advance_decline_ratio is not None else "n/a",
+            f"{snap.mcclellan_oscillator:.1f}" if snap.mcclellan_oscillator is not None else "n/a",
+            snap.regime or "n/a",
+        )
+    except Exception as exc:
+        msg = f"Breadth fetch error: {exc}"
+        logger.warning(msg)
+        result.errors.append(msg)
+
+
+# ============================================================================
+# 2c. CFTC COT — Weekly Commitments of Traders (Financial Futures)
+# ============================================================================
+
+# Module-level cache: COT report only refreshes weekly (Friday 15:30 ET).
+# Keep one CFTCCotClient alive so its yearly CSV cache is reused.
+_cot_client: Any = None
+_cot_cache_iso: Optional[str] = None
+# Cached COT snapshot (populated by scheduler.run_cot_refresh OR fetch_cot_data).
+# Format: {"ES": {"leveraged_net": int, "extreme": str, "report_date": str, "z_score": float}, ...}
+_cot_cache_payload: dict[str, Any] = {}
+
+
+def _get_cot_client() -> Any:
+    global _cot_client
+    if _cot_client is None:
+        from integrations.cftc_cot_client import CFTCCotClient
+        _cot_client = CFTCCotClient()
+    return _cot_client
+
+
+def _apply_cot_cache(result: LiveFeedResult) -> bool:
+    """If a recent cached COT snapshot exists, copy it into result. Returns True if applied."""
+    if not _cot_cache_payload:
+        return False
+    es = _cot_cache_payload.get("ES") or {}
+    nq = _cot_cache_payload.get("NQ") or {}
+    vx = _cot_cache_payload.get("VX") or {}
+    if es:
+        result.cot_es_lev_money_net = es.get("leveraged_net")
+        result.cot_es_extreme = es.get("extreme")
+        result.cot_report_date = es.get("report_date")
+    if nq:
+        result.cot_nq_lev_money_net = nq.get("leveraged_net")
+        result.cot_nq_extreme = nq.get("extreme")
+    if vx:
+        result.cot_vx_lev_money_net = vx.get("leveraged_net")
+        result.cot_vx_extreme = vx.get("extreme")
+    return True
+
+
+def update_cot_cache_from_scheduler(payload: dict[str, Any]) -> None:
+    """Called by core.market_scheduler.run_cot_refresh — keeps fetcher in sync.
+
+    payload format (per market):
+        {"report_date": str, "leveraged_net": int, "signal": str, "z_score": float}
+    """
+    global _cot_cache_iso, _cot_cache_payload
+    normalized: dict[str, Any] = {}
+    for market, data in (payload or {}).items():
+        if not isinstance(data, dict) or "error" in data:
+            continue
+        normalized[market] = {
+            "leveraged_net": data.get("leveraged_net"),
+            "extreme": data.get("signal"),
+            "report_date": data.get("report_date"),
+            "z_score": data.get("z_score"),
+        }
+    if normalized:
+        _cot_cache_payload = normalized
+        _cot_cache_iso = datetime.now().isoformat()
+
+
+async def fetch_cot_data(result: LiveFeedResult) -> None:
+    """Fetch CFTC COT positioning for ES / NQ / VX (weekly cadence).
+
+    Uses cached payload from scheduler when available (refreshed daily); only
+    falls back to a live HTTP pull if no cache exists.
+    """
+    if _apply_cot_cache(result):
+        return
+    try:
+        client = _get_cot_client()
+        loop = asyncio.get_running_loop()
+
+        async def _market(symbol: str):
+            latest = await loop.run_in_executor(None, client.get_latest, symbol)
+            signal = await loop.run_in_executor(
+                None, client.get_extreme_signal, symbol, 52
+            )
+            return latest, signal
+
+        es_latest, es_sig = await _market("ES")
+        nq_latest, nq_sig = await _market("NQ")
+        vx_latest, vx_sig = await _market("VX")
+
+        if es_latest is not None:
+            result.cot_es_lev_money_net = es_latest.leveraged_net
+            result.cot_es_extreme = es_sig.signal if es_sig is not None else None
+            result.cot_report_date = es_latest.report_date  # already ISO YYYY-MM-DD
+        if nq_latest is not None:
+            result.cot_nq_lev_money_net = nq_latest.leveraged_net
+            result.cot_nq_extreme = nq_sig.signal if nq_sig is not None else None
+        if vx_latest is not None:
+            result.cot_vx_lev_money_net = vx_latest.leveraged_net
+            result.cot_vx_extreme = vx_sig.signal if vx_sig is not None else None
+
+        global _cot_cache_iso
+        _cot_cache_iso = datetime.now().isoformat()
+        # Mirror into the shared payload so the scheduler / future calls can reuse
+        global _cot_cache_payload
+        _cot_cache_payload = {
+            "ES": {
+                "leveraged_net": result.cot_es_lev_money_net,
+                "extreme": result.cot_es_extreme,
+                "report_date": result.cot_report_date,
+            },
+            "NQ": {
+                "leveraged_net": result.cot_nq_lev_money_net,
+                "extreme": result.cot_nq_extreme,
+                "report_date": result.cot_report_date,
+            },
+            "VX": {
+                "leveraged_net": result.cot_vx_lev_money_net,
+                "extreme": result.cot_vx_extreme,
+                "report_date": result.cot_report_date,
+            },
+        }
+        logger.info(
+            "CFTC COT: ES_net=%s (%s) NQ_net=%s (%s) VX_net=%s (%s) report=%s",
+            result.cot_es_lev_money_net, result.cot_es_extreme,
+            result.cot_nq_lev_money_net, result.cot_nq_extreme,
+            result.cot_vx_lev_money_net, result.cot_vx_extreme,
+            result.cot_report_date or "n/a",
+        )
+    except Exception as exc:
+        msg = f"CFTC COT fetch error: {exc}"
+        logger.warning(msg)
+        result.errors.append(msg)
+
+
+# ============================================================================
+# 2d. ETF FLOW — Δshares_outstanding × NAV (yfinance fast_info)
+# ============================================================================
+
+# Reuse a single ETFFlowClient so the on-disk history JSON is loaded once.
+_etf_flow_client: Any = None
+
+
+def _get_etf_flow_client() -> Any:
+    global _etf_flow_client
+    if _etf_flow_client is None:
+        from integrations.etf_flow_client import ETFFlowClient
+        _etf_flow_client = ETFFlowClient()
+    return _etf_flow_client
+
+
+async def fetch_etf_flow_data(result: LiveFeedResult) -> None:
+    """Snapshot ETF AUM + estimate daily flows for the default universe."""
+    try:
+        client = _get_etf_flow_client()
+        loop = asyncio.get_running_loop()
+        snapshots = await loop.run_in_executor(
+            None, client.get_universe_snapshots, None, True
+        )
+        agg = client.aggregate_flows(snapshots)
+
+        result.etf_net_flow_usd = agg.get("net_flow_usd")
+        result.etf_gross_inflow_usd = agg.get("gross_inflow_usd")
+        result.etf_gross_outflow_usd = agg.get("gross_outflow_usd")
+        result.etf_flow_samples = int(agg.get("samples", 0) or 0)
+
+        # Identify single biggest inflow / outflow ticker
+        top_in_sym, top_in_val = None, 0.0
+        top_out_sym, top_out_val = None, 0.0
+        for snap in snapshots:
+            flow = snap.daily_flow_usd
+            if flow is None:
+                continue
+            if flow > top_in_val:
+                top_in_val, top_in_sym = flow, snap.symbol
+            elif flow < top_out_val:
+                top_out_val, top_out_sym = flow, snap.symbol
+        result.etf_top_inflow_ticker = top_in_sym
+        result.etf_top_outflow_ticker = top_out_sym
+
+        logger.info(
+            "ETF Flows: net=$%s in=$%s out=$%s samples=%d top_in=%s top_out=%s",
+            f"{result.etf_net_flow_usd:,.0f}" if result.etf_net_flow_usd is not None else "n/a",
+            f"{result.etf_gross_inflow_usd:,.0f}" if result.etf_gross_inflow_usd is not None else "n/a",
+            f"{result.etf_gross_outflow_usd:,.0f}" if result.etf_gross_outflow_usd is not None else "n/a",
+            result.etf_flow_samples,
+            top_in_sym or "n/a", top_out_sym or "n/a",
+        )
+    except Exception as exc:
+        msg = f"ETF flow fetch error: {exc}"
         logger.warning(msg)
         result.errors.append(msg)
 
@@ -952,6 +1195,11 @@ async def fetch_all_live_data() -> LiveFeedResult:
         fetch_vix_fred(result),
         fetch_bdc_data(result),
         fetch_wsb_sentiment(result),        # TradeStie WSB — free, no auth
+        fetch_breadth_data(result),         # NYSE breadth: TRIN/TICK/A-D/McClellan
+        fetch_etf_flow_data(result),        # ETF flows: Δshares × NAV (daily delta)
+        # NB: fetch_cot_data() is intentionally NOT in the gather — COT releases
+        # weekly (Fri 15:30 ET); the dedicated MarketScheduler `cot_refresh` task
+        # populates it ~once/day so we don't slam cftc.gov on every 15-min scan.
         return_exceptions=True,
     )
 
@@ -1191,6 +1439,28 @@ def apply_live_data_to_indicators(
     # -- Alpha engine: council + doctrine combined signal --
     if result.alpha_signal is not None:
         ind.alpha_signal = result.alpha_signal
+
+    # -- NYSE Breadth (yfinance) --
+    if getattr(result, "mcclellan_oscillator", None) is not None:
+        ind.mcclellan_oscillator = float(result.mcclellan_oscillator)
+    if getattr(result, "trin", None) is not None:
+        ind.trin = float(result.trin)
+
+    # -- CFTC COT positioning: count how many of ES/NQ/VX at extreme --
+    cot_extremes = sum(
+        1
+        for label in (
+            getattr(result, "cot_es_extreme", None),
+            getattr(result, "cot_nq_extreme", None),
+            getattr(result, "cot_vx_extreme", None),
+        )
+        if label in ("extreme_long", "extreme_short")
+    )
+    ind.cot_extreme_count = cot_extremes
+
+    # -- ETF flow aggregates (negative net = capitulation) --
+    if getattr(result, "etf_net_flow_usd", None) is not None:
+        ind.etf_net_flow_usd = float(result.etf_net_flow_usd)
 
     # -- IBKR: Update account balance + positions in war_room_engine --
     if result.ibkr_connected:

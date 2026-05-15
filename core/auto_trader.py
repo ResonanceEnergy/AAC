@@ -521,7 +521,62 @@ class AutoTrader:
         if not ok:
             return False, reason
 
+        # COT extreme positioning veto (added 2026-04-13)
+        # If Lev Money is at a contrarian extreme on a related underlying,
+        # block any signal that would add exposure in the SAME direction as the crowd.
+        # ES extreme_long → block new bullish SPY/QQQ/IWM. extreme_short → block new bearish.
+        if not is_compulsory:
+            cot_block, cot_reason = self._cot_extreme_veto(signal)
+            if cot_block:
+                return False, cot_reason
+
         return True, ""
+
+    def _cot_extreme_veto(self, signal) -> tuple[bool, str]:
+        """Block signals that align with crowded Lev Money positioning.
+
+        Uses the most recent LiveFeedResult cached at module level in
+        strategies.war_room_live_feeds. Fails open on any exception.
+        """
+        try:
+            from shared.signal import Direction  # noqa: PLC0415
+            from strategies import war_room_live_feeds as _wrf  # noqa: PLC0415
+
+            result = getattr(_wrf, "_last_feed_result", None)
+            if result is None:
+                return False, ""
+
+            # Map signal ticker → COT proxy
+            ticker = (signal.ticker or "").upper()
+            es_proxies = {"SPY", "ES", "SPX", "IWM", "RTY", "DIA"}
+            nq_proxies = {"QQQ", "NQ", "QQQM"}
+            vx_proxies = {"VXX", "UVXY", "SVXY", "VIX"}
+
+            if ticker in es_proxies:
+                extreme = getattr(result, "cot_es_extreme", None)
+                market = "ES"
+            elif ticker in nq_proxies:
+                extreme = getattr(result, "cot_nq_extreme", None)
+                market = "NQ"
+            elif ticker in vx_proxies:
+                extreme = getattr(result, "cot_vx_extreme", None)
+                market = "VX"
+            else:
+                return False, ""
+
+            if extreme not in ("extreme_long", "extreme_short"):
+                return False, ""
+
+            # extreme_long: leveraged crowd is long → block new bullish exposure
+            # extreme_short: crowd is short → block new bearish exposure
+            if extreme == "extreme_long" and signal.direction is Direction.LONG:
+                return True, f"COT veto: {market} Lev Money extreme_long (crowded)"
+            if extreme == "extreme_short" and signal.direction is Direction.SHORT:
+                return True, f"COT veto: {market} Lev Money extreme_short (crowded)"
+            return False, ""
+        except Exception as exc:
+            _log.warning("cot_veto_check_failed", error=str(exc))
+            return False, ""
 
     def _exposure_ok(self, signal, current_positions: list) -> tuple[bool, str]:
         """Check that adding this position wouldn't breach exposure limits.

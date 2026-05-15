@@ -97,14 +97,28 @@ def _parse_moomoo_symbol(code: str) -> dict[str, Any]:
 
 
 def collect_portfolio() -> dict:
-    """Portfolio value and account breakdown from account_balances.json."""
+    """Portfolio value and account breakdown from account_balances.json.
+
+    Triggers a live broker refresh (IBKR + Moomoo + WealthSimple via SnapTrade)
+    on every cache miss; the existing CACHE_TTL gate (~25s) prevents
+    over-hammering brokers when the dashboard auto-refreshes.
+    """
     cached = _get_cached("portfolio")
     if cached is not None:
         return cached
 
+    # Live refresh — best-effort. Any failure logs and falls through to JSON.
+    refresh_status: dict = {}
+    try:
+        from monitoring.live_portfolio_refresh import refresh_portfolio_live
+        refresh_status = refresh_portfolio_live(write=True)
+    except Exception as exc:  # noqa: BLE001 — never block dashboard on refresh
+        _log.warning("live_portfolio_refresh_failed", err=str(exc))
+        refresh_status = {"error": str(exc)}
+
     bal_path = _ROOT / "data" / "account_balances.json"
     if not bal_path.exists():
-        return {"error": "account_balances.json not found"}
+        return {"error": "account_balances.json not found", "live_refresh": refresh_status}
 
     raw = json.loads(bal_path.read_text(encoding="utf-8"))
     accounts_raw = raw.get("accounts", {})
@@ -193,6 +207,7 @@ def collect_portfolio() -> dict:
         "fx_updated": fx.get("updated", "unknown"),
         "accounts": accounts,
         "last_updated": raw.get("_meta", {}).get("updated", "unknown"),
+        "live_refresh": refresh_status,
     }
     _set_cached("portfolio", result)
     return result
@@ -221,21 +236,25 @@ def collect_war_room() -> dict:
     individual_scores = comp.get("individual_scores", {})
 
     INDICATOR_META = {
-        "oil": {"desc": "Oil Price", "weight": 0.12, "field": "oil_price"},
+        "oil": {"desc": "Oil Price", "weight": 0.10, "field": "oil_price"},
         "gold": {"desc": "Gold Price", "weight": 0.08, "field": "gold_price"},
         "vix": {"desc": "VIX", "weight": 0.10, "field": "vix"},
-        "hy_spread": {"desc": "HY Spread", "weight": 0.08, "field": "hy_spread_bp"},
-        "bdc_nav": {"desc": "BDC NAV Discount", "weight": 0.07, "field": "bdc_nav_discount"},
-        "bdc_nonaccrual": {"desc": "BDC Non-Accrual", "weight": 0.05, "field": "bdc_nonaccrual_pct"},
-        "defi_tvl": {"desc": "DeFi TVL Change", "weight": 0.04, "field": "defi_tvl_change_pct"},
-        "stablecoin": {"desc": "Stablecoin Depeg", "weight": 0.04, "field": "stablecoin_depeg_pct"},
+        "hy_spread": {"desc": "HY Spread", "weight": 0.07, "field": "hy_spread_bp"},
+        "bdc_nav": {"desc": "BDC NAV Discount", "weight": 0.06, "field": "bdc_nav_discount"},
+        "bdc_nonaccrual": {"desc": "BDC Non-Accrual", "weight": 0.03, "field": "bdc_nonaccrual_pct"},
+        "defi_tvl": {"desc": "DeFi TVL Change", "weight": 0.02, "field": "defi_tvl_change_pct"},
+        "stablecoin": {"desc": "Stablecoin Depeg", "weight": 0.02, "field": "stablecoin_depeg_pct"},
         "btc": {"desc": "Bitcoin Price", "weight": 0.05, "field": "btc_price"},
         "fed_rate": {"desc": "Fed Funds Rate", "weight": 0.05, "field": "fed_funds_rate"},
         "dxy": {"desc": "Dollar Index", "weight": 0.05, "field": "dxy"},
-        "spy": {"desc": "S&P 500", "weight": 0.07, "field": "spy_price"},
-        "x_sentiment": {"desc": "X Sentiment", "weight": 0.12, "field": "x_sentiment"},
+        "spy": {"desc": "S&P 500", "weight": 0.06, "field": "spy_price"},
+        "x_sentiment": {"desc": "X Sentiment", "weight": 0.08, "field": "x_sentiment"},
         "news": {"desc": "News Severity", "weight": 0.04, "field": "news_severity"},
         "fear_greed": {"desc": "Fear & Greed", "weight": 0.04, "field": "fear_greed_index"},
+        "alpha": {"desc": "Alpha Engine", "weight": 0.08, "field": "alpha_signal"},
+        "breadth": {"desc": "McClellan Breadth", "weight": 0.03, "field": "mcclellan_oscillator"},
+        "cot_extreme": {"desc": "COT Extremes (ES/NQ/VX)", "weight": 0.02, "field": "cot_extreme_count"},
+        "etf_flow": {"desc": "ETF Net Flow", "weight": 0.02, "field": "etf_net_flow_usd"},
     }
 
     indicators = []
@@ -319,6 +338,27 @@ def collect_live_feeds() -> dict:
         "dxy": feed.dxy_index,
         "fed_rate": feed.fed_rate,
         "hy_spread": feed.hy_spread_bp_live,
+        # NYSE breadth (yfinance)
+        "trin": feed.trin,
+        "tick": feed.tick,
+        "advance_decline_ratio": feed.advance_decline_ratio,
+        "mcclellan_oscillator": feed.mcclellan_oscillator,
+        "breadth_regime": feed.breadth_regime,
+        # CFTC COT positioning
+        "cot_es_lev_money_net": feed.cot_es_lev_money_net,
+        "cot_nq_lev_money_net": feed.cot_nq_lev_money_net,
+        "cot_vx_lev_money_net": feed.cot_vx_lev_money_net,
+        "cot_es_extreme": feed.cot_es_extreme,
+        "cot_nq_extreme": feed.cot_nq_extreme,
+        "cot_vx_extreme": feed.cot_vx_extreme,
+        "cot_report_date": feed.cot_report_date,
+        # ETF flow estimates
+        "etf_net_flow_usd": feed.etf_net_flow_usd,
+        "etf_gross_inflow_usd": feed.etf_gross_inflow_usd,
+        "etf_gross_outflow_usd": feed.etf_gross_outflow_usd,
+        "etf_top_inflow_ticker": feed.etf_top_inflow_ticker,
+        "etf_top_outflow_ticker": feed.etf_top_outflow_ticker,
+        "etf_flow_samples": feed.etf_flow_samples,
         "errors": feed.errors if feed.errors else [],
         "ts": datetime.datetime.now().isoformat(),
     }
@@ -346,6 +386,21 @@ def collect_regime() -> dict:
             dollar_index=feeds.get("dxy") or 104,
             fear_greed=feeds.get("fear_greed") or 50,
             spy_return_1d=0.0,
+            breadth_adv_dec=feeds.get("advance_decline_ratio"),
+            # NYSE breadth extras
+            trin=feeds.get("trin"),
+            tick=feeds.get("tick"),
+            mcclellan_oscillator=feeds.get("mcclellan_oscillator"),
+            breadth_regime=feeds.get("breadth_regime"),
+            # CFTC COT positioning
+            cot_es_extreme=feeds.get("cot_es_extreme"),
+            cot_nq_extreme=feeds.get("cot_nq_extreme"),
+            cot_vx_extreme=feeds.get("cot_vx_extreme"),
+            # ETF flow aggregates
+            etf_net_flow_usd=feeds.get("etf_net_flow_usd"),
+            etf_gross_inflow_usd=feeds.get("etf_gross_inflow_usd"),
+            etf_gross_outflow_usd=feeds.get("etf_gross_outflow_usd"),
+            etf_flow_samples=feeds.get("etf_flow_samples", 0) or 0,
         )
         state = engine.evaluate(snapshot)
         result = {

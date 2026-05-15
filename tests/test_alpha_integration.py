@@ -105,12 +105,12 @@ class TestCompositeScoreAlpha:
         assert score_bearish > score_neutral
 
     def test_weights_sum_to_one(self):
-        """All 16 weights (including alpha) must sum to 1.0."""
+        """All weights (including alpha + quant-flow) must sum to 1.0."""
         from strategies.war_room_engine import IndicatorState, compute_composite_score
         ind = IndicatorState()
         result = compute_composite_score(ind)
-        # Should have 16 individual scores now
-        assert len(result["individual_scores"]) == 16
+        # 16 originals + breadth + cot_extreme + etf_flow = 19
+        assert len(result["individual_scores"]) == 19
 
     def test_alpha_sub_score_clamped(self):
         """Alpha sub-score should be clamped to [0, 100] even with extreme input."""

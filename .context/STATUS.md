@@ -1,7 +1,7 @@
 # AAC Living Status Dashboard
 
-> **Last updated:** 2026-05-14
-> **Updated by:** GitHub cleanup — 9 thematic commits pushed `837e95304..9060ed200`. Worktree clean. Pytest baseline jumped 2661 → **4908 passed** (3 failures, env-dependent). New core/* modules verified wired via `market_scheduler` → `launch.py`. RAG smoke test added.
+> **Last updated:** 2026-05-15
+> **Updated by:** Built 3 new data clients (NYSE breadth, CFTC COT, ETF flow) + fixed Unusual Whales field parsing (OCC fallback + GEX `*_oi` aliases). Pytest **4969 passed, 2 skipped** (excl. integration_test.py + autonomous). 4 new test files (61 focused tests, 100% pass).
 > **Update this file** after every significant change. This is the single source of truth for what works.
 
 ---
@@ -14,7 +14,10 @@
 | **Moomoo Connector** | DEGRADED | OpenD relaunched 2026-05-14 (PID 19612) but API port 11111 still requires real login in OpenD.xml. Dummy credentials persist. |
 | **yfinance** | WORKING | Free, primary options chain source |
 | **CoinGecko** | DEGRADED | Pro key expired → free tier (10 req/min). Prices work. |
-| **Unusual Whales** | PARTIAL | Client wired via `UNUSUAL_WHALES_API_KEY_FILE`. Token in `secrets/unusual_whales_api_key.txt` returned HTTP 401 on probe — REPLACE with valid token. Endpoint paths fixed (`/insider/transactions`, `/news/headlines`). Tier-1 methods added: `get_market_tide`, `get_spot_gex`, `get_greeks`, `get_interpolated_iv`, `get_net_prem_ticks`. |
+| **Unusual Whales** | FIXED (parsing) | Field parsing repaired 2026-05-15: `get_flow()` now decodes OCC `option_chain` (e.g. `SPY260418C00530000`) when top-level strike/type/expiry missing — no more $0 strikes / "unknown" types. `_top_gex_walls()` reads correct UW fields (`call_gamma_oi`/`put_gamma_oi`/`total_gamma_per_one_pct_move_oi`) — GEX no longer silently zero. Tests: `tests/test_unusual_whales_occ_parsing.py` (5 cases). Token still needs valid replacement. |
+| **NYSE Breadth Client** | NEW | `integrations/breadth_client.py` — yfinance `^TRIN`/`^TICK`/`^ADD`/`^DECL`/`^ADV`, McClellan Oscillator (EMA19−EMA39), votes-based regime classifier. No API key. |
+| **CFTC COT Client** | NEW | `integrations/cftc_cot_client.py` — Traders in Financial Futures yearly zips (ES/NQ/RTY/YM/VX), positioning + 52-week z-score extreme signals. Custom UA required (cftc.gov 403s default urllib). |
+| **ETF Flow Client** | NEW | `integrations/etf_flow_client.py` — yfinance `fast_info`/`info`, daily flow estimated as Δshares × NAV, persists snapshots to `data/etf_flow_history.json` (400/symbol cap). 27-ticker default universe (SPY/QQQ/sectors/credit/commodities). |
 | **FRED** | WORKING | VIX fallback, macro data |
 | **Finnhub** | WORKING | Quotes, news |
 | **NewsAPI** | WORKING | Headlines |

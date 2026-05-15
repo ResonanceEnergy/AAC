@@ -98,6 +98,7 @@ class MarketScheduler:
         self._last_run: dict[str, float] = {}  # task → monotonic timestamp
         self._last_roll_date: date | None = None
         self._last_pnl_date: date | None = None
+        self._last_cot_date: date | None = None
         self._last_morning_brief_date: date | None = None
         self._last_evening_brief_date: date | None = None
         self._enable_ai_briefings = enable_ai_briefings
@@ -556,6 +557,54 @@ class MarketScheduler:
         )
         return snap
 
+    def run_cot_refresh(self) -> dict[str, Any]:
+        """Refresh CFTC COT positioning for ES / NQ / VX (once per trading day).
+
+        COT releases on Fridays at 15:30 ET (Tuesday data); we re-pull daily so
+        the freshly-released report is picked up the next time the bot runs.
+        Falls back to an empty dict on any failure — never raises.
+        """
+        try:
+            from integrations.cftc_cot_client import CFTCCotClient  # noqa: PLC0415
+        except Exception as exc:
+            _log.error("cot_refresh_import_failed", error=str(exc))
+            return {}
+
+        client = CFTCCotClient()
+        out: dict[str, Any] = {}
+        for market in ("ES", "NQ", "RTY", "YM", "VX"):
+            try:
+                latest = client.get_latest(market)
+                signal = client.get_extreme_signal(market, lookback_weeks=52)
+                out[market] = {
+                    "report_date": latest.report_date if latest else None,
+                    "leveraged_net": latest.leveraged_net if latest else None,
+                    "signal": signal.signal if signal else None,
+                    "z_score": signal.z_score if signal else None,
+                }
+            except Exception as exc:  # noqa: BLE001
+                _log.warning("cot_refresh_market_failed", market=market, error=str(exc))
+                out[market] = {"error": str(exc)}
+
+        _log.info(
+            "cot_refresh_complete",
+            markets=list(out.keys()),
+            es_signal=out.get("ES", {}).get("signal"),
+            nq_signal=out.get("NQ", {}).get("signal"),
+            vx_signal=out.get("VX", {}).get("signal"),
+        )
+
+        # Push to war_room_live_feeds module cache so the async fetcher
+        # skips the duplicate HTTP pull.
+        try:
+            from strategies.war_room_live_feeds import update_cot_cache_from_scheduler  # noqa: PLC0415
+
+            update_cot_cache_from_scheduler(out)
+        except Exception as exc:  # noqa: BLE001
+            _log.warning("cot_cache_propagate_failed", error=str(exc))
+
+        return out
+
     # ── AI briefings (Phase 4) ────────────────────────────────────────────────
 
     def run_daily_briefing(
@@ -715,6 +764,17 @@ class MarketScheduler:
                 ):
                     if self._run_task("pnl_snapshot", self.run_pnl_snapshot):
                         self._last_pnl_date = today
+
+                # ── CFTC COT refresh: once daily, trading day, ≥9:35 ET ───
+                # Runs after the market-open window so Friday's 15:30 release
+                # gets picked up by Monday morning's first scan.
+                if (
+                    self.is_trading_day(now_et)
+                    and self._last_cot_date != today
+                    and now_et.time() >= time(9, 35)
+                ):
+                    if self._run_task("cot_refresh", self.run_cot_refresh):
+                        self._last_cot_date = today
 
                 # ── AI morning briefing: once daily 8:00–8:30 ET (Phase 4) ──
                 if (

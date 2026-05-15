@@ -189,7 +189,15 @@ class UnusualWhalesSnapshotService:
             return []
 
         def _abs_gamma(row: Dict[str, Any]) -> float:
-            for key in ("gamma", "total_gamma", "net_gamma"):
+            # UW spot-exposures/strike returns gamma as ``call_gamma_oi`` /
+            # ``put_gamma_oi`` (charm/vanna also _oi-suffixed). Older endpoints
+            # used bare ``gamma``; check both schemas.
+            for key in (
+                "total_gamma_per_one_pct_move_oi",
+                "total_gamma",
+                "gamma",
+                "net_gamma",
+            ):
                 value = row.get(key)
                 if value in (None, ""):
                     continue
@@ -197,8 +205,16 @@ class UnusualWhalesSnapshotService:
                     return abs(float(value))
                 except (TypeError, ValueError):
                     continue
-            call_g = row.get("call_gamma") or 0
-            put_g = row.get("put_gamma") or 0
+            call_g = (
+                row.get("call_gamma_oi")
+                or row.get("call_gamma")
+                or 0
+            )
+            put_g = (
+                row.get("put_gamma_oi")
+                or row.get("put_gamma")
+                or 0
+            )
             try:
                 return abs(float(call_g)) + abs(float(put_g))
             except (TypeError, ValueError):

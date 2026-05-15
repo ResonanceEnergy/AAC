@@ -1180,6 +1180,15 @@ class AACMasterMonitoringDashboard:
                     "oil": snap.oil_price,
                     "war": snap.war_active,
                     "hormuz": snap.hormuz_blocked,
+                    # Quant flow extras (Phase 4 — breadth / COT / ETF)
+                    "mcclellan": getattr(snap, "mcclellan_oscillator", None),
+                    "trin": getattr(snap, "trin", None),
+                    "breadth_regime": getattr(snap, "breadth_regime", None),
+                    "cot_es_extreme": getattr(snap, "cot_es_extreme", None),
+                    "cot_nq_extreme": getattr(snap, "cot_nq_extreme", None),
+                    "cot_vx_extreme": getattr(snap, "cot_vx_extreme", None),
+                    "etf_net_flow_usd": getattr(snap, "etf_net_flow_usd", None),
+                    "etf_flow_samples": getattr(snap, "etf_flow_samples", 0),
                 },
             }
         except Exception as e:
@@ -3178,6 +3187,24 @@ class AACMasterMonitoringDashboard:
             print(
                 f"  Macro: VIX={macro.get('vix', '?')}  HY={macro.get('hy_spread', '?')}bps  Oil=${macro.get('oil', '?')}"
             )
+            # Quant Flow line (breadth / COT / ETF) — only render if we actually have data
+            qf_bits = []
+            if macro.get("mcclellan") is not None:
+                qf_bits.append(f"McClellan={macro['mcclellan']:.0f}")
+            if macro.get("trin") is not None:
+                qf_bits.append(f"TRIN={macro['trin']:.2f}")
+            cot_extremes = [
+                f"{m}:{macro.get(f'cot_{m.lower()}_extreme')}"
+                for m in ("ES", "NQ", "VX")
+                if macro.get(f"cot_{m.lower()}_extreme") and macro[f"cot_{m.lower()}_extreme"] != "neutral"
+            ]
+            if cot_extremes:
+                qf_bits.append("COT[" + " ".join(cot_extremes) + "]")
+            etf_net = macro.get("etf_net_flow_usd")
+            if etf_net is not None and macro.get("etf_flow_samples", 0) > 0:
+                qf_bits.append(f"ETF=${etf_net / 1e9:+.2f}B")
+            if qf_bits:
+                print(f"  Quant Flow: {'  '.join(qf_bits)}")
             war_flags = []
             if macro.get("war"):
                 war_flags.append("WAR ACTIVE")

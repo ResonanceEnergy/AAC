@@ -69,6 +69,11 @@ class FormulaTag(Enum):
     F7_VOL_COMPRESSION_BOMB = "F7_vol_compression_bomb"
     F8_NARRATIVE_BREAK = "F8_narrative_break"
     F9_LEVERAGE_REVEAL = "F9_leverage_reveal"
+    F10_COT_LEVERAGED_EXTREME = "F10_cot_leveraged_extreme"
+    F11_ETF_OUTFLOW_CAPITULATION = "F11_etf_outflow_capitulation"
+    F12_BREADTH_THRUST = "F12_breadth_thrust"
+    F13_TRIN_CAPITULATION = "F13_trin_capitulation"
+    F14_VIX_COT_SHORT_SQUEEZE = "F14_vix_cot_short_squeeze"
 
 
 class SignalRiskClass(Enum):
@@ -150,6 +155,26 @@ class MacroSnapshot:
     private_credit_redemption_pct: Optional[float] = None  # % of AUM
     war_active: bool = False
     hormuz_blocked: bool = False
+
+    # NYSE breadth (yfinance ^TRIN/^TICK/^ADD/^DECL/^ADV)
+    trin: Optional[float] = None                  # arms index — >2 = capitulation
+    tick: Optional[float] = None                  # NYSE TICK
+    mcclellan_oscillator: Optional[float] = None  # >+70 oversold bounce, <-70 thrust down
+    breadth_regime: Optional[str] = None          # bullish / bearish / neutral
+
+    # CFTC COT (weekly Lev Money positioning, financial futures)
+    cot_es_extreme: Optional[str] = None          # extreme_long / extreme_short / neutral
+    cot_nq_extreme: Optional[str] = None
+    cot_vx_extreme: Optional[str] = None
+    cot_es_zscore: Optional[float] = None
+    cot_nq_zscore: Optional[float] = None
+    cot_vx_zscore: Optional[float] = None
+
+    # ETF flow (Δshares × NAV, daily delta)
+    etf_net_flow_usd: Optional[float] = None      # negative = outflow
+    etf_gross_inflow_usd: Optional[float] = None
+    etf_gross_outflow_usd: Optional[float] = None
+    etf_flow_samples: int = 0
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -260,6 +285,11 @@ class RegimeEngine:
             self._f7_vol_compression_bomb(snap),
             self._f8_narrative_break(snap),
             self._f9_leverage_reveal(snap),
+            self._f10_cot_leveraged_extreme(snap),
+            self._f11_etf_outflow_capitulation(snap),
+            self._f12_breadth_thrust(snap),
+            self._f13_trin_capitulation(snap),
+            self._f14_vix_cot_short_squeeze(snap),
         ]
 
         armed = [r.tag for r in results if r.fired]
@@ -747,6 +777,288 @@ class RegimeEngine:
         )
 
     # ──────────────────────────────────────────────────────────
+    # Formula F10: COT Leveraged Money at Extreme  (FRINGE — contrarian)
+    # ──────────────────────────────────────────────────────────
+
+    def _f10_cot_leveraged_extreme(self, snap: MacroSnapshot) -> FormulaResult:
+        """When Lev Money is at z>+2 long → contrarian short. z<-2 → contrarian long."""
+        met, missing = [], []
+        confidence_parts: List[float] = []
+        bias = None  # "short" or "long"
+
+        for market, extreme, z in (
+            ("ES", snap.cot_es_extreme, snap.cot_es_zscore),
+            ("NQ", snap.cot_nq_extreme, snap.cot_nq_zscore),
+        ):
+            if extreme is None:
+                missing.append(f"cot_{market.lower()}_extreme")
+                continue
+            if extreme == "extreme_long":
+                met.append(f"{market} Lev Money extreme LONG (z={z:.2f})" if z is not None else f"{market} extreme long")
+                confidence_parts.append(min(1.0, abs(z) / 3.0) if z is not None else 0.6)
+                bias = "short"
+            elif extreme == "extreme_short":
+                met.append(f"{market} Lev Money extreme SHORT (z={z:.2f})" if z is not None else f"{market} extreme short")
+                confidence_parts.append(min(1.0, abs(z) / 3.0) if z is not None else 0.6)
+                bias = "long"
+
+        # Fear/greed confirmation strengthens the contrarian read
+        if bias == "short" and snap.fear_greed is not None and snap.fear_greed > self._GREED_EXTREME:
+            met.append(f"Fear/Greed {snap.fear_greed:.0f} (greed) confirms crowded long")
+            confidence_parts.append(0.4)
+        elif bias == "long" and snap.fear_greed is not None and snap.fear_greed < self._FEAR_EXTREME:
+            met.append(f"Fear/Greed {snap.fear_greed:.0f} (fear) confirms crowded short")
+            confidence_parts.append(0.4)
+
+        fired = len(met) >= 1 and len(confidence_parts) > 0
+        confidence = (sum(confidence_parts) / max(len(confidence_parts), 1)) if fired else 0.0
+
+        if bias == "short":
+            outcome = "Contrarian: leveraged longs over-positioned. Mean-revert lower 2-6 weeks."
+            hint = "OTM SPX/QQQ put spreads (4-8 weeks) or short premium calls."
+        elif bias == "long":
+            outcome = "Contrarian: leveraged shorts over-positioned. Squeeze higher 2-6 weeks."
+            hint = "OTM SPX/QQQ call spreads (4-8 weeks) or long-delta upside."
+        else:
+            outcome = "COT positioning at extreme — contrarian setup armed."
+            hint = "Wait for technical confirmation before sizing."
+
+        return FormulaResult(
+            tag=FormulaTag.F10_COT_LEVERAGED_EXTREME,
+            fired=fired,
+            confidence=round(confidence, 3),
+            conditions_met=met,
+            conditions_missing=missing,
+            expected_outcome=outcome,
+            risk_class=SignalRiskClass.FRINGE,
+            timeframe_days=(10, 45),
+            expression_hint=hint,
+        )
+
+    # ──────────────────────────────────────────────────────────
+    # Formula F11: ETF Outflow Capitulation  (NEAR_GUARANTEE — contrarian)
+    # ──────────────────────────────────────────────────────────
+
+    _ETF_NET_OUTFLOW_CAPITULATION = -3_000_000_000.0   # -$3B aggregate net outflow
+    _ETF_NET_INFLOW_FROTH = 5_000_000_000.0            # +$5B aggregate inflow = froth
+
+    def _f11_etf_outflow_capitulation(self, snap: MacroSnapshot) -> FormulaResult:
+        """Aggregate ETF net outflow at panic levels → mean-reversion buy."""
+        met, missing = [], []
+        confidence_parts: List[float] = []
+        bias = None
+
+        if snap.etf_net_flow_usd is not None and snap.etf_flow_samples >= 5:
+            if snap.etf_net_flow_usd <= self._ETF_NET_OUTFLOW_CAPITULATION:
+                met.append(f"ETF net flow ${snap.etf_net_flow_usd / 1e9:.1f}B (capitulation)")
+                confidence_parts.append(min(1.0, abs(snap.etf_net_flow_usd) / 1e10))
+                bias = "long"
+            elif snap.etf_net_flow_usd >= self._ETF_NET_INFLOW_FROTH:
+                met.append(f"ETF net flow +${snap.etf_net_flow_usd / 1e9:.1f}B (froth)")
+                confidence_parts.append(min(1.0, snap.etf_net_flow_usd / 1.5e10))
+                bias = "short"
+        else:
+            missing.append("etf_net_flow_usd (need ≥5 samples)")
+
+        # Confirm with fear/greed alignment (panic outflows + extreme fear = strongest)
+        if bias == "long" and snap.fear_greed is not None and snap.fear_greed < self._FEAR_EXTREME:
+            met.append(f"Fear/Greed {snap.fear_greed:.0f} confirms capitulation")
+            confidence_parts.append(0.5)
+        elif bias == "short" and snap.fear_greed is not None and snap.fear_greed > self._GREED_EXTREME:
+            met.append(f"Fear/Greed {snap.fear_greed:.0f} confirms froth")
+            confidence_parts.append(0.5)
+
+        fired = len(met) >= 1 and bias is not None
+        confidence = (sum(confidence_parts) / max(len(confidence_parts), 1)) if fired else 0.0
+
+        if bias == "long":
+            outcome = "Forced selling exhausted — bounce 1-3 sessions, reversal 1-3 weeks."
+            hint = "Sell SPY/QQQ puts (cash-secured) or long ATM calls (1-2 weeks)."
+        elif bias == "short":
+            outcome = "Crowded long — air pocket / drawdown likely 2-8 weeks."
+            hint = "OTM index puts (4-6 weeks) or short upside calls."
+        else:
+            outcome = "ETF flows neutral."
+            hint = "—"
+
+        return FormulaResult(
+            tag=FormulaTag.F11_ETF_OUTFLOW_CAPITULATION,
+            fired=fired,
+            confidence=round(confidence, 3),
+            conditions_met=met,
+            conditions_missing=missing,
+            expected_outcome=outcome,
+            risk_class=SignalRiskClass.NEAR_GUARANTEE,
+            timeframe_days=(1, 14),
+            expression_hint=hint,
+        )
+
+    # ──────────────────────────────────────────────────────────
+    # Formula F12: McClellan Breadth Thrust  (INSTITUTIONAL — directional)
+    # ──────────────────────────────────────────────────────────
+
+    def _f12_breadth_thrust(self, snap: MacroSnapshot) -> FormulaResult:
+        """McClellan Oscillator > +70 = oversold-bounce thrust; < -70 = exhaustion down."""
+        met, missing = [], []
+        confidence_parts: List[float] = []
+        bias = None
+
+        if snap.mcclellan_oscillator is not None:
+            if snap.mcclellan_oscillator > 70:
+                met.append(f"McClellan +{snap.mcclellan_oscillator:.0f} (breadth thrust UP)")
+                confidence_parts.append(min(1.0, snap.mcclellan_oscillator / 120))
+                bias = "long"
+            elif snap.mcclellan_oscillator < -70:
+                met.append(f"McClellan {snap.mcclellan_oscillator:.0f} (breadth thrust DOWN)")
+                confidence_parts.append(min(1.0, abs(snap.mcclellan_oscillator) / 120))
+                bias = "short"
+        else:
+            missing.append("mcclellan_oscillator")
+
+        # Confirm with breadth_regime alignment
+        if bias == "long" and snap.breadth_regime == "bullish":
+            met.append("Breadth regime confirms BULLISH")
+            confidence_parts.append(0.3)
+        elif bias == "short" and snap.breadth_regime == "bearish":
+            met.append("Breadth regime confirms BEARISH")
+            confidence_parts.append(0.3)
+
+        fired = bias is not None
+        confidence = (sum(confidence_parts) / max(len(confidence_parts), 1)) if fired else 0.0
+
+        if bias == "long":
+            outcome = "Oversold breadth thrust — multi-week rally typical (5-15% bounce)."
+            hint = "Long index call spreads (3-6 weeks). Close on McClellan > +90."
+        elif bias == "short":
+            outcome = "Breadth deteriorating — distribution under cover. Drawdown 1-4 weeks."
+            hint = "Index put spreads (3-5 weeks). Trim on McClellan < -90."
+        else:
+            outcome = "Breadth neutral."
+            hint = "—"
+
+        return FormulaResult(
+            tag=FormulaTag.F12_BREADTH_THRUST,
+            fired=fired,
+            confidence=round(confidence, 3),
+            conditions_met=met,
+            conditions_missing=missing,
+            expected_outcome=outcome,
+            risk_class=SignalRiskClass.INSTITUTIONAL,
+            timeframe_days=(5, 30),
+            expression_hint=hint,
+        )
+
+    # ──────────────────────────────────────────────────────────
+    # Formula F13: TRIN Capitulation  (NEAR_GUARANTEE — short-term)
+    # ──────────────────────────────────────────────────────────
+
+    def _f13_trin_capitulation(self, snap: MacroSnapshot) -> FormulaResult:
+        """TRIN > 2.0 = panic selling (intraday bounce trade). TRIN < 0.5 = euphoria."""
+        met, missing = [], []
+        confidence_parts: List[float] = []
+        bias = None
+
+        if snap.trin is not None:
+            if snap.trin >= 2.0:
+                met.append(f"TRIN {snap.trin:.2f} (panic selling)")
+                confidence_parts.append(min(1.0, (snap.trin - 1.5) / 1.5))
+                bias = "long"
+            elif snap.trin <= 0.5:
+                met.append(f"TRIN {snap.trin:.2f} (euphoric buying)")
+                confidence_parts.append(min(1.0, (0.7 - snap.trin) / 0.5))
+                bias = "short"
+        else:
+            missing.append("trin")
+
+        # NYSE TICK confirmation
+        if snap.tick is not None:
+            if bias == "long" and snap.tick < -800:
+                met.append(f"TICK {snap.tick:.0f} (extreme down)")
+                confidence_parts.append(0.4)
+            elif bias == "short" and snap.tick > 800:
+                met.append(f"TICK +{snap.tick:.0f} (extreme up)")
+                confidence_parts.append(0.4)
+
+        fired = bias is not None
+        confidence = (sum(confidence_parts) / max(len(confidence_parts), 1)) if fired else 0.0
+
+        if bias == "long":
+            outcome = "Intraday capitulation — bounce within 1-3 sessions (2-5%)."
+            hint = "Short-dated SPY calls (1-3 days) or sell put spreads."
+        elif bias == "short":
+            outcome = "Intraday euphoria — pullback within 1-3 sessions."
+            hint = "Short-dated SPY puts (1-3 days) or sell call spreads."
+        else:
+            outcome = "TRIN neutral."
+            hint = "—"
+
+        return FormulaResult(
+            tag=FormulaTag.F13_TRIN_CAPITULATION,
+            fired=fired,
+            confidence=round(confidence, 3),
+            conditions_met=met,
+            conditions_missing=missing,
+            expected_outcome=outcome,
+            risk_class=SignalRiskClass.NEAR_GUARANTEE,
+            timeframe_days=(1, 3),
+            expression_hint=hint,
+        )
+
+    # ──────────────────────────────────────────────────────────
+    # Formula F14: VIX COT Short Squeeze  (CONVEX)
+    # ──────────────────────────────────────────────────────────
+
+    def _f14_vix_cot_short_squeeze(self, snap: MacroSnapshot) -> FormulaResult:
+        """Lev Money record-short VIX + suppressed VIX + macro stress → vol explosion fuel."""
+        met, missing = [], []
+        confidence_parts: List[float] = []
+
+        if snap.cot_vx_extreme == "extreme_short":
+            met.append(
+                f"VIX Lev Money extreme SHORT (z={snap.cot_vx_zscore:.2f})"
+                if snap.cot_vx_zscore is not None
+                else "VIX Lev Money extreme SHORT"
+            )
+            confidence_parts.append(
+                min(1.0, abs(snap.cot_vx_zscore) / 3.0) if snap.cot_vx_zscore is not None else 0.7
+            )
+        elif snap.cot_vx_extreme is None:
+            missing.append("cot_vx_extreme")
+
+        if snap.vix is not None and snap.vix < self._VIX_SUPPRESSED:
+            met.append(f"VIX {snap.vix:.1f} suppressed")
+            confidence_parts.append(min(1.0, (self._VIX_SUPPRESSED - snap.vix) / 8))
+        elif snap.vix is None:
+            missing.append("vix")
+
+        # Catalyst risk: any combination of stress signals
+        catalysts = 0
+        if snap.hy_spread_bps is not None and snap.hy_spread_bps > 300:
+            catalysts += 1
+        if snap.war_active or snap.hormuz_blocked:
+            catalysts += 1
+        if snap.private_credit_redemption_pct is not None and snap.private_credit_redemption_pct > 5:
+            catalysts += 1
+        if catalysts >= 1:
+            met.append(f"{catalysts} macro stress catalyst(s) latent")
+            confidence_parts.append(min(1.0, catalysts * 0.3))
+
+        fired = len(met) >= 2
+        confidence = (sum(confidence_parts) / max(len(confidence_parts), 1)) if fired else 0.0
+
+        return FormulaResult(
+            tag=FormulaTag.F14_VIX_COT_SHORT_SQUEEZE,
+            fired=fired,
+            confidence=round(confidence, 3),
+            conditions_met=met,
+            conditions_missing=missing,
+            expected_outcome="Short-vol unwind risk — VIX spike to 30+ on any catalyst. Asymmetric upside on VIX calls.",
+            risk_class=SignalRiskClass.CONVEX,
+            timeframe_days=(3, 30),
+            expression_hint="VIX call spreads (4-8 weeks, 25-35 strikes). Expect decay before payoff.",
+        )
+
+    # ──────────────────────────────────────────────────────────
     # Regime classification logic
     # ──────────────────────────────────────────────────────────
 
@@ -780,6 +1092,19 @@ class RegimeEngine:
 
         if FormulaTag.F4_POLICY_DELAY_TRAP in armed:
             scores[Regime.POLICY_DELAY_TRAP] += 0.5
+
+        # New (F10–F14): COT / ETF flow / breadth additions
+        if FormulaTag.F14_VIX_COT_SHORT_SQUEEZE in armed:
+            scores[Regime.VOL_SHOCK_ARMED] += 0.5
+        if FormulaTag.F12_BREADTH_THRUST in armed or FormulaTag.F13_TRIN_CAPITULATION in armed:
+            # Breadth/TRIN extremes can be either direction — rely on bear vs bull count below
+            scores[Regime.UNCERTAIN] += 0.1
+        if FormulaTag.F11_ETF_OUTFLOW_CAPITULATION in armed:
+            # Capitulation flow is itself a sign of stress — leans risk-off intermediate
+            scores[Regime.RISK_OFF] += 0.3
+        if FormulaTag.F10_COT_LEVERAGED_EXTREME in armed:
+            # Crowded positioning amplifies whichever stress regime is dominant
+            scores[Regime.RISK_OFF] += 0.2
 
         # Macro boosters
         if snap.hy_spread_bps and snap.hy_spread_bps < 200:

@@ -1007,6 +1007,11 @@ class IndicatorState:
     fear_greed_index: float = 50.0  # 0-100 from alternative.me
     # -- alpha intelligence (council + doctrine combined) --
     alpha_signal: float = 0.0      # -1=bearish convergence, 0=neutral, +1=bullish convergence
+    # -- quant flow (breadth / COT / ETF flow — added 2026-04-13) --
+    mcclellan_oscillator: float = 0.0   # NYSE breadth oscillator (-150..+150)
+    trin: float = 1.0                   # NYSE arms index (1.0 = neutral)
+    cot_extreme_count: int = 0          # how many of {ES, NQ, VX} at extreme positioning
+    etf_net_flow_usd: float = 0.0       # aggregate net ETF flow (negative = outflows)
 
     def __post_init__(self) -> None:
         """Populate price defaults from spot cache (fast, no network calls)."""
@@ -1189,22 +1194,51 @@ def compute_composite_score(ind: IndicatorState) -> dict[str, Any]:
     # Invert: negative alpha → high crisis score, positive → low crisis score
     scores["alpha"] = max(0.0, min(100.0, 50.0 - ind.alpha_signal * 50.0))
 
-    # Weighted composite -- 16 indicators
-    # X sentiment reduced from 0.12→0.08 because council intel now also
-    # flows through the alpha engine for a more refined combined signal.
-    # Oil 0.12→0.10, HY spread 0.08→0.07, SPY 0.07→0.06 to make room.
-    # Financial indicators reduced proportionally (sum still = 1.00).
+    # 17. McClellan Oscillator (extremes either way = stress / thrust)
+    # |McClellan| > 70 = thrust extreme. Higher absolute = more stress signal.
+    mc_abs = abs(ind.mcclellan_oscillator)
+    if mc_abs > 100:
+        scores["breadth"] = 100.0
+    elif mc_abs > 70:
+        scores["breadth"] = 60.0 + (mc_abs - 70) * 1.33
+    elif mc_abs > 40:
+        scores["breadth"] = 20.0 + (mc_abs - 40) * 1.33
+    else:
+        scores["breadth"] = mc_abs * 0.5
+
+    # 18. COT extreme count (how many of ES/NQ/VX at extreme positioning)
+    # 0 = neutral, 3 = all three at extreme = max contrarian risk
+    scores["cot_extreme"] = min(100.0, ind.cot_extreme_count * 33.3)
+
+    # 19. ETF net flow capitulation (large outflows = capitulation = high score)
+    # Negative net flow at -$3B aggregates → score ramps to 100 by -$10B.
+    if ind.etf_net_flow_usd <= -10_000_000_000:
+        scores["etf_flow"] = 100.0
+    elif ind.etf_net_flow_usd <= -3_000_000_000:
+        # -$3B → 50, -$10B → 100
+        scores["etf_flow"] = 50.0 + (abs(ind.etf_net_flow_usd) - 3e9) / 7e9 * 50.0
+    elif ind.etf_net_flow_usd < 0:
+        scores["etf_flow"] = abs(ind.etf_net_flow_usd) / 3e9 * 50.0
+    else:
+        scores["etf_flow"] = 0.0
+
+    # Weighted composite -- 19 indicators
+    # Quant flow (breadth/cot/etf) carved from defi/stablecoin/bdc to keep sum=1.0
     weights = {
         "oil": 0.10, "gold": 0.08, "vix": 0.10, "hy_spread": 0.07,
-        "bdc_nav": 0.07, "bdc_nonaccrual": 0.05, "defi_tvl": 0.04,
-        "stablecoin": 0.04, "btc": 0.05, "fed_rate": 0.05,
+        "bdc_nav": 0.06, "bdc_nonaccrual": 0.03, "defi_tvl": 0.02,
+        "stablecoin": 0.02, "btc": 0.05, "fed_rate": 0.05,
         "dxy": 0.05, "spy": 0.06,
         # -- SENTIMENT (0.16 total) --
-        "x_sentiment": 0.08,   # social narrative (raw); also flows via alpha
-        "news": 0.04,          # black-swan news scanner
-        "fear_greed": 0.04,    # alternative.me crypto fear & greed
+        "x_sentiment": 0.08,
+        "news": 0.04,
+        "fear_greed": 0.04,
         # -- ALPHA INTELLIGENCE (0.08) --
-        "alpha": 0.08,         # council + doctrine combined signal
+        "alpha": 0.08,
+        # -- QUANT FLOW (0.07 total — breadth + cot + etf) --
+        "breadth": 0.03,
+        "cot_extreme": 0.02,
+        "etf_flow": 0.02,
     }
 
     composite = sum(scores[k] * weights[k] for k in scores)

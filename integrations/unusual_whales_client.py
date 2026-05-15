@@ -41,6 +41,41 @@ class OptionsFlow:
     timestamp: datetime
 
 
+def _parse_occ_symbol(symbol: str) -> Dict[str, Any]:
+    """Parse an OCC option symbol like ``AAPL241115C00150000``.
+
+    UW endpoints (e.g. ``/option-trades/flow-alerts``,
+    ``/stock/{t}/option-contracts``) often only return the encoded chain string
+    rather than separate ``strike``/``type``/``expiry`` fields. This helper
+    decodes them so the rest of the code does not silently see $0 strikes.
+
+    Returns dict with keys: ticker, expiry (YYYY-MM-DD), option_type, strike.
+    Returns empty dict if the symbol is not parseable.
+    """
+    if not symbol or not isinstance(symbol, str):
+        return {}
+    s = symbol.strip().upper()
+    # OCC: ROOT (1-6) + YYMMDD (6) + C/P (1) + STRIKE*1000 (8) → tail length 15
+    if len(s) < 16 or len(s) > 21:
+        return {}
+    tail = s[-15:]
+    root = s[:-15]
+    if not root or not tail[:6].isdigit() or tail[6] not in ("C", "P") or not tail[7:].isdigit():
+        return {}
+    yy, mm, dd = tail[0:2], tail[2:4], tail[4:6]
+    cp = tail[6]
+    try:
+        strike = int(tail[7:]) / 1000.0
+    except ValueError:
+        return {}
+    return {
+        "ticker": root,
+        "expiry": f"20{yy}-{mm}-{dd}",
+        "option_type": "call" if cp == "C" else "put",
+        "strike": strike,
+    }
+
+
 @dataclass
 class DarkPoolTrade:
     """Parsed dark pool trade"""
@@ -121,19 +156,62 @@ class UnusualWhalesClient(APIClient):
         data_list = response.data if isinstance(response.data, list) else response.data.get('data', [])
 
         for item in data_list[:limit]:
-            premium = float(item.get('total_premium', item.get('premium', 0)) or 0)
+            premium = float(
+                item.get('total_premium')
+                or item.get('premium')
+                or item.get('total_ask_side_prem')
+                or 0
+            )
             if premium < min_premium:
                 continue
 
+            # Field aliases vary by endpoint; OCC chain symbol is the source of
+            # truth when present. Fall back to whatever top-level fields the
+            # endpoint did include.
+            occ = _parse_occ_symbol(
+                item.get('option_chain')
+                or item.get('option_symbol')
+                or item.get('chain')
+                or ''
+            )
+
+            ticker_field = (
+                item.get('ticker')
+                or item.get('underlying_symbol')
+                or item.get('underlying_ticker')
+                or occ.get('ticker', '')
+            )
+            strike_field = (
+                item.get('strike')
+                or item.get('strike_price')
+                or occ.get('strike', 0)
+            )
+            expiry_field = (
+                item.get('expiry')
+                or item.get('expires_date')
+                or item.get('expiration_date')
+                or item.get('expiration')
+                or occ.get('expiry', '')
+            )
+            type_field = (
+                item.get('type')
+                or item.get('put_call')
+                or item.get('option_type')
+                or item.get('side')
+                or occ.get('option_type', '')
+            )
+
             results.append(OptionsFlow(
-                ticker=item.get('ticker', item.get('underlying_symbol', '')),
-                strike=float(item.get('strike', item.get('strike_price', 0)) or 0),
-                expiry=item.get('expiry', item.get('expires_date', item.get('expiration_date', ''))),
-                option_type=item.get('type', item.get('put_call', item.get('option_type', ''))).lower(),
+                ticker=str(ticker_field),
+                strike=float(strike_field or 0),
+                expiry=str(expiry_field),
+                option_type=str(type_field).lower(),
                 sentiment=item.get('sentiment', 'neutral'),
                 premium=premium,
-                volume=int(item.get('total_size', item.get('volume', 0)) or 0),
-                open_interest=int(item.get('open_interest', 0) or 0),
+                volume=int(
+                    float(item.get('total_size') or item.get('volume') or item.get('size') or 0)
+                ),
+                open_interest=int(float(item.get('open_interest') or 0)),
                 timestamp=datetime.now(),
             ))
 
