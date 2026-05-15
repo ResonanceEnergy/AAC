@@ -140,9 +140,13 @@ def _derive_health_status(health: dict[str, Any]) -> tuple[str, int, int]:
     subs = health.get("subsystems") or {}
     if not isinstance(subs, dict) or not subs:
         return "unknown", 0, 0
-    bad = {"unavailable", "no_key", "error"}
+    bad = {"unavailable", "no_key", "error", "down"}
     total = len(subs)
-    ok = sum(1 for v in subs.values() if str(v).split(" ")[0] not in bad)
+    def _state(v: Any) -> str:
+        if isinstance(v, dict):
+            return str(v.get("status", "")).lower()
+        return str(v).split(" ")[0].lower()
+    ok = sum(1 for v in subs.values() if _state(v) not in bad and _state(v) != "")
     if ok == total:
         return "healthy", ok, total
     if ok >= total * 0.6:
@@ -155,6 +159,13 @@ def _flatten_positions(portfolio: dict[str, Any]) -> list[dict[str, Any]]:
     for acct in portfolio.get("accounts") or []:
         name = acct.get("name", "?")
         for pos in acct.get("positions") or []:
+            qty = pos.get("qty", pos.get("quantity", 0)) or 0
+            avg_cost = pos.get("avg_cost", pos.get("avg_price", 0)) or 0
+            mkt_price = pos.get("market_price", pos.get("last", 0)) or 0
+            mkt_value = pos.get("market_value")
+            if mkt_value in (None, 0) and qty and mkt_price:
+                mult = 100 if (pos.get("type") or "").lower() in {"call", "put", "option"} else 1
+                mkt_value = qty * mkt_price * mult
             rows.append(
                 {
                     "account": name,
@@ -162,11 +173,20 @@ def _flatten_positions(portfolio: dict[str, Any]) -> list[dict[str, Any]]:
                     "type": pos.get("type", "?"),
                     "strike": pos.get("strike"),
                     "expiry": pos.get("expiry", ""),
-                    "qty": pos.get("qty", 0),
-                    "avg_cost": pos.get("avg_cost", 0),
-                    "market_price": pos.get("market_price", 0),
-                    "market_value": pos.get("market_value", 0),
+                    "dte": pos.get("dte"),
+                    "qty": qty,
+                    "quantity": qty,  # alias for v2 dashboard
+                    "avg_cost": avg_cost,
+                    "avg_price": avg_cost,  # alias
+                    "market_price": mkt_price,
+                    "market_value": mkt_value or 0,
                     "unrealized_pnl": pos.get("unrealized_pnl", 0),
+                    "delta": pos.get("delta"),
+                    "gamma": pos.get("gamma"),
+                    "theta": pos.get("theta"),
+                    "vega": pos.get("vega"),
+                    "iv": pos.get("iv", pos.get("implied_volatility")),
+                    "currency": pos.get("currency", acct.get("currency", "")),
                 }
             )
     return rows
@@ -175,6 +195,11 @@ def _flatten_positions(portfolio: dict[str, Any]) -> list[dict[str, Any]]:
 def _accounts_summary(portfolio: dict[str, Any]) -> list[dict[str, Any]]:
     rows = []
     for acct in portfolio.get("accounts") or []:
+        # collect_portfolio now propagates cash/buying_power; expose under both
+        # legacy and v2 naming so any consumer can read it.
+        equity = acct.get("value_usd", acct.get("total_assets", 0))
+        cash = acct.get("cash_usd", acct.get("cash_native", 0))
+        bp = acct.get("buying_power_usd", acct.get("buying_power_native", 0))
         rows.append(
             {
                 "account": acct.get("name", "?"),
@@ -182,6 +207,10 @@ def _accounts_summary(portfolio: dict[str, Any]) -> list[dict[str, Any]]:
                 "currency": acct.get("currency", ""),
                 "total_assets": acct.get("total_assets", 0),
                 "value_usd": acct.get("value_usd", 0),
+                "equity": equity,
+                "cash": cash,
+                "buying_power": bp,
+                "realized_pnl": acct.get("realized_pnl_usd", acct.get("realized_pnl", 0)),
                 "positions": acct.get("position_count", 0),
                 "unrealized_pnl": acct.get("unrealized_pnl", 0),
                 "verified": acct.get("verified", ""),

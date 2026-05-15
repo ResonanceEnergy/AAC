@@ -104,6 +104,7 @@ MODES = [
     "all",
     "api",
     "dashboard",
+    "dashboard2",
     "deploy",
     "healthmon",
     "lde",
@@ -147,6 +148,7 @@ MODE_DESCRIPTIONS = {
     "all": "Full startup: preflight -> gateways -> matrix monitor -> paper engine",
     "api": "Start FastAPI/uvicorn API server",
     "dashboard": "AAC Streamlit dashboard (web UI on :8501)",
+    "dashboard2": "AAC Dashboard v2 — redesigned (sidebar nav, dark theme, port 8502)",
     "deploy": "Run production deployment with config validation",
     "healthmon": "Terminal health monitor loop (no web UI)",
     "matrix": "Matrix Monitor dashboard (--display terminal|web|dash)",
@@ -311,6 +313,20 @@ def _mode_dashboard(port: int = 8501) -> int:
     from startup.matrix_monitor import launch_web
 
     return launch_web(port=port)
+
+
+def _mode_dashboard2(port: int = 8502) -> int:
+    """Launch the redesigned v2 dashboard (sidebar nav, dark theme)."""
+    import subprocess
+
+    logger.info(str(_cyan(f"  Starting AAC Dashboard v2 on :{port} ...")))
+    target = PROJECT_ROOT / "monitoring" / "dashboard_v2.py"
+    cmd = [
+        sys.executable, "-m", "streamlit", "run", str(target),
+        "--server.port", str(port),
+        "--server.headless", "true",
+    ]
+    return subprocess.call(cmd)
 
 
 def _mode_healthmon() -> int:
@@ -910,6 +926,7 @@ MODE_DISPATCH = {
     "all": _mode_all,
     "api": _mode_api,
     "dashboard": _mode_dashboard,
+    "dashboard2": _mode_dashboard2,
     "deploy": _mode_deploy,
     "healthmon": _mode_healthmon,
     "lde": _mode_lde,

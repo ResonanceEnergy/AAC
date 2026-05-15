@@ -128,13 +128,29 @@ def collect_portfolio() -> dict:
 
     accounts = []
     total_usd = 0.0
+    total_cash_usd = 0.0
+    total_buying_power_usd = 0.0
+    total_realized_usd = 0.0
     total_positions = 0
     total_unrealized = 0.0
 
     for key, acct in accounts_raw.items():
         currency = acct.get("currency", "USD")
         total_assets = float(acct.get("total_assets", 0) or 0)
-        value_usd = total_assets if currency == "USD" else total_assets * cad_usd
+        # Cash field varies by broker: IBKR=total_cash, moomoo=available_funds, others=balance
+        cash_native = float(
+            acct.get("total_cash")
+            or acct.get("available_funds")
+            or acct.get("balance")
+            or 0
+        )
+        bp_native = float(acct.get("buying_power", 0) or 0)
+        realized_native = float(acct.get("realized_pnl", 0) or 0)
+        rate = 1.0 if currency == "USD" else cad_usd
+        value_usd = total_assets * rate
+        cash_usd = cash_native * rate
+        bp_usd = bp_native * rate
+        realized_usd = realized_native * rate
 
         # Calculate data age
         verified = acct.get("verified", "")
@@ -186,12 +202,21 @@ def collect_portfolio() -> dict:
         total_positions += len(positions)
         total_unrealized += acct_unrealized
         total_usd += value_usd
+        total_cash_usd += cash_usd
+        total_buying_power_usd += bp_usd
+        total_realized_usd += realized_usd
         accounts.append({
             "name": key,
             "platform": acct.get("platform", key),
             "currency": currency,
             "total_assets": total_assets,
             "value_usd": round(value_usd, 2),
+            "cash_native": round(cash_native, 2),
+            "cash_usd": round(cash_usd, 2),
+            "buying_power_native": round(bp_native, 2),
+            "buying_power_usd": round(bp_usd, 2),
+            "realized_pnl": round(realized_native, 2),
+            "realized_pnl_usd": round(realized_usd, 2),
             "position_count": len(positions),
             "unrealized_pnl": round(acct_unrealized, 2),
             "positions": positions,
@@ -201,6 +226,9 @@ def collect_portfolio() -> dict:
 
     result = {
         "total_usd": round(total_usd, 2),
+        "total_cash_usd": round(total_cash_usd, 2),
+        "total_buying_power_usd": round(total_buying_power_usd, 2),
+        "total_realized_pnl_usd": round(total_realized_usd, 2),
         "total_positions": total_positions,
         "total_unrealized_pnl": round(total_unrealized, 2),
         "fx_cad_usd": cad_usd,
@@ -506,56 +534,112 @@ def collect_moon() -> dict:
 
 
 def collect_health() -> dict:
-    """System health — subsystem status."""
+    """System health — rich per-subsystem status.
+
+    Each subsystem entry: {status, kind, key_present, note, latency_ms,
+    last_success, last_error}. ``status`` ∈ {ok, degraded, down, unknown}.
+    Reads API keys via shared.config_loader.get_env so the ``KEY_FILE`` pattern
+    (e.g. UNUSUAL_WHALES_API_KEY_FILE -> secrets/...) is honoured.
+    """
     cached = _get_cached("health")
     if cached is not None:
         return cached
 
-    checks: dict[str, str] = {}
-
-    # IBKR
     try:
-        from TradingExecution.exchange_connectors.ibkr_connector import IBKRConnector
-        checks["ibkr"] = "configured"
-    except Exception:
-        checks["ibkr"] = "unavailable"
+        from shared.config_loader import get_env
+    except Exception:  # noqa: BLE001
+        def get_env(key: str, default: str = "") -> str:  # type: ignore[misc]
+            return os.environ.get(key, default)
 
-    # Moomoo
-    try:
-        from TradingExecution.exchange_connectors.moomoo_connector import MoomooConnector
-        checks["moomoo"] = "configured"
-    except Exception:
-        checks["moomoo"] = "unavailable"
+    now_iso = datetime.datetime.now().isoformat(timespec="seconds")
+    subs: dict[str, dict[str, object]] = {}
 
-    # CoinGecko
-    try:
-        from integrations.fear_greed_client import FearGreedClient
-        checks["coingecko"] = "available"
-    except Exception:
-        checks["coingecko"] = "unavailable"
+    def _import_check(name: str, kind: str, dotted: str, note: str) -> None:
+        t0 = time.perf_counter()
+        try:
+            __import__(dotted)
+            ok = True
+            err = ""
+        except Exception as exc:  # noqa: BLE001
+            ok = False
+            err = str(exc)[:160]
+        subs[name] = {
+            "status": "ok" if ok else "down",
+            "kind": kind,
+            "key_present": True,
+            "note": note if ok else "import failed",
+            "latency_ms": int((time.perf_counter() - t0) * 1000),
+            "last_success": now_iso if ok else "",
+            "last_error": err,
+        }
 
-    # Unusual Whales
-    uw_key = os.environ.get("UNUSUAL_WHALES_API_KEY", "")
-    checks["unusual_whales"] = "configured" if uw_key else "no_key"
+    def _key_check(name: str, kind: str, env_key: str, note: str = "") -> None:
+        val = get_env(env_key)
+        present = bool(val)
+        subs[name] = {
+            "status": "ok" if present else "down",
+            "kind": kind,
+            "key_present": present,
+            "note": note or (f"{env_key} configured" if present else f"{env_key} missing"),
+            "latency_ms": 0,
+            "last_success": now_iso if present else "",
+            "last_error": "" if present else "no_key",
+        }
 
-    # FRED
-    fred_key = os.environ.get("FRED_API_KEY", "")
-    checks["fred"] = "configured" if fred_key else "no_key"
+    # Brokers (import-based, no live ping)
+    _import_check("ibkr", "broker", "TradingExecution.exchange_connectors.ibkr_connector",
+                  "IBKRConnector importable")
+    _import_check("moomoo", "broker", "TradingExecution.exchange_connectors.moomoo_connector",
+                  "MoomooConnector importable")
+    _import_check("ndax", "broker", "TradingExecution.exchange_connectors.ndax_connector",
+                  "NDAX (ccxt) importable")
+    _import_check("wealthsimple", "broker", "integrations.snaptrade_client",
+                  "SnapTrade client importable")
 
-    # Finnhub
-    fh_key = os.environ.get("FINNHUB_API_KEY", "")
-    checks["finnhub"] = "configured" if fh_key else "no_key"
+    # Market-data APIs (key-based)
+    _key_check("unusual_whales", "market_data", "UNUSUAL_WHALES_API_KEY")
+    _key_check("fred",           "macro",       "FRED_API_KEY")
+    _key_check("finnhub",        "market_data", "FINNHUB_API_KEY")
+    _key_check("polygon",        "market_data", "POLYGON_API_KEY")
+    _key_check("tradier",        "market_data", "TRADIER_API_KEY")
+    _key_check("newsapi",        "news",        "NEWSAPI_KEY")
+    _key_check("coingecko",      "crypto",      "COINGECKO_API_KEY",
+               note="free tier ok if missing")
+    _key_check("x_twitter",      "social",      "X_BEARER_TOKEN")
+    _key_check("openai",         "llm",         "OPENAI_API_KEY")
+    _key_check("anthropic",      "llm",         "ANTHROPIC_API_KEY")
+    _key_check("xai",            "llm",         "XAI_API_KEY")
 
     # Doctrine packs
+    t0 = time.perf_counter()
     try:
         from aac.doctrine.pack_registry import DOCTRINE_PACKS
-        checks["doctrine_packs"] = f"{len(DOCTRINE_PACKS)} loaded"
-    except Exception:
-        checks["doctrine_packs"] = "unavailable"
+        subs["doctrine_packs"] = {
+            "status": "ok",
+            "kind": "internal",
+            "key_present": True,
+            "note": f"{len(DOCTRINE_PACKS)} packs loaded",
+            "latency_ms": int((time.perf_counter() - t0) * 1000),
+            "last_success": now_iso,
+            "last_error": "",
+        }
+    except Exception as exc:  # noqa: BLE001
+        subs["doctrine_packs"] = {
+            "status": "down", "kind": "internal", "key_present": True,
+            "note": "failed to load", "latency_ms": 0,
+            "last_success": "", "last_error": str(exc)[:160],
+        }
+
+    ok_count = sum(1 for v in subs.values() if v.get("status") == "ok")
+    total = len(subs)
+    overall = "healthy" if ok_count == total else ("degraded" if ok_count >= total * 0.6 else "down")
 
     result = {
-        "subsystems": checks,
-        "ts": datetime.datetime.now().isoformat(),
+        "subsystems": subs,
+        "ok_count": ok_count,
+        "total": total,
+        "overall": overall,
+        "ts": now_iso,
     }
     _set_cached("health", result)
     return result
@@ -719,6 +803,37 @@ def collect_unusual_whales() -> dict:
             result = loop.run_until_complete(_fetch())
         finally:
             loop.close()
+
+    # Merge snapshot-service fields so dashboard_pillars.collect_index_flow()
+    # (which expects keys like market_tone, put_call_ratio, top_flow_tickers,
+    # market_tide_net_call_premium, dark_pool_notional, gex_walls, etc.) can
+    # consume the same payload without a second HTTP round-trip. Snapshot
+    # fields are added alongside the existing flow_summary/hottest_chains/
+    # congress_trades/dark_pool_spy keys to avoid breaking other consumers.
+    try:
+        from integrations.unusual_whales_service import get_unusual_whales_snapshot_service
+        svc = get_unusual_whales_snapshot_service()
+        try:
+            snap = asyncio.run(svc.get_snapshot())
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            try:
+                snap = loop.run_until_complete(svc.get_snapshot())
+            finally:
+                loop.close()
+        if isinstance(snap, dict):
+            for key in (
+                "market_tone", "put_call_ratio", "options_flow_signal_count",
+                "total_options_premium", "dark_pool_trade_count",
+                "dark_pool_notional", "congress_trade_count",
+                "top_flow_tickers", "market_tide_latest",
+                "market_tide_net_call_premium", "market_tide_net_put_premium",
+                "iv_ranks", "gex_walls",
+            ):
+                if key in snap and key not in result:
+                    result[key] = snap[key]
+    except Exception as exc:  # pragma: no cover - best-effort merge
+        result["snapshot_merge_error"] = str(exc)
 
     _set_cached("unusual_whales", result)
     return result
@@ -1052,6 +1167,28 @@ def collect_pnl() -> dict:
         daily = db.get_daily_pnl(days=14)
         db.close()
 
+        daily_rows = [
+            {
+                "date": d.get("date", ""),
+                "realized_pnl": float(d.get("realized_pnl", 0) or 0),
+                "trades_count": d.get("trades_count", 0),
+                "win_count": d.get("win_count", 0),
+                "loss_count": d.get("loss_count", 0),
+            }
+            for d in (daily or [])
+        ]
+        # Roll up today / week / mtd / ytd from daily history
+        today_iso = datetime.date.today().isoformat()
+        month_prefix = today_iso[:7]
+        year_prefix = today_iso[:4]
+        today_realized = sum(d["realized_pnl"] for d in daily_rows if d["date"] == today_iso)
+        week_cutoff = (datetime.date.today() - datetime.timedelta(days=7)).isoformat()
+        week_realized = sum(d["realized_pnl"] for d in daily_rows if d["date"] >= week_cutoff)
+        mtd_realized = sum(d["realized_pnl"] for d in daily_rows if d["date"].startswith(month_prefix))
+        ytd_realized = float(summary.get("total_realized_pnl", 0) or 0)
+        if not ytd_realized:
+            ytd_realized = sum(d["realized_pnl"] for d in daily_rows if d["date"].startswith(year_prefix))
+
         result = {
             "summary": {
                 "total_realized_pnl": summary.get("total_realized_pnl", 0),
@@ -1063,20 +1200,20 @@ def collect_pnl() -> dict:
                 "best_trade": summary.get("best_trade", 0),
                 "worst_trade": summary.get("worst_trade", 0),
             },
-            "daily": [
-                {
-                    "date": d.get("date", ""),
-                    "realized_pnl": d.get("realized_pnl", 0),
-                    "trades_count": d.get("trades_count", 0),
-                    "win_count": d.get("win_count", 0),
-                    "loss_count": d.get("loss_count", 0),
-                }
-                for d in (daily or [])
-            ],
+            "daily": daily_rows,
+            "today_realized": round(today_realized, 2),
+            "week_realized": round(week_realized, 2),
+            "mtd_realized": round(mtd_realized, 2),
+            "ytd_realized": round(ytd_realized, 2),
         }
     except Exception:
         _log.exception("pnl_collector_error")
-        result = {"summary": {}, "daily": [], "error": "P&L data unavailable"}
+        result = {
+            "summary": {}, "daily": [],
+            "today_realized": None, "week_realized": None,
+            "mtd_realized": None, "ytd_realized": None,
+            "error": "P&L data unavailable",
+        }
 
     _set_cached("pnl", result)
     return result
