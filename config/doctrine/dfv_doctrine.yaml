@@ -104,6 +104,7 @@ cadence:
   pre_market: "07:30"
   open_bell_prep: "09:25"
   midday: "12:00"
+  retail_pulse: "13:30"
   eod_prep: "15:45"
   close_debrief: "17:00"
   asia_watch: "22:00"
@@ -117,8 +118,12 @@ cadence:
 data_sources:
   fundamentals: ["yfinance"]
   options_flow: ["unusual_whales", "yfinance"]
-  news: ["newsapi"]
+  news: ["google_cse", "yfinance"]
   technicals: ["yfinance"]
+  macro: ["yfinance"]
+  crypto: ["yfinance"]
+  retail_sentiment: ["google_trends", "youtube"]
+  llm_review: ["xai_grok", "google_gemini"]
   portfolio: ["ibkr", "moomoo"]
   aggregate: ["mission_control.collect_payload"]
 

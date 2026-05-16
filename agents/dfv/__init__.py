@@ -10,7 +10,7 @@ Public surface:
 """
 
 from agents.dfv.decision_engine import DFV, decide
-from agents.dfv.routines import brief, midday, eod, weekend_dd
+from agents.dfv.routines import brief, midday, eod, weekend_dd, retail_pulse
 from agents.dfv import daemon  # noqa: F401  re-export module
 
-__all__ = ["DFV", "decide", "brief", "midday", "eod", "weekend_dd", "daemon"]
+__all__ = ["DFV", "decide", "brief", "midday", "eod", "weekend_dd", "retail_pulse", "daemon"]

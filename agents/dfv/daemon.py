@@ -33,6 +33,7 @@ from agents.dfv.routines import (
     eod,
     midday,
     open_bell_prep,
+    retail_pulse,
     weekend_dd,
 )
 
@@ -114,6 +115,7 @@ ROUTINES: dict[str, Callable[[], dict]] = {
     "pre_market":     brief,
     "open_bell_prep": open_bell_prep,
     "midday":         midday,
+    "retail_pulse":   retail_pulse,
     "eod_prep":       eod,
     "close_debrief":  close_debrief,
     "asia_watch":     asia_watch,

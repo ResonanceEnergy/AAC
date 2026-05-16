@@ -358,6 +358,26 @@ def asia_digest() -> dict[str, Any]:
     vix = (macro.get("series") or {}).get("VIXCLS")
     vix_str = f"VIX {vix:.2f}" if isinstance(vix, (int, float)) else "VIX n/a"
 
+    # Headlines via Google Custom Search (curated finance domains)
+    headlines: list[dict[str, Any]] = []
+    try:
+        from integrations.google_clients import CustomSearchClient
+        cse = CustomSearchClient()
+        if cse.configured:
+            for query in ("market open", "Federal Reserve", "earnings"):
+                headlines.extend(cse.news(query, num=5, hours=24))
+            # de-dupe by url, cap at 15
+            seen: set[str] = set()
+            deduped: list[dict[str, Any]] = []
+            for h in headlines:
+                u = h.get("url", "")
+                if u and u not in seen:
+                    seen.add(u)
+                    deduped.append(h)
+            headlines = deduped[:15]
+    except ImportError:
+        pass
+
     report = {
         "type": "asia_digest",
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
@@ -371,15 +391,97 @@ def asia_digest() -> dict[str, Any]:
         "asia_adr_universe": list(dfv_data.ASIA_ADRS),
         "macro": macro,
         "crypto": crypto,
+        "headlines": headlines,
         "headline": (
             f"Asia open. Regime {regime}. {len(held)} held names. "
-            f"{len(overnight_alerts)} alert(s). {vix_str} · {btc_str}."
+            f"{len(overnight_alerts)} alert(s). {vix_str} · {btc_str}. "
+            f"{len(headlines)} news item(s)."
         ),
-        "note": "Macro/crypto via yfinance fallback (FRED/CoinGecko keys absent).",
+        "note": "Macro/crypto via yfinance fallback; news via Google CSE when configured.",
     }
     _save_brief("asia_digest", report)
     _log.info("dfv.asia_digest", held=len(held), alerts=len(overnight_alerts),
-              vix=vix, btc_chg=btc_chg)
+              vix=vix, btc_chg=btc_chg, headlines=len(headlines))
+    return report
+
+
+# Macro / sentiment keywords for the retail-pulse routine. Classic
+# DFV thesis: when retail Googles "stock market crash" and "recession",
+# we are closer to a bottom than the financial press admits.
+_RETAIL_MACRO_KEYWORDS: tuple[str, ...] = (
+    "stock market crash",
+    "recession",
+    "buy the dip",
+    "VIX",
+    "bear market",
+)
+
+
+def retail_pulse() -> dict[str, Any]:
+    """Google Trends + YouTube snapshot of retail interest in held names + macro.
+
+    Runs cheaply (pytrends needs no key, YouTube optional). Output feeds
+    DFV's contrarian compass — retail euphoria → trim, retail panic → buy.
+    """
+    held = _held_symbols()
+    keywords = list(_RETAIL_MACRO_KEYWORDS) + held[:5]  # cap to keep pytrends quotas tame
+
+    trends_data: dict[str, Any] = {"ok": False, "values": {}}
+    trending: list[str] = []
+    try:
+        from integrations.google_clients import GoogleTrendsClient
+        gt = GoogleTrendsClient()
+        trends_data = gt.retail_interest(keywords)
+        trending = gt.trending_searches()
+    except Exception as exc:  # noqa: BLE001 — pytrends + import errors
+        _log.warning("dfv.retail_pulse.trends_failed", error=str(exc))
+
+    youtube_hits: dict[str, list[dict[str, Any]]] = {}
+    try:
+        from integrations.google_clients import YouTubeClient
+        yt = YouTubeClient()
+        if yt.configured:
+            for sym in held[:3]:  # quota: 3 searches × 100 units = 300/day
+                youtube_hits[sym] = yt.search(
+                    f"{sym} earnings call OR analyst", max_results=5, days=14)
+    except Exception as exc:  # noqa: BLE001
+        _log.warning("dfv.retail_pulse.youtube_failed", error=str(exc))
+
+    # Contrarian compass: panic-keyword level vs. ticker-keyword level
+    panic = [trends_data.get("values", {}).get(k) for k in
+             ("stock market crash", "recession", "bear market")]
+    panic_avg = (sum(p for p in panic if isinstance(p, (int, float))) /
+                 max(1, sum(1 for p in panic if isinstance(p, (int, float))))) \
+                 if any(isinstance(p, (int, float)) for p in panic) else None
+
+    if isinstance(panic_avg, (int, float)):
+        if panic_avg >= 70:
+            sentiment = "extreme_fear"
+        elif panic_avg >= 40:
+            sentiment = "fear"
+        elif panic_avg <= 15:
+            sentiment = "complacent"
+        else:
+            sentiment = "neutral"
+    else:
+        sentiment = "unknown"
+
+    report = {
+        "type": "retail_pulse",
+        "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "trends": trends_data,
+        "trending_searches_us": trending[:10],
+        "youtube_per_symbol": youtube_hits,
+        "panic_index": panic_avg,
+        "sentiment": sentiment,
+        "headline": (f"Retail pulse: panic={panic_avg:.0f}/100 ({sentiment}). "
+                     f"Tracked {len(keywords)} keywords, {len(youtube_hits)} symbol(s) on YT.")
+                     if isinstance(panic_avg, (int, float))
+                     else f"Retail pulse: keywords={len(keywords)}, YT symbols={len(youtube_hits)}.",
+    }
+    _save_brief("retail_pulse", report)
+    _log.info("dfv.retail_pulse", panic=panic_avg, sentiment=sentiment,
+              kw=len(keywords), yt_syms=len(youtube_hits))
     return report
 
 
