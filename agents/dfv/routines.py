@@ -45,6 +45,35 @@ def _safe_collect_payload() -> dict[str, Any]:
         return {}
 
 
+def _gemini_headline(kind: str, report: dict[str, Any]) -> str | None:
+    """One-paragraph AI summary of a brief. Returns None if Gemini not configured."""
+    try:
+        from integrations.google_clients import GeminiClient  # noqa: PLC0415
+    except ImportError:
+        return None
+    gem = GeminiClient()
+    if not gem.configured:
+        return None
+    import json as _json
+    snippet = _json.dumps(report, default=str)[:6000]
+    prompt = (
+        f"DFV {kind} report below. In 3 short lines:\n"
+        f"  1) headline (one sentence)\n"
+        f"  2) biggest risk right now\n"
+        f"  3) next action (autonomous or needs human OK)\n\n"
+        f"REPORT:\n{snippet}"
+    )
+    system = (
+        "You are DFV (Roaring Kitty). Be terse, factual, no fluff. "
+        "Numbers > adjectives. Surface only what changed or matters today."
+    )
+    r = gem.ask(prompt, system=system, temperature=0.2)
+    if not r.get("ok"):
+        _log.warning("dfv.gemini_headline_failed", kind=kind, error=r.get("error"))
+        return None
+    return (r.get("text") or "").strip() or None
+
+
 def brief() -> dict[str, Any]:
     """Pre-market / on-demand brief. The first thing DFV produces every morning."""
     dfv = DFV()
@@ -96,6 +125,7 @@ def brief() -> dict[str, Any]:
         },
         "headline": _headline(missing_theses, stale_theses, war_room, invalidation_breaches),
     }
+    report["ai_headline"] = _gemini_headline("brief", report)
     path = _save_brief("brief", report)
     report["saved_to"] = str(path.relative_to(REPO_ROOT))
     _log.info("dfv.brief", missing=len(missing_theses), stale=len(stale_theses))
@@ -112,6 +142,7 @@ def midday() -> dict[str, Any]:
         "alerts": payload.get("alerts", []),
         "note": "Drift check, flow check on held names. No trades — observe.",
     }
+    report["ai_headline"] = _gemini_headline("midday", report)
     _save_brief("midday", report)
     return report
 
@@ -141,6 +172,7 @@ def eod() -> dict[str, Any]:
         "conviction_nudges": nudges,
         "note": "Theses for closed names auto-postmortemed; conviction nudged where loss > $0.",
     }
+    report["ai_headline"] = _gemini_headline("eod", report)
     _save_brief("eod", report)
     _log.info("dfv.eod", expired=len(expired), losers=len(losers), nudges=len(nudges))
     return report

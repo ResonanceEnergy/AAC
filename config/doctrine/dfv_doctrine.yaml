@@ -127,6 +127,11 @@ data_sources:
   portfolio: ["ibkr", "moomoo"]
   aggregate: ["mission_control.collect_payload"]
 
+# ── Second-opinion (advisory, never overrides gates) ─────────────
+second_opinion:
+  enabled: true
+  model: "gemini-2.5-flash"
+
 # ── Memory paths ─────────────────────────────────────────────────
 memory:
   thesis_log: "agents/dfv/memory/thesis_log.json"

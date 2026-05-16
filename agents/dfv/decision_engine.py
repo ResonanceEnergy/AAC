@@ -48,6 +48,7 @@ class Decision:
     gates: list[GateResult] = field(default_factory=list)
     fixes_required: list[str] = field(default_factory=list)
     notes: list[str] = field(default_factory=list)
+    second_opinion: dict[str, Any] | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -56,6 +57,7 @@ class Decision:
             "gates": [g.__dict__ for g in self.gates],
             "fixes_required": self.fixes_required,
             "notes": self.notes,
+            "second_opinion": self.second_opinion,
         }
 
 
@@ -111,12 +113,14 @@ class DFV:
         results.append(self._gate_liquidity(float(proposal.get("expected_slippage_pct", 0.0))))
 
         decision = self._render_verdict(symbol, proposal, results)
+        decision.second_opinion = self._gemini_second_opinion(symbol, proposal, decision)
         self.decisions.append({"proposal": proposal, "decision": decision.to_dict()})
         _log.info(
             "dfv.decision",
             symbol=symbol,
             verdict=decision.verdict,
             failed=[g.gate_id for g in results if g.outcome == "fail"],
+            second_opinion=(decision.second_opinion or {}).get("verdict"),
         )
         return decision
 
@@ -159,6 +163,9 @@ class DFV:
             )
 
         decision = self._render_verdict(symbol, {"prompt": prompt_text}, gates, base_notes=notes)
+        decision.second_opinion = self._gemini_second_opinion(
+            symbol, {"prompt": prompt_text[:600]}, decision
+        )
         self.decisions.append({"prompt_review": prompt_text[:400], "decision": decision.to_dict()})
         return decision
 
@@ -260,6 +267,60 @@ class DFV:
 
         return Decision(verdict=verdict, summary=summary, gates=gates,
                         fixes_required=fixes, notes=notes)
+
+    # ── Gemini second-opinion ─────────────────────────────────────
+    def _gemini_second_opinion(
+        self,
+        symbol: str,
+        proposal: dict[str, Any],
+        decision: Decision,
+    ) -> dict[str, Any] | None:
+        """Ask Gemini for a sanity-check on the gate verdict.
+
+        No-ops if doctrine.second_opinion.enabled is false or Gemini key missing.
+        Never overrides the gate verdict — purely advisory.
+        """
+        cfg = self.doctrine.get("second_opinion", {}) or {}
+        if not cfg.get("enabled", True):
+            return None
+        try:
+            from integrations.google_clients import GeminiClient
+        except ImportError:
+            return None
+        gem = GeminiClient(model=cfg.get("model", "gemini-2.5-flash"))
+        if not gem.configured:
+            return None
+
+        gate_lines = "\n".join(
+            f"  {g.gate_id} {g.name}: {g.outcome.upper()} ({g.severity}) — {g.note}"
+            for g in decision.gates
+        )
+        prompt = (
+            f"DFV proposal review.\n"
+            f"Symbol: {symbol or '(none)'}\n"
+            f"Proposal: {proposal}\n"
+            f"DFV gate verdict: {decision.verdict} — {decision.summary}\n"
+            f"Gates:\n{gate_lines}\n\n"
+            f"In ≤60 words: do you AGREE, DISAGREE, or CONCERN? "
+            f"Start your answer with one of those three words, then a one-line reason."
+        )
+        system = (
+            "You are a second-opinion reviewer for DFV (Roaring Kitty). "
+            "Be terse. Flag thesis/sizing/invalidation risk. Never bypass hard rules."
+        )
+        result = gem.ask(prompt, system=system, temperature=0.1)
+        if not result.get("ok"):
+            return {"provider": "gemini", "ok": False, "error": result.get("error")}
+        text = (result.get("text") or "").strip()
+        first = text.split()[0].upper().rstrip(".,:") if text else ""
+        verdict = first if first in {"AGREE", "DISAGREE", "CONCERN"} else "UNCLEAR"
+        return {
+            "provider": "gemini",
+            "model": result.get("model"),
+            "ok": True,
+            "verdict": verdict,
+            "text": text[:600],
+        }
 
     # ── Helpers ───────────────────────────────────────────────────
     @staticmethod
