@@ -1277,21 +1277,29 @@ def _page_news(payload: dict[str, Any]) -> None:
 
     st.caption(f"Held tickers: {', '.join(symbols) if symbols else '(none)'}")
 
-    try:
-        from integrations.finnhub_client import FinnhubClient  # type: ignore
-    except ImportError:
-        st.warning("integrations.finnhub_client not importable.")
-        return
-
     if not symbols:
         st.info("No symbols held — News page has nothing to fetch.")
         return
 
+    # Prefer Finnhub when configured; otherwise fall back to yfinance.
+    client = None
+    source_label = "yfinance (free)"
     try:
-        client = FinnhubClient()
-    except Exception as exc:  # noqa: BLE001
-        st.error(f"Finnhub client init failed: {exc}")
-        return
+        from integrations.finnhub_client import FinnhubClient  # type: ignore
+        try:
+            client = FinnhubClient()
+            source_label = "Finnhub"
+        except Exception:  # noqa: BLE001
+            client = None
+    except ImportError:
+        client = None
+
+    try:
+        from agents.dfv.data import yf_news  # type: ignore
+    except ImportError:
+        yf_news = None  # type: ignore
+
+    st.caption(f"Source: {source_label}")
 
     chosen = st.multiselect("Tickers", symbols, default=symbols[:5])
     if not chosen:
@@ -1299,11 +1307,19 @@ def _page_news(payload: dict[str, Any]) -> None:
 
     for sym in chosen:
         ui.section(sym)
-        try:
-            items = client.company_news(sym, days=3) if hasattr(client, "company_news") else []
-        except Exception as exc:  # noqa: BLE001
-            st.caption(f"  {sym}: {exc}")
-            continue
+        items: list[dict[str, Any]] = []
+        if client is not None and hasattr(client, "company_news"):
+            try:
+                items = client.company_news(sym, days=3) or []
+            except Exception as exc:  # noqa: BLE001
+                st.caption(f"  Finnhub failed: {exc} — falling back to yfinance.")
+                items = []
+        if not items and yf_news is not None:
+            try:
+                items = yf_news(sym, limit=10)
+            except Exception as exc:  # noqa: BLE001
+                st.caption(f"  yfinance failed: {exc}")
+                items = []
         if not items:
             st.caption("No recent headlines.")
             continue

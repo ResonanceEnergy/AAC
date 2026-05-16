@@ -345,6 +345,19 @@ def asia_digest() -> dict[str, Any]:
     composite = war_room.get("composite_score")
     regime = (war_room.get("regime") or "").upper() or "?"
 
+    # yfinance fallbacks for macro + crypto (no key required)
+    macro = dfv_data.yf_macro_snapshot()
+    crypto = dfv_data.yf_crypto_snapshot()
+
+    btc_chg = (
+        ((crypto.get("prices") or {}).get("BTC/USD") or {}).get("change_24h_pct")
+        if crypto.get("ok") else None
+    )
+    btc_str = f"BTC 24h {btc_chg:+.2f}%" if isinstance(btc_chg, (int, float)) else "BTC n/a"
+
+    vix = (macro.get("series") or {}).get("VIXCLS")
+    vix_str = f"VIX {vix:.2f}" if isinstance(vix, (int, float)) else "VIX n/a"
+
     report = {
         "type": "asia_digest",
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
@@ -356,14 +369,17 @@ def asia_digest() -> dict[str, Any]:
         },
         "overnight_alerts": overnight_alerts,
         "asia_adr_universe": list(dfv_data.ASIA_ADRS),
+        "macro": macro,
+        "crypto": crypto,
         "headline": (
             f"Asia open. Regime {regime}. {len(held)} held names. "
-            f"{len(overnight_alerts)} overnight alert(s)."
+            f"{len(overnight_alerts)} alert(s). {vix_str} · {btc_str}."
         ),
-        "note": "External quote feeds (CoinGecko/FRED/Finnhub) orphaned 2026-05-15.",
+        "note": "Macro/crypto via yfinance fallback (FRED/CoinGecko keys absent).",
     }
     _save_brief("asia_digest", report)
-    _log.info("dfv.asia_digest", held=len(held), alerts=len(overnight_alerts))
+    _log.info("dfv.asia_digest", held=len(held), alerts=len(overnight_alerts),
+              vix=vix, btc_chg=btc_chg)
     return report
 
 
