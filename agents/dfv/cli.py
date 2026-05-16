@@ -210,7 +210,7 @@ def _cmd_status(_args: argparse.Namespace) -> int:
     print(f"Conviction: {len(dfv.conviction.all())} tiers on file")
     print(f"Watchlist:  {len(dfv.watchlist.all())}")
     stale = dfv.thesis.needs_review(30)
-    print(f"Stale (≥30d): {len(stale)}  {stale[:10]}")
+    print(f"Stale (>=30d): {len(stale)}  {stale[:10]}")
     print(f"Recent decisions: {len(dfv.decisions.tail(100))}")
     print(f"Autonomy: trade_execution = "
           f"{dfv.doctrine.get('autonomy', {}).get('trade_execution')}")
