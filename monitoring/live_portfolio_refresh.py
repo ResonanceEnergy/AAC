@@ -43,6 +43,15 @@ if str(_ROOT) not in sys.path:
 
 _BAL_PATH = _ROOT / "data" / "account_balances.json"
 
+# Ensure .env is loaded so SNAPTRADE_*, NDAX_*, IBKR_*, MOOMOO_* are present
+# when this module is invoked outside the dashboard/launcher (e.g. cron, CLI).
+try:
+    from dotenv import load_dotenv as _load_dotenv
+
+    _load_dotenv(_ROOT / ".env", override=False)
+except ImportError:
+    pass
+
 # Per-process refresh lock — avoid concurrent broker hammering when multiple
 # Streamlit/FastAPI workers race on the same cache miss.
 _REFRESH_LOCK = threading.Lock()
@@ -460,14 +469,26 @@ def _refresh_wealthsimple() -> dict[str, Any]:
             )
             bal_list = getattr(bal_resp, "body", bal_resp) or []
             for b in bal_list:
-                ccy = (getattr(b, "currency", None) or (b.get("currency") if isinstance(b, dict) else "")) or "CAD"
-                if hasattr(ccy, "code"):
-                    ccy = ccy.code
-                ccy = str(ccy)
-                total = float(getattr(b, "total", None) or (b.get("total", 0) if isinstance(b, dict) else 0) or 0)
-                cash = float(getattr(b, "cash", None) or (b.get("cash", 0) if isinstance(b, dict) else 0) or 0)
+                bd = b if isinstance(b, dict) else {}
+                ccy_obj = bd.get("currency") if bd else getattr(b, "currency", None)
+                if isinstance(ccy_obj, dict):
+                    ccy = ccy_obj.get("code") or "CAD"
+                elif hasattr(ccy_obj, "code"):
+                    ccy = ccy_obj.code
+                else:
+                    ccy = str(ccy_obj or "CAD")
+                cash = float(bd.get("cash") if bd else getattr(b, "cash", 0) or 0)
+                buying_power = float(bd.get("buying_power") if bd else getattr(b, "buying_power", 0) or 0)
+                # SnapTrade balance object has no `total` — use cash as the
+                # account-level liquid balance; positions contribute via market_value below.
+                total = cash
                 key = f"{acct_name}_{ccy}"
-                balances_by_acct[key] = {"total": total, "cash": cash, "currency": ccy}
+                balances_by_acct[key] = {
+                    "total": round(total, 2),
+                    "cash": round(cash, 2),
+                    "buying_power": round(buying_power, 2),
+                    "currency": ccy,
+                }
                 total_value += total
         except (RuntimeError, OSError, ValueError) as exc:
             balances_by_acct[f"{acct_name}_ERR"] = {"error": str(exc)}
@@ -479,15 +500,27 @@ def _refresh_wealthsimple() -> dict[str, Any]:
             )
             pos_list = getattr(pos_resp, "body", pos_resp) or []
             for pos in pos_list:
-                sym_obj = getattr(pos, "symbol", None) or (pos.get("symbol") if isinstance(pos, dict) else None)
+                pd = pos if isinstance(pos, dict) else {}
+                sym_obj = pd.get("symbol") if pd else getattr(pos, "symbol", None)
+                # SnapTrade nests UniversalSymbol either directly or one level deep
+                # (BrokerageSymbol → symbol → UniversalSymbol). Walk both shapes.
                 if isinstance(sym_obj, dict):
-                    sym = sym_obj.get("symbol") or sym_obj.get("raw_symbol") or "?"
+                    inner = sym_obj.get("symbol")
+                    if isinstance(inner, dict):
+                        sym = inner.get("symbol") or inner.get("raw_symbol") or "?"
+                    elif isinstance(inner, str):
+                        sym = inner
+                    else:
+                        sym = sym_obj.get("raw_symbol") or "?"
                 else:
                     sym = getattr(sym_obj, "symbol", None) or str(sym_obj or "?")
-                qty = float(getattr(pos, "units", None) or (pos.get("units", 0) if isinstance(pos, dict) else 0) or 0)
-                mv = float(getattr(pos, "market_value", None) or (pos.get("market_value", 0) if isinstance(pos, dict) else 0) or 0)
-                avg = float(getattr(pos, "average_purchase_price", None) or (pos.get("average_purchase_price", 0) if isinstance(pos, dict) else 0) or 0)
-                price = float(getattr(pos, "price", None) or (pos.get("price", 0) if isinstance(pos, dict) else 0) or 0)
+                qty = float(pd.get("units", 0) if pd else getattr(pos, "units", 0) or 0)
+                price = float(pd.get("price", 0) if pd else getattr(pos, "price", 0) or 0)
+                avg = float(pd.get("average_purchase_price", 0) if pd else getattr(pos, "average_purchase_price", 0) or 0)
+                mv = float(pd.get("market_value", 0) if pd else getattr(pos, "market_value", 0) or 0)
+                # SnapTrade often returns market_value=0; recompute from price * qty when so
+                if mv == 0 and price and qty:
+                    mv = price * qty
                 pnl = (price - avg) * qty if avg and price else 0.0
                 in_positions += abs(mv)
                 positions.append({
@@ -504,9 +537,9 @@ def _refresh_wealthsimple() -> dict[str, Any]:
 
     return {
         "status": "ok",
-        "balance": round(total_value - in_positions, 2),
+        "balance": round(total_value, 2),
         "currency": "CAD",
-        "total_assets": round(total_value, 2),
+        "total_assets": round(total_value + in_positions, 2),
         "in_positions": round(in_positions, 2),
         "platform": "WealthSimple",
         "account_id": "snaptrade",

@@ -18,20 +18,20 @@ Usage:
     python _setup_snaptrade.py --status       # Check connection status
     python _setup_snaptrade.py --accounts     # List linked accounts
 """
+from __future__ import annotations
+
 import argparse
 import os
 import sys
 import uuid
 from pathlib import Path
 
-os.chdir(Path(__file__).resolve().parent)
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-
 from dotenv import load_dotenv, set_key
 
-load_dotenv(os.path.join(os.path.dirname(__file__), ".env"), override=True)
-
-ENV_PATH = os.path.join(os.path.dirname(__file__), ".env")
+# Resolve project-root .env (script lives in scripts/, .env lives in repo root)
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+ENV_PATH = str(PROJECT_ROOT / ".env")
+load_dotenv(ENV_PATH, override=True)
 
 
 def _extract_response_body(response):
@@ -225,9 +225,17 @@ def cmd_status(args):
 
         print(f"Brokerage Connections ({len(connections)}):")
         for conn in connections:
-            brokerage = getattr(conn, "brokerage", {})
-            name = brokerage.get("name", "Unknown") if isinstance(brokerage, dict) else str(brokerage)
-            status = getattr(conn, "status", "unknown")
+            if isinstance(conn, dict):
+                brokerage = conn.get("brokerage", {})
+                status = conn.get("disabled", False)
+                status = "disabled" if status else "active"
+            else:
+                brokerage = getattr(conn, "brokerage", {})
+                status = getattr(conn, "status", "unknown")
+            if isinstance(brokerage, dict):
+                name = brokerage.get("name") or brokerage.get("display_name") or "Unknown"
+            else:
+                name = str(brokerage)
             print(f"  - {name}: {status}")
 
     except Exception as e:
@@ -260,34 +268,165 @@ def cmd_accounts(args):
 
         print(f"Linked Accounts ({len(accounts.body)}):")
         for acct in accounts.body:
-            acct_id = getattr(acct, 'id', '?')
-            name = getattr(acct, 'name', str(acct_id))
+            if isinstance(acct, dict):
+                acct_id = acct.get('id', '?')
+                name = acct.get('name') or acct.get('institution_name') or str(acct_id)
+            else:
+                acct_id = getattr(acct, 'id', '?')
+                name = getattr(acct, 'name', None) or getattr(acct, 'institution_name', None) or str(acct_id)
             # Get balance for each account
             try:
                 bal = snap.account_information.get_user_account_balance(
                     user_id=user_id, user_secret=user_secret, account_id=str(acct_id)
                 )
-                for b in (bal.body or []):
-                    currency = getattr(b, 'currency', 'CAD')
-                    total = getattr(b, 'total', 0)
-                    print(f"  {name} [{acct_id}]: {currency} {total:,.2f}")
-            except Exception:
-                print(f"  {name} [{acct_id}]: (could not fetch balance)")
+                items = bal.body if hasattr(bal, 'body') else bal
+                for b in (items or []):
+                    if isinstance(b, dict):
+                        cur = b.get('currency', {})
+                        currency = cur.get('code') if isinstance(cur, dict) else (cur or 'CAD')
+                        cash = b.get('cash', 0) or 0
+                        buying_power = b.get('buying_power', 0) or 0
+                        print(f"  {name} [{acct_id}]: {currency} cash={cash:,.2f} bp={buying_power:,.2f}")
+                    else:
+                        currency = getattr(b, 'currency', 'CAD')
+                        total = getattr(b, 'total', 0) or getattr(b, 'cash', 0) or 0
+                        print(f"  {name} [{acct_id}]: {currency} {total:,.2f}")
+            except Exception as e:
+                print(f"  {name} [{acct_id}]: (balance fetch failed: {e})")
 
     except Exception as e:
         print(f"ERROR: {e}")
 
 
+def cmd_auto(args):
+    """End-to-end automation: register (if needed) → open portal → poll → list accounts → refresh live balances.
+
+    Idempotent. Safe to re-run. The only manual step left is the in-browser
+    Wealthsimple login when the portal page opens.
+    """
+    import time
+    import webbrowser
+
+    snap, _client_id = get_client()
+    user_id, user_secret = _get_user_credentials()
+
+    # Step 1 — register if needed
+    if not user_id or not user_secret:
+        print("[1/4] Registering SnapTrade user...")
+        cmd_register(args)
+        load_dotenv(ENV_PATH, override=True)
+        user_id, user_secret = _get_user_credentials()
+        if not user_id or not user_secret:
+            print("ERROR: registration did not produce SNAPTRADE_USER_ID / SNAPTRADE_USER_SECRET")
+            return
+    else:
+        print(f"[1/4] User already registered: {user_id}")
+
+    # Step 2 — check existing connections; skip portal if Wealthsimple already linked
+    print("[2/4] Checking existing brokerage connections...")
+    has_ws = False
+    try:
+        conns_resp = snap.connections.list_brokerage_authorizations(
+            user_id=user_id, user_secret=user_secret,
+        )
+        conns = _extract_response_body(conns_resp) or []
+        for c in conns:
+            brokerage = c.get("brokerage", {}) if isinstance(c, dict) else getattr(c, "brokerage", {})
+            name = brokerage.get("name", "") if isinstance(brokerage, dict) else str(brokerage)
+            if "wealthsimple" in str(name).lower():
+                has_ws = True
+                print(f"  Wealthsimple already connected ({name})")
+                break
+    except Exception as e:
+        print(f"  Could not list connections (will attempt portal anyway): {e}")
+
+    # Step 3 — generate portal URL, open browser, poll for new connection
+    if not has_ws:
+        print("[3/4] Generating connection portal...")
+        try:
+            login_resp = snap.authentication.login_snap_trade_user(
+                user_id=user_id, user_secret=user_secret,
+            )
+            payload = _extract_response_body(login_resp)
+            redirect_url = None
+            if isinstance(payload, dict):
+                redirect_url = payload.get("redirectURI") or payload.get("redirect_uri")
+            else:
+                redirect_url = getattr(payload, "redirectURI", None) or getattr(payload, "redirect_uri", None)
+            if not redirect_url:
+                print(f"ERROR: no redirect URL in response: {payload}")
+                return
+            print(f"  Opening portal in browser: {redirect_url}")
+            try:
+                webbrowser.open(redirect_url)
+            except Exception:
+                pass
+            print("  >> Log into Wealthsimple in the browser, then return here.")
+            print("  Polling every 5s for up to 5 minutes...")
+
+            deadline = time.time() + 300
+            while time.time() < deadline:
+                time.sleep(5)
+                try:
+                    conns_resp = snap.connections.list_brokerage_authorizations(
+                        user_id=user_id, user_secret=user_secret,
+                    )
+                    conns = _extract_response_body(conns_resp) or []
+                    for c in conns:
+                        brokerage = c.get("brokerage", {}) if isinstance(c, dict) else getattr(c, "brokerage", {})
+                        name = brokerage.get("name", "") if isinstance(brokerage, dict) else str(brokerage)
+                        if "wealthsimple" in str(name).lower():
+                            has_ws = True
+                            print(f"  Wealthsimple connected: {name}")
+                            break
+                    if has_ws:
+                        break
+                    sys.stdout.write("."); sys.stdout.flush()
+                except Exception as e:
+                    print(f"  poll error: {e}")
+            print()
+            if not has_ws:
+                print("  Timeout waiting for Wealthsimple connection. Re-run --auto after completing the portal login.")
+                return
+        except Exception as e:
+            print(f"ERROR: portal generation failed: {e}")
+            return
+    else:
+        print("[3/4] Skipping portal (already connected)")
+
+    # Step 4 — list accounts and trigger live refresh
+    print("[4/4] Fetching accounts + triggering live balance refresh...")
+    cmd_accounts(args)
+
+    try:
+        sys.path.insert(0, str(PROJECT_ROOT))
+        from monitoring.live_portfolio_refresh import refresh_portfolio_live
+        result = refresh_portfolio_live()
+        ws_meta = (result.get("_meta", {}).get("live_refresh", {}) or {}).get("wealthsimple", {})
+        print(f"  refresh_portfolio_live → wealthsimple: {ws_meta.get('status', '?')}")
+        if ws_meta.get("note"):
+            print(f"    note: {ws_meta['note']}")
+    except Exception as e:
+        print(f"  live refresh skipped: {e}")
+
+    print()
+    print("Done. Dashboard should now show Wealthsimple positions/balance.")
+
+
 def main():
     parser = argparse.ArgumentParser(description="SnapTrade Setup for Wealthsimple")
     group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument("--auto", action="store_true",
+                       help="Fully automated: register (if needed) -> open portal -> poll -> refresh live")
     group.add_argument("--register", action="store_true", help="Register SnapTrade user (one-time)")
     group.add_argument("--connect", action="store_true", help="Generate OAuth link for Wealthsimple")
     group.add_argument("--status", action="store_true", help="Check connection status")
     group.add_argument("--accounts", action="store_true", help="List linked accounts")
     args = parser.parse_args()
 
-    if args.register:
+    if args.auto:
+        cmd_auto(args)
+    elif args.register:
         cmd_register(args)
     elif args.connect:
         cmd_connect(args)
