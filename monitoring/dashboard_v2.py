@@ -155,6 +155,26 @@ def _page_overview(payload: dict[str, Any]) -> None:
     # Accounts breakdown
     ui.section("Accounts")
     if accounts:
+        # Staleness chip per row + top-level banner if anything is wrong.
+        stale_accounts: list[str] = []
+        for a in accounts:
+            days = int(a.get("days_stale") or 0)
+            if days >= 14:
+                a["fresh"] = f"🔴 {days}d"
+                stale_accounts.append(f"{a.get('account', '?')} ({days}d)")
+            elif days >= 3:
+                a["fresh"] = f"⚠️ {days}d"
+                stale_accounts.append(f"{a.get('account', '?')} ({days}d)")
+            else:
+                a["fresh"] = f"✅ {days}d"
+
+        if stale_accounts:
+            st.warning(
+                f"⚠️ STALE LIVE DATA — last verified > 3 days ago: "
+                + ", ".join(stale_accounts)
+                + ". Run `python -m monitoring.live_portfolio_refresh` and check `data/account_balances.json::_meta.live_refresh` for credential errors."
+            )
+
         ui.smart_table(
             accounts,
             column_config={
@@ -168,9 +188,11 @@ def _page_overview(payload: dict[str, Any]) -> None:
                 "positions": ui.col_int("Pos"),
                 "currency": ui.col_text("Ccy"),
                 "verified": ui.col_text("Verified"),
+                "fresh": ui.col_text("Fresh"),
             },
             column_order=["account", "platform", "equity", "cash", "buying_power",
-                          "unrealized_pnl", "realized_pnl", "positions", "currency", "verified"],
+                          "unrealized_pnl", "realized_pnl", "positions", "currency",
+                          "verified", "fresh"],
         )
     else:
         st.caption("No account data.")

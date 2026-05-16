@@ -306,6 +306,92 @@ def _refresh_moomoo() -> dict[str, Any]:
     }
 
 
+# ── NDAX (ccxt) ─────────────────────────────────────────────────────────────
+
+
+def _refresh_ndax() -> dict[str, Any]:
+    """Pull NDAX balances + crypto positions via ccxt (read-only fetch_balance).
+
+    Returns status="not_configured" if NDAX_API_KEY/SECRET/USER_ID missing in .env.
+    ccxt 4.x quirk: ndax needs uid+login+password — we use NDAX_USER_ID for login
+    and NDAX_API_SECRET as password.
+    """
+    api_key = os.getenv("NDAX_API_KEY", "")
+    api_secret = os.getenv("NDAX_API_SECRET", "")
+    uid = os.getenv("NDAX_USER_ID", "")
+
+    if not api_key or not api_secret or not uid:
+        return {
+            "status": "not_configured",
+            "error": "NDAX_API_KEY / NDAX_API_SECRET / NDAX_USER_ID missing in .env",
+            "setup_hint": "Set NDAX_API_KEY, NDAX_API_SECRET, NDAX_USER_ID in .env (regenerate keys at ndax.com → API)",
+        }
+
+    try:
+        import ccxt
+    except ImportError as exc:
+        return {"status": "error", "error": f"ccxt not installed: {exc}"}
+
+    try:
+        exchange = ccxt.ndax({
+            "apiKey": api_key,
+            "secret": api_secret,
+            "uid": uid,
+            "login": uid,
+            "password": api_secret,
+            "enableRateLimit": True,
+        })
+        bal = exchange.fetch_balance()
+    except (RuntimeError, OSError, ValueError, KeyError) as exc:
+        return {"status": "error", "error": f"fetch_balance: {exc}"}
+    except Exception as exc:  # noqa: BLE001 — ccxt raises bespoke errors
+        return {"status": "error", "error": f"ndax: {type(exc).__name__}: {exc}"}
+
+    total = bal.get("total", {}) or {}
+    free = bal.get("free", {}) or {}
+
+    cad_cash = float(free.get("CAD", total.get("CAD", 0)) or 0)
+    positions: list[dict[str, Any]] = []
+    mtm_cad = cad_cash
+
+    for asset, amount in total.items():
+        if asset == "CAD":
+            continue
+        qty = float(amount or 0)
+        if qty <= 0:
+            continue
+        price_cad = 0.0
+        try:
+            ticker = exchange.fetch_ticker(f"{asset}/CAD")
+            price_cad = float(ticker.get("last") or ticker.get("close") or 0.0)
+        except Exception:  # noqa: BLE001 — pair may not exist
+            price_cad = 0.0
+        value_cad = qty * price_cad if price_cad > 0 else 0.0
+        mtm_cad += value_cad
+        positions.append({
+            "symbol": asset,
+            "qty": round(qty, 8),
+            "price_cad": round(price_cad, 4),
+            "market_val_cad": round(value_cad, 2),
+        })
+
+    return {
+        "status": "ok",
+        "balance": round(cad_cash, 2),
+        "currency": "CAD",
+        "total_assets": round(mtm_cad, 2),
+        "in_positions": round(mtm_cad - cad_cash, 2),
+        "platform": "NDAX",
+        "account_id": uid,
+        "note": (
+            f"Live NDAX refresh — {len(positions)} crypto position(s), "
+            f"CAD cash {cad_cash:,.2f}, total CAD {mtm_cad:,.2f}"
+        ),
+        "verified": dt.date.today().isoformat(),
+        "positions": positions,
+    }
+
+
 # ── WealthSimple via SnapTrade ──────────────────────────────────────────────
 
 
@@ -489,13 +575,19 @@ def refresh_portfolio_live(write: bool = True) -> dict[str, Any]:
         except Exception as exc:  # noqa: BLE001
             sources["wealthsimple"] = {"status": "error", "error": f"unhandled: {exc}"}
 
+        # NDAX via ccxt (sync)
+        try:
+            sources["ndax"] = _refresh_ndax()
+        except Exception as exc:  # noqa: BLE001
+            sources["ndax"] = {"status": "error", "error": f"unhandled: {exc}"}
+
         wrote = False
         if write:
             existing = _load_existing()
             existing.setdefault("accounts", {})
             existing.setdefault("fx", {"cad_usd": 0.72})
 
-            for key in ("ibkr", "moomoo", "wealthsimple"):
+            for key in ("ibkr", "moomoo", "wealthsimple", "ndax"):
                 src = sources.get(key, {})
                 if src.get("status") == "ok":
                     # Only fields we don't want to clobber on each refresh
