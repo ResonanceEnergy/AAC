@@ -168,3 +168,51 @@ def test_brief_flags_invalidation_breach(monkeypatch: pytest.MonkeyPatch) -> Non
     syms = [b["symbol"] for b in breaches]
     assert "BREACHTST" in syms
     assert "INVALIDATION BREACH" in out["headline"]
+
+
+def test_brief_surfaces_roll_triggers(monkeypatch: pytest.MonkeyPatch) -> None:
+    """brief() must list long-option positions inside their roll_trigger_dte window."""
+    from datetime import datetime, timedelta, timezone
+
+    from agents.dfv import routines as r
+    from agents.dfv.decision_engine import DFV
+
+    dfv = DFV()
+    dfv.thesis.set(
+        "ROLLTST",
+        thesis="dividend hedge",
+        conviction=3,
+        horizon="3m",
+        catalysts=[],
+        invalidation="below $40",
+        target={"raw": "$40P"},
+        sizing={"max_pct_book": 0.01},
+        roll_trigger_dte=21,
+    )
+
+    expiry = (datetime.now(timezone.utc).date() + timedelta(days=10)).isoformat()
+    fake_payload = {
+        "portfolio": {
+            "accounts": {
+                "ibkr": {
+                    "positions": [{
+                        "symbol": "ROLLTST",
+                        "qty": 1,
+                        "expiry": expiry,
+                        "asset_type": "option",
+                        "right": "P",
+                    }],
+                },
+            },
+        },
+        "war_room": {"regime": "RISK_ON", "phase": "test"},
+    }
+    monkeypatch.setattr(r, "_safe_collect_payload", lambda: fake_payload)
+    out = r.brief()
+    triggers = out["discipline"].get("roll_triggers") or []
+    syms = [t["symbol"] for t in triggers]
+    assert "ROLLTST" in syms, triggers
+    rec = next(t for t in triggers if t["symbol"] == "ROLLTST")
+    assert rec["dte"] == 10
+    assert rec["trigger_dte"] == 21
+    assert rec["status"] in ("roll_or_kill", "expired")

@@ -72,6 +72,8 @@ class ThesisLog:
         target: dict[str, Any],
         sizing: dict[str, Any],
         author: str = "DFV",
+        roll_trigger_dte: int | None = None,
+        tags: list[str] | None = None,
     ) -> dict[str, Any]:
         sym = symbol.upper()
         prior = self._data.get(sym, {})
@@ -85,6 +87,11 @@ class ThesisLog:
             "target": target,
             "sizing": sizing,
             "author": author,
+            "roll_trigger_dte": (
+                int(roll_trigger_dte) if roll_trigger_dte is not None
+                else int(prior.get("roll_trigger_dte", 21))  # doctrine default
+            ),
+            "tags": list(tags) if tags is not None else list(prior.get("tags", [])),
             "created": prior.get("created", _utc_now()),
             "updated": _utc_now(),
             "revision": int(prior.get("revision", 0)) + 1,
@@ -216,4 +223,142 @@ class PostMortemLog:
     def for_symbol(self, symbol: str) -> list[dict[str, Any]]:
         sym = symbol.upper()
         return [r for r in self.all() if r.get("symbol", "").upper() == sym]
+
+
+# ── Journal log (append-only JSONL) ───────────────────────────────────────
+class JournalLog:
+    """One-sentence-per-day journal. Prompted by EOD; surfaced in dashboard."""
+
+    def __init__(self, path: str | Path):
+        self.path = REPO_ROOT / Path(path)
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+
+    def append(self, entry: str, *, mood: str = "", tags: list[str] | None = None) -> dict[str, Any]:
+        rec = {
+            "ts": _utc_now(),
+            "date": datetime.now(timezone.utc).date().isoformat(),
+            "entry": entry.strip(),
+            "mood": mood,
+            "tags": list(tags or []),
+        }
+        with self.path.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(rec, default=str) + "\n")
+        return rec
+
+    def all(self) -> list[dict[str, Any]]:
+        if not self.path.exists():
+            return []
+        out: list[dict[str, Any]] = []
+        for line in self.path.read_text(encoding="utf-8").splitlines():
+            try:
+                out.append(json.loads(line))
+            except json.JSONDecodeError:
+                continue
+        return out
+
+    def tail(self, n: int = 30) -> list[dict[str, Any]]:
+        return self.all()[-n:]
+
+    def has_today(self) -> bool:
+        today = datetime.now(timezone.utc).date().isoformat()
+        return any(r.get("date") == today for r in self.all())
+
+
+# ── Notifications (append-only JSONL + best-effort push) ──────────────────
+class NotificationsLog:
+    """Outbound notification queue.
+
+    Every notification gets written to JSONL (for audit + dashboard tail);
+    the optional `pusher` callable is invoked for fire-and-forget delivery
+    (Telegram via shared.alerter, etc.). Never raises.
+    """
+
+    def __init__(self, path: str | Path):
+        self.path = REPO_ROOT / Path(path)
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+
+    def append(
+        self,
+        *,
+        kind: str,
+        symbol: str = "",
+        title: str,
+        body: str = "",
+        severity: str = "info",
+        dedupe_key: str | None = None,
+        extra: dict[str, Any] | None = None,
+    ) -> dict[str, Any] | None:
+        """Append a notification. If dedupe_key matches one written in the
+        last 12h, the notification is suppressed (returns None)."""
+        if dedupe_key and self._recently_seen(dedupe_key, hours=12):
+            return None
+        rec = {
+            "ts": _utc_now(),
+            "kind": kind,
+            "symbol": (symbol or "").upper(),
+            "title": title,
+            "body": body,
+            "severity": severity,
+            "dedupe_key": dedupe_key,
+            "extra": extra or {},
+        }
+        with self.path.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(rec, default=str) + "\n")
+        return rec
+
+    def tail(self, n: int = 50) -> list[dict[str, Any]]:
+        if not self.path.exists():
+            return []
+        lines = self.path.read_text(encoding="utf-8").splitlines()[-n:]
+        out: list[dict[str, Any]] = []
+        for line in lines:
+            try:
+                out.append(json.loads(line))
+            except json.JSONDecodeError:
+                continue
+        return out
+
+    def _recently_seen(self, dedupe_key: str, *, hours: int = 12) -> bool:
+        from datetime import timedelta
+        if not self.path.exists():
+            return False
+        cutoff = datetime.now(timezone.utc) - timedelta(hours=hours)
+        # Scan last 500 lines — enough for any practical dedupe window.
+        try:
+            lines = self.path.read_text(encoding="utf-8").splitlines()[-500:]
+        except OSError:
+            return False
+        for line in lines:
+            try:
+                rec = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if rec.get("dedupe_key") != dedupe_key:
+                continue
+            try:
+                ts = datetime.fromisoformat(str(rec.get("ts", "")))
+                if ts >= cutoff:
+                    return True
+            except ValueError:
+                continue
+        return False
+
+
+# ── Reconciliation state (latest snapshot — single JSON file) ─────────────
+class ReconciliationLog:
+    """Single-snapshot file: the most recent reconcile result.
+
+    History is implied — every run overwrites. For diff history, scan the
+    notifications JSONL (kind='reconcile_mismatch').
+    """
+
+    def __init__(self, path: str | Path):
+        self.path = REPO_ROOT / Path(path)
+
+    def write(self, snapshot: dict[str, Any]) -> None:
+        snapshot = {"ts": _utc_now(), **snapshot}
+        _atomic_write_json(self.path, snapshot)
+
+    def read(self) -> dict[str, Any]:
+        return _read_json(self.path, {})
 

@@ -185,19 +185,15 @@ def _cmd_ask(args: argparse.Namespace) -> int:
 
 
 def _cmd_recall(args: argparse.Namespace) -> int:
-    from agents.dfv.rag import search
+    from agents.dfv.rag_lite import search
     hits = search(args.query, k=int(args.k), kind=args.kind, symbol=args.symbol)
     _print_json(hits)
     return 0
 
 
 def _cmd_reindex(args: argparse.Namespace) -> int:
-    from agents.dfv import rag as dfv_rag
-    out = {}
-    if args.what in ("all", "theses"):
-        out["theses_indexed"] = dfv_rag.reindex_all_theses()
-    if args.what in ("all", "briefs"):
-        out["briefs_indexed"] = dfv_rag.reindex_all_briefs()
+    from agents.dfv import rag_lite
+    out = rag_lite.reindex()
     _print_json(out)
     return 0
 

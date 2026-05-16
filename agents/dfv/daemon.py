@@ -155,7 +155,12 @@ def _is_due(spec: str, now: datetime) -> bool:
 def run_forever(tick_seconds: int = 60) -> None:
     dfv = DFV()
     cadence = dfv.doctrine.get("cadence", {})
-    _log.info("dfv.daemon.start", cadence=cadence)
+    orphan_cfg = dfv.doctrine.get("orphan_guard") or {}
+    reconcile_cfg = dfv.doctrine.get("reconciler") or {}
+    orphan_interval = int(orphan_cfg.get("scan_interval_seconds", 300))
+    reconcile_interval = int(reconcile_cfg.get("scan_interval_seconds", 300))
+    _log.info("dfv.daemon.start", cadence=cadence,
+              orphan_interval=orphan_interval, reconcile_interval=reconcile_interval)
 
     signal.signal(signal.SIGINT, _stop)
     try:
@@ -167,6 +172,8 @@ def run_forever(tick_seconds: int = 60) -> None:
     last_minute = ""
     last_routine: str | None = None
     last_routine_ts: str | None = None
+    last_orphan_scan = 0.0
+    last_reconcile_scan = 0.0
 
     # Initial heartbeat so consumers see liveness immediately.
     write_heartbeat()
@@ -194,6 +201,31 @@ def run_forever(tick_seconds: int = 60) -> None:
                 except Exception as e:  # noqa: BLE001 — daemon must survive routine errors
                     _log.error("dfv.daemon.routine_error", routine=name, error=str(e))
                 fired_this_minute.add(key)
+
+        # Orphan-position guard (separate cadence from briefs)
+        now_mono = time.monotonic()
+        if orphan_cfg.get("enabled", True) and (now_mono - last_orphan_scan) >= orphan_interval:
+            try:
+                from agents.dfv import orphan_guard  # noqa: PLC0415
+                result = orphan_guard.scan_and_stub(dfv=dfv)
+                if result.get("written"):
+                    _log.warning("dfv.daemon.orphan_scan",
+                                 written=result["written"], orphans=result["orphans"])
+            except Exception as e:  # noqa: BLE001
+                _log.error("dfv.daemon.orphan_scan_failed", error=str(e))
+            last_orphan_scan = now_mono
+
+        # Position reconciler
+        if reconcile_cfg.get("enabled", True) and (now_mono - last_reconcile_scan) >= reconcile_interval:
+            try:
+                from agents.dfv import reconciler  # noqa: PLC0415
+                snap = reconciler.reconcile(dfv=dfv)
+                if snap.get("mismatch_count"):
+                    _log.warning("dfv.daemon.reconcile",
+                                 mismatches=snap["mismatch_count"])
+            except Exception as e:  # noqa: BLE001
+                _log.error("dfv.daemon.reconcile_failed", error=str(e))
+            last_reconcile_scan = now_mono
 
         write_heartbeat(last_routine=last_routine, last_routine_ts=last_routine_ts)
         time.sleep(tick_seconds)

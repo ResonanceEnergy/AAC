@@ -17,7 +17,10 @@ import yaml
 from agents.dfv.memory_store import (
     ConvictionTracker,
     DecisionsLog,
+    JournalLog,
+    NotificationsLog,
     PostMortemLog,
+    ReconciliationLog,
     ThesisLog,
     Watchlist,
 )
@@ -78,6 +81,13 @@ class DFV:
         self.watchlist = Watchlist(mem.get("watchlist", "agents/dfv/memory/watchlist.json"))
         self.decisions = DecisionsLog(mem.get("decisions_log", "agents/dfv/memory/decisions.jsonl"))
         self.postmortems = PostMortemLog(mem.get("postmortems", "agents/dfv/memory/postmortems.jsonl"))
+        self.journal = JournalLog(mem.get("journal", "agents/dfv/memory/journal.jsonl"))
+        self.notifications = NotificationsLog(
+            mem.get("notifications", "agents/dfv/memory/notifications.jsonl")
+        )
+        self.reconciliation = ReconciliationLog(
+            mem.get("reconciliation", "agents/dfv/memory/reconciliation.json")
+        )
 
     # ── Public surface ────────────────────────────────────────────
     def evaluate(self, proposal: dict[str, Any]) -> Decision:
@@ -111,10 +121,17 @@ class DFV:
         results.append(self._gate_invalidation(symbol))
         # G7 — liquidity
         results.append(self._gate_liquidity(float(proposal.get("expected_slippage_pct", 0.0))))
+        # G8 — vol regime (long-vega entries only)
+        results.append(self._gate_vol_regime(proposal))
 
         decision = self._render_verdict(symbol, proposal, results)
         decision.second_opinion = self._gemini_second_opinion(symbol, proposal, decision)
-        self.decisions.append({"proposal": proposal, "decision": decision.to_dict()})
+        self.decisions.append({
+            "symbol": symbol,
+            "kind": "proposal",
+            "proposal": proposal,
+            "decision": decision.to_dict(),
+        })
         _log.info(
             "dfv.decision",
             symbol=symbol,
@@ -166,7 +183,13 @@ class DFV:
         decision.second_opinion = self._gemini_second_opinion(
             symbol, {"prompt": prompt_text[:600]}, decision
         )
-        self.decisions.append({"prompt_review": prompt_text[:400], "decision": decision.to_dict()})
+        self.decisions.append({
+            "symbol": symbol,
+            "kind": "prompt_review",
+            "prompt_review": prompt_text[:400],
+            "proposal": {"symbol": symbol, "prompt": prompt_text[:400]},
+            "decision": decision.to_dict(),
+        })
         return decision
 
     # ── Individual gates ──────────────────────────────────────────
@@ -233,6 +256,56 @@ class DFV:
                           "pass" if ok else "fail", "soft",
                           f"expected slippage {slip:.2%} (cap 1.0%)")
 
+    def _gate_vol_regime(self, proposal: dict[str, Any]) -> GateResult:
+        """G8 — long-vega entries are blocked when VIX < floor AND term structure in contango.
+
+        Skipped (pass) when:
+          * doctrine.vol_regime.enabled is false
+          * action is not a long-vega entry (sells, closes, rolls)
+          * vix/vix3m not supplied (best-effort: pass with note rather than veto)
+        """
+        cfg = self.doctrine.get("vol_regime", {}) or {}
+        if not cfg.get("enabled", True):
+            return GateResult("G8", "vol_regime_ok", "pass", "soft", "vol-regime gate disabled")
+
+        long_vega_actions = {a.lower() for a in cfg.get(
+            "applies_to_actions", ["buy_put", "buy_call", "long_vol", "buy"],
+        )}
+        action = str(proposal.get("action") or "").lower()
+        side = str(proposal.get("side") or "").lower()
+        is_long_vega = bool(proposal.get("long_vega")) or action in long_vega_actions or side in long_vega_actions
+        if not is_long_vega:
+            return GateResult("G8", "vol_regime_ok", "pass", "soft",
+                              "not a long-vega entry; gate not applicable")
+
+        vix = proposal.get("vix")
+        vix3m = proposal.get("vix3m")
+        if vix is None or vix3m is None:
+            return GateResult("G8", "vol_regime_ok", "pass", "soft",
+                              "vol regime unknown (vix/vix3m not supplied); flagged-pass")
+
+        floor = float(cfg.get("vix_floor", 15.0))
+        contango = float(cfg.get("contango_threshold", 0.0))
+        try:
+            vix_f = float(vix)
+            vix3m_f = float(vix3m)
+        except (TypeError, ValueError):
+            return GateResult("G8", "vol_regime_ok", "pass", "soft",
+                              "vol regime values unparseable; flagged-pass")
+
+        in_contango = (vix3m_f - vix_f) > contango
+        low_vix = vix_f < floor
+        if low_vix and in_contango:
+            return GateResult(
+                "G8", "vol_regime_ok", "fail", "soft",
+                f"long-vega entry blocked: VIX {vix_f:.1f} < {floor:.1f} AND "
+                f"VIX3M-VIX = {vix3m_f - vix_f:+.2f} (contango). Theta beats realized vol here.",
+            )
+        return GateResult(
+            "G8", "vol_regime_ok", "pass", "soft",
+            f"VIX {vix_f:.1f}, VIX3M-VIX {vix3m_f - vix_f:+.2f} — regime acceptable",
+        )
+
     # ── Verdict synthesis ─────────────────────────────────────────
     def _render_verdict(
         self,
@@ -268,69 +341,45 @@ class DFV:
         return Decision(verdict=verdict, summary=summary, gates=gates,
                         fixes_required=fixes, notes=notes)
 
-    # ── Gemini second-opinion ─────────────────────────────────────
+    # ── Second-opinion (three-LLM jury) ────────────────────────────
     def _gemini_second_opinion(
         self,
         symbol: str,
         proposal: dict[str, Any],
         decision: Decision,
     ) -> dict[str, Any] | None:
-        """Ask Gemini for a sanity-check on the gate verdict.
+        """Compatibility shim — delegates to the three-LLM jury.
 
-        No-ops if doctrine.second_opinion.enabled is false or Gemini key missing.
-        Never overrides the gate verdict — purely advisory.
+        Name kept for historic call sites. Real implementation lives in
+        agents.dfv.jury.jury_review. Never overrides the gate verdict.
         """
-        cfg = self.doctrine.get("second_opinion", {}) or {}
-        if not cfg.get("enabled", True):
-            return None
+        from agents.dfv.jury import jury_review  # noqa: PLC0415
         try:
-            from integrations.google_clients import GeminiClient
-        except ImportError:
+            return jury_review(
+                symbol=symbol,
+                proposal=proposal,
+                decision=decision,
+                doctrine=self.doctrine,
+            )
+        except Exception as exc:  # noqa: BLE001 — never break the engine
+            _log.warning("dfv.jury.failed", error=str(exc))
             return None
-        gem = GeminiClient(model=cfg.get("model", "gemini-2.5-flash"))
-        if not gem.configured:
-            return None
-
-        gate_lines = "\n".join(
-            f"  {g.gate_id} {g.name}: {g.outcome.upper()} ({g.severity}) — {g.note}"
-            for g in decision.gates
-        )
-        prompt = (
-            f"DFV proposal review.\n"
-            f"Symbol: {symbol or '(none)'}\n"
-            f"Proposal: {proposal}\n"
-            f"DFV gate verdict: {decision.verdict} — {decision.summary}\n"
-            f"Gates:\n{gate_lines}\n\n"
-            f"In ≤60 words: do you AGREE, DISAGREE, or CONCERN? "
-            f"Start your answer with one of those three words, then a one-line reason."
-        )
-        system = (
-            "You are a second-opinion reviewer for DFV (Roaring Kitty). "
-            "Be terse. Flag thesis/sizing/invalidation risk. Never bypass hard rules."
-        )
-        result = gem.ask(prompt, system=system, temperature=0.1)
-        if not result.get("ok"):
-            return {"provider": "gemini", "ok": False, "error": result.get("error")}
-        text = (result.get("text") or "").strip()
-        first = text.split()[0].upper().rstrip(".,:") if text else ""
-        verdict = first if first in {"AGREE", "DISAGREE", "CONCERN"} else "UNCLEAR"
-        return {
-            "provider": "gemini",
-            "model": result.get("model"),
-            "ok": True,
-            "verdict": verdict,
-            "text": text[:600],
-        }
 
     # ── Helpers ───────────────────────────────────────────────────
     @staticmethod
     def _guess_symbol(text: str) -> str | None:
         """Best-effort ticker extraction from free text.
 
-        Prefers $-prefixed cashtags. Falls back to 2-5 char all-caps tokens,
-        excluding common English stopwords / pronouns that look like tickers.
+        Rules:
+          1. $-prefixed cashtag (any length 1-5) wins.
+          2. Otherwise, scan 2-5 char all-caps tokens, skip stopwords,
+             and prefer the longest non-stopword token (deterministic).
+          3. Single-char tokens are NEVER returned (prevents 'I want to add to GME'
+             from resolving to 'I' — regression guard).
         """
         import re
+        if not text:
+            return None
         # 1. Cashtag wins
         m = re.search(r"\$([A-Z]{1,5})\b", text)
         if m:
@@ -347,11 +396,18 @@ class DFV:
             "P", "Q", "K", "PE", "PB", "EV", "FCF", "NCAV", "ATH", "ATL",
             "FOMO", "YOLO", "EOD", "EOM", "EOY", "ETA", "FYI", "TBD",
             "AKA", "LOL", "WTF", "DFV", "AAC", "GPT", "AI",
+            "DECENT", "SIZE", "NOW", "WANT", "LIKE", "GOOD", "BAD", "DUMP",
+            "HOLD", "BULL", "BEAR", "LONG", "SHORT", "OPEN", "CLOSE", "EXIT",
+            "TRADE", "STOCK", "OPTION", "STRIKE", "DELTA", "GAMMA", "THETA",
+            "VEGA", "VOL", "VIX", "CRYPTO",
         }
-        for tok in re.findall(r"\b([A-Z]{2,5})\b", text):
-            if tok not in stopwords:
-                return tok
-        return None
+        # Hard minimum: 2 chars. Find candidates, then choose longest non-stopword.
+        candidates = [t for t in re.findall(r"\b([A-Z]{2,5})\b", text) if t not in stopwords]
+        if not candidates:
+            return None
+        # Deterministic: longest first, then first occurrence.
+        candidates.sort(key=lambda t: (-len(t), text.index(t)))
+        return candidates[0]
 
 
 # ── Module-level convenience ──────────────────────────────────────

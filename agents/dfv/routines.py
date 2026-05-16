@@ -26,12 +26,12 @@ def _save_brief(name: str, payload: dict[str, Any]) -> Path:
     path = BRIEF_DIR / f"{ts}_{name}.json"
     import json
     path.write_text(json.dumps(payload, indent=2, default=str), encoding="utf-8")
-    # Best-effort: index into DFV semantic memory so future `ask` calls can recall it.
+    # Best-effort: incrementally reindex into DFV semantic memory (rag_lite/SQLite FTS5).
     try:
-        from agents.dfv import rag as dfv_rag  # noqa: PLC0415
-        dfv_rag.index_brief(path, payload)
+        from agents.dfv import rag_lite  # noqa: PLC0415
+        rag_lite.reindex()
     except Exception as e:  # noqa: BLE001 — daemon must not die on RAG failures
-        _log.warning("dfv.routines.index_brief_failed", error=str(e))
+        _log.warning("dfv.routines.reindex_failed", error=str(e))
     return path
 
 
@@ -43,6 +43,17 @@ def _safe_collect_payload() -> dict[str, Any]:
     except Exception as e:  # noqa: BLE001 — daemon must not die on collector errors
         _log.warning("dfv.collect_failed", error=str(e))
         return {}
+
+
+def _iter_accounts(portfolio: dict[str, Any]) -> list[dict[str, Any]]:
+    """`accounts` can be dict-of-dict or list-of-dict depending on collector
+    version. Always yield a list of account dicts."""
+    accounts = portfolio.get("accounts") or {}
+    if isinstance(accounts, dict):
+        return [a for a in accounts.values() if isinstance(a, dict)]
+    if isinstance(accounts, list):
+        return [a for a in accounts if isinstance(a, dict)]
+    return []
 
 
 def _gemini_headline(kind: str, report: dict[str, Any]) -> str | None:
@@ -83,7 +94,7 @@ def brief() -> dict[str, Any]:
 
     held_symbols = sorted({
         (p.get("symbol") or p.get("underlying") or "").upper()
-        for acct in portfolio.get("accounts", {}).values()
+        for acct in _iter_accounts(portfolio)
         for p in acct.get("positions", [])
         if (p.get("symbol") or p.get("underlying"))
     })
@@ -94,6 +105,37 @@ def brief() -> dict[str, Any]:
     stale_theses = dfv.thesis.needs_review(max_age_days=30)
     watchlist = dfv.watchlist.all()
     invalidation_breaches = _detect_invalidation_breaches(dfv, payload)
+
+    # Auto-skeleton: writes TODO theses for orphans + emits notifications.
+    # (Re-fetch theses + missing list after so the brief reflects the new state.)
+    try:
+        from agents.dfv import orphan_guard  # noqa: PLC0415
+        orphan_result = orphan_guard.scan_and_stub(payload, dfv=dfv)
+    except Exception as exc:  # noqa: BLE001
+        _log.warning("dfv.brief.orphan_guard_failed", error=str(exc))
+        orphan_result = {"written": [], "orphans": []}
+    if orphan_result.get("written"):
+        # Refresh in-memory thesis view so downstream "missing_thesis" is accurate
+        theses = dfv.thesis.all()
+        missing_theses = [s for s in held_symbols if s not in theses]
+
+    # Push invalidation-breach notifications (idempotent via dedupe_key)
+    try:
+        from agents.dfv.notifications import notify  # noqa: PLC0415
+        for breach in invalidation_breaches:
+            sym = (breach.get("symbol") or "").upper()
+            notify(
+                dfv=dfv,
+                kind="invalidation_breach",
+                symbol=sym,
+                title=f"🚨 Invalidation breached — {sym}",
+                body=str(breach.get("rule") or breach.get("note") or ""),
+                severity="critical",
+                dedupe_key=f"breach:{sym}:{breach.get('rule', '')[:40]}",
+                extra=breach,
+            )
+    except Exception as exc:  # noqa: BLE001
+        _log.warning("dfv.brief.breach_notify_failed", error=str(exc))
 
     report = {
         "type": "brief",
@@ -106,7 +148,7 @@ def brief() -> dict[str, Any]:
             "cash_usd": portfolio.get("cash_usd"),
             "buying_power_usd": portfolio.get("buying_power_usd"),
             "open_positions": len([
-                p for acct in portfolio.get("accounts", {}).values()
+                p for acct in _iter_accounts(portfolio)
                 for p in acct.get("positions", [])
             ]),
         },
@@ -121,6 +163,7 @@ def brief() -> dict[str, Any]:
             "missing_thesis": missing_theses,
             "stale_thesis": stale_theses,
             "invalidation_breaches": invalidation_breaches,
+            "roll_triggers": _detect_roll_triggers(dfv, payload),
             "watchlist_size": len(watchlist),
         },
         "headline": _headline(missing_theses, stale_theses, war_room, invalidation_breaches),
@@ -170,8 +213,24 @@ def eod() -> dict[str, Any]:
         "expirations_processed": expired,
         "losses_processed": losers,
         "conviction_nudges": nudges,
+        "journal_prompt_pending": not dfv.journal.has_today(),
         "note": "Theses for closed names auto-postmortemed; conviction nudged where loss > $0.",
     }
+    # If no journal entry yet today, fire a prompt notification.
+    if not dfv.journal.has_today():
+        try:
+            from agents.dfv.notifications import notify  # noqa: PLC0415
+            today_str = datetime.now(timezone.utc).date().isoformat()
+            notify(
+                dfv=dfv,
+                kind="journal_prompt",
+                title="📓 EOD journal — what did you learn?",
+                body="Open the dashboard and write one sentence. No entry = no compounding insight.",
+                severity="info",
+                dedupe_key=f"journal_prompt:{today_str}",
+            )
+        except Exception as exc:  # noqa: BLE001
+            _log.warning("dfv.eod.journal_prompt_failed", error=str(exc))
     report["ai_headline"] = _gemini_headline("eod", report)
     _save_brief("eod", report)
     _log.info("dfv.eod", expired=len(expired), losers=len(losers), nudges=len(nudges))
@@ -235,6 +294,8 @@ def _apply_conviction_nudges(
     """Drop conviction one tier on any name that closed at a loss (floor 1)."""
     nudged: list[dict[str, Any]] = []
     seen: set[str] = set()
+    nudge_log_path = REPO_ROOT / "agents" / "dfv" / "memory" / "conviction_nudges.jsonl"
+    nudge_log_path.parent.mkdir(parents=True, exist_ok=True)
     for entry in [*expired, *losers]:
         sym = entry.get("symbol", "").upper()
         if not sym or sym in seen:
@@ -246,13 +307,81 @@ def _apply_conviction_nudges(
         if prior <= 1:
             continue
         new_tier = prior - 1
-        dfv.conviction.set(
-            sym, new_tier,
-            reason=f"eod auto-nudge: realized loss {entry.get('realized_pnl_usd'):+.2f}",
-        )
+        reason = f"eod auto-nudge: realized loss {entry.get('realized_pnl_usd'):+.2f}"
+        dfv.conviction.set(sym, new_tier, reason=reason)
         nudged.append({"symbol": sym, "from": prior, "to": new_tier})
+        # Audit-trail JSONL so the dashboard can show recent nudges.
+        try:
+            import json as _json
+            with nudge_log_path.open("a", encoding="utf-8") as f:
+                f.write(_json.dumps({
+                    "ts": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+                    "symbol": sym, "from": prior, "to": new_tier,
+                    "reason": reason, "source": "eod_auto",
+                }) + "\n")
+        except OSError as e:
+            _log.warning("dfv.eod.nudge_log_failed", error=str(e))
         _log.info("dfv.eod.conviction_nudge", symbol=sym, **{"from": prior, "to": new_tier})
     return nudged
+
+
+def _detect_roll_triggers(dfv: DFV, payload: dict[str, Any]) -> list[dict[str, Any]]:
+    """Find option positions inside their roll-trigger DTE window.
+
+    Per the $659 macro-hedge postmortem cluster: long options that drift past
+    21 DTE without a plan bleed theta and expire worthless. Surface every name
+    whose nearest expiry sits at-or-inside its thesis.roll_trigger_dte.
+    """
+    out: list[dict[str, Any]] = []
+    today = datetime.now(timezone.utc).date()
+    doctrine_default = 21
+    try:
+        doctrine_default = int(
+            (dfv.doctrine.get("roll_policy", {}) or {}).get("default_trigger_dte", 21)
+        )
+    except (ValueError, TypeError):
+        pass
+
+    portfolio = payload.get("portfolio", {}) or {}
+    # Build symbol -> [expiries] map across all venues
+    positions_by_sym: dict[str, list[dict[str, Any]]] = {}
+    for acct in _iter_accounts(portfolio):
+        for p in acct.get("positions", []) or []:
+            sym = (p.get("symbol") or p.get("underlying") or "").upper()
+            if not sym:
+                continue
+            positions_by_sym.setdefault(sym, []).append(p)
+
+    for sym, rec in dfv.thesis.all().items():
+        positions = positions_by_sym.get(sym, [])
+        if not positions:
+            continue
+        trigger_dte = int(rec.get("roll_trigger_dte") or doctrine_default)
+        # Collect expiries (option positions only).
+        expiries: list[tuple[str, int]] = []
+        for p in positions:
+            exp_str = str(p.get("expiry") or p.get("expiration") or "")
+            if not exp_str:
+                continue
+            try:
+                exp_date = datetime.fromisoformat(exp_str[:10]).date()
+            except (ValueError, TypeError):
+                continue
+            dte = (exp_date - today).days
+            expiries.append((exp_str, dte))
+        if not expiries:
+            continue
+        expiries.sort(key=lambda x: x[1])
+        nearest_expiry, nearest_dte = expiries[0]
+        if nearest_dte <= trigger_dte:
+            out.append({
+                "symbol": sym,
+                "expiry": nearest_expiry,
+                "dte": nearest_dte,
+                "trigger_dte": trigger_dte,
+                "status": "expired" if nearest_dte < 0 else "roll_or_kill",
+            })
+    return out
 
 
 
@@ -301,7 +430,7 @@ def _detect_invalidation_breaches(dfv: DFV, payload: dict[str, Any]) -> list[dic
     portfolio = payload.get("portfolio", {}) or {}
     # Build symbol → last_price map from any account/position
     prices: dict[str, float] = {}
-    for acct in portfolio.get("accounts", {}).values():
+    for acct in _iter_accounts(portfolio):
         for p in acct.get("positions", []):
             sym = (p.get("symbol") or p.get("underlying") or "").upper()
             for k in ("last_price", "mark_price", "price", "current_price"):
@@ -360,7 +489,7 @@ def _held_symbols() -> list[str]:
     portfolio = _safe_collect_payload().get("portfolio", {})
     syms = sorted({
         (p.get("symbol") or p.get("underlying") or "").upper()
-        for acct in portfolio.get("accounts", {}).values()
+        for acct in _iter_accounts(portfolio)
         for p in acct.get("positions", [])
         if (p.get("symbol") or p.get("underlying"))
     })
@@ -535,7 +664,7 @@ def open_bell_prep() -> dict[str, Any]:
                 or portfolio.get("total_value"),
             "buying_power_usd": portfolio.get("buying_power_usd"),
             "open_positions": len([
-                p for acct in portfolio.get("accounts", {}).values()
+                p for acct in _iter_accounts(portfolio)
                 for p in acct.get("positions", [])
             ]),
         },

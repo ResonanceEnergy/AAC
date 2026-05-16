@@ -92,6 +92,23 @@ gates:
     rule: "expected_slippage_pct < 0.01"
     on_fail: reduce_size
     severity: soft
+  - id: G8
+    name: vol_regime_ok
+    rule: "long-vega entries blocked when VIX < vix_floor AND term-structure in contango"
+    on_fail: reject
+    severity: soft
+
+# G8 — vol-regime thresholds. Long-vol bets need a friendly regime.
+vol_regime:
+  enabled: true
+  vix_floor: 15.0 # below this, buying vol is renting theta
+  contango_threshold: 0.0 # VIX3M - VIX > 0 = contango = unfriendly for long vol
+  applies_to_actions: ["buy_put", "buy_call", "long_vol", "buy"] # entry-side only
+
+# Roll-trigger doctrine — long options must declare a roll-or-kill DTE.
+roll_policy:
+  default_trigger_dte: 21 # postmortem lesson: theta beats realized vol below this
+  alert_lane_dte: 21 # surface in brief() when any position crosses this
 
 decision_policy:
   hard_fail_count_to_veto: 1 # any hard fail vetoes
@@ -140,6 +157,44 @@ memory:
   postmortems: "agents/dfv/memory/postmortems.jsonl"
   daily_briefs: "agents/dfv/memory/briefs/"
   decisions_log: "agents/dfv/memory/decisions.jsonl"
+  journal: "agents/dfv/memory/journal.jsonl"
+  notifications: "agents/dfv/memory/notifications.jsonl"
+  reconciliation: "agents/dfv/memory/reconciliation.json"
+
+# ── Auto-skeleton guard (orphan-position prevention) ────────────
+# When a position appears in any venue without a thesis, the daemon writes
+# a TODO skeleton thesis (conviction=0, thesis="TODO", invalidation="TODO")
+# and emits a notification so the operator can fill it in. Eliminates
+# silent orphan positions.
+orphan_guard:
+  enabled: true
+  scan_interval_seconds: 300 # 5 min
+  notify_on_skeleton: true
+
+# ── Position reconciler (per-venue drift detection) ─────────────
+# Every N seconds the daemon snapshots positions from each venue connector
+# and compares to mission_control.collect_payload(). Mismatches surface as
+# a red banner in the dashboard and a notification.
+reconciler:
+  enabled: true
+  scan_interval_seconds: 300 # 5 min
+  notify_on_mismatch: true
+
+# ── Live breach alerts (Telegram push via shared.alerter) ───────
+breach_alerts:
+  enabled: true
+  push_via: ["telegram", "journal"] # journal = always; telegram = if configured
+  dedupe_hours: 6
+
+# ── Three-LLM jury (replaces single-Gemini second opinion) ──────
+jury:
+  enabled: true
+  panelists: ["gemini", "grok", "openai"]
+  quorum: 2 # need this many panelists responding to count
+  models:
+    gemini: "gemini-2.5-flash"
+    grok: "grok-3-mini"
+    openai: "gpt-4o-mini"
 
 # ── Hard rules (will not be overridden) ──────────────────────────
 hard_rules:

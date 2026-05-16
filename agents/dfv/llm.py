@@ -133,12 +133,12 @@ def _set_thesis(
         target={"raw": target},
         sizing={"max_pct_book": float(max_pct_book)},
     )
-    # Auto-index the new thesis into RAG memory (best-effort)
+    # Auto-reindex semantic memory (rag_lite/SQLite FTS5) so the new thesis is searchable.
     try:
-        from agents.dfv import rag as dfv_rag
-        dfv_rag.index_thesis(symbol, rec)
+        from agents.dfv import rag_lite
+        rag_lite.reindex()
     except Exception as e:  # noqa: BLE001
-        _log.warning("dfv.llm.index_thesis_failed", error=str(e))
+        _log.warning("dfv.llm.reindex_failed", error=str(e))
     return rec
 
 
@@ -155,8 +155,8 @@ def _recent_decisions(n: int = 10) -> dict[str, Any]:
 def _recall_memory(query: str, k: int = 5, kind: str | None = None,
                    symbol: str | None = None) -> dict[str, Any]:
     """Semantic search over DFV's brief / thesis history."""
-    from agents.dfv import rag as dfv_rag
-    hits = dfv_rag.search(query, k=k, kind=kind, symbol=symbol)
+    from agents.dfv import rag_lite
+    hits = rag_lite.search(query, k=k, kind=kind, symbol=symbol)
     return {"count": len(hits), "results": hits}
 
 
@@ -587,9 +587,15 @@ def ask(
     max_steps: int = DEFAULT_MAX_STEPS,
     temperature: float = DEFAULT_TEMPERATURE,
     use_history: bool = True,
+    use_rag: bool = True,
     verbose: bool = False,
 ) -> AskResult:
-    """Ask DFV a question. He'll use his tools and answer in his own voice."""
+    """Ask DFV a question. He'll use his tools and answer in his own voice.
+
+    When ``use_rag`` is true (default), the prompt is enriched with the top-k
+    snippets from the local DFV memory (SQLite FTS5) so answers are grounded
+    in actual briefs, theses, postmortems, and decisions.
+    """
     import ollama  # noqa: PLC0415
 
     from shared.aac_rag.config import RagConfig
@@ -603,6 +609,14 @@ def ask(
         prior = _recent_history(3)
         if prior:
             system = system + "\n\n" + prior
+    if use_rag:
+        try:
+            from agents.dfv import rag_lite  # noqa: PLC0415
+            rag_ctx = rag_lite.context_for_prompt(prompt, k=5, max_chars=3_500)
+            if rag_ctx:
+                system = system + "\n\n" + rag_ctx
+        except Exception as exc:  # noqa: BLE001 — RAG is best-effort
+            _log.warning("dfv.llm.rag_failed", error=str(exc))
 
     messages: list[dict[str, Any]] = [
         {"role": "system", "content": system},
