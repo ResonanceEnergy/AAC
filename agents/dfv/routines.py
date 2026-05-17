@@ -56,6 +56,62 @@ def _iter_accounts(portfolio: dict[str, Any]) -> list[dict[str, Any]]:
     return []
 
 
+def _portfolio_summary(portfolio: dict[str, Any]) -> dict[str, Any]:
+    """Single source of truth for portfolio numbers used by briefs.
+
+    `monitoring.mission_control.collect_portfolio()` emits ``total_usd``,
+    ``total_cash_usd``, ``total_buying_power_usd``. Older callers tried
+    ``total_assets_usd`` / ``cash_usd`` / ``buying_power_usd`` which were
+    never written, so every brief showed null. Read both spellings here
+    once so the brief and open_bell_prep agree with midday.
+    """
+    return {
+        "total_equity_usd": (
+            portfolio.get("total_usd")
+            or portfolio.get("total_assets_usd")
+            or portfolio.get("total_equity")
+            or portfolio.get("total_value")
+        ),
+        "cash_usd": (
+            portfolio.get("total_cash_usd")
+            or portfolio.get("cash_usd")
+        ),
+        "buying_power_usd": (
+            portfolio.get("total_buying_power_usd")
+            or portfolio.get("buying_power_usd")
+        ),
+        "open_positions": (
+            portfolio.get("total_positions")
+            or len([
+                p for acct in _iter_accounts(portfolio)
+                for p in acct.get("positions", [])
+            ])
+        ),
+    }
+
+
+# Tag written by orphan_guard for auto-stubbed theses.
+_SKELETON_TAG = "auto_skeleton"
+
+
+def _is_missing_real_thesis(theses: dict[str, Any], symbol: str) -> bool:
+    """A held name lacks a real thesis if there's no entry at all OR the entry
+    is a TODO skeleton (orphan_guard wrote it with conviction=0 + skeleton tag).
+
+    The skeleton is *recognition*, not *cover*. The discipline section must
+    keep flagging skeletons until the operator writes a real thesis.
+    """
+    rec = theses.get(symbol)
+    if not rec:
+        return True
+    tags = rec.get("tags") or []
+    if isinstance(tags, list) and _SKELETON_TAG in tags:
+        return True
+    if int(rec.get("conviction") or 0) == 0:
+        return True
+    return False
+
+
 def _gemini_headline(kind: str, report: dict[str, Any]) -> str | None:
     """One-paragraph AI summary of a brief. Returns None if Gemini not configured."""
     try:
@@ -101,7 +157,11 @@ def brief() -> dict[str, Any]:
     held_symbols = [s for s in held_symbols if s]
 
     theses = dfv.thesis.all()
-    missing_theses = [s for s in held_symbols if s not in theses]
+    # A held name has a *real* thesis only when it's not a TODO skeleton:
+    # orphan_guard writes skeletons with conviction=0 + tag 'auto_skeleton'.
+    # We treat skeletons as still-missing so the operator can't tolerate
+    # an orphan by virtue of the auto-writer pretending it's covered.
+    missing_theses = [s for s in held_symbols if _is_missing_real_thesis(theses, s)]
     stale_theses = dfv.thesis.needs_review(max_age_days=30)
     watchlist = dfv.watchlist.all()
     invalidation_breaches = _detect_invalidation_breaches(dfv, payload)
@@ -117,7 +177,7 @@ def brief() -> dict[str, Any]:
     if orphan_result.get("written"):
         # Refresh in-memory thesis view so downstream "missing_thesis" is accurate
         theses = dfv.thesis.all()
-        missing_theses = [s for s in held_symbols if s not in theses]
+        missing_theses = [s for s in held_symbols if _is_missing_real_thesis(theses, s)]
 
     # Push invalidation-breach notifications (idempotent via dedupe_key)
     try:
@@ -141,17 +201,7 @@ def brief() -> dict[str, Any]:
         "type": "brief",
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "voice": "DFV / Roaring Kitty",
-        "portfolio_summary": {
-            "total_equity_usd": portfolio.get("total_assets_usd")
-            or portfolio.get("total_equity")
-            or portfolio.get("total_value"),
-            "cash_usd": portfolio.get("cash_usd"),
-            "buying_power_usd": portfolio.get("buying_power_usd"),
-            "open_positions": len([
-                p for acct in _iter_accounts(portfolio)
-                for p in acct.get("positions", [])
-            ]),
-        },
+        "portfolio_summary": _portfolio_summary(portfolio),
         "war_room": {
             "composite": war_room.get("composite_score"),
             "regime": war_room.get("regime"),
@@ -199,6 +249,7 @@ def eod() -> dict[str, Any]:
     expired = _detect_expirations(dfv)
     losers = _detect_realized_losses(dfv, payload)
     nudges = _apply_conviction_nudges(dfv, expired, losers)
+    screener_summary = _refresh_watchlist_from_screeners(dfv)
 
     report = {
         "type": "eod",
@@ -213,6 +264,7 @@ def eod() -> dict[str, Any]:
         "expirations_processed": expired,
         "losses_processed": losers,
         "conviction_nudges": nudges,
+        "watchlist_refresh": screener_summary,
         "journal_prompt_pending": not dfv.journal.has_today(),
         "note": "Theses for closed names auto-postmortemed; conviction nudged where loss > $0.",
     }
@@ -386,17 +438,279 @@ def _detect_roll_triggers(dfv: DFV, payload: dict[str, Any]) -> list[dict[str, A
 
 
 def weekend_dd() -> dict[str, Any]:
-    """Weekend deep DD slot — read 10-Qs, refresh screens, post-mortems."""
+    """Weekend DD slot — write a real markdown DD per held name with conviction >= N.
+
+    Per operator directive 2026-05-16: weekend slot should not just list
+    names, it should *force* a 60-second whiteboard restatement of each
+    high-conviction thesis. Markdown files land in
+    ``agents/dfv/memory/dd/{SYMBOL}_dd.md`` and are idempotently
+    overwritten every Saturday.
+    """
     dfv = DFV()
+    doctrine = (dfv.doctrine.get("weekend_dd") or {}) if isinstance(dfv.doctrine, dict) else {}
+    min_conviction = int(doctrine.get("min_conviction", 3))
+    out_dir_rel = str(doctrine.get("out_dir", "agents/dfv/memory/dd"))
+    out_dir = REPO_ROOT / out_dir_rel
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    payload = _safe_collect_payload()
+    portfolio = payload.get("portfolio", {}) or {}
+    # Build a quick (symbol -> price) lookup for the DD writer.
+    last_price: dict[str, float] = {}
+    held_qty: dict[str, float] = {}
+    held_unreal: dict[str, float] = {}
+    for acct in _iter_accounts(portfolio):
+        for p in acct.get("positions", []) or []:
+            sym = (p.get("symbol") or p.get("underlying") or "").upper()
+            if not sym:
+                continue
+            for k in ("market_price", "last_price", "price", "mark_price"):
+                v = p.get(k)
+                if isinstance(v, (int, float)) and v > 0:
+                    last_price[sym] = float(v)
+                    break
+            try:
+                held_qty[sym] = held_qty.get(sym, 0.0) + float(p.get("qty") or 0.0)
+            except (TypeError, ValueError):
+                pass
+            try:
+                held_unreal[sym] = held_unreal.get(sym, 0.0) + float(p.get("unrealized_pnl") or 0.0)
+            except (TypeError, ValueError):
+                pass
+
+    written: list[dict[str, Any]] = []
+    skipped: list[dict[str, Any]] = []
+    convictions = dfv.conviction.all()
+    for sym, rec in dfv.thesis.all().items():
+        conv = int(rec.get("conviction") or (convictions.get(sym, {}) or {}).get("tier") or 0)
+        if conv < min_conviction:
+            skipped.append({"symbol": sym, "conviction": conv})
+            continue
+        md = _render_dd_markdown(
+            sym, rec,
+            current_price=last_price.get(sym),
+            qty=held_qty.get(sym),
+            unrealized=held_unreal.get(sym),
+        )
+        path = out_dir / f"{sym}_dd.md"
+        path.write_text(md, encoding="utf-8")
+        written.append({"symbol": sym, "conviction": conv, "path": str(path.relative_to(REPO_ROOT))})
+
     report = {
         "type": "weekend_dd",
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "open_theses": list(dfv.thesis.all().keys()),
+        "min_conviction": min_conviction,
+        "dd_files_written": written,
+        "skipped_below_conviction": skipped,
         "to_review_this_weekend": dfv.thesis.needs_review(max_age_days=14),
-        "note": "Read the filings. Refresh the deep-value and squeeze screens. "
-                "Write up any closed positions from the week.",
+        "note": "Each DD is a 60-second whiteboard restatement. Read the filings; "
+                "if you can't restate it in plain English, drop the position.",
     }
     _save_brief("weekend_dd", report)
+    _log.info("dfv.weekend_dd", written=len(written), skipped=len(skipped))
+    return report
+
+
+def _render_dd_markdown(
+    symbol: str,
+    rec: dict[str, Any],
+    *,
+    current_price: float | None,
+    qty: float | None,
+    unrealized: float | None,
+) -> str:
+    """Render one weekly DD page. Pure formatting — no I/O."""
+    target = rec.get("target") or {}
+    catalysts = rec.get("catalysts") or []
+    sizing = rec.get("sizing") or {}
+    exit_ladder = target.get("exit_ladder") if isinstance(target, dict) else None
+    lines: list[str] = []
+    lines.append(f"# {symbol} — Weekend DD")
+    lines.append("")
+    lines.append(f"_Generated {datetime.now(timezone.utc).isoformat(timespec='minutes')} by DFV.weekend_dd_")
+    lines.append("")
+    lines.append(f"**Conviction:** {rec.get('conviction', '?')} | "
+                 f"**Author:** {rec.get('author', '?')} | "
+                 f"**Updated:** {rec.get('updated', '?')}")
+    lines.append("")
+    lines.append("## Thesis snapshot")
+    lines.append("")
+    lines.append(f"> {rec.get('thesis', '_(no thesis)_')}")
+    lines.append("")
+    lines.append("## Catalysts and invalidation")
+    lines.append("")
+    if catalysts:
+        for c in catalysts:
+            lines.append(f"- {c}")
+    else:
+        lines.append("- _(no catalysts logged)_")
+    lines.append("")
+    lines.append(f"**Invalidation:** {rec.get('invalidation', '_(none)_ ')}")
+    lines.append(f"**Horizon:** {rec.get('horizon', '_(none)_')}")
+    lines.append("")
+    lines.append("## Position and P&L")
+    lines.append("")
+    lines.append(f"- Qty held (across venues): **{qty if qty is not None else 'n/a'}**")
+    lines.append(f"- Current price: **{current_price if current_price is not None else 'n/a'}**")
+    lines.append(f"- Unrealized P&L (USD): **{unrealized if unrealized is not None else 'n/a'}**")
+    if sizing:
+        lines.append(f"- Doctrinal max % of book: **{sizing.get('max_pct_book', 'n/a')}**")
+    lines.append("")
+    lines.append("## Exit ladder")
+    lines.append("")
+    if isinstance(exit_ladder, dict) and exit_ladder:
+        for k, v in exit_ladder.items():
+            lines.append(f"- **{k}:** {v}")
+    else:
+        lines.append("- _(no exit ladder defined — write one before next session)_")
+    lines.append("")
+    lines.append("## What would change my mind")
+    lines.append("")
+    lines.append("- If invalidation triggers above are hit, close per ladder.")
+    lines.append("- If catalyst window closes without the move, downgrade conviction one tier.")
+    lines.append("- If I cannot restate this thesis in 60 seconds on a whiteboard, drop the name.")
+    lines.append("")
+    return "\n".join(lines)
+
+
+def _refresh_watchlist_from_screeners(dfv: DFV) -> dict[str, Any]:
+    """Run the EOD screeners and swap the watchlist atomically.
+
+    Returns a summary dict for the EOD brief; never raises.
+    """
+    cfg = (dfv.doctrine.get("screeners") or {}) if isinstance(dfv.doctrine, dict) else {}
+    if not cfg.get("enabled", True):
+        return {"status": "disabled"}
+    active = list(cfg.get("active") or [])
+    top_n = int(cfg.get("top_n_per_screen", 5))
+    cap = int(cfg.get("total_cap", 15))
+    try:
+        from agents.dfv import screeners as _screeners  # noqa: PLC0415
+        entries = _screeners.run_all(
+            active=active or None,
+            top_n_per_screen=top_n,
+            total_cap=cap,
+        )
+    except Exception as exc:  # noqa: BLE001
+        _log.warning("dfv.eod.screener_failed", error=str(exc))
+        return {"status": "error", "error": str(exc)}
+    try:
+        dfv.watchlist.replace_all(entries)
+    except Exception as exc:  # noqa: BLE001
+        _log.warning("dfv.eod.watchlist_swap_failed", error=str(exc))
+        return {"status": "error", "error": str(exc), "would_have_written": len(entries)}
+    return {
+        "status": "ok",
+        "count": len(entries),
+        "active_screeners": active,
+        "top_5": list(entries.keys())[:5],
+    }
+
+
+def drift_monitor() -> dict[str, Any]:
+    """Compare war-room arm allocations to doctrine targets; alert on persistent drift.
+
+    Reads ``mission_control.collect_payload().war_room.arms`` (a list of
+    ``{arm, target_pct, actual_pct, actual_usd, name}``), computes
+    ``drift = actual_pct - target_pct`` for each, and bumps a per-arm
+    counter at ``agents/dfv/memory/drift_state.json``. When ``|drift| >=
+    threshold_pct`` for ``sessions_required`` consecutive snapshots, a
+    ``notify(kind='arm_drift')`` fires. Counter resets when the arm
+    returns inside the band.
+    """
+    dfv = DFV()
+    cfg = (dfv.doctrine.get("drift_monitor") or {}) if isinstance(dfv.doctrine, dict) else {}
+    if not cfg.get("enabled", True):
+        return {"type": "drift_monitor", "status": "disabled"}
+    threshold = float(cfg.get("threshold_pct", 5.0))
+    required = int(cfg.get("sessions_required", 3))
+    severity = str(cfg.get("notify_severity", "warn"))
+
+    payload = _safe_collect_payload()
+    war_room = payload.get("war_room") or {}
+    arms = war_room.get("arms") or []
+    if not isinstance(arms, list) or not arms:
+        return {"type": "drift_monitor", "status": "no_arms", "war_room_keys": list(war_room.keys())}
+
+    state_path = REPO_ROOT / "agents" / "dfv" / "memory" / "drift_state.json"
+    import json as _json
+    try:
+        state = _json.loads(state_path.read_text(encoding="utf-8")) if state_path.exists() else {}
+    except Exception:  # noqa: BLE001 — corrupt state file, start fresh
+        state = {}
+    if not isinstance(state, dict):
+        state = {}
+
+    now_iso = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    rows: list[dict[str, Any]] = []
+    alerts: list[dict[str, Any]] = []
+    for arm in arms:
+        if not isinstance(arm, dict):
+            continue
+        key = str(arm.get("arm") or "").strip()
+        if not key:
+            continue
+        target = float(arm.get("target_pct") or 0.0)
+        actual = float(arm.get("actual_pct") or 0.0)
+        drift = actual - target
+        abs_drift = abs(drift)
+        prev = state.get(key, {}) if isinstance(state.get(key), dict) else {}
+        prev_count = int(prev.get("off_sessions") or 0)
+        if abs_drift >= threshold:
+            count = prev_count + 1
+        else:
+            count = 0
+        state[key] = {
+            "last_seen": now_iso,
+            "target_pct": target,
+            "actual_pct": actual,
+            "drift_pct": round(drift, 3),
+            "off_sessions": count,
+        }
+        row = {
+            "arm": key,
+            "name": arm.get("name", key),
+            "target_pct": target,
+            "actual_pct": actual,
+            "drift_pct": round(drift, 3),
+            "off_sessions": count,
+            "off_target": abs_drift >= threshold,
+        }
+        rows.append(row)
+        if count >= required:
+            alerts.append(row)
+            try:
+                from agents.dfv.notifications import notify  # noqa: PLC0415
+                notify(
+                    dfv=dfv,
+                    kind="arm_drift",
+                    title=f"⚖️ Arm drift — {key}",
+                    body=(
+                        f"{arm.get('name', key)}: actual {actual:.1f}% vs "
+                        f"target {target:.1f}% (drift {drift:+.1f}pp) for "
+                        f"{count} consecutive sessions. Re-balance or accept and re-doctrine."
+                    ),
+                    severity=severity,
+                    dedupe_key=f"arm_drift:{key}:{count // required}",
+                )
+            except Exception as exc:  # noqa: BLE001
+                _log.warning("dfv.drift_monitor.notify_failed", arm=key, error=str(exc))
+
+    try:
+        state_path.write_text(_json.dumps(state, indent=2, sort_keys=True), encoding="utf-8")
+    except Exception as exc:  # noqa: BLE001
+        _log.warning("dfv.drift_monitor.state_write_failed", error=str(exc))
+
+    report = {
+        "type": "drift_monitor",
+        "generated_at": now_iso,
+        "threshold_pct": threshold,
+        "sessions_required": required,
+        "arms": rows,
+        "alerts_fired": alerts,
+    }
+    _save_brief("drift_monitor", report)
+    _log.info("dfv.drift_monitor", arms=len(rows), alerts=len(alerts))
     return report
 
 
@@ -609,7 +923,15 @@ def retail_pulse() -> dict[str, Any]:
         _log.warning("dfv.retail_pulse.youtube_failed", error=str(exc))
 
     # Contrarian compass: panic-keyword level vs. ticker-keyword level
-    panic = [trends_data.get("values", {}).get(k) for k in
+    # Defensive: trends_data may not be a dict if pytrends returns an unexpected shape.
+    if not isinstance(trends_data, dict):
+        _log.warning("dfv.retail_pulse.trends_unexpected_shape",
+                     type=type(trends_data).__name__)
+        trends_data = {"ok": False, "values": {}, "raw": trends_data}
+    trends_values = trends_data.get("values") or {}
+    if not isinstance(trends_values, dict):
+        trends_values = {}
+    panic = [trends_values.get(k) for k in
              ("stock market crash", "recession", "bear market")]
     panic_avg = (sum(p for p in panic if isinstance(p, (int, float))) /
                  max(1, sum(1 for p in panic if isinstance(p, (int, float))))) \
@@ -658,16 +980,7 @@ def open_bell_prep() -> dict[str, Any]:
         "type": "open_bell_prep",
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "minutes_to_open": "T-5",
-        "portfolio": {
-            "total_equity_usd": portfolio.get("total_assets_usd")
-                or portfolio.get("total_equity")
-                or portfolio.get("total_value"),
-            "buying_power_usd": portfolio.get("buying_power_usd"),
-            "open_positions": len([
-                p for acct in _iter_accounts(portfolio)
-                for p in acct.get("positions", [])
-            ]),
-        },
+        "portfolio": _portfolio_summary(portfolio),
         "held_symbols": held,
         "war_room": {
             "composite": war_room.get("composite_score"),

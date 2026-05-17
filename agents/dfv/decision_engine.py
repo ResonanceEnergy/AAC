@@ -123,6 +123,11 @@ class DFV:
         results.append(self._gate_liquidity(float(proposal.get("expected_slippage_pct", 0.0))))
         # G8 — vol regime (long-vega entries only)
         results.append(self._gate_vol_regime(proposal))
+        # G9 — autonomy lock: trade execution requires human OK unless
+        # doctrine.autonomy.trade_execution == "full". Per operator
+        # directive 2026-05-16, this stays "human_in_loop" until
+        # explicit DFV-AUTONOMY-CHANGE.
+        results.append(self._gate_autonomy(proposal))
 
         decision = self._render_verdict(symbol, proposal, results)
         decision.second_opinion = self._gemini_second_opinion(symbol, proposal, decision)
@@ -307,6 +312,43 @@ class DFV:
         )
 
     # ── Verdict synthesis ─────────────────────────────────────────
+    def _gate_autonomy(self, proposal: dict[str, Any]) -> GateResult:
+        """G9 — autonomy lock.
+
+        Order placement requires ``doctrine.autonomy.trade_execution ==
+        "full"``. Anything else (default ``human_in_loop``) → hard fail
+        so the decision renders as ``returned`` and the caller is forced
+        to ask the operator before placing the order.
+
+        ``proposal.kind`` of ``"research"`` / ``"screen"`` / ``"alert"``
+        / ``"propose"`` bypasses the gate — those are doctrine-blessed
+        autonomous activities.
+        """
+        kind = str(proposal.get("kind") or "").lower()
+        if kind in {"research", "screen", "alert", "propose", "memory", "watchlist", "nudge"}:
+            return GateResult("G9", "autonomy_lock", "pass", "hard",
+                              f"non-execution activity ({kind}); autonomy gate not applicable")
+        # Only enforce on explicit order-placement actions.
+        action = str(proposal.get("action") or "").lower()
+        is_order = bool(proposal.get("place_order")) or action in {
+            "buy", "sell", "buy_put", "buy_call", "sell_put", "sell_call",
+            "close", "roll", "open", "long_vol", "short_vol", "submit_order",
+        }
+        if not is_order:
+            return GateResult("G9", "autonomy_lock", "pass", "hard",
+                              "not an order-placement proposal; autonomy gate not applicable")
+        mode = str(
+            (self.doctrine.get("autonomy") or {}).get("trade_execution") or "human_in_loop"
+        ).lower()
+        if mode == "full":
+            return GateResult("G9", "autonomy_lock", "pass", "hard",
+                              "doctrine.autonomy.trade_execution=full — autonomous execution permitted")
+        return GateResult(
+            "G9", "autonomy_lock", "fail", "hard",
+            f"doctrine.autonomy.trade_execution={mode!r}; order placement requires explicit human OK. "
+            "Flip the switch via a DFV-AUTONOMY-CHANGE commit before retrying.",
+        )
+
     def _render_verdict(
         self,
         symbol: str,

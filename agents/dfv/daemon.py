@@ -30,6 +30,7 @@ from agents.dfv.routines import (
     asia_watch,
     brief,
     close_debrief,
+    drift_monitor,
     eod,
     midday,
     open_bell_prep,
@@ -119,6 +120,7 @@ ROUTINES: dict[str, Callable[[], dict]] = {
     "eod_prep":       eod,
     "close_debrief":  close_debrief,
     "asia_watch":     asia_watch,
+    "drift_monitor":  drift_monitor,
     "weekend_dd":     weekend_dd,
 }
 
@@ -199,7 +201,10 @@ def run_forever(tick_seconds: int = 60) -> None:
                     last_routine = name
                     last_routine_ts = datetime.now(timezone.utc).isoformat(timespec="seconds")
                 except Exception as e:  # noqa: BLE001 — daemon must survive routine errors
-                    _log.error("dfv.daemon.routine_error", routine=name, error=str(e))
+                    import traceback as _tb  # noqa: PLC0415
+                    _log.error("dfv.daemon.routine_error", routine=name,
+                               error=str(e), error_type=type(e).__name__,
+                               traceback=_tb.format_exc().splitlines()[-6:])
                 fired_this_minute.add(key)
 
         # Orphan-position guard (separate cadence from briefs)

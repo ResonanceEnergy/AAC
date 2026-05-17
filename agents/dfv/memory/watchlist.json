@@ -1,1 +1,107 @@
-{}
+{
+  "EOG": {
+    "added": "2026-05-16T23:36:27+00:00",
+    "reason": "5d momentum +3.14%; price 140.26 \u2014 oil regime tape",
+    "score": 3.14,
+    "screener": "oil_geopolitical",
+    "source": "screener:oil_geopolitical"
+  },
+  "GAIN": {
+    "added": "2026-05-16T23:36:27+00:00",
+    "reason": "5d return -1.03%; price 16.41 \u2014 proxy for NAV-discount stress",
+    "score": 1.025,
+    "screener": "bdc_stress",
+    "source": "screener:bdc_stress"
+  },
+  "GBDC": {
+    "added": "2026-05-16T23:36:27+00:00",
+    "reason": "5d return -0.84%; price 13.06 \u2014 proxy for NAV-discount stress",
+    "score": 0.835,
+    "screener": "bdc_stress",
+    "source": "screener:bdc_stress"
+  },
+  "GLAD": {
+    "added": "2026-05-16T23:36:27+00:00",
+    "reason": "5d return -0.72%; price 19.21 \u2014 proxy for NAV-discount stress",
+    "score": 0.724,
+    "screener": "bdc_stress",
+    "source": "screener:bdc_stress"
+  },
+  "IWM": {
+    "added": "2026-05-16T23:36:27+00:00",
+    "reason": "|5d move| +2.41%; price 277.60 \u2014 vol breakout proxy",
+    "score": 2.408,
+    "screener": "vol_squeeze",
+    "source": "screener:vol_squeeze"
+  },
+  "MSFT": {
+    "added": "2026-05-16T23:36:27+00:00",
+    "reason": "|5d move| +3.05%; price 421.92 \u2014 vol breakout proxy",
+    "score": 3.051,
+    "screener": "vol_squeeze",
+    "source": "screener:vol_squeeze"
+  },
+  "NVDA": {
+    "added": "2026-05-16T23:36:27+00:00",
+    "reason": "|5d move| +4.42%; price 225.32 \u2014 vol breakout proxy",
+    "score": 4.42,
+    "screener": "vol_squeeze",
+    "source": "screener:vol_squeeze"
+  },
+  "OXY": {
+    "added": "2026-05-16T23:36:27+00:00",
+    "reason": "5d momentum +4.89%; price 59.62 \u2014 oil regime tape",
+    "score": 4.891,
+    "screener": "oil_geopolitical",
+    "source": "screener:oil_geopolitical"
+  },
+  "TCPC": {
+    "added": "2026-05-16T23:36:27+00:00",
+    "reason": "5d return -3.04%; price 4.15 \u2014 proxy for NAV-discount stress",
+    "score": 3.037,
+    "screener": "bdc_stress",
+    "source": "screener:bdc_stress"
+  },
+  "TSLA": {
+    "added": "2026-05-16T23:36:27+00:00",
+    "reason": "|5d move| +4.75%; price 422.24 \u2014 vol breakout proxy",
+    "score": 4.751,
+    "screener": "vol_squeeze",
+    "source": "screener:vol_squeeze"
+  },
+  "TSLX": {
+    "added": "2026-05-16T23:36:27+00:00",
+    "reason": "5d return -1.01%; price 17.73 \u2014 proxy for NAV-discount stress",
+    "score": 1.005,
+    "screener": "bdc_stress",
+    "source": "screener:bdc_stress"
+  },
+  "USO": {
+    "added": "2026-05-16T23:36:27+00:00",
+    "reason": "5d momentum +3.66%; price 148.23 \u2014 oil regime tape",
+    "score": 3.657,
+    "screener": "oil_geopolitical",
+    "source": "screener:oil_geopolitical"
+  },
+  "XOM": {
+    "added": "2026-05-16T23:36:27+00:00",
+    "reason": "5d momentum +3.36%; price 157.92 \u2014 oil regime tape",
+    "score": 3.364,
+    "screener": "oil_geopolitical",
+    "source": "screener:oil_geopolitical"
+  },
+  "XOP": {
+    "added": "2026-05-16T23:36:27+00:00",
+    "reason": "5d momentum +2.90%; price 174.13 \u2014 oil regime tape",
+    "score": 2.902,
+    "screener": "oil_geopolitical",
+    "source": "screener:oil_geopolitical"
+  },
+  "^VIX": {
+    "added": "2026-05-16T23:36:27+00:00",
+    "reason": "|5d move| +6.78%; price 18.43 \u2014 vol breakout proxy",
+    "score": 6.779,
+    "screener": "vol_squeeze",
+    "source": "screener:vol_squeeze"
+  }
+}

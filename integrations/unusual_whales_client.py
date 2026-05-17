@@ -76,6 +76,40 @@ def _parse_occ_symbol(symbol: str) -> Dict[str, Any]:
     }
 
 
+def _derive_flow_sentiment(item: Dict[str, Any], option_type: str) -> str:
+    """UW ``/option-trades/flow-alerts`` does NOT return a `sentiment` field.
+
+    Without this helper every alert was tagged ``'neutral'``, so the
+    downstream signal aggregator in ``daily_recommendation_engine`` never
+    raised a bullish/bearish flag — i.e. our only paid flow source was inert.
+
+    We infer sentiment from where the premium hit:
+      * ask-side dominated  → aggressive *buyer*
+      * bid-side dominated  → aggressive *seller*
+    Then map by side: call-buy=bullish, put-buy=bearish, call-sell=bearish,
+    put-sell=bullish. Returns ``'neutral'`` if both legs are missing.
+    """
+    try:
+        ask_prem = float(item.get("total_ask_side_prem") or 0)
+        bid_prem = float(item.get("total_bid_side_prem") or 0)
+    except (TypeError, ValueError):
+        return "neutral"
+    if ask_prem <= 0 and bid_prem <= 0:
+        return "neutral"
+    total = ask_prem + bid_prem
+    if total <= 0:
+        return "neutral"
+    ask_share = ask_prem / total
+    bought = ask_share >= 0.60  # firm lean
+    sold = ask_share <= 0.40
+    if not bought and not sold:
+        return "neutral"
+    is_call = option_type == "call"
+    if bought:
+        return "bullish" if is_call else "bearish"
+    return "bearish" if is_call else "bullish"
+
+
 @dataclass
 class DarkPoolTrade:
     """Parsed dark pool trade"""
@@ -224,13 +258,15 @@ class UnusualWhalesClient(APIClient):
                 or item.get('side')
                 or occ.get('option_type', '')
             )
+            option_type = str(type_field).lower()
+            sentiment = item.get('sentiment') or _derive_flow_sentiment(item, option_type)
 
             results.append(OptionsFlow(
                 ticker=str(ticker_field),
                 strike=float(strike_field or 0),
                 expiry=str(expiry_field),
-                option_type=str(type_field).lower(),
-                sentiment=item.get('sentiment', 'neutral'),
+                option_type=option_type,
+                sentiment=sentiment,
                 premium=premium,
                 volume=int(
                     float(item.get('total_size') or item.get('volume') or item.get('size') or 0)
@@ -498,6 +534,22 @@ class UnusualWhalesClient(APIClient):
         if not response.success:
             return []
         data = response.data
-        if isinstance(data, dict):
-            return data.get('data', [])[:limit]
-        return data[:limit] if isinstance(data, list) else []
+        rows = data.get('data', []) if isinstance(data, dict) else (data if isinstance(data, list) else [])
+        rows = rows[:limit]
+        # Enrich with derived sentiment + a normalized option_type so callers
+        # downstream (e.g. daily_recommendation_engine.get_flow_signals) don't
+        # silently see every alert as 'neutral'.
+        for row in rows:
+            if not isinstance(row, dict):
+                continue
+            opt_type = str(
+                row.get('type')
+                or row.get('put_call')
+                or row.get('option_type')
+                or row.get('side')
+                or ''
+            ).lower()
+            row.setdefault('option_type', opt_type)
+            if not row.get('sentiment'):
+                row['sentiment'] = _derive_flow_sentiment(row, opt_type)
+        return rows

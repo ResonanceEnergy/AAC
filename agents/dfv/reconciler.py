@@ -202,7 +202,14 @@ def reconcile(
         "mismatches": mismatches,
         "mismatch_count": len(mismatches),
     }
-    inst.reconciliation.write(snapshot)
+    # Don't clobber a good snapshot with an empty one (collector may have failed silently).
+    # Only skip when literally no observation source produced anything.
+    no_observation = (not by_venue) and (ca is None) and (live_ibkr is None)
+    if no_observation:
+        _log.info("dfv.reconciler.no_observation_skipped")
+        snapshot["skipped_write_reason"] = "no_observation"
+    else:
+        inst.reconciliation.write(snapshot)
 
     if mismatches and cfg.get("notify_on_mismatch", True):
         notify(

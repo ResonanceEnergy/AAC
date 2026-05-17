@@ -1,8 +1,98 @@
 {
-  "by_venue": {},
+  "by_venue": {
+    "IBKR": {
+      "BKLN": 3.0,
+      "EMB": 1.0,
+      "HYG": 1.0,
+      "LQD": 1.0,
+      "OBDC": 11.0,
+      "SLV": 12.0,
+      "TSLA": 1.0,
+      "XLE": 3.0,
+      "XRP": 5.0,
+      "XRPT": 1.0
+    },
+    "MOOMOO": {
+      "OWL": 12.0,
+      "SLV": 5.0,
+      "XLE": 4.0,
+      "XRP": 15.0
+    },
+    "NDAX": {
+      "ETH": 0.333428695701362,
+      "XRP": 339.238924
+    },
+    "WEALTHSIMPLE": {
+      "HOLO": 0.0075
+    }
+  },
   "central_accounting_available": false,
-  "mismatch_count": 0,
-  "mismatches": [],
-  "totals": {},
-  "ts": "2026-05-16T17:42:57+00:00"
+  "ibkr_account_summary": {},
+  "ibkr_live_available": false,
+  "ibkr_live_positions": {},
+  "mismatch_count": 3,
+  "mismatches": [
+    {
+      "kind": "duplicated_across_venues",
+      "symbol": "SLV",
+      "venues": [
+        {
+          "qty": 12.0,
+          "venue": "IBKR"
+        },
+        {
+          "qty": 5.0,
+          "venue": "MOOMOO"
+        }
+      ]
+    },
+    {
+      "kind": "duplicated_across_venues",
+      "symbol": "XLE",
+      "venues": [
+        {
+          "qty": 3.0,
+          "venue": "IBKR"
+        },
+        {
+          "qty": 4.0,
+          "venue": "MOOMOO"
+        }
+      ]
+    },
+    {
+      "kind": "duplicated_across_venues",
+      "symbol": "XRP",
+      "venues": [
+        {
+          "qty": 5.0,
+          "venue": "IBKR"
+        },
+        {
+          "qty": 15.0,
+          "venue": "MOOMOO"
+        },
+        {
+          "qty": 339.238924,
+          "venue": "NDAX"
+        }
+      ]
+    }
+  ],
+  "totals": {
+    "BKLN": 3.0,
+    "EMB": 1.0,
+    "ETH": 0.333428695701362,
+    "HOLO": 0.0075,
+    "HYG": 1.0,
+    "LQD": 1.0,
+    "OBDC": 11.0,
+    "OWL": 12.0,
+    "SLV": 17.0,
+    "TSLA": 1.0,
+    "XLE": 7.0,
+    "XRP": 359.238924,
+    "XRPT": 1.0
+  },
+  "ts": "2026-05-17T01:41:14+00:00"
 }

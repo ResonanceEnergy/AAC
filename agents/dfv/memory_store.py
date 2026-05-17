@@ -162,6 +162,20 @@ class Watchlist:
     def all(self) -> dict[str, dict[str, Any]]:
         return dict(self._data)
 
+    def replace_all(self, entries: dict[str, dict[str, Any]]) -> None:
+        """Atomically swap the entire watchlist (used by the EOD screener).
+
+        Each entry value should be a dict; missing ``added`` is filled with
+        the current UTC timestamp so downstream readers can always sort.
+        """
+        normalized: dict[str, dict[str, Any]] = {}
+        for sym, payload in entries.items():
+            data = dict(payload or {})
+            data.setdefault("added", _utc_now())
+            normalized[sym.upper()] = data
+        self._data = normalized
+        _atomic_write_json(self.path, self._data)
+
 
 # ── Decisions log (append-only JSONL) ─────────────────────────────────────
 class DecisionsLog:

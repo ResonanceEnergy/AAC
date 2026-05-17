@@ -104,6 +104,16 @@ def _get_ib() -> Any:
 
     for port in candidates:
         try:
+            # ib_insync's sync connect() internally schedules connectAsync on the
+            # thread's event loop. Worker threads (e.g. xAI council, scheduler)
+            # don't have one — without this guard the coroutine is created but
+            # never awaited, raising "There is no current event loop in thread X"
+            # and spamming RuntimeWarning.
+            import asyncio as _asyncio  # noqa: PLC0415
+            try:
+                _asyncio.get_event_loop()
+            except RuntimeError:
+                _asyncio.set_event_loop(_asyncio.new_event_loop())
             ib = IB()
             ib.connect(host, port, clientId=client_id, timeout=4)
             _IB_INSTANCE = ib

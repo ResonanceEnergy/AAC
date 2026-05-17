@@ -7,6 +7,13 @@ codename: DFV
 operator: "Keith Patrick Gill (Roaring Kitty / DeepFuckingValue)"
 
 # ── Autonomy switches ────────────────────────────────────────────
+# DFV-AUTONOMY-LOCK: trade_execution MUST stay 'human_in_loop'.
+# Flipping to 'full' requires:
+#   1) explicit operator OK in a commit message tagged DFV-AUTONOMY-CHANGE
+#   2) a passing dry-run report committed under reports/dfv/autonomy/
+# decision_engine.review_prompt() enforces this at runtime — it will
+# REJECT order placement when trade_execution != 'full' even if a caller
+# tries to bypass the gates.
 autonomy:
   research: full # screening, DD, thesis updates
   briefings: full # daily/weekly briefs, alerts
@@ -121,6 +128,7 @@ cadence:
   pre_market: "07:30"
   open_bell_prep: "09:25"
   midday: "12:00"
+  drift_monitor: "12:30" # arm-allocation drift sweep — alerts after 3 sessions off target
   retail_pulse: "13:30"
   eod_prep: "15:45"
   close_debrief: "17:00"
@@ -206,3 +214,55 @@ hard_rules:
   - "Cash is a position. Dry powder is sacred."
   - "No trade that risks irrationality eating my solvency."
   - "If I can't say 'I like the stock' in plain English, I don't own it."
+
+# ── Allocation arms (war room rotation targets) ─────────────────
+# Targets mirror divisions/trading/warroom/engine.py::ArmAllocation
+# tuples so drift_monitor can compare actual vs target without coupling
+# to that module. Update both places when re-balancing.
+allocation_arms:
+  iran_oil:       { target_pct: 30, limit_pct: 35 }
+  bdc_credit:     { target_pct: 25, limit_pct: 30 }
+  crypto_metals:  { target_pct: 20, limit_pct: 25 }
+  defi_yield:     { target_pct: 15, limit_pct: 20 }
+  tradfi_rotate:  { target_pct: 10, limit_pct: 15 }
+
+# ── Drift monitor ───────────────────────────────────────────────
+# Trips a notification when an arm's actual allocation is >threshold_pct
+# off target for sessions_required consecutive sessions. Designed to
+# catch slow capital migration before it becomes a regret-the-bottom
+# rebalance. State persisted at agents/dfv/memory/drift_state.json.
+drift_monitor:
+  enabled: true
+  threshold_pct: 5.0   # absolute drift band (target ±5pp)
+  sessions_required: 3 # consecutive midday snapshots off-target
+  notify_severity: "warn"
+  source: "mission_control.collect_payload().war_room.arms"
+
+# ── Screener-driven watchlist ───────────────────────────────────
+# EOD pulls top-N candidates per screener into agents/dfv/memory/watchlist.json,
+# replacing prior contents. Each entry carries its score + screener tag
+# so the brief can rank tomorrow's homework deterministically.
+screeners:
+  enabled: true
+  top_n_per_screen: 5
+  total_cap: 15
+  active:
+    - bdc_stress     # NAV discount + non-accrual cluster
+    - oil_geopolitical # XLE/Brent regime + Iran/OPEC headline
+    - vol_squeeze    # IV rank + dealer GEX wall proximity
+
+# ── Weekend DD writer (Saturday 09:00) ──────────────────────────
+# For every thesis with conviction >= min_conviction, writes a fresh
+# markdown DD under agents/dfv/memory/dd/{SYMBOL}_dd.md. Idempotent
+# (overwrites each Saturday). Catches stale theses and forces a
+# 60-second whiteboard restatement.
+weekend_dd:
+  enabled: true
+  min_conviction: 3
+  out_dir: "agents/dfv/memory/dd"
+  include_sections:
+    - thesis_snapshot
+    - catalysts_and_invalidation
+    - position_and_pnl
+    - exit_ladder
+    - what_would_change_my_mind
